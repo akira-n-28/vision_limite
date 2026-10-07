@@ -52,6 +52,22 @@ reqs="$OUTPUT_ROOT/env/requirements-${SLURM_JOB_ID}.txt"
 mkdir -p "$OUTPUT_ROOT/env"
 (cd "$LOCK_DIR" && "$UV" export --frozen --offline --no-emit-project --no-dev \
     --format requirements-txt -o "$reqs")
+# Sorgenti URL (es. la wheel di vLLM nel caso B): il job è offline, quindi le punto alla copia
+# già scaricata nel wheelhouse; l'hash del lock (--hash) resta e viene verificato da uv.
+url_re='^([A-Za-z0-9._-]+) @ https://[^ ]+/([^/ ]+\.whl)(.*)$'
+while IFS= read -r line; do
+  if [[ $line =~ $url_re ]]; then
+    fname=${BASH_REMATCH[2]//%2B/+}
+    [[ -f $WHEELHOUSE/$fname ]] && line="${BASH_REMATCH[1]} @ file://$WHEELHOUSE/$fname${BASH_REMATCH[3]}"
+  fi
+  printf '%s\n' "$line"
+done < "$reqs" > "$reqs.local"
+mv -f "$reqs.local" "$reqs"
+if grep -E '^[A-Za-z0-9._-]+ @ https://' "$reqs"; then
+  echo "sorgenti URL senza copia locale nel wheelhouse (sopra): il job è offline, mi fermo" >&2
+  exit 1
+fi
+grep -E ' @ file://' "$reqs" | cut -c1-200 || true
 echo "requisiti: $(grep -c '==' "$reqs") pacchetti ($reqs)"
 
 "$UV" venv --python "$BASE_PYTHON" "$NEW_ENV"

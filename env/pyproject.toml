@@ -1,0 +1,41 @@
+# Caso B — driver NVIDIA 570.211.01 (CUDA 12.8), letto dalla sonda 29347 il 2026-10-07.
+# Da env/pyproject.cu12.template.toml, scelta confermata dall'utente il 2026-10-07:
+#   - vLLM 0.26.0 (versione verificata da Paradigma): l'unica build CUDA 12 della release è +cu129
+#     (controllato sulla pagina delle release GitHub il 2026-10-07)
+#   - torch 2.11.0 dall'indice cu129, stessa CUDA della wheel di vLLM (esiste anche +cu128)
+#   - CUDA 12.9 su driver 570 vale per compatibilità di versione minore: da verificare nel
+#     primo test GPU (slurm/f0_checks.sbatch); se fallisce, tornare all'indice cu128
+#   - risoluzione limitata a Linux x86_64 (l'unica piattaforma dove gira l'ambiente)
+[project]
+name = "limite-vl-env"
+version = "0.0.0"
+requires-python = "~=3.12.0"
+dependencies = [
+    "torch==2.11.0",            # deve coincidere con il torch richiesto dalla wheel di vLLM (lo controlla uv lock)
+    "transformers==5.6.2",
+    "vllm",                     # fissato dalla sorgente URL qui sotto
+    "pillow",
+    "numpy",
+    "pyarrow",
+    "safetensors",
+    "webdataset",
+    "imagehash",
+    "matplotlib",
+    "sympy",
+    "math-verify",
+    "tqdm",
+    "hatchling",                # per installare offline il plugin Limite
+]
+
+[tool.uv]
+package = false
+environments = ["sys_platform == 'linux' and platform_machine == 'x86_64'"]
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu129" }
+vllm = { url = "https://github.com/vllm-project/vllm/releases/download/v0.26.0/vllm-0.26.0+cu129-cp38-abi3-manylinux_2_28_x86_64.whl" }
+
+[[tool.uv.index]]
+name = "pytorch-cu129"
+url = "https://download.pytorch.org/whl/cu129"
+explicit = true
