@@ -1,5 +1,11 @@
 # Lagrange cluster operating guide
 
+## User storage clarification — 2026-10-07
+
+The user confirms that no personal storage quota applies to /home/prignano. This
+supersedes the 'Personal storage allowance: Not established' row below; shared-filesystem
+courtesy and all other constraints remain.
+
 ## User-authorized download clarification — 2026-10-06
 
 The user confirms that `lagrangectl` is the only Internet-connected node and

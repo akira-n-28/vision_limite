@@ -67,8 +67,9 @@ Le cartelle dei log devono esistere **prima** di `sbatch` (`mkdir -p outputs/log
 
 ## Download
 
-1. Controllare lo spazio: `df -hT /home; df -i /home` e la quota (finché non è nota,
-   chiedere all'utente prima di superare 100 GB).
+1. Controllare lo spazio: `df -hT /home; df -i /home`. Nessuna quota personale (confermato
+   dall'utente il 2026-10-07), ma /home è condiviso: avvisare l'utente prima che il progetto
+   superi 1 TB in totale o se lo spazio libero su /home scende sotto 2 TB.
 2. Generare i manifest con `downloads/build_manifests.sh <gruppo>` (righe di
    `downloads/sources.tsv`; quelle con VERIFICARE vanno prima corrette controllando la
    pagina del repository Hugging Face). Per le wheel: `scripts/uvlock_manifest.py`.
@@ -139,7 +140,7 @@ Procedura per ogni job:
 Le fasi F0-F4 e i criteri di avanzamento sono nel piano. Claude Code **non passa alla fase
 successiva da solo**: a fine fase riporta all'utente le metriche (AIME 2026 testuale,
 benchmark visivi, test dell'immagine bianca) e aspetta l'ok. Stesso per: adottare un
-ambiente, superare 100 GB di spazio, lanciare job più lunghi di 24 ore, cambiare dati o
+ambiente, superare 1 TB di spazio totale, lanciare job più lunghi di 24 ore, cambiare dati o
 iperparametri rispetto al piano.
 
 ## Fatti verificati sul codice di Limite (`modeling_limite.py` @ b1f3d572)
