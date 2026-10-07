@@ -1,0 +1,16 @@
+# Cartelle pesanti o private dentro /home/prignano/vision_limite: mai in git.
+/data/
+/hf/
+/wheels/
+/tools/
+/venvs/
+/cache/
+/outputs/
+/secrets/
+# Repository esterni clonati (il commit è annotato nel README)
+/third_party/*/
+# Manifest generati (si rigenerano dagli script)
+/downloads/manifests/*.tsv
+__pycache__/
+*.pyc
+*.part

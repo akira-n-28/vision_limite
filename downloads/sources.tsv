@@ -1,0 +1,31 @@
+# Sorgenti da scaricare, in ordine di priorità. Colonne separate da TAB:
+# gruppo	tipo	repo	revisione	include (glob separati da ;, - = tutto)	exclude	nota
+# Le revisioni a 40 caratteri sono quelle fissate dal valutatore ufficiale (limite-evals).
+# "main" viene risolto in un commit da hf_manifest.py e scritto nella specifica: annotarlo nel ledger.
+# VERIFICARE = id del repository da controllare sulla pagina Hugging Face prima di generare il manifest.
+p1	model	paradigma-inc/limite-1b-violetto	b1f3d572ccacb6919f4d64c321b70ba034ddaef2	-	assets/*	checkpoint di partenza, 2.07 GB
+p1	model	google/siglip2-so400m-patch16-naflex	main	-	-	encoder principale
+p1	model	google/siglip2-base-patch16-naflex	main	-	-	encoder per le ablation
+p1	dataset	MathArena/aime_2026	10b4e45b7a503075d4da8a0d57916a4f06ce6bd2	-	-	guardia testuale
+p1	dataset	opencompass/AIME2025	a6ad95f611d72cf628a80b58bd0432ef6638f958	-	-	guardia testuale
+p1	dataset	MathArena/hmmt_feb_2026	02fba4f74d8e68e73e66a02d540fd979c05c274c	-	-	guardia testuale
+p1	dataset	MathArena/hmmt_feb_2025	6fdc4277120810ff75aa22d2d5489b91f7a262a1	-	-	suite math-extended
+p1	dataset	ByteDance-Seed/BeyondAIME	c705198ae1043810b1e1693bd879250b51a7a523	-	-	suite math-extended
+p1	dataset	MathArena/apex-shortlist	f3efdf224ef665f129ddaae37699f6098c65781b	-	-	suite math-extended
+p1	dataset	HuggingFaceH4/aime_2024	2fe88a2f1091d5048c0f36abc874fb997b3dd99a	-	-	suite math-extended
+p1	dataset	HuggingFaceH4/MATH-500	6e4ed1a2a79af7d8630a6b768ec859cb5af4d3be	-	-	suite math-extended
+p1	dataset	Hothan/OlympiadBench	91184b52131e7fc9455fef848035173aea8cc01a	-	-	suite math-extended
+p3	dataset	liuhaotian/LLaVA-Pretrain	main	blip_laion_cc_sbu_558k.json;images.zip	-	F1 allineamento, circa 27 GB; estrarre in un job CPU e convertire in shard
+p3	dataset	CaraJ/MAVIS-Caption	main	-	-	VERIFICARE id; F1 didascalie di diagrammi
+p4	model	Qwen/Qwen3-VL-8B-Instruct	main	-	-	VERIFICARE id e licenza; teacher per le descrizioni
+p4	model	Qwen/Qwen3-VL-2B-Instruct	main	-	-	VERIFICARE id; VLM di riferimento per la valutazione
+p5	dataset	skylenage/DeepVision-103K	main	-	-	F4 RL, risposte verificabili
+p5	dataset	Zhiqiang007/MathV360K	main	-	-	VERIFICARE id; F2 problemi (solo domande e risposte)
+p5	dataset	Luckyjhg/Geo170K	main	-	-	VERIFICARE id; F2 problemi di geometria
+p5	dataset	CaraJ/MAVIS-Instruct	main	-	-	VERIFICARE id; F2 problemi
+p6	dataset	AI4Math/MathVista	main	-	-	VERIFICARE id; valutazione (testmini)
+p6	dataset	AI4Math/MathVerse	main	-	-	VERIFICARE id; valutazione vision-only e vision-dominant
+p6	dataset	MathLLMs/MathVision	main	-	-	VERIFICARE id; valutazione
+p6	dataset	We-Math/We-Math	main	-	-	VERIFICARE id; valutazione
+p6	dataset	DynaMath/DynaMath_Sample	main	-	-	VERIFICARE id; valutazione
+p7	dataset	HuggingFaceM4/FineVision	main	VERIFICARE	-	solo i sottoinsiemi di grafici, tabelle e documenti: scegliere le cartelle e metterle in include

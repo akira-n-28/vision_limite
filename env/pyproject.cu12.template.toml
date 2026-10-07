@@ -1,0 +1,35 @@
+# Modello per l'ambiente con CUDA 12 (driver 570). Rinominare in pyproject.toml dopo aver
+# verificato versioni e URL, poi `uv lock` su una macchina con Internet (vedi README.md).
+[project]
+name = "limite-vl-env"
+version = "0.0.0"
+requires-python = "~=3.12.0"
+dependencies = [
+    "torch==2.11.0",            # VERIFICARE: deve coincidere con il torch richiesto dalla wheel di vLLM scelta
+    "transformers==5.6.2",
+    "vllm",                     # fissato dalla sorgente URL qui sotto
+    "pillow",
+    "numpy",
+    "pyarrow",
+    "safetensors",
+    "webdataset",
+    "imagehash",
+    "matplotlib",
+    "sympy",
+    "math-verify",
+    "tqdm",
+    "hatchling",                # per installare offline il plugin Limite
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu128" }
+# VERIFICARE che la wheel esista nella release GitHub di vLLM e che sia una build CUDA 12:
+vllm = { url = "https://github.com/vllm-project/vllm/releases/download/v0.26.0/vllm-0.26.0+cu129-cp38-abi3-manylinux_2_28_x86_64.whl" }
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
