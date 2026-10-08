@@ -5,8 +5,10 @@
 #   LOCK_DIR   cartella con pyproject.toml + uv.lock da installare (default: env/ del repo)
 #   UV_TARBALL tarball di uv scaricato con fetch.sh (default: $TOOLS_DIR/uv-x86_64-unknown-linux-gnu.tar.gz)
 #   BASE_PYTHON interprete 3.12 del nodo (default: /usr/bin/python3)
-# Output: un ambiente NUOVO in $VENVS_DIR/build-<jobid>. Non tocca ambienti esistenti.
-# Per adottarlo, dopo aver letto il log:  ln -sfn build-<jobid> $VENVS_DIR/current
+#   ENV_NAME   main (training e serving, default) | evals (client del valutatore, senza torch né vLLM)
+# Output: un ambiente NUOVO in $VENVS_DIR/build-<jobid> (evals: evals-build-<jobid>). Non tocca
+# ambienti esistenti. Per adottarlo, dopo aver letto il log:  ln -sfn build-<jobid> $VENVS_DIR/current
+# (evals: ln -sfn evals-build-<jobid> $VENVS_DIR/evals-current)
 #SBATCH --job-name=lvl-env
 #SBATCH --partition=mat
 #SBATCH --nodes=1
@@ -29,8 +31,30 @@ LOCK_DIR=${LOCK_DIR:-$PROJECT_ROOT/env}
 TOOLS=$TOOLS_DIR
 UV_TARBALL=${UV_TARBALL:-$TOOLS/uv-x86_64-unknown-linux-gnu.tar.gz}
 BASE_PYTHON=${BASE_PYTHON:-$(command -v python3.12 || echo /usr/bin/python3)}
+ENV_NAME=${ENV_NAME:-main}
+EXPORT_EXTRA=()
+case $ENV_NAME in
+  main)
+    PREFIX=build
+    LOCAL_PKGS=("$PROJECT_ROOT/third_party/limite-violetto") ;;  # plugin vLLM di Limite
+  evals)
+    PREFIX=evals-build
+    EVALS_SRC=$PROJECT_ROOT/third_party/limite-violetto/limite-evals
+    # verifiers: copia locale al commit fissato da limite-evals; versione dinamica (hatch-vcs)
+    # forzata a quella dei metadati statici nel lock (env-evals/pyproject.toml).
+    LOCAL_PKGS=("$PROJECT_ROOT/third_party/verifiers" "$EVALS_SRC/packages/limite-evals-core"
+                "$EVALS_SRC/packages/olmo-hybrid-vllm-plugin" "$EVALS_SRC")
+    EXPORT_EXTRA=(--no-emit-package verifiers)
+    verifiers_version=$(awk '$0 == "name = \"verifiers\"" { getline; gsub(/"/, "", $3); print $3; exit }' "$LOCK_DIR/uv.lock")
+    [[ -n $verifiers_version ]] || { echo "versione di verifiers non trovata in $LOCK_DIR/uv.lock" >&2; exit 1; }
+    export SETUPTOOLS_SCM_PRETEND_VERSION_FOR_VERIFIERS=$verifiers_version ;;
+  *) echo "ENV_NAME sconosciuto: $ENV_NAME (main|evals)" >&2; exit 2 ;;
+esac
+for pkg in "${LOCAL_PKGS[@]}"; do
+  test -f "$pkg/pyproject.toml" || { echo "pacchetto locale mancante: $pkg" >&2; exit 1; }
+done
 mkdir -p "$VENVS_DIR"
-NEW_ENV="$VENVS_DIR/build-${SLURM_JOB_ID}"
+NEW_ENV="$VENVS_DIR/${PREFIX}-${SLURM_JOB_ID}"
 export UV_OFFLINE=1 UV_NO_PROGRESS=1 UV_CACHE_DIR="$CACHE_ROOT/uv"
 
 test -f "$LOCK_DIR/uv.lock" || { echo "manca $LOCK_DIR/uv.lock" >&2; exit 1; }
@@ -51,7 +75,7 @@ fi
 reqs="$OUTPUT_ROOT/env/requirements-${SLURM_JOB_ID}.txt"
 mkdir -p "$OUTPUT_ROOT/env"
 (cd "$LOCK_DIR" && "$UV" export --frozen --offline --no-emit-project --no-dev \
-    --format requirements-txt -o "$reqs")
+    "${EXPORT_EXTRA[@]}" --format requirements-txt -o "$reqs")
 # Sorgenti URL (es. la wheel di vLLM nel caso B): il job è offline, quindi le punto alla copia
 # già scaricata nel wheelhouse; l'hash del lock (--hash) resta e viene verificato da uv.
 url_re='^([A-Za-z0-9._-]+) @ https://[^ ]+/([^/ ]+\.whl)(.*)$'
@@ -74,13 +98,29 @@ echo "requisiti: $(grep -c '==' "$reqs") pacchetti ($reqs)"
 srun "$UV" pip install --offline --no-index --find-links "$WHEELHOUSE" \
     --python "$NEW_ENV/bin/python" -r "$reqs"
 
-# Plugin Limite (serve hatchling nel wheelhouse per la build offline)
-if [[ -d $PROJECT_ROOT/third_party/limite-violetto ]]; then
+# Pacchetti locali senza dipendenze (le loro dipendenze sono già nel lock; serve hatchling nel
+# wheelhouse per la build offline)
+for pkg in "${LOCAL_PKGS[@]}"; do
   "$UV" pip install --offline --no-index --find-links "$WHEELHOUSE" --no-deps \
-      --python "$NEW_ENV/bin/python" "$PROJECT_ROOT/third_party/limite-violetto"
-fi
+      --python "$NEW_ENV/bin/python" "$pkg"
+done
 
 "$UV" pip freeze --python "$NEW_ENV/bin/python" > "$OUTPUT_ROOT/env/freeze-${SLURM_JOB_ID}.txt"
+
+if [[ $ENV_NAME == evals ]]; then
+  # Client del valutatore: import principali, CLI, e niente torch/vLLM (l'engine è il venv main).
+  "$NEW_ENV/bin/python" -I -c 'import datasets, huggingface_hub, limite_evals, limite_evals_core, math_verify, verifiers; print("datasets", datasets.__version__, "huggingface_hub", huggingface_hub.__version__, "math_verify ok, verifiers ok")'
+  "$NEW_ENV/bin/limite-eval" --help > /dev/null && echo "limite-eval --help: ok"
+  for mod in torch vllm; do
+    if "$NEW_ENV/bin/python" -I -c "import importlib.util, sys; sys.exit(importlib.util.find_spec('$mod') is None)"; then
+      echo "attenzione: $mod è installato nel client del valutatore (non previsto)" >&2
+    fi
+  done
+  echo "ambiente pronto: $NEW_ENV"
+  ledger_note ok "env $NEW_ENV (evals) da $LOCK_DIR"
+  exit 0
+fi
+
 "$NEW_ENV/bin/python" -I -c 'import torch, transformers; print("torch", torch.__version__, "cuda build", torch.version.cuda); print("transformers", transformers.__version__)'
 # torchvision/torchaudio devono avere la stessa build CUDA di torch; transformers.modeling_utils
 # importa torchvision (import pigro: `import transformers` da solo non lo verifica).

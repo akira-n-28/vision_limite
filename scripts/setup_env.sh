@@ -12,6 +12,7 @@
 #   scripts/setup_env.sh install   invia il job che crea il venv offline dalle wheel
 #
 # Ogni comando fa una sola fase e torna subito: i job e i download proseguono da soli.
+# Ambiente del client del valutatore: stessi comandi con ENV_NAME=evals (env-evals/, venvs/evals-current).
 set -euo pipefail
 HERE=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 ROOT=$(dirname -- "$HERE")
@@ -23,8 +24,16 @@ TOOLS=$TOOLS_DIR
 UV_TARBALL="$TOOLS/uv-x86_64-unknown-linux-gnu.tar.gz"
 UV_URL="https://github.com/astral-sh/uv/releases/download/${UV_VERSION}/uv-x86_64-unknown-linux-gnu.tar.gz"
 UV="$TOOLS/uv"
-LOCK_DIR="$ROOT/env"
-WHEEL_MANIFEST="$ROOT/downloads/manifests/wheels.tsv"
+# Due ambienti: main (training e serving, venvs/current) ed evals (client del valutatore ufficiale,
+# senza torch né vLLM, venvs/evals-current). Si sceglie con ENV_NAME=evals; default main.
+ENV_NAME=${ENV_NAME:-main}
+case $ENV_NAME in
+  main)  LOCK_DIR="$ROOT/env";       WHEEL_MANIFEST="$ROOT/downloads/manifests/wheels.tsv"
+         ENV_LINK=$ENV_ROOT;               BUILD_PREFIX=build ;;
+  evals) LOCK_DIR="$ROOT/env-evals"; WHEEL_MANIFEST="$ROOT/downloads/manifests/wheels-evals.tsv"
+         ENV_LINK=$VENVS_DIR/evals-current; BUILD_PREFIX=evals-build ;;
+  *) echo "ENV_NAME sconosciuto: $ENV_NAME (main|evals)" >&2; exit 2 ;;
+esac
 LOGS="$DATA_ROOT/logs"
 BASE_PYTHON=${BASE_PYTHON:-$(command -v python3.12 || echo /usr/bin/python3)}
 
@@ -53,6 +62,7 @@ wheels_missing() {
 }
 
 cmd_status() {
+  local CMD="scripts/setup_env.sh"; [[ $ENV_NAME == main ]] || CMD="ENV_NAME=$ENV_NAME $CMD"
   local next=""
   if [[ -x $UV ]]; then echo "uv:        $("$UV" --version)"; else echo "uv:        assente (tarball $([[ -f $UV_TARBALL ]] && echo presente || echo assente))"; fi
   [[ -x $UV ]] || next=${next:-"scripts/setup_env.sh uv"}
@@ -66,7 +76,7 @@ cmd_status() {
     echo "uv.lock:   aggiornato"
   else
     echo "uv.lock:   da generare"
-    next=${next:-"scripts/setup_env.sh lock"}
+    next=${next:-"$CMD lock"}
   fi
   local miss; miss=$(wheels_missing)
   echo "wheel:     mancanti $miss (manifest: $WHEEL_MANIFEST)"
@@ -75,10 +85,11 @@ cmd_status() {
     echo "download:  in corso (PID $(cat "$pidf")); ultimo log: $(ls -t "$LOGS"/fetch-*.log 2> /dev/null | sed -n 1p)"
     next=${next:-"attendere la fine dei download (tail sul log)"}
   elif [[ $miss != 0 ]]; then
-    next=${next:-"scripts/setup_env.sh wheels"}
+    next=${next:-"$CMD wheels"}
   fi
-  echo "venv:      $(readlink "$ENV_ROOT" 2> /dev/null || echo "nessun link venvs/current"); build presenti: $(find "$VENVS_DIR" -maxdepth 1 -name 'build-*' -printf '%f ' 2> /dev/null)"
-  [[ -L $ENV_ROOT ]] || next=${next:-"scripts/setup_env.sh install, poi leggere il log e con l'ok dell'utente: ln -sfn build-<jobid> $ENV_ROOT"}
+  echo "ambiente:  $ENV_NAME ($LOCK_DIR)"
+  echo "venv:      $(readlink "$ENV_LINK" 2> /dev/null || echo "nessun link $ENV_LINK"); build presenti: $(find "$VENVS_DIR" -maxdepth 1 -name "${BUILD_PREFIX}-*" -printf '%f ' 2> /dev/null)"
+  [[ -L $ENV_LINK ]] || next=${next:-"ENV_NAME=$ENV_NAME scripts/setup_env.sh install, poi leggere il log e con l'ok dell'utente: ln -sfn ${BUILD_PREFIX}-<jobid> $ENV_LINK"}
   echo "job:       $(squeue -u "$USER" -h -o '%i %j %T' 2> /dev/null | tr '\n' ';')"
   echo "PROSSIMO PASSO: ${next:-ambiente pronto; lanciare slurm/f0_checks.sbatch}"
 }
@@ -118,7 +129,7 @@ EOF
 
 cmd_wheels() {
   [[ -f $WHEEL_MANIFEST ]] || { echo "manca il manifest: scripts/setup_env.sh lock" >&2; exit 1; }
-  local log; log="$LOGS/fetch-wheels-$(date +%Y%m%d-%H%M%S).log"
+  local log; log="$LOGS/fetch-wheels-${ENV_NAME}-$(date +%Y%m%d-%H%M%S).log"
   nohup setsid "$HERE/fetch_manifest.sh" "$WHEEL_MANIFEST" > "$log" 2>&1 < /dev/null &
   echo "download avviato in background, log: $log"
 }
@@ -126,7 +137,7 @@ cmd_wheels() {
 cmd_install() {
   local miss; miss=$(wheels_missing)
   [[ $miss == 0 ]] || { echo "mancano ancora $miss wheel" >&2; exit 1; }
-  submit env_install.sbatch LOCK_DIR="$LOCK_DIR" BASE_PYTHON="$BASE_PYTHON"
+  submit env_install.sbatch LOCK_DIR="$LOCK_DIR" BASE_PYTHON="$BASE_PYTHON" ENV_NAME="$ENV_NAME"
 }
 
 case ${1:-status} in

@@ -19,6 +19,9 @@ git commit -m "Kit di avvio vision_limite"
 # 2. Codice ufficiale di Limite (plugin vLLM e valutatore), repository piccolo
 git clone https://github.com/paradigma-inc/limite-violetto.git third_party/limite-violetto
 git -C third_party/limite-violetto checkout 7ddad34f5e3d25ddea68c6745fc00373b82bca21   # commit verificato il 2026-10-07
+#    verifiers al commit fissato dal valutatore (limite-evals), per il client in env-evals/:
+#    git init + remote, poi scripts/guarded_run.sh verifiers-fetch -- git -C third_party/verifiers \
+#      fetch --depth 1 origin d30a3f48e5f14b06b3081b2102ec32cc3149b849 && checkout FETCH_HEAD
 
 # 3. Token Hugging Face (solo per repository con accesso riservato), mai nel repository
 #    scrivere il token in secrets/hf_token con un editor, poi:

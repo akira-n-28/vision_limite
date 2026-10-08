@@ -1,0 +1,83 @@
+# Ambiente del CLIENT del valutatore ufficiale (third_party/limite-violetto/limite-evals @ 7ddad34f).
+#
+# limite-evals non importa vLLM né torch nel proprio processo: avvia `vllm serve` da un venv
+# indicato con --engine-venv e gli parla via HTTP. Qui quindi solo il lato client (verifiers,
+# datasets, grader); l'engine è il venv principale già validato (vLLM 0.26.0 cu129 + plugin
+# Limite), con --expected-vllm-version 0.26.0. Scelta confermata dall'utente il 2026-10-08:
+# baseline "sul proprio stack", come nel piano.
+#
+# Dipendenze = quelle di limite-evals e limite-evals-core senza vllm, torch, torchvision,
+# torchaudio e i due pacchetti di serving (limite-vllm, olmo-hybrid-vllm-plugin). I pacchetti
+# locali limite-evals, limite-evals-core e olmo-hybrid-vllm-plugin si installano senza
+# dipendenze nel job (slurm/env_install.sbatch, ENV_NAME=evals).
+[project]
+name = "limite-evals-client-env"
+version = "0.0.0"
+requires-python = "~=3.12.0"
+dependencies = [
+    # limite-evals
+    "datasets>=5.0.1",
+    "httpx>=0.27",
+    "huggingface-hub>=1.26.1",
+    "jinja2>=3.1",
+    "matplotlib>=3.9",
+    "pandas>=2.0",
+    "rich>=14.0",
+    "verifiers",                       # commit fissato da limite-evals, clonato in third_party
+    "pylatexenc>=2.11",
+    "antlr4-python3-runtime==4.11.0",
+    "numpy>=2.3.5",
+    "sympy>=1.14.0",
+    "latex2sympy2-extended==1.11.0",   # limite-evals chiede >=1.11.0, limite-evals-core ==1.11.0
+    # limite-evals-core
+    "loguru>=0.7.3",
+    "math-verify==0.9.0",
+    "pydantic>=2.12",
+    "regex>=2026.7.19",
+    "hatchling",                       # per installare offline i pacchetti locali
+    "hatch-vcs",                       # backend di build di verifiers (versione da git)
+]
+
+[tool.uv]
+package = false
+environments = ["sys_platform == 'linux' and platform_machine == 'x86_64'"]
+
+[tool.uv.sources]
+# Stesso commit di limite-evals/pyproject.toml (d30a3f48), da una copia locale (il job è offline).
+verifiers = { path = "../third_party/verifiers" }
+
+# verifiers ha la versione dinamica (hatch-vcs, dai tag git): `uv lock --no-build` non la legge
+# senza costruire il pacchetto. Metadati statici: versione registrata nel lock di limite-evals per
+# questo commit, dipendenze copiate da third_party/verifiers/pyproject.toml @ d30a3f48. Il job di
+# installazione costruisce verifiers con la stessa versione (SETUPTOOLS_SCM_PRETEND_VERSION_FOR_VERIFIERS).
+[[tool.uv.dependency-metadata]]
+name = "verifiers"
+version = "0.2.2.dev76"
+requires-dist = [
+    "anthropic>=0.78.0",
+    "datasets>=3.3.0,<6.0.0",
+    "numpy>=2.1.0",
+    "math-verify>=0.8.0",
+    "mcp>=1.24.0,<2",
+    "openai>=2.9.0",
+    "openai-agents>=0.8.2",
+    "prime-tunnel>=0.1.8",
+    "prime-sandboxes>=0.2.33",
+    "pydantic>=2.12.3",
+    "requests",
+    "rich>=11.0.0",
+    "tenacity>=8.5.0",
+    "gepa>=0.0.6",
+    "pyzmq>=27.1.0",
+    "msgpack>=1.1.2",
+    "aiolimiter>=1.2.1",
+    "setproctitle>=1.3.0",
+    "httpx>=0.27.0",
+    "aiohttp>=3.9.0",
+    "prime-pydantic-config[toml]>=0.4.2",
+    "uvloop>=0.21.0; sys_platform != 'win32' and sys_platform != 'cygwin' and platform_python_implementation != 'PyPy'",
+    "loguru>=0.7.0",
+    "tomli-w>=1.0.0",
+    "renderers>=0.1.9.dev9",
+    "typing_extensions>=4.12.2",
+]
