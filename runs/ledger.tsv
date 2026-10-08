@@ -30,3 +30,10 @@ time	job_id	job_name	status	note
 2026-10-08T14:43:46+02:00	29383	lvl-vllm-smoke	submitted	prova vLLM 0.26.0+cu129 + plugin limite su Violetto, 4 problemi (9f311b1); build-29382; 1 GPU 8 CPU 32G 0:30 (ok utente)
 2026-10-08T14:50:48+02:00	29383	lvl-vllm-smoke	ok	vllm smoke -> /home/prignano/vision_limite/outputs/vllm_smoke/smoke-29383.json
 2026-10-08T14:56:00+02:00	29376	lvl-env	deleted	venvs/build-29376 cancellato (torchcodec PyPI non compatibile, sostituito da build-29382; ok utente)
+2026-10-08T14:58:42+02:00	29384	lvl-tests	submitted	test CPU NorMuon + gruppi su nomi Violetto (groups.py mudd 3D, non committato); 0 GPU 4 CPU 8G 0:20
+2026-10-08T14:59:02+02:00	29384	lvl-tests	ok	tests_cpu
+2026-10-08T14:59:19+02:00	-	manifest-p3	note	p3: liuhaotian/LLaVA-Pretrain main=70f9d1e5e1a697fe35830875cfc7de1dd590d727, 2 file 27.54 GB; CaraJ/MAVIS-Caption inesistente su HF (CaraJ ha MAVIS-Geometry, MAVIS-Function): non scaricato
+2026-10-08T15:46:58+02:00	29387	lvl-verify	submitted	verifica sha256 di p3 (LLaVA-Pretrain 2 file, 27.54 GB); 0 GPU 2 CPU 4G 30m (--time ridotto da riga di comando)
+2026-10-08T15:48:15+02:00	29387	lvl-verify	ok	verify downloads/manifests/p3.tsv -> /home/prignano/vision_limite/outputs/verify/report-29387.tsv
+2026-10-08T15:53:27+02:00	29388	lvl-shard-llava	submitted	LLaVA-Pretrain 70f9d1e5 -> shard tar ~1 GB in data/shards/llava-pretrain/70f9d1e5 (script non committato); 0 GPU 2 CPU 8G 1:00 (ok utente)
+2026-10-08T15:59:02+02:00	29388	lvl-shard-llava	ok	shard llava-pretrain -> /home/prignano/vision_limite/data/shards/llava-pretrain/70f9d1e5
