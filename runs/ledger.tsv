@@ -21,3 +21,12 @@ time	job_id	job_name	status	note
 2026-10-08T12:25:54+02:00	29378	lvl-f0-checks	submitted	rilancio F0 con use_cache=False e ripristino bf16 (f0_checks.py non committato); build-29376; 1 GPU 8 CPU 24G 1:00 (ok utente)
 2026-10-08T12:27:34+02:00	29378	lvl-f0-checks	ok	f0 checks -> /home/prignano/vision_limite/outputs/f0/checks-29378.json
 2026-10-08T12:32:29+02:00	29374	lvl-env	deleted	venvs/build-29374 cancellato (torchvision PyPI non compatibile, sostituito da build-29376; ok utente)
+2026-10-08T12:40:33+02:00	29379	lvl-vllm-smoke	submitted	prova vLLM 0.26.0+cu129 + plugin limite su Violetto, 4 problemi (scripts/vllm_smoke.py e sbatch non committati); build-29376; 1 GPU 8 CPU 32G 0:30 (ok utente)
+2026-10-08T12:41:43+02:00	29379	lvl-vllm-smoke	failed	vllm smoke -> /home/prignano/vision_limite/outputs/vllm_smoke/smoke-29379.json
+2026-10-08T14:36:26+02:00	29382	env_install.sbatch	submitted	setup_env
+2026-10-08T14:36:26+02:00	29382	lvl-env-install	note	rifacimento venv da c64cc81: torchcodec 0.16.0+cu129 (fix job 29379), controllo readelf CUDA; 0 GPU 4 CPU 8G 1:30 (ok utente)
+2026-10-08T14:39:10+02:00	29382	lvl-env	ok	env /home/prignano/vision_limite/venvs/build-29382 da /home/prignano/vision_limite/env
+2026-10-08T14:43:46+02:00	29382	lvl-env	adopted	venvs/current -> build-29382 (torchcodec cu129; ok utente)
+2026-10-08T14:43:46+02:00	29383	lvl-vllm-smoke	submitted	prova vLLM 0.26.0+cu129 + plugin limite su Violetto, 4 problemi (9f311b1); build-29382; 1 GPU 8 CPU 32G 0:30 (ok utente)
+2026-10-08T14:50:48+02:00	29383	lvl-vllm-smoke	ok	vllm smoke -> /home/prignano/vision_limite/outputs/vllm_smoke/smoke-29383.json
+2026-10-08T14:56:00+02:00	29376	lvl-env	deleted	venvs/build-29376 cancellato (torchcodec PyPI non compatibile, sostituito da build-29382; ok utente)
