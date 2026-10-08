@@ -29,7 +29,8 @@ class GroupSpec:
 TABLE_1: tuple[GroupSpec, ...] = (
     GroupSpec("embed_tied", "adamw", 0.0019, (0.5, 0.95), 150, (r"embed_tokens\.weight$", r"lm_head\.weight$"), (2,)),
     GroupSpec("value_embeds", "adamw", 0.14, (0.75, 0.95), 5, (r"value_embeds\.weight$",), (2,)),
-    GroupSpec("mudd", "adamw", 0.0019, (0.9, 0.95), 0, (r"\bmudd\b",), (0, 1, 2)),
+    # dense2 e dense2_mlp di Violetto sono 3D (48, 3, 32): job 29378, controllo 7_param_groups.
+    GroupSpec("mudd", "adamw", 0.0019, (0.9, 0.95), 0, (r"\bmudd\b",), (0, 1, 2, 3)),
     GroupSpec("gates_xsa", "adamw", 0.0019, (0.9, 0.99), 0, (r"gate_(attn|ve|beta)|attn_gate|ve_gate|beta_gate|xsa|gamma",), (0, 1, 2)),
     GroupSpec("post_lambdas", "adamw", 0.0080, (0.9, 0.95), 0, (r"post.*lambda|lambda.*post|lambda_prime",), (0, 1)),
     GroupSpec("residual_lambdas", "adamw", 0.0016, (0.9, 0.95), 0, (r"lambda",), (0, 1)),

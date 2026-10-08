@@ -166,11 +166,38 @@ def test_groups_on_toy_model():
     check("LR al 15% del picco", abs(lrs["hidden_matrices"] - 0.0027) < 1e-12, str(lrs))
 
 
+def test_groups_on_violetto_names():
+    """Le regole di TABLE_1 sui 599 nomi e forme reali di Violetto (F0, job 29378).
+
+    Tensori `meta`: solo forme, nessuna memoria. assign_groups usa solo named_parameters().
+    """
+    import json
+
+    data = json.loads((Path(__file__).parent / "data" / "violetto_params_b1f3d572.json").read_text())
+
+    class Names:
+        def named_parameters(self):
+            for name, shape in data["params"]:
+                yield name, torch.nn.Parameter(torch.empty(shape, device="meta"))
+
+    groups = assign_groups(Names())  # solleva ValueError se un parametro resta senza gruppo
+    counts = {g: len(items) for g, items in groups.items()}
+    expected = {"embed_tied": 1, "value_embeds": 1, "mudd": 5, "gates_xsa": 112, "post_lambdas": 96,
+                "residual_lambdas": 96, "hidden_matrices": 192, "scalars": 96}
+    check("Violetto: tensori per gruppo", counts == expected, str(counts))
+    total = sum(p.numel() for items in groups.values() for _, p in items)
+    check("Violetto: parametri totali", total == 1_035_254_176, str(total))
+    mudd = sorted(n for n, _ in groups["mudd"])
+    check("Violetto: dense2 e dense2_mlp (3D) nel gruppo mudd",
+          "model.mudd.dense2" in mudd and "model.mudd.dense2_mlp" in mudd, str(mudd))
+
+
 if __name__ == "__main__":
     test_polar_express()
     test_matches_upstream()
     test_delta_norm_and_cautious()
     test_converges()
     test_groups_on_toy_model()
+    test_groups_on_violetto_names()
     print("\nfalliti:", FAILS or "nessuno")
     sys.exit(1 if FAILS else 0)
