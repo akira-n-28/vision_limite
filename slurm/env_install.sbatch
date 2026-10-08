@@ -82,6 +82,9 @@ fi
 
 "$UV" pip freeze --python "$NEW_ENV/bin/python" > "$OUTPUT_ROOT/env/freeze-${SLURM_JOB_ID}.txt"
 "$NEW_ENV/bin/python" -I -c 'import torch, transformers; print("torch", torch.__version__, "cuda build", torch.version.cuda); print("transformers", transformers.__version__)'
+# torchvision/torchaudio devono avere la stessa build CUDA di torch; transformers.modeling_utils
+# importa torchvision (import pigro: `import transformers` da solo non lo verifica).
+"$NEW_ENV/bin/python" -I -c 'import torch, torchvision, torchaudio, transformers.modeling_utils; print("torchvision", torchvision.__version__, "torchaudio", torchaudio.__version__, "ops nms:", torch.ops.torchvision.nms is not None)'
 "$NEW_ENV/bin/python" -I -c 'import vllm; print("vllm", vllm.__version__)' || echo "vllm non importabile in CPU (da verificare in un job GPU)"
 echo "ambiente pronto: $NEW_ENV"
 ledger_note ok "env $NEW_ENV da $LOCK_DIR"
