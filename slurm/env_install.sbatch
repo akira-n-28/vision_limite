@@ -84,7 +84,26 @@ fi
 "$NEW_ENV/bin/python" -I -c 'import torch, transformers; print("torch", torch.__version__, "cuda build", torch.version.cuda); print("transformers", transformers.__version__)'
 # torchvision/torchaudio devono avere la stessa build CUDA di torch; transformers.modeling_utils
 # importa torchvision (import pigro: `import transformers` da solo non lo verifica).
-"$NEW_ENV/bin/python" -I -c 'import torch, torchvision, torchaudio, transformers.modeling_utils; print("torchvision", torchvision.__version__, "torchaudio", torchaudio.__version__, "ops nms:", torch.ops.torchvision.nms is not None)'
+"$NEW_ENV/bin/python" -I -c 'import torch, torchvision, torchaudio, torchcodec, transformers.modeling_utils; print("torchvision", torchvision.__version__, "torchaudio", torchaudio.__version__, "torchcodec", torchcodec.__version__, "ops nms:", torch.ops.torchvision.nms is not None)'
+
+# Nessuna libreria nativa compilata per un'altra CUDA (es. wheel PyPI per cu130 con torch cu129:
+# job 29375 torchvision, job 29379 torchcodec). Solo intestazioni ELF, nessun caricamento.
+if command -v readelf > /dev/null; then
+  cuda_major=$("$NEW_ENV/bin/python" -I -c 'import torch; print(torch.version.cuda.split(".")[0])')
+  bad=$( { find "$NEW_ENV/lib" -type f \( -name '*.so' -o -name '*.so.*' \) -print0 \
+           | xargs -0 -n 50 readelf -d 2> /dev/null || true; } \
+    | awk -v want="$cuda_major" '/^File: /{f=$2}
+        /\(NEEDED\)/ && match($0, /lib(cudart|nvrtc|cublas|cublasLt|nvJitLink)\.so\.[0-9]+/) {
+          s = substr($0, RSTART, RLENGTH); n = split(s, p, "."); if (p[n] != want) print f " -> " s }')
+  if [[ -n $bad ]]; then
+    echo "librerie per una CUDA diversa da $cuda_major (torch):" >&2
+    echo "$bad" >&2
+    exit 1
+  fi
+  echo "librerie native: nessuna dipendenza da CUDA diversa da $cuda_major"
+else
+  echo "readelf assente: controllo delle librerie CUDA saltato" >&2
+fi
 "$NEW_ENV/bin/python" -I -c 'import vllm; print("vllm", vllm.__version__)' || echo "vllm non importabile in CPU (da verificare in un job GPU)"
 echo "ambiente pronto: $NEW_ENV"
 ledger_note ok "env $NEW_ENV da $LOCK_DIR"

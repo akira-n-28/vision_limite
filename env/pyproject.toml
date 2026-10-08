@@ -17,6 +17,9 @@ dependencies = [
     # (job 29375: "operator torchvision::nms does not exist").
     "torchvision==0.26.0",
     "torchaudio==2.11.0",
+    # vLLM lo importa sempre (multimodal/video.py). La 0.17.0 di PyPI chiede libnvrtc.so.13 (job
+    # 29379); sull'indice cu129 l'ultima è la 0.16.0, compatibile con torch >= 2.11.
+    "torchcodec==0.16.0",
     "transformers==5.6.2",
     "vllm",                     # fissato dalla sorgente URL qui sotto
     "pillow",
@@ -40,6 +43,7 @@ environments = ["sys_platform == 'linux' and platform_machine == 'x86_64'"]
 torch = { index = "pytorch-cu129" }
 torchvision = { index = "pytorch-cu129" }
 torchaudio = { index = "pytorch-cu129" }
+torchcodec = { index = "pytorch-cu129" }
 vllm = { url = "https://github.com/vllm-project/vllm/releases/download/v0.26.0/vllm-0.26.0+cu129-cp38-abi3-manylinux_2_28_x86_64.whl" }
 
 [[tool.uv.index]]

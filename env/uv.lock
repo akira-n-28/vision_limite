@@ -939,6 +939,7 @@ dependencies = [
     { name = "sympy" },
     { name = "torch" },
     { name = "torchaudio" },
+    { name = "torchcodec" },
     { name = "torchvision" },
     { name = "tqdm" },
     { name = "transformers" },
@@ -959,6 +960,7 @@ requires-dist = [
     { name = "sympy" },
     { name = "torch", specifier = "==2.11.0", index = "https://download.pytorch.org/whl/cu129" },
     { name = "torchaudio", specifier = "==2.11.0", index = "https://download.pytorch.org/whl/cu129" },
+    { name = "torchcodec", specifier = "==0.16.0", index = "https://download.pytorch.org/whl/cu129" },
     { name = "torchvision", specifier = "==0.26.0", index = "https://download.pytorch.org/whl/cu129" },
     { name = "tqdm" },
     { name = "transformers", specifier = "==5.6.2" },
@@ -2400,10 +2402,10 @@ wheels = [
 
 [[package]]
 name = "torchcodec"
-version = "0.17.0"
-source = { registry = "https://pypi.org/simple" }
+version = "0.16.0+cu129"
+source = { registry = "https://download.pytorch.org/whl/cu129" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/05/44/d00a4df9c8985c6ce9e6d1e3f861496cdcde8b5b4b7543358d49e03f7337/torchcodec-0.17.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:defd5f0901999c9e981f6465a0f4aac8b5a5147e38e539b77c0711c015cf5349", size = 9972897, upload-time = "2026-09-30T12:52:59.059Z" },
+    { url = "https://download.pytorch.org/whl/cu129/torchcodec-0.16.0%2Bcu129-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:1d103c30631a2c04b2acd1602a56af7762d41051700d2077c2b6a964dbcf7f2c", upload-time = "2026-08-13T12:00:14Z" },
 ]
 
 [[package]]
