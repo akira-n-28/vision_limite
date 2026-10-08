@@ -92,6 +92,9 @@ Tutto passa da `scripts/setup_env.sh`, una fase per comando; `status` dice sempr
 1. `slurm/f0_gpu_probe.sbatch` → driver ≥ 580: copiare `env/pyproject.cu13.template.toml` in
    `env/pyproject.toml` (e il `uv.lock` ufficiale in `env/uv.lock`); driver 570: partire da
    `env/pyproject.cu12.template.toml` verificando l'URL di vLLM. Chiedere conferma all'utente.
+   Su Lagrange (driver 570.211.01) vale il caso B: `env/pyproject.toml` prende torch,
+   torchvision e torchaudio dall'indice cu129. Le build PyPI di torchvision e torchaudio sono
+   per il torch cu130 e con torch cu129 non caricano le estensioni (job 29375).
 2. `scripts/setup_env.sh uv` — scarica il binario di uv con `fetch.sh` e invia
    `slurm/extract_tools.sbatch` (verifica SHA-256 ed estrazione in allocazione).
 3. `scripts/setup_env.sh lock` — `uv lock --no-build` sotto `scripts/guarded_run.sh`: un download
@@ -151,10 +154,15 @@ iperparametri rispetto al piano.
   l'output del proiettore → `rms_norm` → ciclo dei layer copiato dall'originale.
 - Lo stato iniziale `rms_norm(embed_tokens(input_ids))` è anche il tap x(0) del MUDD.
 - `value_embeds(input_ids)`: azzerare il contributo sulle posizioni immagine.
-- Nessun supporto dichiarato al gradient checkpointing: wrapper per layer con
-  `torch.utils.checkpoint` (non rientrante), validato da `scripts/f0_checks.py`.
+- Nessun supporto al gradient checkpointing (`gradient_checkpointing_enable` dà ValueError):
+  wrapper per layer con `torch.utils.checkpoint` (non rientrante), validato da
+  `scripts/f0_checks.py` (job 29378: stessa loss, gradienti con diff. relativa 8·10⁻⁸).
 - La loss ufficiale materializza tutti i logit in fp32: usare la loss a blocchi con
-  `model._softcapped_logits` (vedi `chunked_ce` in `scripts/f0_checks.py`).
+  `model._softcapped_logits` (vedi `chunked_ce` in `scripts/f0_checks.py`; job 29378:
+  identica alla loss ufficiale).
+- `forward` va chiamato con `use_cache=False` esplicito: senza, legge `config.use_cache`, che
+  la config di Limite non definisce, e con transformers 5.6.2 dà AttributeError (job 29377).
+  La generazione lo passa da sé.
 - Token visivi già nel vocabolario: `<|vision_start|>` 151652, `<|image_pad|>` 151655,
   `<|vision_end|>` 151653.
 - Copiare i file remoti del modello in `third_party/limite-modeling/` con il loro hash;
