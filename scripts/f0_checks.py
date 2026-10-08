@@ -147,7 +147,7 @@ def main() -> None:
         ids = torch.randint(0, 150000, (1, 16), device="cuda")
         emb = model.get_input_embeddings()(ids)
         try:
-            model(inputs_embeds=emb)
+            model(inputs_embeds=emb, use_cache=False)
             return {"inputs_embeds_accepted": True}
         except ValueError as exc:
             return {"inputs_embeds_accepted": False, "message": str(exc)}
@@ -162,22 +162,24 @@ def main() -> None:
             native = "enable() accettato (verificare che abbia effetto)"
         except Exception as exc:  # noqa: BLE001
             native = f"{type(exc).__name__}: {exc}"
-        m32 = model.float()
+        m32 = model.float()  # stesso oggetto di model: torna in bf16 nel finally anche se fallisce
         m32.train()
         ids = torch.randint(0, 150000, (1, 1536), device="cuda", generator=torch.Generator("cuda").manual_seed(1))
 
         def grads():
             m32.zero_grad(set_to_none=True)
-            out = m32(input_ids=ids, labels=ids)
+            out = m32(input_ids=ids, labels=ids, use_cache=False)
             out.loss.backward()
             return out.loss.item(), torch.cat([p.grad.flatten() for p in m32.parameters() if p.grad is not None])
 
-        loss_a, g_a = grads()
-        with LayerCheckpointing(m32):
-            loss_b, g_b = grads()
-        rel = ((g_a - g_b).norm() / g_a.norm()).item()
-        m32.zero_grad(set_to_none=True)
-        model.to(torch.bfloat16)
+        try:
+            loss_a, g_a = grads()
+            with LayerCheckpointing(m32):
+                loss_b, g_b = grads()
+            rel = ((g_a - g_b).norm() / g_a.norm()).item()
+        finally:
+            m32.zero_grad(set_to_none=True)
+            model.to(torch.bfloat16)
         return {"native": native, "loss_plain": loss_a, "loss_ckpt": loss_b,
                 "grad_rel_diff": rel, "pass": rel < 1e-4}
     _()
@@ -187,8 +189,8 @@ def main() -> None:
         model.eval()
         ids = torch.randint(0, 150000, (1, 4096), device="cuda", generator=torch.Generator("cuda").manual_seed(2))
         with torch.no_grad():
-            ref = model(input_ids=ids, labels=ids).loss.float().item()
-            hidden = decoder(model)(input_ids=ids).last_hidden_state
+            ref = model(input_ids=ids, labels=ids, use_cache=False).loss.float().item()
+            hidden = decoder(model)(input_ids=ids, use_cache=False).last_hidden_state
             mine = chunked_ce(model, hidden, ids).item()
         return {"loss_official": ref, "loss_chunked": mine, "abs_diff": abs(ref - mine),
                 "pass": abs(ref - mine) < 2e-2}
@@ -207,7 +209,7 @@ def main() -> None:
             for i in range(steps + 1):
                 torch.cuda.synchronize()
                 t0 = time.time()
-                hidden = decoder(model)(input_ids=ids).last_hidden_state
+                hidden = decoder(model)(input_ids=ids, use_cache=False).last_hidden_state
                 loss = chunked_ce(model, hidden, ids)
                 loss.backward()
                 opt.step()
