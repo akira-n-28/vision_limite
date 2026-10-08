@@ -144,7 +144,9 @@ if [[ -n $EXPECTED ]] && (( part_size == EXPECTED )); then
 else
   echo "scarico $URL -> $PART (già presenti $part_size byte, attesi ${EXPECTED:-?}, limite $RATE/s)"
   start=$(date +%s)
-  auth_header | curl --fail --location --silent --show-error \
+  # HTTP/1.1: con HTTP/2 il CDN di Hugging Face ha annullato lo stream di LLaVA-Pretrain
+  # images.zip due volte appena sotto i 128 MiB (curl 92, 2026-10-08).
+  auth_header | curl --http1.1 --fail --location --silent --show-error \
       --limit-rate "$RATE" --continue-at - --connect-timeout 30 \
       --speed-time 300 --speed-limit 1024 \
       -H @- -o "$PART" -- "$URL" 9>&- &
