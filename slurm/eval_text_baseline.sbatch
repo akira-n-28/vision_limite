@@ -35,7 +35,14 @@ ENGINE_VLLM=$("$RUN_PYTHON" -I -c 'import importlib.metadata as m; print(m.versi
 echo "engine: $(readlink -f "$VENVS_DIR/current") vLLM $ENGINE_VLLM; client: $(readlink -f "$VENVS_DIR/evals-current")"
 
 mkdir -p "$OUTPUT_ROOT/eval"
-args=("$VIOLETTO" --tasksets aime25,aime26,hmmt26
+TASKSETS=aime25,aime26,hmmt26
+# datasets 5 offline non costruisce un dataset dalla sola cache Hub (job 29391): il valutatore
+# parte da una cartella in cui i nomi dei repo puntano agli snapshot verificati, alle revisioni
+# lette da suites.py (scripts/link_eval_datasets.py; caricamento verificato dal job 29392).
+DS_ROOT="$DATA_ROOT/eval-datasets"
+"$VENVS_DIR/evals-current/bin/python" -I scripts/link_eval_datasets.py --tasksets "$TASKSETS" --root "$DS_ROOT"
+cd "$DS_ROOT"
+args=("$VIOLETTO" --tasksets "$TASKSETS"
       --engine-venv "$(readlink -f "$VENVS_DIR/current")" --expected-vllm-version "$ENGINE_VLLM"
       --out-root "$OUTPUT_ROOT/eval" --run-id "violetto-f0-text-${SLURM_JOB_ID}")
 [[ -n ${RESUME_FROM:-} ]] && args+=(--resume-from "$RESUME_FROM")
