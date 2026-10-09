@@ -178,6 +178,21 @@ iperparametri rispetto al piano.
   remoto.
 - In eval il MUDD usa costanti bf16 (`_inference_dense1` ecc.): con il decoder in fp32 i confronti
   numerici vanno fatti in modalità train. Limite non ha dropout.
+- Packing: con `position_ids` che ripartono a ogni esempio e `attention_mask=None`, transformers
+  costruisce la maschera a blocchi. Job 29402, in fp32: loss per token di due esempi
+  impacchettati uguali a quelle degli esempi da soli entro 2.5·10⁻⁵; senza reset delle
+  posizioni la differenza è 0.85.
+- Attenzione nel training: usare `flex_attention`, impostata a runtime con
+  `config._attn_implementation`.
+  - Con sdpa, finestra locale e packing diventano maschere dense.
+  - Job 29402: in fp32 flex coincide con sdpa entro 4.7·10⁻⁵.
+  - Riga da 32k, decoder addestrabile, gradient checkpointing: 15.4 mila token/s con flex
+    contro 4.6 mila con sdpa.
+  - Righe da 4k: nessun guadagno (12.9 mila contro 12.6 mila).
+- `flash-attn` non è nell'ambiente; la copia dentro vLLM ha solo il forward.
+- Gradient checkpointing sul modello VL (job 29402): in fp32 i gradienti del proiettore
+  differiscono di 4·10⁻⁷. In bf16 la differenza (circa 1%) è uguale a quella fra due backward
+  identici senza checkpointing, cioè è il non determinismo dei kernel.
 
 ## Formato delle risposte di Violetto (vale per tutti i dati di training)
 
