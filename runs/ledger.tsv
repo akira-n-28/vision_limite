@@ -48,3 +48,4 @@ time	job_id	job_name	status	note
 2026-10-08T16:54:26+02:00	29393	lvl-eval-text	submitted	baseline testuale F0 (aime25, aime26, hmmt26, avg@32) rilancio dopo fix dataset offline (131885b); engine build-29382, client evals-build-29390; 1 GPU 8 CPU 48G 6:00 (ok utente)
 2026-10-08T22:54:43+02:00	29393	lvl-eval-text	timeout	limite di 6:00 durante hmmt26: aime25 e aime26 completi, hmmt26 1002/1056; campioni in outputs/eval/violetto-f0-text-29393 (riprendibile con RESUME_FROM)
 2026-10-09T10:27:45+02:00	29398	lvl-eval-text	submitted	ripresa baseline F0: RESUME_FROM=outputs/eval/violetto-f0-text-29393 (hmmt26, 54 campioni mancanti); 1 GPU 8 CPU 48G 1:30 (ok utente)
+2026-10-09T10:52:32+02:00	29398	lvl-eval-text	ok	baseline testuale F0 -> /home/prignano/vision_limite/outputs/eval/violetto-f0-text-29398
