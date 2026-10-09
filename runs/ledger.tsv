@@ -80,3 +80,4 @@ time	job_id	job_name	status	note
 2026-10-09T17:00:58+02:00	29418	lvl-cpu-probe	submitted	CPU visibili ai task srun con e senza --cpus-per-task (29417: pool da 4 processi lento come 1 CPU); 0 GPU 4 CPU 1G 0:05
 2026-10-09T17:00:59+02:00	29418	lvl-cpu-probe	ok	sonda affinità CPU
 2026-10-09T17:03:28+02:00	29419	lvl-shard-mavis	submitted	shard completi MAVIS-Geometry@9c80fff3 variante caption: ~199050 campioni (dedup didascalie, senza il campione incompleto), PNG a 2304 patch, 19000 per shard -> data/shards/mavis-geometry/9c80fff3-caption; prova4000 (29417) cancellata; 0 GPU 8 CPU 8G 1:30 (stima ~45 min, approvato dall'utente)
+2026-10-09T17:25:37+02:00	29419	lvl-shard-mavis	ok	shard mavis-geometry caption -> /home/prignano/vision_limite/data/shards/mavis-geometry/9c80fff3-caption

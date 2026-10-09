@@ -124,6 +124,12 @@ Risorse di partenza (stimare sempre il carico reale; il totale non deve superare
 | Training F1/F2/F4 | 1 | 8 | 120G | ≤ 24:00:00, con ripresa dal checkpoint |
 | CPU: hash, estrazione, shard, render | 0 | 2-4 | 4-24G | ≤ 12:00:00 |
 
+Le CPU di Slurm su lagrange0 sono thread, non core: `--cpus-per-task=4` dà due coppie di thread
+sorelli, cioè 2 core fisici (job 29418, CPU 0, 1, 48, 49). `srun` le vede tutte anche senza
+`--cpus-per-task`. Per i pool di processi (shard, DataLoader) contare i core fisici, non le CPU.
+Nei job non scrivere un file per campione: il job 29414 ha creato 168 mila file in pochi minuti e la
+cancellazione su GlusterFS ha richiesto più di un'ora.
+
 Procedura per ogni job:
 
 1. Script in `slurm/`, con percorsi letterali nelle direttive `#SBATCH` e il prologo
@@ -213,6 +219,30 @@ iperparametri rispetto al piano.
   `<|endoftext|>` con label. Così il proiettore non impara a far saltare il `<think>` iniziale.
   Nelle verifiche di F1 lo stesso prefill va dato in generazione.
 
+## Dati di F1
+
+- LLaVA-Pretrain @ 70f9d1e5: 32 shard in `data/shards/llava-pretrain/70f9d1e5/` (558 mila didascalie,
+  circa 312 token per esempio con l'immagine a 1024 patch).
+- MAVIS-Caption non esiste su Hugging Face. Gli autori l'hanno pubblicato solo come versione provvisoria
+  su Google Drive, e la cartella risponde 404. Per i diagrammi si usa CaraJ/MAVIS-Geometry @ 9c80fff3
+  (`RuleBaseGeo.zip`), cioè una parte di MAVIS-Instruct.
+  - Struttura dello zip (job 29415): 199.603 cartelle `RuleBaseGeo/depthK/<i>/`, 50 mila per profondità
+    0-3 (numero di forme concatenate oltre la prima). Ogni cartella contiene `<n>_annotation.json`
+    (`text_en`/`text_zh`, `choices`, `answer_index`) e tre immagini.
+  - Corrispondenza con le varianti del parquet di esempio (job 29410, 29415):
+    - `caption.jpg` = text_dominant: tutte le misure citate nella didascalia sono disegnate;
+    - `text.jpg` = text_lite: figura quasi spoglia, i valori sono nella domanda;
+    - `vision_dominant.jpg` = vision_dominant: i valori tolti dalla domanda sono disegnati.
+    Nel 18% dei campioni `caption.jpg` e `vision_dominant.jpg` sono identiche.
+  - Le didascalie vanno solo con `caption.jpg`: con le altre varianti citano misure che non si vedono.
+  - Servono 2304 patch: a 1024 le etichette diventano alte pochi pixel.
+- Shard di MAVIS-Geometry (job 29419, `scripts/shard_mavis_geometry.py`): 199.050 campioni in 11 tar in
+  `data/shards/mavis-geometry/9c80fff3-caption/`. Esclusi il campione incompleto `d3-3228` e 552
+  didascalie duplicate. Per ogni campione:
+  - un PNG già alla dimensione esatta di 2304 patch: il processor non lo ridimensiona di nuovo;
+  - un JSON con `text_en` completo, scelte e dimensioni.
+  In media 568.6 token immagine, 113 milioni in tutto; circa 710 token per esempio con la didascalia.
+
 ## Ottimizzatore
 
 - F1: AdamW (proiettore e righe di embedding dei token visivi).
@@ -232,7 +262,9 @@ iperparametri rispetto al piano.
 - `downloads/` — `sources.tsv`, `build_manifests.sh`, `manifests/`
 - `scripts/` — ambiente (`setup_env.sh`, `guarded_run.sh`, `uvlock_manifest.py`), download
   (`fetch.sh`, `fetch_manifest.sh`, `hf_manifest.py`, `link_hf_snapshot.py`), verifica
-  (`verify_manifest.py`), dati (`shard_llava_pretrain.py`), valutatore (`link_eval_datasets.py`),
+  (`verify_manifest.py`), dati (`shard_llava_pretrain.py`, `shard_mavis_geometry.py`; ispezione con
+  `peek_parquet.py`, `mavis_variants.py`, `inspect_zip.py`, `mavis_zip_survey.py`, `peek_shard.py`),
+  valutatore (`link_eval_datasets.py`),
   codice di Limite (`vendor_limite_modeling.py`), F0 (`f0_checks.py`, `f0_vl_checks.py`,
   `vllm_smoke.py`)
 - `slurm/` — `prologue.sh` e gli script `.sbatch`
