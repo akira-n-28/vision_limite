@@ -15,14 +15,14 @@ p1	dataset	MathArena/apex-shortlist	f3efdf224ef665f129ddaae37699f6098c65781b	-	-
 p1	dataset	HuggingFaceH4/aime_2024	2fe88a2f1091d5048c0f36abc874fb997b3dd99a	-	-	suite math-extended
 p1	dataset	HuggingFaceH4/MATH-500	6e4ed1a2a79af7d8630a6b768ec859cb5af4d3be	-	-	suite math-extended
 p1	dataset	Hothan/OlympiadBench	91184b52131e7fc9455fef848035173aea8cc01a	-	-	suite math-extended
-p3	dataset	liuhaotian/LLaVA-Pretrain	main	blip_laion_cc_sbu_558k.json;images.zip	-	F1 allineamento, circa 27 GB; estrarre in un job CPU e convertire in shard
-p3	dataset	CaraJ/MAVIS-Caption	main	-	-	VERIFICARE id; F1 didascalie di diagrammi
+p3	dataset	liuhaotian/LLaVA-Pretrain	70f9d1e5e1a697fe35830875cfc7de1dd590d727	blip_laion_cc_sbu_558k.json;images.zip	-	F1 allineamento, circa 27 GB (main risolto il 2026-10-08); estrarre in un job CPU e convertire in shard
+p3	dataset	CaraJ/MAVIS-Geometry	9c80fff300f4f2cb3a76f71e03428eebdd571907	RuleBaseGeo.zip;README.md;visualization_small.parquet	-	F1 didascalie (variante text_dominant, 2304 patch) e F2 problemi; dati parziali di MAVIS-Instruct, 26.4 GB. MAVIS-Caption non è su HF (solo Google Drive provvisorio, 404). Licenza dei dati non dichiarata (GitHub MIT)
 p4	model	Qwen/Qwen3-VL-8B-Instruct	main	-	-	VERIFICARE id e licenza; teacher per le descrizioni
 p4	model	Qwen/Qwen3-VL-2B-Instruct	main	-	-	VERIFICARE id; VLM di riferimento per la valutazione
 p5	dataset	skylenage/DeepVision-103K	main	-	-	F4 RL, risposte verificabili
 p5	dataset	Zhiqiang007/MathV360K	main	-	-	VERIFICARE id; F2 problemi (solo domande e risposte)
 p5	dataset	Luckyjhg/Geo170K	main	-	-	VERIFICARE id; F2 problemi di geometria
-p5	dataset	CaraJ/MAVIS-Instruct	main	-	-	VERIFICARE id; F2 problemi
+p5	dataset	CaraJ/MAVIS-Function	a78fd6d04e5f8edf5f5cc8bf733ad37703ece21d	-	-	F2 problemi di funzioni (senza didascalie), 3.8 GB in 6 zip; dati parziali di MAVIS-Instruct, la geometria è MAVIS-Geometry in p3. Licenza dei dati non dichiarata (GitHub MIT)
 p6	dataset	AI4Math/MathVista	main	-	-	VERIFICARE id; valutazione (testmini)
 p6	dataset	AI4Math/MathVerse	main	-	-	VERIFICARE id; valutazione vision-only e vision-dominant
 p6	dataset	MathLLMs/MathVision	main	-	-	VERIFICARE id; valutazione
