@@ -21,30 +21,16 @@ from pathlib import Path
 
 import torch
 import torch.nn.functional as F
-from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from train_f1 import load_config, to_cuda  # noqa: E402  (stessa cartella scripts/)
 
 from limite_vl.collator import PackedCollator, iter_packed_rows  # noqa: E402
-from limite_vl.data import SAMPLE_LOADERS  # noqa: E402
+from limite_vl.data import IMAGE_MODES, build_example  # noqa: E402
 from limite_vl.modeling import LimiteVLForConditionalGeneration, VLConfig  # noqa: E402
 from limite_vl.processing import IGNORE, LimiteVLProcessor  # noqa: E402
 from limite_vl.stream import make_sources, validation_samples  # noqa: E402
-
-MODES = ("real", "white", "none")
-
-
-def make_example(processor, kind: str, key: str, files: dict, mode: str):
-    sample = SAMPLE_LOADERS[kind](key, files)
-    if mode == "none":
-        user = dict(sample.messages[0])
-        user["content"] = [c for c in user["content"] if c["type"] != "image"]
-        return processor.encode([user, *sample.messages[1:]], [])
-    image = sample.image if mode == "real" else Image.new("RGB", sample.image.size, "white")
-    return processor.encode(sample.messages, [image], max_patches=sample.max_patches)
-
 
 @torch.no_grad()
 def token_losses(model, batch: dict) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
@@ -94,8 +80,8 @@ def main() -> None:
     rows_by_key = {}
     for s in sources:
         raw = validation_samples(s, cfg["val_count"])
-        for mode in MODES:
-            examples = [make_example(processor, s.kind, k, f, mode) for k, f in raw]
+        for mode in IMAGE_MODES:
+            examples = [build_example(processor, s.kind, k, f, image_mode=mode) for k, f in raw]
             rows_by_key[(s.name, mode)] = list(iter_packed_rows(examples, cfg["max_len"], buffer_size=len(examples)))
     print(f"esempi pronti in {time.time() - t0:.0f} s: " +
           ", ".join(f"{s}/{m} {len(r)} righe" for (s, m), r in rows_by_key.items()), flush=True)

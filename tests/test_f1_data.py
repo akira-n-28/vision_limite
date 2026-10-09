@@ -66,6 +66,15 @@ def test_mavis_example(proc):
           gen.input_ids.tolist() == ex.input_ids[:first].tolist() and (gen.labels == IGNORE).all()
           and reference == caption)
     check("MAVIS: chiave e sorgente nell'esempio", ex.key == key and ex.source == "mavis_caption")
+    white = build_example(proc, "mavis_caption", key, files, image_mode="white")
+    check("immagine bianca: stessi token e label, patch tutte 255",
+          (white.input_ids == ex.input_ids).all() and (white.labels == ex.labels).all()
+          and white.grids == ex.grids and all((p == 255).all() for p in white.patches))
+    none = build_example(proc, "mavis_caption", key, files, image_mode="none")
+    check("senza immagine: niente token immagine né patch, stessa risposta con label",
+          not (none.input_ids == IMAGE_PAD_ID).any() and not none.patches
+          and none.input_ids[none.labels != IGNORE].tolist() == labelled
+          and prompt in proc.tokenizer.decode(none.input_ids.tolist()))
 
 
 def write_shard(path: Path, prefix: str, n: int, seed: int) -> list[str]:

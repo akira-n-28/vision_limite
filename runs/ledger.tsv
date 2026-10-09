@@ -89,3 +89,6 @@ time	job_id	job_name	status	note
 2026-10-09T18:04:26+02:00	29421	lvl-f1-smoke	ok	prova F1 -> /home/prignano/vision_limite/outputs/f1-smoke-29421
 2026-10-09T18:08:08+02:00	29423	lvl-f1-diag	submitted	diagnostica F1: 60 passi solo LLaVA (config/runs/f1-diag-llava.json) + loss di validazione con immagine vera/bianca/assente per proiettore casuale, prova 29421 e solo LLaVA, scomposta in primo token/centrali/EOS; 1 GPU 8 CPU 12G 0:45
 2026-10-09T18:20:16+02:00	29423	lvl-f1-diag	ok	diagnostica F1 -> /home/prignano/vision_limite/outputs/f1-diag-29423
+2026-10-09T18:24:48+02:00	29424	lvl-tests	submitted	test CPU: build_example con immagine bianca e senza immagine (validazione di F1 con guadagno immagine); 0 GPU 4 CPU 8G 0:20
+2026-10-09T18:24:48+02:00	29425	lvl-f1	submitted	run intermedio F1 (config/runs/f1-mid.json, approvato dall'utente): 400 passi da 32x4096 token (52M token), LLaVA:MAVIS 1:1 per esempio, AdamW 1e-3 warmup 3% coseno, validazione ogni 100 passi su 256 campioni per sorgente con immagine vera e bianca; dopo i test 29424 (afterok); 1 GPU 8 CPU 12G 1:15
+2026-10-09T18:27:19+02:00	29424	lvl-tests	ok	tests_cpu

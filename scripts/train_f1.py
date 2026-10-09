@@ -8,8 +8,10 @@ Da eseguire SOLO in un job SLURM con GPU (slurm/train_f1.sbatch, slurm/train_f1_
   micro_rows righe. Loss = CE media sui token con label di tutto il passo (non media delle medie).
 - Ottimizzatore: AdamW sui parametri addestrabili di set_trainable("f1"), lr con warmup lineare e
   coseno fino a min_lr_ratio·lr, clipping della norma del gradiente.
-- Validazione: loss per sorgente sui campioni esclusi dal training, ogni val_every passi e alla fine;
-  didascalie generate (greedy, con il prefill F1) per alcuni campioni di validazione.
+- Validazione: loss per sorgente sui campioni esclusi dal training, con l'immagine vera e con un'immagine
+  bianca della stessa dimensione (val_image_gain = bianca - vera: quanto il modello usa il contenuto
+  dell'immagine, job 29423), ogni val_every passi e alla fine; didascalie generate (greedy, con il
+  prefill F1) per alcuni campioni di validazione.
 - Checkpoint in OUT/checkpoints/step-NNNNNN (adapter, ottimizzatore, stato dei dati e del passo) ogni
   ckpt_minutes, alla fine e prima della scadenza del job; OUT/checkpoints/latest punta all'ultimo.
   Un nuovo avvio con la stessa OUT riprende da lì (stessa config, stesso numero di worker).
@@ -148,32 +150,38 @@ def to_cuda(batch: dict) -> dict:
     return {k: v.cuda(non_blocking=True) if torch.is_tensor(v) else v for k, v in batch.items()}
 
 
+VAL_MODES = ("real", "white")
+
+
 def validation_sets(sources, processor, cfg) -> tuple[dict, dict]:
-    """Micro-batch di validazione per sorgente e campioni per la generazione."""
+    """Micro-batch di validazione per (sorgente, immagine vera o bianca) e campioni per la generazione."""
     collate = PackedCollator(cfg["max_len"])
     batches, prompts = {}, {}
     for s in sources:
         raw = validation_samples(s, cfg["val_count"])
-        examples = [build_example(processor, s.kind, k, f) for k, f in raw]
-        rows = list(iter_packed_rows(examples, cfg["max_len"], buffer_size=len(examples)))
-        batches[s.name] = [collate(rows[i:i + cfg["micro_rows"]]) for i in range(0, len(rows), cfg["micro_rows"])]
+        for mode in VAL_MODES:
+            examples = [build_example(processor, s.kind, k, f, image_mode=mode) for k, f in raw]
+            rows = list(iter_packed_rows(examples, cfg["max_len"], buffer_size=len(examples)))
+            batches[(s.name, mode)] = [collate(rows[i:i + cfg["micro_rows"]])
+                                       for i in range(0, len(rows), cfg["micro_rows"])]
         prompts[s.name] = [(k, *generation_prompt(processor, s.kind, k, f))
                            for k, f in raw[: cfg.get("samples_per_source", 2)]]
-        log(f"validazione {s.name}: {len(examples)} esempi, {len(rows)} righe")
+        log(f"validazione {s.name}: {len(raw)} esempi, {len(rows)} righe per modo")
     return batches, prompts
 
 
 @torch.no_grad()
 def validate(model, batches: dict) -> dict:
-    out = {}
-    for name, items in batches.items():
+    """{modo: {sorgente: loss media sui token con label}}."""
+    out: dict = {}
+    for (name, mode), items in batches.items():
         total, count = 0.0, 0
         for batch in items:
             batch = to_cuda({k: v for k, v in batch.items() if k != "num_examples"})
             n = int((batch["labels"][:, 1:] != IGNORE).sum())
             total += model(**batch).loss.item() * n
             count += n
-        out[name] = total / max(1, count)
+        out.setdefault(mode, {})[name] = total / max(1, count)
     return out
 
 
@@ -300,14 +308,17 @@ def main() -> None:
     def run_validation() -> None:
         t = time.time()
         losses = validate(model, val_batches)
+        gain = {k: losses["white"][k] - v for k, v in losses["real"].items()}
         rows = generate_samples(model, processor, prompts, cfg.get("sample_max_new_tokens", 96))
         for r in rows:
             samples_log.write(json.dumps({"step": step, **r}, ensure_ascii=False) + "\n")
         samples_log.flush()
-        metrics.write(json.dumps({"step": step, "val_loss": losses, "val_seconds": round(time.time() - t, 1)}) + "\n")
+        metrics.write(json.dumps({"step": step, "val_loss": losses["real"], "val_loss_white": losses["white"],
+                                  "val_image_gain": gain, "val_seconds": round(time.time() - t, 1)}) + "\n")
         metrics.flush()
-        log(f"validazione al passo {step}: " + ", ".join(f"{k} {v:.4f}" for k, v in losses.items())
-            + f" ({time.time() - t:.0f} s)")
+        log(f"validazione al passo {step}: " + ", ".join(
+            f"{k} {v:.4f} (bianca {losses['white'][k]:.4f}, guadagno immagine {gain[k]:.4f})"
+            for k, v in losses["real"].items()) + f" ({time.time() - t:.0f} s)")
         for r in rows[:2 * len(prompts)]:
             log(f"  [{r['source']} {r['key']}] {r['output'][:200]!r}")
 

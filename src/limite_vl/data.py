@@ -96,9 +96,24 @@ SAMPLE_LOADERS: dict[str, Callable[[str, dict[str, bytes]], Sample]] = {
 }
 
 
-def build_example(processor: LimiteVLProcessor, kind: str, key: str, files: dict[str, bytes]) -> Example:
+IMAGE_MODES = ("real", "white", "none")
+
+
+def build_example(processor: LimiteVLProcessor, kind: str, key: str, files: dict[str, bytes],
+                  image_mode: str = "real") -> Example:
+    """Esempio di training. image_mode: real; white = immagine bianca della stessa dimensione (stessi token
+    immagine, test dell'immagine bianca); none = senza immagine, solo il testo."""
     sample = SAMPLE_LOADERS[kind](key, files)
-    example = processor.encode(sample.messages, [sample.image], max_patches=sample.max_patches)
+    messages, images = sample.messages, [sample.image]
+    if image_mode == "white":
+        images = [Image.new("RGB", sample.image.size, "white")]
+    elif image_mode == "none":
+        messages = [{**m, "content": [c for c in m["content"] if c["type"] != "image"]}
+                    if isinstance(m["content"], list) else m for m in messages]
+        images = []
+    elif image_mode != "real":
+        raise ValueError(f"image_mode {image_mode!r}: atteso uno di {IMAGE_MODES}")
+    example = processor.encode(messages, images, max_patches=sample.max_patches)
     example.source, example.key = kind, key
     return example
 
