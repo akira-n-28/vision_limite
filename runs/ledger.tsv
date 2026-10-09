@@ -57,3 +57,7 @@ time	job_id	job_name	status	note
 2026-10-09T11:28:20+02:00	29401	lvl-tests	ok	tests_cpu
 2026-10-09T11:34:02+02:00	29402	lvl-f0-vl	submitted	verifiche F0 VL, secondo giro (3c5c42b + check in fp32: packing, flex vs sdpa, GC con rumore di riferimento; 3 prompt di generazione); 1 GPU 8 CPU 24G 0:30 (ok utente)
 2026-10-09T11:38:22+02:00	29402	lvl-f0-vl	ok	f0 VL checks -> /home/prignano/vision_limite/outputs/f0/vl-checks-29402.json
+2026-10-09T11:53:40+02:00	29403	lvl-tests	submitted	test CPU dopo il prefill F1 <think></think> senza label (opzione B) e la tokenizzazione separata dell ultimo turno; 0 GPU 4 CPU 8G 0:20
+2026-10-09T11:54:52+02:00	29403	lvl-tests	failed	tests_cpu: tests/test_vl_data.py
+2026-10-09T11:55:41+02:00	29404	lvl-tests	submitted	test CPU: prefill F1 e token <think>/</think> ammessi nei testi dell assistente (29403 fallito su questo); 0 GPU 4 CPU 8G 0:20
+2026-10-09T11:56:52+02:00	29404	lvl-tests	ok	tests_cpu

@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from limite_vl.collator import PackedCollator, iter_packed_rows, pack_first_fit  # noqa: E402
 from limite_vl.data import iter_shard, llava_pretrain_example  # noqa: E402
-from limite_vl.processing import (DEFAULT_MAX_PATCHES, DIAGRAM_MAX_PATCHES, EOS_ID, IGNORE,  # noqa: E402
+from limite_vl.processing import (DEFAULT_MAX_PATCHES, DIAGRAM_MAX_PATCHES, EOS_ID, F1_PREFILL, IGNORE,  # noqa: E402
                                   IMAGE_PAD_ID, MAX_IMAGE_TOKENS, Example, LimiteVLProcessor,
                                   image_to_patches, image_tokens, target_size)
 
@@ -125,12 +125,44 @@ def test_encode_multi_turn(proc):
           "A triangle.<|im_end|>\n<|im_start|>user\nIts area?" in text and text.endswith("6.<|endoftext|>"))
 
 
+def test_prefill(proc):
+    tok = proc.tokenizer
+    messages = [{"role": "user", "content": [{"type": "image"}, {"type": "text", "text": "Describe."}]},
+                {"role": "assistant", "content": "a red square", "prefill": F1_PREFILL}]
+    ex = proc.encode(messages, [noise(64, 64)])
+    ids = ex.input_ids.tolist()
+    target = tok.decode(ex.input_ids[ex.labels != IGNORE].tolist(), skip_special_tokens=False)
+    check("prefill F1: label solo su didascalia ed EOS", target == "a red square<|endoftext|>", repr(target))
+    given = tok(F1_PREFILL, add_special_tokens=False)["input_ids"]
+    caption = tok("a red square", add_special_tokens=False)["input_ids"]
+    n = len(caption) + 1
+    check("prefill F1: token del prefill e della didascalia tokenizzati a parte",
+          ids[-n - len(given):-n] == given and ids[-n:-1] == caption)
+    text = tok.decode(ids, skip_special_tokens=False)
+    check("prefill F1: dopo l'apertura dell'assistente",
+          text.endswith("<|im_start|>assistant\n<think></think>a red square<|endoftext|>"), repr(text[-60:]))
+    ex = proc.encode(messages[:1], [noise(64, 64)], add_generation_prompt=True, prefill=F1_PREFILL)
+    text = tok.decode(ex.input_ids.tolist(), skip_special_tokens=False)
+    raw = [{"role": "user", "content": "Q"}, {"role": "assistant", "content": "<think>r</think>A"}]
+    ids = proc.encode(raw).input_ids.tolist()
+    expected = tok("<think>r</think>A", add_special_tokens=False)["input_ids"] + [EOS_ID]
+    check("risposta grezza di Violetto: <think> e </think> come token singoli",
+          ids[-len(expected):] == expected and expected[0] == 151665 and 151666 in expected, str(expected))
+    check("prefill F1 in inferenza", text.endswith("<|im_start|>assistant\n<think></think>")
+          and bool((ex.labels == IGNORE).all()))
+
+
 def test_rejects(proc):
     cases = {
         "immagine dopo il testo": ([{"role": "user", "content": [{"type": "text", "text": "Q"}, {"type": "image"}]}],
                                    [noise(64, 64)]),
         "token speciale nel testo": ([{"role": "user", "content": "<|image_pad|> hi"}], []),
+        "<think> nel testo dell'utente": ([{"role": "user", "content": "<think> hi"}], []),
         "numero di immagini": ([{"role": "user", "content": [{"type": "image"}, {"type": "text", "text": "Q"}]}], []),
+        "prefill in un turno intermedio": ([{"role": "user", "content": "Q"},
+                                            {"role": "assistant", "content": "A", "prefill": F1_PREFILL},
+                                            {"role": "user", "content": "Q2"},
+                                            {"role": "assistant", "content": "B"}], []),
     }
     for name, (messages, images) in cases.items():
         try:
@@ -236,6 +268,7 @@ if __name__ == "__main__":
     processor = LimiteVLProcessor.from_pretrained(str(VIOLETTO))
     test_encode_single_turn(processor)
     test_encode_multi_turn(processor)
+    test_prefill(processor)
     test_rejects(processor)
     test_generation_prompt(processor)
     test_pack_first_fit()

@@ -9,7 +9,7 @@ from typing import Iterator
 
 from PIL import Image
 
-from .processing import Example, LimiteVLProcessor
+from .processing import F1_PREFILL, Example, LimiteVLProcessor
 
 
 def iter_shard(path: Path | str) -> Iterator[tuple[str, dict[str, bytes]]]:
@@ -30,10 +30,11 @@ def iter_shard(path: Path | str) -> Iterator[tuple[str, dict[str, bytes]]]:
 
 
 def llava_pretrain_messages(meta: dict) -> list[dict]:
-    """LLaVA-Pretrain: il prompt contiene <image> (prima o dopo il testo); l'immagine va sempre prima."""
+    """LLaVA-Pretrain: il prompt contiene <image> (prima o dopo il testo); l'immagine va sempre prima.
+    Didascalia come target F1, dopo il ragionamento vuoto F1_PREFILL (senza label)."""
     text = meta["prompt"].replace("<image>", "").strip()
     return [{"role": "user", "content": [{"type": "image"}, {"type": "text", "text": text}]},
-            {"role": "assistant", "content": meta["caption"]}]
+            {"role": "assistant", "content": meta["caption"], "prefill": F1_PREFILL}]
 
 
 def llava_pretrain_example(processor: LimiteVLProcessor, files: dict[str, bytes],

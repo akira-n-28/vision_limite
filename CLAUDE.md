@@ -206,6 +206,12 @@ iperparametri rispetto al piano.
   - ultimo turno: contenuto + `<|endoftext|>`, con label;
   - turni intermedi: label solo sul contenuto; `<|im_end|>\n` resta nell'input senza label;
   - immagine sempre prima del testo nel messaggio utente.
+- `<think>` (151665) e `</think>` (151666) sono token aggiunti non speciali. Il processor li
+  ammette solo nei testi dell'assistente e nel prefill.
+- Didascalie di F1 (opzione B, scelta dall'utente il 2026-10-09): l'assistente riceve
+  `<think></think>` come prefill senza label (`F1_PREFILL`), seguito dalla didascalia +
+  `<|endoftext|>` con label. Così il proiettore non impara a far saltare il `<think>` iniziale.
+  Nelle verifiche di F1 lo stesso prefill va dato in generazione.
 
 ## Ottimizzatore
 

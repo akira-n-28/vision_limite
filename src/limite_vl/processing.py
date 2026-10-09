@@ -14,7 +14,8 @@ dell'assistente. Il formato della risposta segue quello che Violetto genera, non
 ragionamento è `<think>...</think>` senza a capo (soluzioni del valutatore, job 29393) e l'ultimo
 turno finisce con `<|endoftext|>` subito dopo il testo, senza `<|im_end|>\\n` (generazione greedy,
 job 29400). Nei turni intermedi `<|im_end|>\\n` resta nell'input, come lo scrive il template nella
-cronologia, ma senza label.
+cronologia, ma senza label. Nelle didascalie di F1 il turno dell'assistente comincia con un
+ragionamento vuoto dato in input senza label (F1_PREFILL).
 """
 from __future__ import annotations
 
@@ -38,6 +39,12 @@ VISION_START_ID = 151652
 VISION_END_ID = 151653
 IMAGE_PAD_ID = 151655
 EOS_ID = 151643  # <|endoftext|>: fine generazione di Violetto, pad e inizio del chat template
+# Ragionamento vuoto dato prima delle didascalie di F1 (scelta dell'utente, opzione B, 2026-10-09):
+# Violetto comincia sempre con <think>, così la loss resta solo sui token che dipendono dall'immagine
+# e il proiettore non impara a far saltare al decoder il suo formato.
+F1_PREFILL = "<think></think>"
+# Token aggiunti (non speciali) del formato di Violetto, ammessi solo nei testi dell'assistente.
+THINK_TOKENS = ("<think>", "</think>")  # 151665, 151666
 IM_END_ID = 151645
 NEWLINE_ID = 198
 IGNORE = -100
@@ -121,9 +128,9 @@ class LimiteVLProcessor:
             raise ValueError(f"tokenizer_class {declared!r}, atteso Qwen2Tokenizer")
         return cls(Qwen2Tokenizer.from_pretrained(path, local_files_only=True), **kwargs)
 
-    def _check_text(self, text: str) -> str:
+    def _check_text(self, text: str, allowed: tuple[str, ...] = ()) -> str:
         for token in self.special_tokens:
-            if token in text:
+            if token in text and token not in allowed:
                 raise ValueError(f"il testo contiene il token speciale {token!r}")
         return text
 
@@ -133,7 +140,7 @@ class LimiteVLProcessor:
         for message in messages:
             role, content = message["role"], message["content"]
             if isinstance(content, str):
-                text = self._check_text(content)
+                text = self._check_text(content, THINK_TOKENS if role == "assistant" else ())
             elif role == "user":
                 parts, seen_text = [], False
                 for item in content:
@@ -160,35 +167,55 @@ class LimiteVLProcessor:
 
     def _ids(self, messages: list[dict], add_generation_prompt: bool = False) -> list[int]:
         text = self.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=add_generation_prompt)
+        return self._text_ids(text)
+
+    def _text_ids(self, text: str) -> list[int]:
         return self.tokenizer(text, add_special_tokens=False)["input_ids"]
 
     def encode(self, messages: list[dict], images: list = (), max_patches: int | None = None,
-               add_generation_prompt: bool = False) -> Example:
+               add_generation_prompt: bool = False, prefill: str = "") -> Example:
         """Tokenizza una conversazione. `images`: PIL.Image oppure coppie (patch, griglia) già calcolate.
 
-        Con add_generation_prompt=True (inferenza) nessuna label e nessun EOS finale. Se l'ultimo messaggio è
-        dell'assistente, l'esempio finisce con il suo contenuto seguito da <|endoftext|> (con label).
+        L'ultimo turno dell'assistente si costruisce come in generazione: il prompt del template fino a
+        `<|im_start|>assistant\\n`, poi l'eventuale `prefill` del messaggio (dato al modello, senza label,
+        es. F1_PREFILL), poi il contenuto e `<|endoftext|>` con label. Prefill e contenuto si tokenizzano
+        a parte, come i token che il modello genera dopo il prompt. Con add_generation_prompt=True
+        (inferenza) il risultato finisce con il prompt e l'argomento `prefill`, senza label.
         """
         rendered, n_images = self.render(messages)
         if n_images != len(images):
             raise ValueError(f"{n_images} immagini nei messaggi, {len(images)} passate")
-        ids = self._ids(rendered, add_generation_prompt)
+        final = not add_generation_prompt and bool(rendered) and rendered[-1]["role"] == "assistant"
+        if any(m.get("prefill") for m in messages[: len(messages) - final]):
+            raise ValueError("prefill ammesso solo nell'ultimo turno dell'assistente")
+        if final:
+            if prefill:
+                raise ValueError("in training il prefill va nel messaggio dell'assistente")
+            prefill = messages[-1].get("prefill", "")
+        elif prefill and not add_generation_prompt:
+            raise ValueError("prefill senza un turno dell'assistente da generare")
+        history = rendered[:-1] if final else rendered
+        ids = self._ids(history, add_generation_prompt=add_generation_prompt or final)
         labels = [IGNORE] * len(ids)
         if not add_generation_prompt:
-            for i, message in enumerate(rendered):
+            for i, message in enumerate(history):
                 if message["role"] != "assistant":
                     continue
-                start = self._ids(rendered[:i], add_generation_prompt=True)
-                end = self._ids(rendered[: i + 1])
+                start = self._ids(history[:i], add_generation_prompt=True)
+                end = self._ids(history[: i + 1])
                 if ids[: len(end)] != end or end[: len(start)] != start:
                     raise ValueError(f"turno {i}: la tokenizzazione del prefisso non è un prefisso di quella completa")
                 if end[-2:] != [IM_END_ID, NEWLINE_ID]:
                     raise ValueError(f"turno {i}: il template non chiude il turno con <|im_end|>\\n")
-                labels[len(start):len(end) - 2] = ids[len(start):len(end) - 2]
-            if rendered and rendered[-1]["role"] == "assistant":
-                del ids[-2:], labels[-2:]  # <|im_end|>\n dell'ultimo turno: Violetto chiude con EOS
-                ids.append(EOS_ID)
-                labels.append(EOS_ID)
+                labels[len(start):len(end) - 2] = ids[len(start):len(end) - 2]  # <|im_end|>\n senza label
+        if prefill:
+            given = self._text_ids(self._check_text(prefill, THINK_TOKENS))
+            ids += given
+            labels += [IGNORE] * len(given)
+        if final:
+            content = self._text_ids(rendered[-1]["content"]) + [EOS_ID]  # Violetto chiude con EOS
+            ids += content
+            labels += content
 
         patches, grids = [], []
         for image in images:
