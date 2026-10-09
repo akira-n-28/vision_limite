@@ -149,11 +149,17 @@ iperparametri rispetto al piano.
 ## Fatti verificati sul codice di Limite (`modeling_limite.py` @ b1f3d572)
 
 - `LimiteModel.forward` rifiuta `inputs_embeds` (ValueError): servono `input_ids` perché i
-  value embeddings sono un secondo lookup per token. Il modello VL deve avere un forward
-  proprio: `embed_tokens(input_ids)` → sostituzione delle posizioni `<|image_pad|>` con
-  l'output del proiettore → `rms_norm` → ciclo dei layer copiato dall'originale.
-- Lo stato iniziale `rms_norm(embed_tokens(input_ids))` è anche il tap x(0) del MUDD.
-- `value_embeds(input_ids)`: azzerare il contributo sulle posizioni immagine.
+  value embeddings sono un secondo lookup per token. Il modello VL
+  (`src/limite_vl/modeling.py`, scelta confermata dall'utente il 2026-10-09) non copia il ciclo
+  dei layer. Usa due forward hook sul `LimiteForCausalLM` originale:
+  - su `embed_tokens`: le posizioni `<|image_pad|>` ricevono l'output del proiettore prima della
+    `rms_norm` iniziale; `<|vision_start|>` e `<|vision_end|>` ricevono le righe addestrabili
+    `vision_token_embeds`;
+  - su `value_embeds`: il contributo sulle posizioni `<|image_pad|>` viene azzerato.
+  Ciclo dei layer, MUDD, cache e `generate()` restano quelli originali. Su solo testo gli
+  hidden state sono identici bit per bit a Violetto, in train e in eval (job 29400).
+- Lo stato iniziale `rms_norm(embed_tokens(input_ids))` è anche il tap x(0) del MUDD: per questo
+  le feature visive entrano prima della norm.
 - Nessun supporto al gradient checkpointing (`gradient_checkpointing_enable` dà ValueError):
   wrapper per layer con `torch.utils.checkpoint` (non rientrante), validato da
   `scripts/f0_checks.py` (job 29378: stessa loss, gradienti con diff. relativa 8·10⁻⁸).
@@ -165,8 +171,26 @@ iperparametri rispetto al piano.
   La generazione lo passa da sé.
 - Token visivi già nel vocabolario: `<|vision_start|>` 151652, `<|image_pad|>` 151655,
   `<|vision_end|>` 151653.
-- Copiare i file remoti del modello in `third_party/limite-modeling/` con il loro hash;
-  il training non deve scaricare codice con `trust_remote_code` a runtime.
+- Il codice del modello si importa dalla copia in `third_party/limite-modeling/`, creata da
+  `scripts/vendor_limite_modeling.py` e caricata da `limite_vl.limite_code.load()` solo se gli
+  SHA-256 coincidono. Niente `trust_remote_code` nel training. Il tokenizer si carica come
+  `Qwen2Tokenizer`: `AutoTokenizer` legge l'`auto_map` della config e chiede se eseguire codice
+  remoto.
+- In eval il MUDD usa costanti bf16 (`_inference_dense1` ecc.): con il decoder in fp32 i confronti
+  numerici vanno fatti in modalità train. Limite non ha dropout.
+
+## Formato delle risposte di Violetto (vale per tutti i dati di training)
+
+- Violetto chiude la risposta con `<|endoftext|>` (151643) subito dopo il testo, senza
+  `<|im_end|>` (generazione greedy, job 29400). Il chat template invece scrive
+  `<|im_end|>\n` dopo ogni turno dell'assistente.
+- Il ragionamento è `<think>...</think>` senza a capo, seguito dalla risposta (soluzioni del
+  valutatore, job 29393). Il template, con `reasoning_content`, scriverebbe
+  `<think>\n...\n</think>\n\n`.
+- `LimiteVLProcessor` segue il formato generato, non il template:
+  - ultimo turno: contenuto + `<|endoftext|>`, con label;
+  - turni intermedi: label solo sul contenuto; `<|im_end|>\n` resta nell'input senza label;
+  - immagine sempre prima del testo nel messaggio utente.
 
 ## Ottimizzatore
 
@@ -187,10 +211,20 @@ iperparametri rispetto al piano.
 - `downloads/` — `sources.tsv`, `build_manifests.sh`, `manifests/`
 - `scripts/` — ambiente (`setup_env.sh`, `guarded_run.sh`, `uvlock_manifest.py`), download
   (`fetch.sh`, `fetch_manifest.sh`, `hf_manifest.py`, `link_hf_snapshot.py`), verifica
-  (`verify_manifest.py`), F0 (`f0_checks.py`)
+  (`verify_manifest.py`), dati (`shard_llava_pretrain.py`), valutatore (`link_eval_datasets.py`),
+  codice di Limite (`vendor_limite_modeling.py`), F0 (`f0_checks.py`, `f0_vl_checks.py`,
+  `vllm_smoke.py`)
 - `slurm/` — `prologue.sh` e gli script `.sbatch`
-- `env/` — pyproject e lock dell'ambiente
-- `third_party/` — `limite-violetto` (plugin vLLM e valutatore) e copia del codice del modello
-- `src/limite_vl/` — codice del progetto (`optim/`: NorMuon e gruppi della Tabella 1)
-- `tests/` — test CPU (`test_normuon.py`)
+- `env/`, `env-evals/` — pyproject e lock dell'ambiente principale e del client del valutatore
+- `third_party/` — `limite-violetto` (plugin vLLM e valutatore), `verifiers`, `limite-modeling`
+  (copia verificata del codice del modello)
+- `src/limite_vl/` — codice del progetto:
+  - `modeling.py`: modello VL e proiettore;
+  - `processing.py`: immagini in patch a griglia pari, chat in token e label;
+  - `collator.py`: packing e collate;
+  - `data.py`: lettura degli shard tar;
+  - `train_utils.py`: loss a blocchi e checkpointing per layer;
+  - `limite_code.py`: import verificato del codice di Limite;
+  - `optim/`: NorMuon e gruppi della Tabella 1.
+- `tests/` — test CPU (`test_normuon.py`, `test_vl_data.py`), lanciati tutti da `slurm/tests_cpu.sbatch`
 - `runs/ledger.tsv` — registro dei job (testo piccolo, versionato)
