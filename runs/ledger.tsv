@@ -81,3 +81,9 @@ time	job_id	job_name	status	note
 2026-10-09T17:00:59+02:00	29418	lvl-cpu-probe	ok	sonda affinità CPU
 2026-10-09T17:03:28+02:00	29419	lvl-shard-mavis	submitted	shard completi MAVIS-Geometry@9c80fff3 variante caption: ~199050 campioni (dedup didascalie, senza il campione incompleto), PNG a 2304 patch, 19000 per shard -> data/shards/mavis-geometry/9c80fff3-caption; prova4000 (29417) cancellata; 0 GPU 8 CPU 8G 1:30 (stima ~45 min, approvato dall'utente)
 2026-10-09T17:25:37+02:00	29419	lvl-shard-mavis	ok	shard mavis-geometry caption -> /home/prignano/vision_limite/data/shards/mavis-geometry/9c80fff3-caption
+2026-10-09T17:48:14+02:00	29420	lvl-tests	submitted	test CPU: data.py riorganizzato (loader per tipo, esempi MAVIS), stream.py (flusso misto riprendibile), test_f1_data.py nuovo; 0 GPU 4 CPU 8G 0:20
+2026-10-09T17:50:32+02:00	29420	lvl-tests	ok	tests_cpu
+2026-10-09T17:51:00+02:00	29421	lvl-f1-smoke	submitted	prova F1 (config/runs/f1-smoke.json): 60 passi da 32x4096 token, LLaVA:MAVIS 1:1 per esempio, AdamW 1e-3, flex_attention, 4 worker; stop a 30 passi con checkpoint e ripresa nello stesso job; 1 GPU 8 CPU 12G 0:45
+2026-10-09T17:55:51+02:00	29422	lvl-stream	submitted	statistiche del flusso di f1-smoke: errori per sorgente (nella prova 29421 MAVIS arriva 1:2 invece di 1:1), velocità di un worker; 0 GPU 2 CPU 4G 0:20
+2026-10-09T17:57:02+02:00	29422	lvl-stream	ok	statistiche del flusso: config/runs/f1-smoke.json
+2026-10-09T18:04:26+02:00	29421	lvl-f1-smoke	ok	prova F1 -> /home/prignano/vision_limite/outputs/f1-smoke-29421

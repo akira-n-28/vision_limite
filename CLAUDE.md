@@ -221,7 +221,7 @@ iperparametri rispetto al piano.
 
 ## Dati di F1
 
-- LLaVA-Pretrain @ 70f9d1e5: 32 shard in `data/shards/llava-pretrain/70f9d1e5/` (558 mila didascalie,
+- LLaVA-Pretrain @ 70f9d1e5: 29 shard in `data/shards/llava-pretrain/70f9d1e5/` (558 mila didascalie,
   circa 312 token per esempio con l'immagine a 1024 patch).
 - MAVIS-Caption non esiste su Hugging Face. Gli autori l'hanno pubblicato solo come versione provvisoria
   su Google Drive, e la cartella risponde 404. Per i diagrammi si usa CaraJ/MAVIS-Geometry @ 9c80fff3

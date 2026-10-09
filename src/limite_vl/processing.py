@@ -92,6 +92,8 @@ class Example:
     labels: np.ndarray  # int32
     patches: list[np.ndarray] = field(default_factory=list)  # uint8 (n_i, 768), in ordine di apparizione
     grids: list[tuple[int, int]] = field(default_factory=list)
+    source: str = ""  # tipo di sorgente e chiave del campione (data.build_example), per statistiche e test
+    key: str = ""
 
     def __len__(self) -> int:
         return len(self.input_ids)
