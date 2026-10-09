@@ -87,3 +87,5 @@ time	job_id	job_name	status	note
 2026-10-09T17:55:51+02:00	29422	lvl-stream	submitted	statistiche del flusso di f1-smoke: errori per sorgente (nella prova 29421 MAVIS arriva 1:2 invece di 1:1), velocità di un worker; 0 GPU 2 CPU 4G 0:20
 2026-10-09T17:57:02+02:00	29422	lvl-stream	ok	statistiche del flusso: config/runs/f1-smoke.json
 2026-10-09T18:04:26+02:00	29421	lvl-f1-smoke	ok	prova F1 -> /home/prignano/vision_limite/outputs/f1-smoke-29421
+2026-10-09T18:08:08+02:00	29423	lvl-f1-diag	submitted	diagnostica F1: 60 passi solo LLaVA (config/runs/f1-diag-llava.json) + loss di validazione con immagine vera/bianca/assente per proiettore casuale, prova 29421 e solo LLaVA, scomposta in primo token/centrali/EOS; 1 GPU 8 CPU 12G 0:45
+2026-10-09T18:20:16+02:00	29423	lvl-f1-diag	ok	diagnostica F1 -> /home/prignano/vision_limite/outputs/f1-diag-29423
