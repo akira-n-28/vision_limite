@@ -25,10 +25,9 @@ import traceback
 from pathlib import Path
 
 import torch
-import torch.nn.functional as F
-from torch.utils.checkpoint import checkpoint
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+from limite_vl.train_utils import LayerCheckpointing, chunked_ce, decoder  # noqa: E402
 
 VISION_TOKENS = ["<|vision_start|>", "<|image_pad|>", "<|vision_end|>", "<|vision_pad|>"]
 RESULTS: dict[str, object] = {}
@@ -58,48 +57,6 @@ def load(path: str, dtype: torch.dtype):
         path, trust_remote_code=True, local_files_only=True, dtype=dtype, attn_implementation="sdpa"
     ).cuda()
     return tok, model
-
-
-def decoder(model):
-    inner = getattr(model, "model", None)
-    if inner is None or not hasattr(inner, "layers"):
-        raise RuntimeError("non trovo model.model.layers: controllare la struttura in modeling_limite.py")
-    return inner
-
-
-def chunked_ce(model, hidden: torch.Tensor, labels: torch.Tensor, chunk: int = 2048) -> torch.Tensor:
-    """CE con soft-capping calcolata a blocchi di token; hidden = output dopo la norm finale."""
-    softcap = getattr(model, "_softcapped_logits", None)
-    if softcap is None:
-        raise RuntimeError("manca model._softcapped_logits")
-    h = hidden[:, :-1]
-    y = labels[:, 1:]
-    total = hidden.new_zeros((), dtype=torch.float32)
-    count = (y != -100).sum()
-    for s in range(0, h.shape[1], chunk):
-        def piece(hh, yy):
-            logits = softcap(hh).float()
-            return F.cross_entropy(logits.reshape(-1, logits.shape[-1]), yy.reshape(-1),
-                                   ignore_index=-100, reduction="sum")
-        total = total + checkpoint(piece, h[:, s:s + chunk], y[:, s:s + chunk], use_reentrant=False)
-    return total / count.clamp(min=1)
-
-
-class LayerCheckpointing:
-    """Avvolge ogni decoder layer in torch.utils.checkpoint (non rientrante)."""
-
-    def __init__(self, model):
-        self.layers = decoder(model).layers
-        self.orig = [layer.forward for layer in self.layers]
-
-    def __enter__(self):
-        for layer, fwd in zip(self.layers, self.orig):
-            layer.forward = (lambda f: (lambda *a, **k: checkpoint(f, *a, use_reentrant=False, **k)))(fwd)
-        return self
-
-    def __exit__(self, *exc):
-        for layer, fwd in zip(self.layers, self.orig):
-            layer.forward = fwd
 
 
 def main() -> None:
