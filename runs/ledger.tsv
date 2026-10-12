@@ -92,3 +92,52 @@ time	job_id	job_name	status	note
 2026-10-09T18:24:48+02:00	29424	lvl-tests	submitted	test CPU: build_example con immagine bianca e senza immagine (validazione di F1 con guadagno immagine); 0 GPU 4 CPU 8G 0:20
 2026-10-09T18:24:48+02:00	29425	lvl-f1	submitted	run intermedio F1 (config/runs/f1-mid.json, approvato dall'utente): 400 passi da 32x4096 token (52M token), LLaVA:MAVIS 1:1 per esempio, AdamW 1e-3 warmup 3% coseno, validazione ogni 100 passi su 256 campioni per sorgente con immagine vera e bianca; dopo i test 29424 (afterok); 1 GPU 8 CPU 12G 1:15
 2026-10-09T18:27:19+02:00	29424	lvl-tests	ok	tests_cpu
+2026-10-09T19:26:55+02:00	29425	lvl-f1	ok	F1 f1-mid -> /home/prignano/vision_limite/outputs/f1-mid
+2026-10-09T19:34:56+02:00	-	fetch-p3	note	p3 rigenerato con wanderkid/UniMER_Dataset@2343ddd9 (UniMER-1M.zip 1.98 GB, UniMER-Test.zip 147 MB, README; Apache-2.0), righe LLaVA e MAVIS invariate; avviato fetch_manifest p3
+2026-10-09T19:38:42+02:00	29429	lvl-verify	submitted	verifica hash di wanderkid/UniMER_Dataset@2343ddd9 (UniMER-1M.zip, UniMER-Test.zip, README): downloads/manifests/p3-unimer.tsv; 0 GPU 2 CPU 4G
+2026-10-09T19:38:42+02:00	29430	lvl-zip	submitted	contenuto di UniMER-1M.zip con inspect_zip a tetti globali (40 cartelle, 6 testi, 6 immagini), dopo 29429; 0 GPU 2 CPU 8G 0:30
+2026-10-09T19:38:42+02:00	29431	lvl-zip	submitted	contenuto di UniMER-Test.zip con inspect_zip a tetti globali, dopo 29429; 0 GPU 2 CPU 8G 0:30
+2026-10-09T19:38:48+02:00	29429	lvl-verify	ok	verify downloads/manifests/p3-unimer.tsv -> /home/prignano/vision_limite/outputs/verify/report-29429.tsv
+2026-10-09T19:38:50+02:00	29431	lvl-zip	ok	contenuto zip: /home/prignano/vision_limite/hf/hub/datasets--wanderkid--UniMER_Dataset/snapshots/2343ddd963290469da36ca83e3a56c66e068add9/UniMER-Test.zip -> /home/prignano/vision_limite/outputs/inspect_zip/29431
+2026-10-09T19:39:11+02:00	29430	lvl-zip	ok	contenuto zip: /home/prignano/vision_limite/hf/hub/datasets--wanderkid--UniMER_Dataset/snapshots/2343ddd963290469da36ca83e3a56c66e068add9/UniMER-1M.zip -> /home/prignano/vision_limite/outputs/inspect_zip/29430
+2026-10-12T10:50:05+02:00	29436	lvl-unimer	submitted	analisi di UniMER: corrispondenza immagini-righe, confini Pix2tex/arXiv/CROHME/HME100K, dimensioni, formule con despace (src/limite_vl/latex.py), test, token con ingrandimento 2x a 1024 patch; al più 16 immagini; 0 GPU 2 CPU 8G 0:30
+2026-10-12T10:51:14+02:00	29436	lvl-unimer	ok	analisi UniMER: /home/prignano/vision_limite/outputs/unimer_survey/29436
+2026-10-12T10:54:49+02:00	29437	lvl-shard-unimer	submitted	prova shard UniMER@2343ddd9: primi 20000 campioni del train, capped_size 2x a 1024 patch, despace, anteprima di 3 campioni -> data/shards/unimer/2343ddd9-prova20000; 0 GPU 8 CPU 8G 0:20
+2026-10-12T10:56:39+02:00	29437	lvl-shard-unimer	ok	shard unimer prova 20000 -> /home/prignano/vision_limite/data/shards/unimer/2343ddd9-prova20000
+2026-10-12T10:57:30+02:00	29438	lvl-shard-unimer	submitted	shard completi UniMER@2343ddd9: ~985 mila campioni del train in shard da 200 mila (capped_size 2x a 1024 patch, despace, esclusi 672 casi in cui despace cambia i token) + test spe/cpe/sce/hwe -> data/shards/unimer/2343ddd9; prova20000 (29437) cancellata; 0 GPU 8 CPU 8G 1:00
+2026-10-12T10:57:30+02:00	29439	lvl-shard-unimer	submitted	ripresa degli shard UniMER se 29438 non finisce entro l'ora (afterany; se è già tutto scritto termina subito); 0 GPU 8 CPU 8G 1:00
+2026-10-12T11:06:12+02:00	29438	lvl-shard-unimer	ok	shard unimer -> /home/prignano/vision_limite/data/shards/unimer/2343ddd9
+2026-10-12T11:06:24+02:00	29439	lvl-shard-unimer	cancelled	non serviva: 29438 ha scritto tutti gli shard in 13 minuti
+2026-10-12T11:06:39+02:00	29440	lvl-tests	submitted	test CPU: latex.despace, capped_size, esempi UniMER dallo shard vero; 0 GPU 4 CPU 8G 0:20
+2026-10-12T11:06:39+02:00	29441	lvl-f1	submitted	prova F1 con tre sorgenti (config/runs/f1-smoke3.json): 40 passi, LLaVA:MAVIS:UniMER 558:199:985 per esempio, encoder a gruppi con controllo di parità, RAM processi/cache; dopo 29440; 1 GPU 8 CPU 12G 0:30
+2026-10-12T11:06:39+02:00	29442	lvl-f1-formulas	submitted	prova dello script di valutazione delle formule (20 per spe e cpe) sull'adapter di f1-smoke3; dopo 29441; 1 GPU 4 CPU 12G 0:20
+2026-10-12T11:09:26+02:00	29440	lvl-tests	ok	tests_cpu
+2026-10-12T11:36:24+02:00	29441	lvl-f1	cancelled	f1-smoke3 annullato al passo ~22: 2 mila token/s perché dynamo ha superato recompile_limit (8) su create_block_mask di flex e le maschere sono tornate in eager; limite alzato a 64 (train_utils.allow_flex_recompiles); 29442 annullato con lui
+2026-10-12T11:36:24+02:00	29443	lvl-f1	submitted	prova F1 a tre sorgenti ripetuta (f1-smoke3b): recompile_limit 64, controllo dell'encoder anche con gruppi da 4096 patch; 1 GPU 8 CPU 12G 0:30
+2026-10-12T11:36:24+02:00	29444	lvl-f1-formulas	submitted	prova dello script di valutazione delle formule (20 per spe e cpe) sull'adapter di f1-smoke3b; dopo 29443; 1 GPU 4 CPU 12G 0:20
+2026-10-12T11:39:21+02:00	29443	lvl-f1	failed	F1 f1-smoke3b -> /home/prignano/vision_limite/outputs/f1-smoke3b
+2026-10-12T11:39:57+02:00	29443	lvl-f1	failed	f1-smoke3b fermato dal controllo dell'encoder: con gruppi da 4096 patch le feature differiscono dell'8.4% dal gruppo unico, cioè l'output di SigLIP2 dipende dal padding; recompile_limit risolto (validazione in 91 s); 29444 annullato
+2026-10-12T11:40:43+02:00	29445	lvl-vis-pad	submitted	SigLIP2 e padding: 9 immagini (3 per sorgente), da sola contro batch allineato e +512 patch, fp32/bf16, sdpa/eager, maschera int32/bool; 1 GPU 2 CPU 12G 0:20
+2026-10-12T11:42:45+02:00	29445	lvl-vis-pad	ok	padding di SigLIP2 -> /home/prignano/vision_limite/outputs/check_vision_padding/29445.json
+2026-10-12T11:43:52+02:00	29446	lvl-vis-prec	submitted	SigLIP2: distanza dal riferimento fp32 (immagine da sola) in bf16, autocast, TF32, fp32, anche dopo il proiettore di f1-mid, e tempo per batch di 32 immagini; 1 GPU 2 CPU 12G 0:20
+2026-10-12T11:45:54+02:00	29446	lvl-vis-prec	ok	precisione di SigLIP2 -> /home/prignano/vision_limite/outputs/check_vision_precision/29446.json
+2026-10-12T11:47:32+02:00	29447	lvl-f1	submitted	prova F1 a tre sorgenti con encoder in TF32 (f1-smoke3c; vision_precision tf32, job 29446: bf16 26% lontano da fp32, TF32 2%): throughput, controllo dei gruppi in fp32, loss; 1 GPU 8 CPU 12G 0:30
+2026-10-12T11:47:32+02:00	29448	lvl-f1-formulas	submitted	prova della valutazione delle formule (20 per spe e cpe) sull'adapter di f1-smoke3c; dopo 29447; 1 GPU 4 CPU 12G 0:20
+2026-10-12T11:59:32+02:00	29447	lvl-f1	ok	F1 f1-smoke3c -> /home/prignano/vision_limite/outputs/f1-smoke3c
+2026-10-12T12:04:43+02:00	29448	lvl-f1-formulas	ok	formule F1 (smoke3c) -> /home/prignano/vision_limite/outputs/eval_f1_formulas/smoke3c-29448.json
+2026-10-12T12:19:28+02:00	-	fetch-p3	note	progetto solo di ricerca (utente, 2026-10-12); nuove sorgenti approvate dall'utente: p3 OpenDataArena/MMFineReason-1.8M@7c93f724 (77 GiB) e anthracite-org/pixmo-cap-images@3e42775e (25 parquet su 75, 116 GiB); p5-rl skylenage/DeepVision-103K@d90619a3 (9.9 GiB) e TIGER-Lab/ViRL39K@812ec617 (1.7 GiB); avviato fetch_manifest p3 poi p5-rl, circa 205 GiB
+2026-10-12T12:21:35+02:00	29460	lvl-peek	submitted	schema di MMFineReason-1.8M@7c93f724 (data/rl-00000-of-00005.parquet): campi, lunghezze in token, immagini, esempi; 0 GPU 2 CPU 12G 0:30
+2026-10-12T12:23:20+02:00	29460	lvl-peek	ok	peek parquet: /home/prignano/vision_limite/hf/hub/datasets--OpenDataArena--MMFineReason-1.8M/blobs/bdae19411f8ebae4a7f7aaeb64a7b4d51ce45772f42d6e382e6cce537ab91b39
+2026-10-12T12:28:29+02:00	29464	lvl-shard-pq	submitted	prova dello sharding parquet su MMFineReason split rl (5 file, 40 mila righe; hash da verificare a download finito): capped_size 2x a 2304 patch, PNG, domanda/risposta/descrizione/pass_rate -> data/shards/mmfinereason/7c93f724-rl; 0 GPU 8 CPU 16G 0:30
+2026-10-12T12:29:39+02:00	29464	lvl-shard-pq	failed	shard mmfinereason mmfinereason-rl -> /home/prignano/vision_limite/data/shards/mmfinereason/7c93f724-rl
+2026-10-12T12:30:09+02:00	29464	lvl-shard-pq	failed	nomi nel tar oltre 100 caratteri: lo split veniva dal nome del blob (hash); ora si passano i percorsi dello snapshot
+2026-10-12T12:30:09+02:00	29465	lvl-shard-pq	submitted	prova dello sharding parquet su MMFineReason split rl, dai percorsi dello snapshot (collegato per i file già scaricati) -> data/shards/mmfinereason/7c93f724-rl; 0 GPU 8 CPU 16G 0:30
+2026-10-12T12:34:49+02:00	29465	lvl-shard-pq	ok	shard mmfinereason mmfinereason-rl -> /home/prignano/vision_limite/data/shards/mmfinereason/7c93f724-rl
+2026-10-12T12:36:09+02:00	29466	lvl-shard-pq	submitted	MMFineReason split rl con immagini originali (ingrandimento al caricamento; ingrandite occupavano ~108 KB/campione, ~195 GB in tutto) ed esclusi solo righe senza immagine o descrizione; uscita precedente (29465) cancellata; 0 GPU 8 CPU 16G 0:30
+2026-10-12T12:37:55+02:00	29466	lvl-shard-pq	ok	shard mmfinereason mmfinereason-rl -> /home/prignano/vision_limite/data/shards/mmfinereason/7c93f724-rl
+2026-10-12T12:39:18+02:00	29467	lvl-tests	submitted	test CPU: caricatori stem_caption (MMFineReason, immagini originali portate a capped_size) e pixmo_caption, più i test esistenti; 0 GPU 4 CPU 8G 0:20
+2026-10-12T12:41:58+02:00	29467	lvl-tests	ok	tests_cpu
+2026-10-12T13:33:38+02:00	-	fetch-p6	note	p6 approvato dall'utente: righe di MathVista, MathVerse, MathVision, We-Math, DynaMath_Sample verificate sulle pagine HF (main, da fissare nel manifest); avvio automatico dopo la catena p3/p5-rl se conclusa senza errori (data/logs/fetch-p6-20261012-133336.log)
+2026-10-12T14:20:15+02:00	-	fetch-p3	stopped	fetch p3 fermato alle 14:18 prima di MMFineReason sft-00090: MemAvailable 1.04 GB < 1 GiB (un altro utente ~2.3 GB; ~100 MB di pipeline di monitor orfane mie, terminate); 96 file su 234, nessun .part; p6 non avviato; in attesa dell'utente per il rilancio
+2026-10-12T14:32:39+02:00	-	fetch-p3	note	rilancio manuale approvato dall'utente dopo lo stop per memoria: catena p3 -> p5-rl -> manifest e fetch di p6 (data/logs/fetch-p3-p5rl-p6-20261012-143234.log)
+2026-10-12T15:30:40+02:00	-	fetch-p3	stopped	secondo stop per memoria alle 15:13 prima di MMFineReason sft-00112 (MemAvailable 1.007 GB; frontend affollato, 525 MB liberi); 119/200 file di MMFineReason; l'utente autorizza un solo rilancio automatico quando MemAvailable resta >= 1.5 GB per 10 minuti (data/logs/relaunch-watch-20261012-153038.log)

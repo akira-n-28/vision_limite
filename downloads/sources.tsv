@@ -17,15 +17,19 @@ p1	dataset	HuggingFaceH4/MATH-500	6e4ed1a2a79af7d8630a6b768ec859cb5af4d3be	-	-	s
 p1	dataset	Hothan/OlympiadBench	91184b52131e7fc9455fef848035173aea8cc01a	-	-	suite math-extended
 p3	dataset	liuhaotian/LLaVA-Pretrain	70f9d1e5e1a697fe35830875cfc7de1dd590d727	blip_laion_cc_sbu_558k.json;images.zip	-	F1 allineamento, circa 27 GB (main risolto il 2026-10-08); estrarre in un job CPU e convertire in shard
 p3	dataset	CaraJ/MAVIS-Geometry	9c80fff300f4f2cb3a76f71e03428eebdd571907	RuleBaseGeo.zip;README.md;visualization_small.parquet	-	F1 didascalie (variante text_dominant, 2304 patch) e F2 problemi; dati parziali di MAVIS-Instruct, 26.4 GB. MAVIS-Caption non è su HF (solo Google Drive provvisorio, 404). Licenza dei dati non dichiarata (GitHub MIT)
+p3	dataset	wanderkid/UniMER_Dataset	2343ddd963290469da36ca83e3a56c66e068add9	UniMER-1M.zip;UniMER-Test.zip;README.md	-	F1 trascrizione di formule in LaTeX (1.06M coppie stampate da arXiv e Pix2tex; test SPE/CPE/SCE/HWE per il criterio di F1); licenza Apache-2.0; 2.1 GB; HME100K non incluso
+p3	dataset	OpenDataArena/MMFineReason-1.8M	7c93f724791d01246f5425e1182b14ec8d013847	-	-	F1 didascalie di immagini STEM (descrizioni di Qwen3-VL-235B) e F2 bacino di problemi con risposta verificata (ponte testuale già pronto); 1.81M righe, 77 GB; Apache-2.0; decontaminare (contiene Geo3K e WeMath)
+p3	dataset	anthracite-org/pixmo-cap-images	3e42775eea79dd4874c41379230c7f871b10218e	data/train-0000[0-9]-of-00075.parquet;data/train-0001[0-9]-of-00075.parquet;data/train-0002[0-4]-of-00075.parquet;README.md	-	F1 didascalie dense (PixMo-Cap di Ai2, circa 200 parole, immagini incluse): 25 parquet su 75, circa 125 GB e 236 mila didascalie; ODC-BY
 p4	model	Qwen/Qwen3-VL-8B-Instruct	main	-	-	VERIFICARE id e licenza; teacher per le descrizioni
 p4	model	Qwen/Qwen3-VL-2B-Instruct	main	-	-	VERIFICARE id; VLM di riferimento per la valutazione
-p5	dataset	skylenage/DeepVision-103K	main	-	-	F4 RL, risposte verificabili
+p5-rl	dataset	skylenage/DeepVision-103K	d90619a39b1d2db7815ec958f2d728c78daa80cb	-	-	F4 RL: 77k matematica + 26k logica visiva, risposte verificabili con equivalenti, difficoltà media (pass rate 1/8-7/8); 9.9 GB; MIT
+p5-rl	dataset	TIGER-Lab/ViRL39K	812ec617dea4bc8a4e751663b88e4ebb7de4d00e	-	-	F4 RL complementare: 39k problemi visivi verificati (fonte di VL-Rethinker); 1.7 GB
 p5	dataset	Zhiqiang007/MathV360K	main	-	-	VERIFICARE id; F2 problemi (solo domande e risposte)
 p5	dataset	Luckyjhg/Geo170K	main	-	-	VERIFICARE id; F2 problemi di geometria
 p5	dataset	CaraJ/MAVIS-Function	a78fd6d04e5f8edf5f5cc8bf733ad37703ece21d	-	-	F2 problemi di funzioni (senza didascalie), 3.8 GB in 6 zip; dati parziali di MAVIS-Instruct, la geometria è MAVIS-Geometry in p3. Licenza dei dati non dichiarata (GitHub MIT)
-p6	dataset	AI4Math/MathVista	main	-	-	VERIFICARE id; valutazione (testmini)
-p6	dataset	AI4Math/MathVerse	main	-	-	VERIFICARE id; valutazione vision-only e vision-dominant
-p6	dataset	MathLLMs/MathVision	main	-	-	VERIFICARE id; valutazione
-p6	dataset	We-Math/We-Math	main	-	-	VERIFICARE id; valutazione
-p6	dataset	DynaMath/DynaMath_Sample	main	-	-	VERIFICARE id; valutazione
+p6	dataset	AI4Math/MathVista	main	-	-	valutazione (testmini 1000) e decontaminazione (test 5141); immagini nel repository; CC-BY-SA-4.0
+p6	dataset	AI4Math/MathVerse	main	-	-	valutazione testmini (788 problemi x 5 versioni, fra cui vision-dominant e vision-only) e decontaminazione; MIT
+p6	dataset	MathLLMs/MathVision	main	-	-	valutazione (test 3040, testmini 304) e decontaminazione; circa 116 MB; MIT
+p6	dataset	We-Math/We-Math	main	-	-	valutazione (testmini 1740) e decontaminazione; CC-BY-NC-4.0 (progetto solo di ricerca)
+p6	dataset	DynaMath/DynaMath_Sample	main	-	-	valutazione (501 problemi x 10 varianti) e decontaminazione; circa 346 MB; Apache-2.0
 p7	dataset	HuggingFaceM4/FineVision	main	VERIFICARE	-	solo i sottoinsiemi di grafici, tabelle e documenti: scegliere le cartelle e metterle in include
