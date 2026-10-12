@@ -5,6 +5,11 @@ decoder Limite) su una H100 NVL del cluster Lagrange. Il piano operativo, con fa
 budget e criteri di avanzamento, è qui:
 https://claude.ai/code/artifact/d3fe8c7e-5458-49c5-88e3-d113ce6d2483
 
+Il progetto è **solo di ricerca** (decisione dell'utente, 2026-10-12): la licenza di un dataset non è un
+motivo per escluderlo (es. MAVIS-Geometry senza licenza dichiarata, `images.zip` di LLaVA-Pretrain "per la
+ricerca"). Si citano sempre le fonti, i dati non si ridistribuiscono e si rispettano le richieste di
+rimozione. Se l'utente parla di pubblicare i pesi o di uso commerciale, riaprire la questione.
+
 ## All'inizio di ogni sessione
 
 1. Leggere **tutto** `LAGRANGE.md` (guida del cluster, incluso il chiarimento sui download
@@ -196,6 +201,20 @@ iperparametri rispetto al piano.
     contro 4.6 mila con sdpa.
   - Righe da 4k: nessun guadagno (12.9 mila contro 12.6 mila).
 - `flash-attn` non è nell'ambiente; la copia dentro vLLM ha solo il forward.
+- flex_attention e dynamo: transformers compila `create_block_mask` e dynamo ricompila per ogni tipo di
+  maschera (righe impacchettate, layer globali e a finestra, prefill e decodifica). Con il limite di default
+  (8) la validazione a tre sorgenti lo supera e le maschere tornano in eager: 2 mila token/s invece di
+  16 mila (job 29441). `train_utils.allow_flex_recompiles()` lo alza a 64; se nel log compare
+  `recompile_limit`, il run va fermato.
+- Encoder SigLIP2 so400m: in bf16 si allontana molto da fp32 (job 29446: differenza relativa media 26%
+  sull'ultimo hidden state, coseno 0.96; 13% dopo il proiettore di f1-mid) e l'output cambia del 5-13% con
+  la composizione del batch (job 29445). In fp32 non dipende dal padding (1e-5). TF32: 1.9% (0.7% dopo il
+  proiettore) a circa 4 volte il costo di bf16 sull'encoder. Default `VLConfig.vision_precision = "tf32"`;
+  le prove 29421, 29423 e il run 29425 (f1-mid) avevano l'encoder in bf16.
+- `encode_images` passa le immagini nell'encoder a gruppi di lunghezza simile (al più 32768 patch con il
+  padding): con formule, foto e diagrammi nello stesso micro-batch il padding fino a 2304 patch sarebbe
+  quasi tutto il lavoro. In fp32 coincide con il gruppo unico entro 7.6·10⁻⁷ (job 29447); il controllo
+  gira sul primo micro-batch di ogni job di training.
 - Gradient checkpointing sul modello VL (job 29402): in fp32 i gradienti del proiettore
   differiscono di 4·10⁻⁷. In bf16 la differenza (circa 1%) è uguale a quella fra due backward
   identici senza checkpointing, cioè è il non determinismo dei kernel.
@@ -242,6 +261,22 @@ iperparametri rispetto al piano.
   - un PNG già alla dimensione esatta di 2304 patch: il processor non lo ridimensiona di nuovo;
   - un JSON con `text_en` completo, scelte e dimensioni.
   In media 568.6 token immagine, 113 milioni in tutto; circa 710 token per esempio con la didascalia.
+- UniMER @ 2343ddd9 (job 29436, 29438): l'immagine `images/<indice>.png` ha come formula la riga
+  `<indice>` di `train.txt`; il dataset è mescolato, le righe vuote sono HME100K (tolto per copyright) e le
+  formule scritte a mano di CROHME (meno dell'1%) non si separano per indice. Shard in
+  `data/shards/unimer/2343ddd9/`: 985.450 campioni in 5 tar e i test spe/cpe/sce/hwe in `test/`.
+  - Formula senza gli spazi fra token del formato im2latex (`latex.despace`, 31% di token in meno);
+    esclusi i 672 casi in cui cambierebbe i token LaTeX.
+  - Immagine ingrandita al più 2x e al più 1024 patch (`processing.capped_size`), già alla dimensione
+    finale: in media 71 token immagine.
+  - Criterio di F1: `scripts/eval_f1_formulas.py` su spe e cpe (uguaglianza a meno degli spazi e
+    accuratezza sui token LaTeX).
+- Cambi di dati approvati dall'utente il 2026-10-12 (ricerca sui dataset, in scaricamento):
+  - F1: didascalie dense di PixMo-Cap (`anthracite-org/pixmo-cap-images`, 25 parquet su 75) e didascalie
+    di Qwen3-VL-235B delle immagini STEM di `OpenDataArena/MMFineReason-1.8M`; LLaVA-Pretrain ridotto.
+  - F2: MMFineReason come bacino principale, con le sue descrizioni come ponte testuale.
+  - F4: `skylenage/DeepVision-103K` e `TIGER-Lab/ViRL39K` (gruppo p5-rl).
+  MMFineReason contiene Geo3K e la famiglia WeMath: decontaminare prima del training.
 
 ## Ottimizzatore
 
@@ -263,7 +298,9 @@ iperparametri rispetto al piano.
 - `scripts/` — ambiente (`setup_env.sh`, `guarded_run.sh`, `uvlock_manifest.py`), download
   (`fetch.sh`, `fetch_manifest.sh`, `hf_manifest.py`, `link_hf_snapshot.py`), verifica
   (`verify_manifest.py`), dati (`shard_llava_pretrain.py`, `shard_mavis_geometry.py`; ispezione con
-  `peek_parquet.py`, `mavis_variants.py`, `inspect_zip.py`, `mavis_zip_survey.py`, `peek_shard.py`),
+  `peek_parquet.py`, `mavis_variants.py`, `inspect_zip.py`, `mavis_zip_survey.py`, `peek_shard.py`,
+  `unimer_survey.py`; shard di UniMER con `shard_unimer.py`), F1 (`train_f1.py`, `eval_f1_val.py`,
+  `eval_f1_formulas.py`, `stream_stats.py`, `check_vision_padding.py`, `check_vision_precision.py`),
   valutatore (`link_eval_datasets.py`),
   codice di Limite (`vendor_limite_modeling.py`), F0 (`f0_checks.py`, `f0_vl_checks.py`,
   `vllm_smoke.py`)
@@ -275,9 +312,12 @@ iperparametri rispetto al piano.
   - `modeling.py`: modello VL e proiettore;
   - `processing.py`: immagini in patch a griglia pari, chat in token e label;
   - `collator.py`: packing e collate;
-  - `data.py`: lettura degli shard tar;
+  - `data.py`: lettura degli shard tar ed esempi per tipo di sorgente;
+  - `stream.py`: flusso misto e riprendibile di micro-batch per il training;
+  - `latex.py`: formule im2latex in LaTeX naturale e confronto fra trascrizioni;
   - `train_utils.py`: loss a blocchi e checkpointing per layer;
   - `limite_code.py`: import verificato del codice di Limite;
   - `optim/`: NorMuon e gruppi della Tabella 1.
-- `tests/` — test CPU (`test_normuon.py`, `test_vl_data.py`), lanciati tutti da `slurm/tests_cpu.sbatch`
+- `tests/` — test CPU (`test_normuon.py`, `test_vl_data.py`, `test_f1_data.py`), lanciati tutti da `slurm/tests_cpu.sbatch`
+- `config/runs/` — config dei run di training (`f1.json` è il run completo, da aggiornare con il nuovo mix)
 - `runs/ledger.tsv` — registro dei job (testo piccolo, versionato)

@@ -17,7 +17,8 @@ from typing import Callable, Iterator
 
 from PIL import Image
 
-from .processing import DIAGRAM_MAX_PATCHES, F1_PREFILL, Example, LimiteVLProcessor
+from .processing import (DIAGRAM_MAX_PATCHES, F1_PREFILL, Example, LimiteVLProcessor, capped_size,
+                         exact_patches, to_rgb)
 
 # Richieste per le didascalie di MAVIS-Geometry, scelte in modo deterministico dalla chiave del campione.
 MAVIS_CAPTION_PROMPTS = (
@@ -29,6 +30,36 @@ MAVIS_CAPTION_PROMPTS = (
     "Describe the shapes in the figure and how they are attached to each other.",
     "List the shapes in this diagram and the measurements marked on it.",
     "Provide a careful description of this figure.",
+)
+
+# Richieste per le descrizioni dense (PixMo-Cap: foto; MMFineReason: immagini STEM), scelte allo stesso modo.
+DETAILED_CAPTION_PROMPTS = (
+    "Describe this image in detail.",
+    "Give a detailed description of the image.",
+    "What is shown in this image? Describe it thoroughly.",
+    "Write a comprehensive description of everything visible in the image.",
+    "Describe the image, including all the details you can see.",
+    "Provide a thorough, detailed caption for this image.",
+)
+STEM_CAPTION_PROMPTS = (
+    "Describe the figure in detail.",
+    "Describe everything shown in this figure, including labels and values.",
+    "Give a detailed description of this diagram.",
+    "What does this figure show? Describe all of its components.",
+    "Write a precise, detailed description of the image, listing every labelled element.",
+    "Describe this mathematical figure thoroughly.",
+)
+
+# Richieste per la trascrizione delle formule di UniMER, scelte allo stesso modo.
+FORMULA_PROMPTS = (
+    "Transcribe the formula in the image into LaTeX.",
+    "Write the LaTeX code for this formula.",
+    "Convert the mathematical expression in the image to LaTeX.",
+    "What is the LaTeX source of this expression?",
+    "Give the LaTeX for the formula shown.",
+    "Transcribe this equation in LaTeX.",
+    "Read the formula in the image and write it in LaTeX.",
+    "Write this expression as LaTeX code.",
 )
 
 
@@ -74,9 +105,14 @@ def llava_pretrain_sample(key: str, files: dict[str, bytes]) -> Sample:
     return Sample(llava_pretrain_messages(json.loads(files["json"])), open_image(files["jpg"]))
 
 
-def mavis_caption_prompt(key: str) -> str:
+def pick_prompt(key: str, prompts: tuple[str, ...]) -> str:
+    """Richiesta deterministica per chiave (stessa scelta in ogni processo e a ogni epoca)."""
     digest = hashlib.blake2b(key.encode(), digest_size=8).digest()
-    return MAVIS_CAPTION_PROMPTS[int.from_bytes(digest, "little") % len(MAVIS_CAPTION_PROMPTS)]
+    return prompts[int.from_bytes(digest, "little") % len(prompts)]
+
+
+def mavis_caption_prompt(key: str) -> str:
+    return pick_prompt(key, MAVIS_CAPTION_PROMPTS)
 
 
 def mavis_caption_sample(key: str, files: dict[str, bytes]) -> Sample:
@@ -90,9 +126,50 @@ def mavis_caption_sample(key: str, files: dict[str, bytes]) -> Sample:
     return Sample(messages, open_image(files["png"]), meta.get("max_patches", DIAGRAM_MAX_PATCHES))
 
 
+def unimer_formula_sample(key: str, files: dict[str, bytes]) -> Sample:
+    """UniMER (scripts/shard_unimer.py): PNG già alla dimensione finale (capped_size), LaTeX senza gli spazi
+    fra token (latex.despace) come target, richiesta scelta dalla chiave."""
+    meta = json.loads(files["json"])
+    messages = [{"role": "user", "content": [{"type": "image"}, {"type": "text", "text": pick_prompt(key, FORMULA_PROMPTS)}]},
+                {"role": "assistant", "content": meta["label"], "prefill": F1_PREFILL}]
+    return Sample(messages, open_image(files["png"]), meta["max_patches"])
+
+
+def pixmo_caption_sample(key: str, files: dict[str, bytes]) -> Sample:
+    """PixMo-Cap (scripts/shard_parquet.py --kind pixmo): foto già a 1024 patch, didascalia densa (circa 200
+    parole) come target."""
+    meta = json.loads(files["json"])
+    messages = [{"role": "user", "content": [{"type": "image"}, {"type": "text", "text": pick_prompt(key, DETAILED_CAPTION_PROMPTS)}]},
+                {"role": "assistant", "content": meta["caption"], "prefill": F1_PREFILL}]
+    return Sample(messages, open_image(files["jpg"]), meta["max_patches"])
+
+
+def stem_image(files: dict[str, bytes]) -> tuple[Image.Image, int]:
+    """Immagine STEM originale di MMFineReason portata a capped_size (al più 2x e al più 2304 patch),
+    con il max_patches che il processor lascia invariato. Stessa regola in valutazione."""
+    image = to_rgb(open_image(files["png"] if "png" in files else files["jpg"]))
+    h, w = capped_size(image.height, image.width, 2.0, DIAGRAM_MAX_PATCHES)
+    if (w, h) != image.size:
+        image = image.resize((w, h), Image.BICUBIC)
+    return image, exact_patches(h, w)
+
+
+def stem_caption_sample(key: str, files: dict[str, bytes]) -> Sample:
+    """MMFineReason (scripts/shard_parquet.py --kind mmfinereason): immagine STEM originale (stem_image),
+    descrizione di Qwen3-VL-235B (markdown strutturato, circa 640 token) come target."""
+    meta = json.loads(files["json"])
+    image, max_patches = stem_image(files)
+    messages = [{"role": "user", "content": [{"type": "image"}, {"type": "text", "text": pick_prompt(key, STEM_CAPTION_PROMPTS)}]},
+                {"role": "assistant", "content": meta["caption"], "prefill": F1_PREFILL}]
+    return Sample(messages, image, max_patches)
+
+
 SAMPLE_LOADERS: dict[str, Callable[[str, dict[str, bytes]], Sample]] = {
     "llava": llava_pretrain_sample,
     "mavis_caption": mavis_caption_sample,
+    "unimer_formula": unimer_formula_sample,
+    "pixmo_caption": pixmo_caption_sample,
+    "stem_caption": stem_caption_sample,
 }
 
 

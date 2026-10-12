@@ -90,7 +90,7 @@ def main() -> None:
                 first = data[0] if isinstance(data, list) and data else (
                     next(iter(data.values())) if isinstance(data, dict) and data else data)
                 print(f"-> {type(data).__name__} con {n} elementi; primo: {shape(first)}")
-            elif suffix == ".jsonl":
+            elif suffix in (".jsonl", ".txt", ".csv"):
                 with zf.open(info) as f:
                     lines = sum(1 for _ in io.TextIOWrapper(f, encoding="utf-8", errors="replace"))
                 print(f"-> {lines} righe")

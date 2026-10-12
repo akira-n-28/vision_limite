@@ -5,6 +5,18 @@ import torch
 import torch.nn.functional as F
 from torch.utils.checkpoint import checkpoint
 
+# flex_attention: transformers compila create_block_mask e dynamo ricompila per ogni tipo di maschera
+# (righe impacchettate, layer globali e a finestra, prefill e decodifica della generazione). Con il limite
+# di default (8) la validazione a tre sorgenti lo supera e le maschere tornano in eager: 2 mila token/s
+# invece di 16 mila (job 29441). Le varianti sono poche e fisse, quindi basta un limite più alto.
+FLEX_RECOMPILE_LIMIT = 64
+
+
+def allow_flex_recompiles(limit: int = FLEX_RECOMPILE_LIMIT) -> None:
+    import torch._dynamo
+
+    torch._dynamo.config.recompile_limit = max(torch._dynamo.config.recompile_limit, limit)
+
 
 def decoder(model):
     """LimiteModel (con .layers) di un LimiteForCausalLM."""

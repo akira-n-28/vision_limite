@@ -16,14 +16,17 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from limite_vl.data import (MAVIS_CAPTION_PROMPTS, build_example, generation_prompt, iter_shard,  # noqa: E402
-                            mavis_caption_prompt)
+from limite_vl.data import (FORMULA_PROMPTS, MAVIS_CAPTION_PROMPTS, STEM_CAPTION_PROMPTS, build_example,  # noqa: E402
+                            generation_prompt, iter_shard, mavis_caption_prompt)
+from limite_vl.latex import despace, latex_tokens, same_latex  # noqa: E402
 from limite_vl.processing import (DIAGRAM_MAX_PATCHES, EOS_ID, IGNORE, IMAGE_PAD_ID, PATCH_SIZE,  # noqa: E402
-                                  LimiteVLProcessor, image_tokens, target_size)
+                                  LimiteVLProcessor, capped_size, exact_patches, image_tokens, target_size)
 from limite_vl.stream import MixedRowStream, Source, SourceReader  # noqa: E402
 
 VIOLETTO = ROOT / "hf/hub/models--paradigma-inc--limite-1b-violetto/snapshots/b1f3d572ccacb6919f4d64c321b70ba034ddaef2"
 MAVIS = ROOT / "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00000.tar"
+UNIMER = ROOT / "data/shards/unimer/2343ddd9/unimer-train-00000.tar"
+MMFINE = ROOT / "data/shards/mmfinereason/7c93f724-rl/mmfinereason-rl-00000.tar"
 THINK, END_THINK = 151665, 151666
 FAILS = []
 
@@ -75,6 +78,73 @@ def test_mavis_example(proc):
           not (none.input_ids == IMAGE_PAD_ID).any() and not none.patches
           and none.input_ids[none.labels != IGNORE].tolist() == labelled
           and prompt in proc.tokenizer.decode(none.input_ids.tolist()))
+
+
+def test_latex():
+    cases = {"\\frac { 1 } { 2 }": "\\frac{1}{2}", "\\alpha b": "\\alpha b", "0 . 5": "0.5",
+             "a \\ b": "a\\ b", "\\left\\{ x \\right\\}": "\\left\\{x\\right\\}", "x \\\\ y": "x\\\\y",
+             "\\mathrm { m g }": "\\mathrm{mg}", "\\alpha 2": "\\alpha2", "\\ \\mathrm { i f }": "\\ \\mathrm{if}"}
+    got = {k: despace(k) for k in cases}
+    check("despace: casi noti", got == cases, str({k: v for k, v in got.items() if v != cases[k]}))
+    check("despace: stessi token LaTeX", all(latex_tokens(k) == latex_tokens(v) for k, v in cases.items()))
+    check("same_latex: uguali a meno degli spazi, diversi se cambia un token",
+          same_latex("x ^ { 2 }", "x^{2}") and not same_latex("x^{2}", "x^{3}") and not same_latex("\\alpha b", "\\alphab"))
+
+
+def test_capped_size():
+    sizes = [(32, 32), (32, 64), (64, 640), (32, 2528), (1056, 2000), (224, 768), (37, 91), (443, 1296)]
+    ok, detail = True, []
+    for h, w in sizes:
+        hh, ww = capped_size(h, w, 2.0, 1024)
+        patches = exact_patches(hh, ww)
+        good = (hh % 32 == 0 and ww % 32 == 0 and patches <= 1024 and hh <= 2 * h + 31 and ww <= 2 * w + 31
+                and target_size(hh, ww, patches) == (hh, ww))
+        ok &= good
+        detail.append(f"{h}x{w}->{hh}x{ww}")
+    check("capped_size: multipli di 32, al più 2x e 1024 patch, idempotente per il processor", ok, ", ".join(detail))
+
+
+def test_unimer_example(proc):
+    if not UNIMER.is_file():
+        check("shard UniMER presente", False, str(UNIMER))
+        return
+    key, files = next(iter_shard(UNIMER))
+    meta = json.loads(files["json"])
+    ex = build_example(proc, "unimer_formula", key, files)
+    with Image.open(io.BytesIO(files["png"])) as im:
+        size = (im.height, im.width)
+    rows, cols = ex.grids[0]
+    check("UniMER: PNG già alla dimensione finale", (rows * PATCH_SIZE, cols * PATCH_SIZE) == size
+          and meta["max_patches"] == rows * cols, f"{size}, griglia {ex.grids[0]}")
+    labelled = ex.input_ids[ex.labels != IGNORE].tolist()
+    check("UniMER: label = formula senza spazi + EOS", labelled[-1] == EOS_ID
+          and proc.tokenizer.decode(labelled[:-1]) == meta["label"] and same_latex(meta["label"], meta["label_spaced"]),
+          meta["label"][:80])
+    text = proc.tokenizer.decode(ex.input_ids.tolist())
+    check("UniMER: richiesta di trascrizione dalla lista", any(p in text for p in FORMULA_PROMPTS))
+
+
+def test_stem_caption_example(proc):
+    if not MMFINE.is_file():
+        check("shard MMFineReason presente", False, str(MMFINE))
+        return
+    sizes_ok, n = True, 0
+    for key, files in iter_shard(MMFINE):
+        meta = json.loads(files["json"])
+        ex = build_example(proc, "stem_caption", key, files)
+        rows, cols = ex.grids[0]
+        sizes_ok &= (rows * PATCH_SIZE, cols * PATCH_SIZE) == (meta["height"], meta["width"]) \
+            and rows * cols == meta["max_patches"]
+        if n == 0:
+            labelled = ex.input_ids[ex.labels != IGNORE].tolist()
+            check("MMFineReason: label = descrizione + EOS", labelled[-1] == EOS_ID
+                  and proc.tokenizer.decode(labelled[:-1]) == meta["caption"], meta["caption"][:60])
+            text = proc.tokenizer.decode(ex.input_ids.tolist())
+            check("MMFineReason: richiesta di descrizione dalla lista", any(q in text for q in STEM_CAPTION_PROMPTS))
+        n += 1
+        if n >= 50:
+            break
+    check("MMFineReason: immagine originale portata alla dimensione del JSON (50 campioni)", sizes_ok)
 
 
 def write_shard(path: Path, prefix: str, n: int, seed: int) -> list[str]:
@@ -166,7 +236,11 @@ def test_stream(proc, tmp: Path):
 
 if __name__ == "__main__":
     processor = LimiteVLProcessor.from_pretrained(str(VIOLETTO))
+    test_latex()
+    test_capped_size()
     test_mavis_example(processor)
+    test_unimer_example(processor)
+    test_stem_caption_example(processor)
     tmp = ROOT / "outputs" / "tmp" / f"test-f1-data-{os.environ.get('SLURM_JOB_ID', os.getpid())}"
     tmp.mkdir(parents=True, exist_ok=True)
     try:

@@ -44,7 +44,7 @@ from limite_vl.data import build_example, generation_prompt  # noqa: E402
 from limite_vl.modeling import LimiteVLForConditionalGeneration, VLConfig  # noqa: E402
 from limite_vl.processing import IGNORE, LimiteVLProcessor  # noqa: E402
 from limite_vl.stream import MixedRowStream, make_sources, validation_samples  # noqa: E402
-from limite_vl.train_utils import LayerCheckpointing  # noqa: E402
+from limite_vl.train_utils import LayerCheckpointing, allow_flex_recompiles  # noqa: E402
 
 # Campi che non cambiano il risultato del training: si possono modificare fra un job e l'altro.
 CONTROL_KEYS = {"run", "log_every", "val_every", "ckpt_minutes", "keep_checkpoints", "samples_per_source",
@@ -104,13 +104,18 @@ def seconds_left_in_job() -> float | None:
     return (int(days or 0) * 24 + parts[0]) * 3600 + parts[1] * 60 + parts[2]
 
 
-def cgroup_memory_gib() -> float | None:
-    """Memoria del cgroup del job step (cgroup v2), cioè questo processo più i worker del DataLoader."""
+def cgroup_memory_gib() -> dict:
+    """Memoria del cgroup del job step (cgroup v2), cioè questo processo più i worker del DataLoader:
+    totale, memoria dei processi (anon) e cache dei file (file, che il kernel libera prima di un OOM).
+    Nel run 29425 il totale è salito in modo lineare da 8.0 a 11.7 GiB."""
     try:
         rel = Path("/proc/self/cgroup").read_text().strip().split("::", 1)[1]
-        return int((Path("/sys/fs/cgroup") / rel.lstrip("/") / "memory.current").read_text()) / 2**30
-    except (OSError, IndexError, ValueError):
-        return None
+        folder = Path("/sys/fs/cgroup") / rel.lstrip("/")
+        stat = dict(line.split() for line in (folder / "memory.stat").read_text().splitlines())
+        return {"total": int((folder / "memory.current").read_text()) / 2**30,
+                "anon": int(stat["anon"]) / 2**30, "file": int(stat["file"]) / 2**30}
+    except (OSError, IndexError, ValueError, KeyError):
+        return {}
 
 
 def git_info(out: Path, job: str) -> dict:
@@ -205,6 +210,29 @@ def generate_samples(model, processor, prompts: dict, max_new_tokens: int) -> li
     return rows
 
 
+@torch.no_grad()
+def check_vision_groups(model, batch: dict) -> None:
+    """Sul primo micro-batch del job: encoder a gruppi di lunghezza simile contro un solo gruppo allineato
+    alla più lunga, in fp32, dove devono coincidere (job 29445: 1e-5)."""
+    args = (batch["pixel_values"], batch["pixel_attention_mask"], batch["spatial_shapes"])
+    if model.config.vision_precision == "bf16":
+        log("controllo dell'encoder a gruppi saltato: in bf16 l'output dipende dal batch (job 29445)")
+        return
+    precision, model.config.vision_precision = model.config.vision_precision, "fp32"  # confronto esatto
+    try:
+        single = model.encode_images(*args, max_group_patches=None).float()
+        lengths = batch["pixel_attention_mask"].sum(dim=1)
+        for cap in (32768, 4096):  # il secondo obbliga a più gruppi anche con poche immagini
+            grouped = model.encode_images(*args, max_group_patches=cap).float()
+            rel = ((grouped - single).norm() / single.norm().clamp(min=1e-12)).item()
+            log(f"encoder a gruppi (al più {cap} patch) contro gruppo unico, in fp32: differenza relativa {rel:.2e} "
+                f"su {len(lengths)} immagini (patch da {int(lengths.min())} a {int(lengths.max())})")
+            if rel > 1e-3:
+                raise RuntimeError(f"encoder a gruppi diverso dal gruppo unico (differenza relativa {rel:.2e})")
+    finally:
+        model.config.vision_precision = precision
+
+
 def save_checkpoint(out: Path, step: int, model, opt, trainer_state: dict, keep: int) -> Path:
     ckpts = out / "checkpoints"
     final = ckpts / f"step-{step:06d}"
@@ -280,10 +308,11 @@ def main() -> None:
 
     # ---- modello e ottimizzatore ----
     model = LimiteVLForConditionalGeneration.from_pretrained(
-        VLConfig(decoder_path=cfg["decoder"], vision_path=cfg["vision"]), dtype=torch.bfloat16,
+        VLConfig(decoder_path=cfg["decoder"], vision_path=cfg["vision"], vision_precision=cfg.get("vision_precision", "tf32")), dtype=torch.bfloat16,
         adapter_dir=str(ckpt_dir) if ckpt_dir else None)
     lm = model.language_model
     lm.config._attn_implementation = cfg["attn"]
+    allow_flex_recompiles()
     model.set_trainable("f1")
     model.train()
     params = [p for p in model.parameters() if p.requires_grad]
@@ -351,6 +380,7 @@ def main() -> None:
         log(f"checkpoint {path.name} ({reason})")
 
     stop_reason = None
+    vision_checked = False
     while step < total_steps:
         t0 = time.time()
         lr = lr_at(step, total_steps, cfg)
@@ -370,6 +400,9 @@ def main() -> None:
             window["images"] += int(batch["spatial_shapes"].shape[0]) if "spatial_shapes" in batch else 0
             window["tokens"] += batch["input_ids"].numel()
             batch = to_cuda(batch)
+            if not vision_checked and "pixel_values" in batch:
+                check_vision_groups(model, batch)
+                vision_checked = True
             n = (batch["labels"][:, 1:] != IGNORE).sum()
             loss = model(**batch).loss
             (loss * n).backward()
@@ -407,7 +440,9 @@ def main() -> None:
             metrics.flush()
             log(f"passo {step}/{total_steps} loss {row['loss']:.4f} lr {lr:.2e} |g| {row['grad_norm']:.3f} "
                 f"{row['tokens_per_s']:.0f} tok/s, attesa dati {row['data_wait_s_per_step']:.2f} s/passo, "
-                f"GPU {row['peak_gpu_gib']:.1f} GiB, RAM {row['ram_gib'] or 0:.1f} GiB, esempi {row['examples']}")
+                f"GPU {row['peak_gpu_gib']:.1f} GiB, RAM {row['ram_gib'].get('total', 0):.1f} GiB "
+                f"(processi {row['ram_gib'].get('anon', 0):.1f}, cache {row['ram_gib'].get('file', 0):.1f}), "
+                f"esempi {row['examples']}")
             window, t_window = Counter(), time.time()
 
         if cfg["val_every"] and step % cfg["val_every"] == 0 and step < total_steps:

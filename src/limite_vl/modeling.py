@@ -43,6 +43,11 @@ class VLConfig:
     projector_hidden: int = 2560
     image_value_embeds: str = "zero"  # "zero" | "token" (ablation: vettore di <|image_pad|>)
     vision_token_rows: bool = True
+    # Precisione dell'encoder congelato. In bf16 SigLIP2 so400m si allontana molto da fp32 (job 29446:
+    # differenza relativa media 26% sull'ultimo hidden state, 13% dopo il proiettore) e l'output cambia
+    # del 5-13% con la composizione del batch (job 29445); TF32 resta entro il 2% (0.7% dopo il
+    # proiettore) a circa 4 volte il costo di bf16. "bf16" | "tf32" | "fp32".
+    vision_precision: str = "tf32"
 
 
 @dataclass
@@ -101,6 +106,8 @@ class LimiteVLForConditionalGeneration(nn.Module):
         super().__init__()
         if config.image_value_embeds not in ("zero", "token"):
             raise ValueError(f"image_value_embeds={config.image_value_embeds!r}")
+        if config.vision_precision not in ("bf16", "tf32", "fp32"):
+            raise ValueError(f"vision_precision={config.vision_precision!r}")
         self.config = config
         self.language_model = language_model
         self.vision = vision
@@ -124,7 +131,8 @@ class LimiteVLForConditionalGeneration(nn.Module):
         modeling = limite_code.load()
         language_model = modeling.LimiteForCausalLM.from_pretrained(
             config.decoder_path, local_files_only=True, dtype=dtype, attn_implementation=attn_implementation)
-        model = cls(config, language_model, load_vision_tower(config.vision_path, dtype))
+        vision_dtype = torch.bfloat16 if config.vision_precision == "bf16" else torch.float32
+        model = cls(config, language_model, load_vision_tower(config.vision_path, vision_dtype))
         if adapter_dir:
             model.load_adapter(adapter_dir)
         return model.to(device)
@@ -179,17 +187,52 @@ class LimiteVLForConditionalGeneration(nn.Module):
         return output.masked_fill((args[0] == IMAGE_PAD_ID).unsqueeze(-1), 0)
 
     # ---- forward ----
-    def encode_images(self, pixel_values: Tensor, pixel_attention_mask: Tensor, spatial_shapes: Tensor) -> Tensor:
-        """Patch (uint8 o già normalizzate) -> embedding per i token <|image_pad|>, (token totali, 1280)."""
+    def encode_images(self, pixel_values: Tensor, pixel_attention_mask: Tensor, spatial_shapes: Tensor,
+                      max_group_patches: int | None = 32768) -> Tensor:
+        """Patch (uint8 o già normalizzate) -> embedding per i token <|image_pad|>, (token totali, 1280).
+
+        Le immagini passano nell'encoder a gruppi di lunghezza simile (ordinate per numero di patch, al più
+        max_group_patches patch per gruppo contando il padding), invece che tutte allineate alla più lunga
+        del batch: con formule da poche decine di patch e diagrammi da 2304 nello stesso micro-batch il
+        padding sarebbe quasi tutto il lavoro. Con la maschera ogni immagine è indipendente dalle altre,
+        quindi il risultato non cambia; None = un solo gruppo.
+        """
         dtype = self.vision.embeddings.patch_embedding.weight.dtype
-        pixels = pixel_values.float()
-        if pixel_values.dtype == torch.uint8:
-            pixels = (pixels / 255.0 - PIXEL_MEAN) / PIXEL_STD
         frozen = not any(p.requires_grad for p in self.vision.parameters())
-        with torch.no_grad() if frozen else nullcontext():
-            features = self.vision(pixel_values=pixels.to(dtype), pixel_attention_mask=pixel_attention_mask,
-                                   spatial_shapes=spatial_shapes).last_hidden_state
-        return self.projector(features, spatial_shapes)
+        lengths = pixel_attention_mask.sum(dim=1).tolist()
+        order = sorted(range(len(lengths)), key=lambda i: lengths[i])
+        groups, current = [], []
+        for i in order:  # in ordine crescente: l'immagine corrente è la più lunga del gruppo
+            if current and max_group_patches is not None and lengths[i] * (len(current) + 1) > max_group_patches:
+                groups.append(current)
+                current = []
+            current.append(i)
+        groups.append(current)
+        pieces: list[Tensor | None] = [None] * len(lengths)
+        tf32 = torch.backends.cuda.matmul.allow_tf32
+        torch.backends.cuda.matmul.allow_tf32 = self.config.vision_precision == "tf32"
+        try:
+            self._encode_groups(groups, lengths, pieces, pixel_values, pixel_attention_mask, spatial_shapes, dtype, frozen)
+        finally:
+            torch.backends.cuda.matmul.allow_tf32 = tf32
+        return torch.cat(pieces)
+
+    def _encode_groups(self, groups, lengths, pieces, pixel_values, pixel_attention_mask, spatial_shapes,
+                       dtype, frozen) -> None:
+        for group in groups:
+            index = torch.tensor(group, device=pixel_values.device)
+            longest = int(max(lengths[i] for i in group))
+            pixels = pixel_values[index, :longest].float()
+            if pixel_values.dtype == torch.uint8:
+                pixels = (pixels / 255.0 - PIXEL_MEAN) / PIXEL_STD
+            shapes = spatial_shapes[index]
+            with torch.no_grad() if frozen else nullcontext():
+                features = self.vision(pixel_values=pixels.to(dtype),
+                                       pixel_attention_mask=pixel_attention_mask[index, :longest],
+                                       spatial_shapes=shapes).last_hidden_state
+            tokens = [(r // self.projector.merge) * (c // self.projector.merge) for r, c in shapes.tolist()]
+            for i, piece in zip(group, self.projector(features, shapes).split(tokens)):
+                pieces[i] = piece
 
     def _stage_images(self, input_ids: Tensor, pixel_values, pixel_attention_mask, spatial_shapes) -> None:
         n_pad = int((input_ids == IMAGE_PAD_ID).sum())

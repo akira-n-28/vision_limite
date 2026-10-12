@@ -19,6 +19,7 @@ ragionamento vuoto dato in input senza label (F1_PREFILL).
 """
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -58,6 +59,32 @@ def target_size(height: int, width: int, max_patches: int = DEFAULT_MAX_PATCHES)
     if max_patches % per_token or not 0 < max_patches // per_token <= MAX_IMAGE_TOKENS:
         raise ValueError(f"max_patches={max_patches}: serve un multiplo di 4 fino a {MAX_IMAGE_TOKENS * 4}")
     return get_image_size_for_max_num_patches(height, width, patch_size=UNIT, max_num_patches=max_patches // per_token)
+
+
+def capped_size(height: int, width: int, max_scale: float = 2.0,
+                max_patches: int = DEFAULT_MAX_PATCHES) -> tuple[int, int]:
+    """(altezza, larghezza) multipli di 32 per immagini piccole con testo (formule): ingrandimento al più
+    `max_scale` e al più `max_patches` patch, invece di riempire il budget come NaFlex. Con
+    max_patches = (h/16)·(w/16) della dimensione restituita, target_size la lascia invariata
+    (job 29436: 4000 immagini di UniMER su 4000)."""
+    def up(x: float) -> int:  # multiplo di 32 superiore, senza errori di virgola mobile su valori esatti
+        return max(UNIT, math.ceil(x / UNIT - 1e-9) * UNIT)
+
+    scale = min(max_scale, (max_patches * PATCH_SIZE * PATCH_SIZE / (height * width)) ** 0.5)
+    while True:
+        h, w = up(height * scale), up(width * scale)
+        if (h // PATCH_SIZE) * (w // PATCH_SIZE) <= max_patches:
+            return h, w
+        if h == UNIT and w == UNIT:
+            raise ValueError(f"budget di {max_patches} patch troppo piccolo")
+        scale *= 0.98
+
+
+def exact_patches(height: int, width: int) -> int:
+    """Patch di un'immagine già a lati multipli di 32: il max_patches che target_size lascia invariato."""
+    if height % UNIT or width % UNIT:
+        raise ValueError(f"{height}x{width}: servono lati multipli di {UNIT}")
+    return (height // PATCH_SIZE) * (width // PATCH_SIZE)
 
 
 def to_rgb(image: Image.Image) -> Image.Image:

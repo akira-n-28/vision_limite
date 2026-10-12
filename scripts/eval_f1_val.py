@@ -31,6 +31,7 @@ from limite_vl.data import IMAGE_MODES, build_example  # noqa: E402
 from limite_vl.modeling import LimiteVLForConditionalGeneration, VLConfig  # noqa: E402
 from limite_vl.processing import IGNORE, LimiteVLProcessor  # noqa: E402
 from limite_vl.stream import make_sources, validation_samples  # noqa: E402
+from limite_vl.train_utils import allow_flex_recompiles  # noqa: E402
 
 @torch.no_grad()
 def token_losses(model, batch: dict) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
@@ -88,8 +89,9 @@ def main() -> None:
 
     torch.manual_seed(cfg["seed"])  # stessa inizializzazione del proiettore del passo 0 del training
     model = LimiteVLForConditionalGeneration.from_pretrained(
-        VLConfig(decoder_path=cfg["decoder"], vision_path=cfg["vision"]), dtype=torch.bfloat16)
+        VLConfig(decoder_path=cfg["decoder"], vision_path=cfg["vision"], vision_precision=cfg.get("vision_precision", "tf32")), dtype=torch.bfloat16)
     model.language_model.config._attn_implementation = cfg["attn"]
+    allow_flex_recompiles()
     model.train()  # come la validazione del training (Limite non ha dropout)
 
     results = {}

@@ -1,0 +1,54 @@
+{
+ "run": "f1",
+ "decoder": "${HF_HOME}/hub/models--paradigma-inc--limite-1b-violetto/snapshots/b1f3d572ccacb6919f4d64c321b70ba034ddaef2",
+ "vision": "${HF_HOME}/hub/models--google--siglip2-so400m-patch16-naflex/snapshots/cc24074f717b612951c2dead130904ab9b65a81e",
+ "sources": [
+  {
+   "name": "llava",
+   "kind": "llava",
+   "weight": 558.0,
+   "shards": "${DATA_ROOT}/shards/llava-pretrain/70f9d1e5/llava-pretrain-*.tar"
+  },
+  {
+   "name": "mavis",
+   "kind": "mavis_caption",
+   "weight": 199.0,
+   "shards": "${DATA_ROOT}/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-*.tar"
+  },
+  {
+   "name": "unimer",
+   "kind": "unimer_formula",
+   "weight": 985.0,
+   "shards": "${DATA_ROOT}/shards/unimer/2343ddd9/unimer-train-*.tar"
+  }
+ ],
+ "max_len": 4096,
+ "micro_rows": 1,
+ "rows_per_step": 32,
+ "lr": 0.001,
+ "warmup_frac": 0.03,
+ "min_lr_ratio": 0.0,
+ "betas": [
+  0.9,
+  0.999
+ ],
+ "eps": 1e-08,
+ "weight_decay": 0.0,
+ "grad_clip": 1.0,
+ "attn": "flex_attention",
+ "checkpointing": false,
+ "num_workers": 4,
+ "prefetch_factor": 4,
+ "shuffle_buffer": 512,
+ "pack_buffer": 256,
+ "val_count": 256,
+ "val_every": 250,
+ "log_every": 10,
+ "ckpt_minutes": 60,
+ "keep_checkpoints": 3,
+ "samples_per_source": 2,
+ "sample_max_new_tokens": 160,
+ "seed": 0,
+ "total_tokens": 400000000,
+ "vision_precision": "tf32"
+}
