@@ -164,12 +164,25 @@ def stem_caption_sample(key: str, files: dict[str, bytes]) -> Sample:
     return Sample(messages, image, max_patches)
 
 
+def f2_solution_sample(key: str, files: dict[str, bytes]) -> Sample:
+    """F2 (scripts/f2_build.py): immagine STEM + domanda con l'istruzione del valutatore; target la soluzione
+    di Violetto generata con il ponte testuale (`<think>...</think>` e risposta con \\boxed{}), senza prefill."""
+    from .f2 import training_question
+
+    meta = json.loads(files["json"])
+    image, max_patches = stem_image(files)
+    messages = [{"role": "user", "content": [{"type": "image"}, {"type": "text", "text": training_question(meta["question"])}]},
+                {"role": "assistant", "content": meta["solution"]}]
+    return Sample(messages, image, max_patches)
+
+
 SAMPLE_LOADERS: dict[str, Callable[[str, dict[str, bytes]], Sample]] = {
     "llava": llava_pretrain_sample,
     "mavis_caption": mavis_caption_sample,
     "unimer_formula": unimer_formula_sample,
     "pixmo_caption": pixmo_caption_sample,
     "stem_caption": stem_caption_sample,
+    "f2_solution": f2_solution_sample,
 }
 
 

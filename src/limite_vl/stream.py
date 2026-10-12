@@ -41,6 +41,7 @@ class Source:
     kind: str  # chiave di data.SAMPLE_LOADERS
     shards: list[str]  # percorsi in ordine di nome
     weight: float
+    exclude: frozenset[str] = frozenset()  # chiavi da saltare (decontaminazione, scripts/decontam.py scan)
 
     @property
     def val_shard(self) -> str:
@@ -48,7 +49,8 @@ class Source:
 
 
 def make_sources(specs: list[dict]) -> list[Source]:
-    """[{name, kind, shards: glob, weight}] -> Source, con controlli su tipi, nomi e shard presenti."""
+    """[{name, kind, shards: glob, weight, exclude: [file]}] -> Source, con controlli su tipi, nomi e shard
+    presenti. `exclude` (facoltativo) elenca file con una chiave per riga, da saltare sempre."""
     sources, names = [], set()
     for spec in specs:
         if spec["kind"] not in SAMPLE_LOADERS:
@@ -61,7 +63,11 @@ def make_sources(specs: list[dict]) -> list[Source]:
         if float(spec["weight"]) <= 0:
             raise ValueError(f"sorgente {spec['name']}: peso {spec['weight']}")
         names.add(spec["name"])
-        sources.append(Source(spec["name"], spec["kind"], shards, float(spec["weight"])))
+        exclude: set[str] = set()
+        for path in spec.get("exclude", []):
+            with open(path) as fh:
+                exclude.update(line.strip() for line in fh if line.strip())
+        sources.append(Source(spec["name"], spec["kind"], shards, float(spec["weight"]), frozenset(exclude)))
     return sources
 
 
@@ -121,6 +127,8 @@ class SourceReader:
             if index % self.n_workers != self.worker:
                 continue
             if self._path == self.source.val_shard and index < self.val_count:
+                continue
+            if key in self.source.exclude:
                 continue
             return key, files
 
@@ -218,8 +226,9 @@ class MixedRowStream(IterableDataset):
 def validation_samples(source: Source, count: int) -> list[tuple[str, dict[str, bytes]]]:
     """I primi `count` campioni dell'ultimo shard: la parte esclusa dal training."""
     out = []
-    for key, files in iter_shard(source.val_shard):
-        if len(out) >= count:
+    for index, (key, files) in enumerate(iter_shard(source.val_shard)):
+        if index >= count:
             break
-        out.append((key, files))
+        if key not in source.exclude:  # la parte di validazione resta la stessa, meno i contaminati
+            out.append((key, files))
     return out

@@ -33,7 +33,6 @@ import hashlib
 import io
 import json
 import os
-import re
 import sys
 import tarfile
 import time
@@ -48,6 +47,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from shard_llava_pretrain import HashingWriter, add_member  # noqa: E402  (stessa cartella scripts/)
 
 from limite_vl.data import iter_shard  # noqa: E402
+from limite_vl.mmfine import mmfine_key, split_of  # noqa: E402
 from limite_vl.processing import (DEFAULT_MAX_PATCHES, DIAGRAM_MAX_PATCHES, capped_size, exact_patches,  # noqa: E402
                                   target_size, to_rgb)
 
@@ -93,7 +93,7 @@ def convert(task: tuple[str, str, bytes]):
 def rows_of(kind: str, path: Path, file_index: int):
     """(chiave, byte dell'immagine, metadati) per ogni riga utile del file; esclusi con il motivo."""
     pf = pq.ParquetFile(path)
-    split = path.name.split("-")[0]
+    split = split_of(path) if kind == "mmfinereason" else path.name.split("-")[0]
     row = 0
     for batch in pf.iter_batches(batch_size=BATCH_ROWS, columns=KINDS[kind]["columns"]):
         for rec in batch.to_pylist():
@@ -101,9 +101,7 @@ def rows_of(kind: str, path: Path, file_index: int):
             row += 1
             image = (rec.get("image") or {}).get("bytes")
             if kind == "mmfinereason":
-                # gli id si ripetono fra sorgenti (7963 distinti su 8000 righe in rl-00000, job 29460)
-                source_tag = re.sub(r"[^A-Za-z0-9]+", "_", rec.get("source") or "nosource").strip("_")
-                key = f"{split}-{source_tag}-{rec['id']}"
+                key = mmfine_key(split, rec.get("source"), rec["id"])  # la sorgente nella chiave: id ripetuti
                 question = (rec.get("question") or "").replace("<image>", "").strip()
                 missing = [n for n, v in (("image", image), ("caption", rec.get("caption"))) if not v]
                 meta = {"id": key, "source_dataset": rec.get("source"), "split": split, "question": question,
