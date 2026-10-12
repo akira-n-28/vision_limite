@@ -141,3 +141,36 @@ time	job_id	job_name	status	note
 2026-10-12T14:20:15+02:00	-	fetch-p3	stopped	fetch p3 fermato alle 14:18 prima di MMFineReason sft-00090: MemAvailable 1.04 GB < 1 GiB (un altro utente ~2.3 GB; ~100 MB di pipeline di monitor orfane mie, terminate); 96 file su 234, nessun .part; p6 non avviato; in attesa dell'utente per il rilancio
 2026-10-12T14:32:39+02:00	-	fetch-p3	note	rilancio manuale approvato dall'utente dopo lo stop per memoria: catena p3 -> p5-rl -> manifest e fetch di p6 (data/logs/fetch-p3-p5rl-p6-20261012-143234.log)
 2026-10-12T15:30:40+02:00	-	fetch-p3	stopped	secondo stop per memoria alle 15:13 prima di MMFineReason sft-00112 (MemAvailable 1.007 GB; frontend affollato, 525 MB liberi); 119/200 file di MMFineReason; l'utente autorizza un solo rilancio automatico quando MemAvailable resta >= 1.5 GB per 10 minuti (data/logs/relaunch-watch-20261012-153038.log)
+2026-10-12T16:49:09+02:00	29472	lvl-tests	submitted	test CPU: decontaminazione (HashIndex contro ricerca esaustiva, pHash su immagini ricompresse, n-gram, index+scan su un finto benchmark) ed esclusioni nel flusso; 0 GPU 4 CPU 8G 0:20
+2026-10-12T16:51:46+02:00	29472	lvl-tests	ok	tests_cpu
+2026-10-12T16:52:05+02:00	29473	lvl-tests	submitted	test CPU: ponte testuale di F2 (estrazione e verifica delle risposte, scarti, f2_select su dati sintetici) più tutti gli altri; 0 GPU 4 CPU 8G 0:20
+2026-10-12T16:54:43+02:00	29473	lvl-tests	failed	tests_cpu: tests/test_f2.py
+2026-10-12T16:55:02+02:00	29473	lvl-tests	failed	test_f2: str.format sul prompt con \boxed{} (IndexError); prompt ora costruito per concatenazione
+2026-10-12T16:55:02+02:00	29474	lvl-tests	submitted	test CPU ripetuti dopo la correzione di bridge_prompt; 0 GPU 4 CPU 8G 0:20
+2026-10-12T16:57:52+02:00	29474	lvl-tests	ok	tests_cpu
+2026-10-12T17:14:24+02:00	29476	lvl-f2-gen	submitted	prova del ponte testuale di F2 (approvata dall'utente): Violetto con vLLM su 512 problemi della parte rl di MMFineReason (descrizione di Qwen3-VL-235B + domanda), 8 soluzioni, max 8192 token, 2 parti da 256; misura throughput, lunghezze, pass rate; 1 GPU 8 CPU 32G 0:45
+2026-10-12T17:14:24+02:00	29477	lvl-f2-select	submitted	selezione delle soluzioni della prova f2-prova512 (corrette, senza citare la descrizione, 2 per problema); dopo 29476; 0 GPU 8 CPU 8G 0:20
+2026-10-12T17:40:43+02:00	29476	lvl-f2-gen	ok	F2 generazione f2-prova512 -> /home/prignano/vision_limite/outputs/f2_gen/f2-prova512
+2026-10-12T17:40:51+02:00	29477	lvl-f2-select	ok	f2_select: --gen /home/prignano/vision_limite/outputs/f2_gen/f2-prova512 --out /home/prignano/vision_limite/outputs/f2_select/f2-prova512 --keep 2
+2026-10-12T17:41:35+02:00	29476	lvl-f2-gen	note	prova F2: 17.7 mila token/s, 5.8 mila token per soluzione; su 4096 soluzioni 49% troncate a 8192, 32% corrette ma citano la descrizione, 1% utilizzabili; pass rate di Violetto con descrizione 0.33
+2026-10-12T17:41:35+02:00	29482	lvl-f2-inspect	submitted	esempi della prova f2-prova512: citazioni della descrizione, troncate (cicli?), pass rate per difficoltà; 0 GPU 2 CPU 8G 0:15
+2026-10-12T17:41:50+02:00	29482	lvl-f2-inspect	ok	f2_inspect: --gen /home/prignano/vision_limite/outputs/f2_gen/f2-prova512
+2026-10-12T18:01:39+02:00	29497	lvl-tests	submitted	test CPU: nuovo prompt del ponte (Figure:), riscrittura dei riferimenti alla descrizione, scarto di chi dice di non vedere l'immagine; 0 GPU 4 CPU 8G 0:20
+2026-10-12T18:01:49+02:00	29498	lvl-f2-gen	submitted	seconda prova del ponte testuale (approvata): prompt 'Figure:' senza 'description', 4 soluzioni, stessi 512 problemi, max 8192 token; dopo i test 29497; 1 GPU 8 CPU 32G 0:45
+2026-10-12T18:01:49+02:00	29499	lvl-f2-select	submitted	selezione di f2-prova512b con riscrittura dei riferimenti alla descrizione; dopo 29498
+2026-10-12T18:01:49+02:00	29500	lvl-f2-inspect	submitted	esempi di f2-prova512b; dopo 29498
+2026-10-12T18:04:37+02:00	29497	lvl-tests	ok	tests_cpu
+2026-10-12T18:20:08+02:00	29498	lvl-f2-gen	ok	F2 generazione f2-prova512b -> /home/prignano/vision_limite/outputs/f2_gen/f2-prova512b
+2026-10-12T18:20:16+02:00	29499	lvl-f2-select	ok	f2_select: --gen /home/prignano/vision_limite/outputs/f2_gen/f2-prova512b --out /home/prignano/vision_limite/outputs/f2_select/f2-prova512b --keep 2
+2026-10-12T18:20:22+02:00	29500	lvl-f2-inspect	ok	f2_inspect: --gen /home/prignano/vision_limite/outputs/f2_gen/f2-prova512b
+2026-10-12T18:31:57+02:00	29504	lvl-tests	submitted	test CPU: riscritture mirate delle aperture, mmfine (chiavi parquet = chiavi shard, scelta metà facili e metà difficili, testi senza <image>), shard_parquet con mmfine_key; 0 GPU 4 CPU 8G 0:20
+2026-10-12T18:34:48+02:00	29504	lvl-tests	ok	tests_cpu
+2026-10-12T18:39:36+02:00	29513	lvl-verify	submitted	verifica hash dei 119 file di MMFineReason già scaricati (downloads/manifests/p3-mmfine-parziale.tsv); 0 GPU 2 CPU 4G
+2026-10-12T18:39:36+02:00	29514	lvl-f2-gen	submitted	generazione F2 f2-sft120k (approvata dall'utente): 120 mila problemi da sft-00000..00111 di MMFineReason, metà con pass_rate Qwen3-VL-4B = 1.0, prompt 'Figure:', 4 soluzioni, max 8192 token, parti da 2048; catena di 4 job da 12 h (dopo la verifica 29513), ripresa dalle parti scritte; decontaminazione dopo; 1 GPU 8 CPU 32G 12:00
+2026-10-12T18:39:36+02:00	29515	lvl-f2-gen	submitted	generazione F2 f2-sft120k (approvata dall'utente): 120 mila problemi da sft-00000..00111 di MMFineReason, metà con pass_rate Qwen3-VL-4B = 1.0, prompt 'Figure:', 4 soluzioni, max 8192 token, parti da 2048; catena di 4 job da 12 h (dopo la verifica 29513), ripresa dalle parti scritte; decontaminazione dopo; 1 GPU 8 CPU 32G 12:00
+2026-10-12T18:39:36+02:00	29516	lvl-f2-gen	submitted	generazione F2 f2-sft120k (approvata dall'utente): 120 mila problemi da sft-00000..00111 di MMFineReason, metà con pass_rate Qwen3-VL-4B = 1.0, prompt 'Figure:', 4 soluzioni, max 8192 token, parti da 2048; catena di 4 job da 12 h (dopo la verifica 29513), ripresa dalle parti scritte; decontaminazione dopo; 1 GPU 8 CPU 32G 12:00
+2026-10-12T18:39:36+02:00	29517	lvl-f2-gen	submitted	generazione F2 f2-sft120k (approvata dall'utente): 120 mila problemi da sft-00000..00111 di MMFineReason, metà con pass_rate Qwen3-VL-4B = 1.0, prompt 'Figure:', 4 soluzioni, max 8192 token, parti da 2048; catena di 4 job da 12 h (dopo la verifica 29513), ripresa dalle parti scritte; decontaminazione dopo; 1 GPU 8 CPU 32G 12:00
+2026-10-12T18:42:15+02:00	29513	lvl-verify	ok	verify downloads/manifests/p3-mmfine-parziale.tsv -> /home/prignano/vision_limite/outputs/verify/report-29513.tsv
+2026-10-12T18:44:57+02:00	29521	lvl-f2-gen	submitted	prova F2 a 16384 token (approvata): stessi 512 problemi di f2-prova512b (4 soluzioni, prompt Figure:), per misurare il recupero delle troncate a 8192; inserita fra 29514 e 29515 (dipendenza di 29515 spostata); 1 GPU 8 CPU 32G 0:50
+2026-10-12T18:44:57+02:00	29522	lvl-f2-select	submitted	selezione di f2-prova512c; dopo 29521
+2026-10-12T18:44:57+02:00	29523	lvl-f2-inspect	submitted	esempi di f2-prova512c; dopo 29521
