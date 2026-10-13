@@ -174,3 +174,8 @@ time	job_id	job_name	status	note
 2026-10-12T18:44:57+02:00	29521	lvl-f2-gen	submitted	prova F2 a 16384 token (approvata): stessi 512 problemi di f2-prova512b (4 soluzioni, prompt Figure:), per misurare il recupero delle troncate a 8192; inserita fra 29514 e 29515 (dipendenza di 29515 spostata); 1 GPU 8 CPU 32G 0:50
 2026-10-12T18:44:57+02:00	29522	lvl-f2-select	submitted	selezione di f2-prova512c; dopo 29521
 2026-10-12T18:44:57+02:00	29523	lvl-f2-inspect	submitted	esempi di f2-prova512c; dopo 29521
+2026-10-12T23:04:01+02:00	-	fetch-p3	note	rilancio unico automatico (autorizzato dall'utente, opzione b) dopo 10 minuti con MemAvailable >= 1.5 GB: catena p3 -> p5-rl -> p6 (data/logs/fetch-p3-p5rl-p6-20261012-230401.log)
+2026-10-13T07:07:16+02:00	29521	lvl-f2-gen	ok	F2 generazione f2-prova512c -> /home/prignano/vision_limite/outputs/f2_gen/f2-prova512c
+2026-10-13T07:07:31+02:00	29522	lvl-f2-select	ok	f2_select: --gen /home/prignano/vision_limite/outputs/f2_gen/f2-prova512c --out /home/prignano/vision_limite/outputs/f2_select/f2-prova512c --keep 2 --workers 2
+2026-10-13T07:07:35+02:00	29523	lvl-f2-inspect	ok	f2_inspect: --gen /home/prignano/vision_limite/outputs/f2_gen/f2-prova512c
+2026-10-13T11:16:24+02:00	-	fetch-p3	note	catena fermata alle 02:10 su pixmo-cap-images train-00008 per curl 18 (server chiude a metà, 1.8 GB su 5 conservati); MMFineReason completo (200 file), PixMo 8/25; rilancio manuale dopo errore di rete con MemAvailable 2.5 GB (data/logs/fetch-p3-p5rl-p6-20261013-111616.log)
