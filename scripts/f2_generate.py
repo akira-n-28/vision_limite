@@ -13,8 +13,9 @@ valutatore). Prompt: limite_vl.f2.bridge_prompt.
 Uscita in --out, a parti da --part-size problemi: part-NNNNN.jsonl con, per problema, chiave, sorgente,
 risposta, pass_rate di Qwen3-VL-4B e le generazioni (testo, finish_reason, token). Ogni parte si scrive in
 `.tmp` e si rinomina; un nuovo avvio con la stessa --out salta le parti già scritte (il piano dei problemi
-dipende solo da shard, esclusioni e --limit, e si controlla con plan.json). Si ferma prima della scadenza del
-job (--margin-min). Le soluzioni si scelgono poi con scripts/f2_select.py.
+dipende solo da shard, esclusioni e --limit, e si controlla con plan.json). Non inizia una parte che, con la
+durata della più lunga già fatta nel job, finirebbe a meno di --margin-min minuti dalla scadenza: una parte
+interrotta dal limite di tempo andrebbe persa (job 29514). Le soluzioni si scelgono poi con scripts/f2_select.py.
 """
 from __future__ import annotations
 
@@ -70,7 +71,8 @@ def main() -> None:
     ap.add_argument("--part-size", type=int, default=2048)
     ap.add_argument("--limit", type=int, help="solo i primi N problemi (prova)")
     ap.add_argument("--seed", type=int, default=0)
-    ap.add_argument("--margin-min", type=float, default=20, help="minuti prima della scadenza per fermarsi")
+    ap.add_argument("--margin-min", type=float, default=20,
+                    help="minuti di scarto fra la fine prevista di una parte e la scadenza del job")
     args = ap.parse_args()
     if not os.environ.get("SLURM_JOB_ID"):
         sys.exit("f2_generate.py va eseguito in un job SLURM")
@@ -127,9 +129,12 @@ def main() -> None:
     print(f"engine pronto in {time.time() - t_start:.0f} s; temperature {params.temperature}, top_p {params.top_p}, "
           f"max_tokens {params.max_tokens}, n {params.n}", flush=True)
 
+    durations: list[float] = []
     for i in todo:
-        if deadline and time.time() > deadline:
-            print(f"fermo prima della scadenza del job: parti rimaste {len([j for j in todo if j >= i])}", flush=True)
+        expected = max(durations, default=0.0)
+        if deadline and time.time() + expected > deadline:
+            print(f"fermo prima della scadenza del job: parti rimaste {len([j for j in todo if j >= i])}, "
+                  f"una parte richiede circa {expected / 60:.0f} min", flush=True)
             break
         t0 = time.time()
         part = parts[i]
@@ -149,6 +154,7 @@ def main() -> None:
                                      "completions": completions}, ensure_ascii=False) + "\n")
         os.replace(tmp, path)
         dt = time.time() - t0
+        durations.append(dt)
         print(f"parte {i + 1}/{len(parts)}: {len(part)} problemi, {n_out} token generati in {dt:.0f} s "
               f"({n_out / dt:.0f} token/s, {n_out / (len(part) * args.samples):.0f} token per soluzione)", flush=True)
     print(f"fine in {time.time() - t_start:.0f} s")
