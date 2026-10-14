@@ -7,17 +7,23 @@ DynaMath): hash percettivo delle immagini e n-gram delle domande, come previsto 
   almeno un blocco; si confrontano solo gli hash che condividono un blocco.
 - Domande: testo normalizzato (minuscole, solo lettere e cifre, LaTeX ridotto ai nomi dei comandi), poi
   n-gram di parole. Una domanda di training è contaminata se condivide un n-gram con una domanda di un
-  benchmark; le domande più corte di n parole devono coincidere per intero.
+  benchmark. Gli n-gram presenti in più di `max_df` testi diversi dei benchmark sono formule di rito
+  (istruzioni come "Hint: Please answer the question and provide the correct option letter", aperture come
+  "As shown in the figure"), non indizi di un problema preciso, e non contano. Le domande più corte di n
+  parole ("Find x.") non si confrontano sul testo: decide l'immagine.
 """
 from __future__ import annotations
 
 import re
-from collections import defaultdict
+import unicodedata
+from collections import Counter, defaultdict
 from dataclasses import dataclass
 
 from PIL import Image
 
-_WORD = re.compile(r"[a-z0-9]+")
+# parole latine e cifre; ogni ideogramma CJK è una parola (senza, le domande in cinese si riducevano a numeri e
+# lettere delle scelte e si somigliavano tutte: revisione del job 29572)
+_WORD = re.compile(r"[a-z0-9]+|[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]")
 
 
 def phash(image: Image.Image) -> int:
@@ -31,8 +37,9 @@ def hamming(a: int, b: int) -> int:
 
 
 def normalize_words(text: str) -> list[str]:
-    """Parole minuscole di lettere e cifre; `\\frac` resta `frac`, simboli e graffe spariscono."""
-    return _WORD.findall(text.lower().replace("\\", " "))
+    """Parole minuscole di lettere e cifre (forme a larghezza piena ridotte con NFKC) e ideogrammi CJK uno per uno;
+    `\\frac` resta `frac`, simboli e graffe spariscono."""
+    return _WORD.findall(unicodedata.normalize("NFKC", text).lower().replace("\\", " "))
 
 
 def word_ngrams(words: list[str], n: int) -> set[tuple[str, ...]]:
@@ -71,29 +78,32 @@ class HashIndex:
 
 @dataclass
 class TextIndex:
-    """n-gram delle domande dei benchmark e domande corte intere."""
+    """n-gram delle domande dei benchmark, senza quelli presenti in più di max_df testi diversi."""
 
     n: int
     grams: dict[tuple[str, ...], list[int]]
-    short: dict[tuple[str, ...], list[int]]
+    dropped: int = 0
 
     @classmethod
-    def build(cls, texts: list[str], n: int = 10) -> "TextIndex":
+    def build(cls, texts: list[str], n: int = 10, max_df: int = 25) -> "TextIndex":
         grams: dict[tuple[str, ...], list[int]] = defaultdict(list)
-        short: dict[tuple[str, ...], list[int]] = defaultdict(list)
+        df: Counter = Counter()
+        seen: set[tuple[str, ...]] = set()
         for idx, text in enumerate(texts):
-            words = normalize_words(text)
-            if not words:
-                continue
+            words = tuple(normalize_words(text))
             if len(words) < n:
-                short[tuple(words)].append(idx)
-            for g in word_ngrams(words, n):
+                continue
+            ngrams = word_ngrams(list(words), n)
+            for g in ngrams:
                 grams[g].append(idx)
-        return cls(n, dict(grams), dict(short))
+            if words not in seen:  # varianti identiche (es. DynaMath) contano una volta
+                seen.add(words)
+                df.update(ngrams)
+        common = {g for g, c in df.items() if c > max_df}
+        return cls(n, {g: v for g, v in grams.items() if g not in common}, len(common))
 
     def query(self, text: str) -> list[int]:
-        words = normalize_words(text)
-        hits: set[int] = set(self.short.get(tuple(words), ()))
-        for g in word_ngrams(words, self.n):
+        hits: set[int] = set()
+        for g in word_ngrams(normalize_words(text), self.n):
             hits.update(self.grams.get(g, ()))
         return sorted(hits)

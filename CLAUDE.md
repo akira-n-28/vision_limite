@@ -277,6 +277,12 @@ iperparametri rispetto al piano.
   - F2: MMFineReason come bacino principale, con le sue descrizioni come ponte testuale.
   - F4: `skylenage/DeepVision-103K` e `TIGER-Lab/ViRL39K` (gruppo p5-rl).
   MMFineReason contiene Geo3K e la famiglia WeMath: decontaminare prima del training.
+- Decontaminazione contro i benchmark p6 (regola approvata dall'utente il 2026-10-14): usare solo le liste
+  `data/decontam/p6/<sorgente>/exclude_final.txt` (MMFineReason 16.934, 0.94%; PixMo, MAVIS, UniMER, LLaVA nessuna).
+  Le `exclude.txt` grezze di `scripts/decontam.py scan` sono solo candidati: il pHash confonde le immagini quasi
+  vuote (simboli di UniMER contro figure di DynaMath) e un 10-gram in comune unisce problemi diversi. La regola di
+  `scripts/decontam_review.py`: somiglianza dei pixel >= 0.90 con rapporto d'aspetto entro 1.2, oppure copertura
+  degli n-gram >= 0.8 in entrambe le direzioni con almeno 15 parole (job 29577).
 
 ## Ottimizzatore
 

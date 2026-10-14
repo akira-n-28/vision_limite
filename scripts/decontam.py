@@ -75,6 +75,8 @@ class LooseFiles:
 
 
 def image_from(value, loose: LooseFiles) -> bytes | None:
+    if isinstance(value, (bytes, bytearray)):  # colonna binaria semplice (non lo struct {bytes, path} di datasets)
+        return bytes(value) or None
     if isinstance(value, dict):
         if value.get("bytes"):
             return value["bytes"]
@@ -109,13 +111,24 @@ def cmd_index(args) -> None:
                 h = hash_bytes(data) if data else None
                 text = " ".join(str(row[c]) for c in text_cols if row.get(c))
                 counts["with_image"] += h is not None
+                if data and h is None:
+                    counts["unreadable"] += 1
+                    if "first_error" not in report.setdefault(name, {}):
+                        try:
+                            with Image.open(io.BytesIO(data)) as im:
+                                phash(im)
+                        except Exception as e:  # noqa: BLE001 - solo per il messaggio
+                            report[name]["first_error"] = repr(e)[:300]
                 counts["with_text"] += bool(text)
                 items.append({"benchmark": name, "file": f.name, "id": str(row[id_col]) if id_col else f"{f.name}:{i}",
                               "phash": f"{h:016x}" if h is not None else None, "text": text})
-        report[name] = dict(counts)
+        report[name] = {**report.get(name, {}), **counts}
         print(f"{name}: {dict(counts)} da {len(files)} parquet", flush=True)
         if counts["with_image"] == 0:
-            sys.exit(f"{name}: nessuna immagine letta: controllare colonne e file della cartella")
+            first = pq.read_table(files[0]).slice(0, 1).to_pylist()[0]
+            seen = {c: (type(first[c]).__name__, repr(first[c])[:120]) for c in first if c in IMAGE_COLUMNS}
+            sys.exit(f"{name}: nessuna immagine letta ({report[name]}): colonne {pq.read_schema(files[0])}, prima riga {seen}, "
+                     f"zip {[str(z) for z in folder.rglob('*.zip')]}")
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     Path(args.out).write_text(json.dumps({"items": items, "report": report}, ensure_ascii=False))
     print(f"indice: {len(items)} elementi -> {args.out}")
@@ -143,14 +156,16 @@ def cmd_scan(args) -> None:
     index = json.loads(Path(args.index).read_text())["items"]
     with_hash = [(i, int(it["phash"], 16)) for i, it in enumerate(index) if it["phash"]]
     hidx = HashIndex([h for _, h in with_hash], radius=args.radius)
-    tidx = TextIndex.build([it["text"] for it in index], n=args.ngram)
+    tidx = TextIndex.build([it["text"] for it in index], n=args.ngram, max_df=args.max_df)
+    print(f"indice: {len(with_hash)} immagini, {len(tidx.grams)} n-gram ({tidx.dropped} esclusi perché in più di "
+          f"{args.max_df} testi diversi)", flush=True)
     shards = sorted(glob.glob(args.shards))
     if not shards:
         sys.exit(f"nessuno shard per {args.shards}")
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     excluded: set[str] = set()
-    per_bench = Counter()
+    per_bench, by_kind = Counter(), Counter()
     n = 0
     with Pool(args.workers) as pool, open(out / "matches.jsonl", "w") as matches:
         for shard in shards:
@@ -167,13 +182,16 @@ def cmd_scan(args) -> None:
                     for t in texts:
                         if t:
                             found.extend(("text", j, None) for j in tidx.query(t))
-                    for kind, j, d in found:
+                    for m, (kind, j, d) in enumerate(found):
                         it = index[j]
-                        matches.write(json.dumps({"key": key, "match": kind, "distance": d, "benchmark": it["benchmark"],
-                                                  "bench_id": it["id"]}, ensure_ascii=False) + "\n")
                         per_bench[f"{it['benchmark']}/{kind}"] += 1
+                        if m < args.max_lines:  # un'immagine quasi vuota può somigliare a centinaia di altre
+                            matches.write(json.dumps({"key": key, "match": kind, "distance": d, "benchmark": it["benchmark"],
+                                                      "bench_id": it["id"], "n_matches": len(found)},
+                                                     ensure_ascii=False) + "\n")
                     if found:
                         excluded.add(key)
+                        by_kind["image" if any(k == "image" for k, _, _ in found) else "text_only"] += 1
                 tasks.clear()
 
             for key, files in iter_shard(shard):
@@ -187,10 +205,11 @@ def cmd_scan(args) -> None:
                   flush=True)
     (out / "exclude.txt").write_text("".join(f"{k}\n" for k in sorted(excluded)))
     summary = {"kind": args.kind, "shards": shards, "index": args.index, "radius": args.radius, "ngram": args.ngram,
-               "samples": n, "excluded": len(excluded), "matches_per_benchmark": dict(per_bench),
-               "seconds": round(time.time() - t0, 1)}
+               "max_df": args.max_df, "ngrams_dropped": tidx.dropped, "samples": n, "excluded": len(excluded),
+               "excluded_by": dict(by_kind), "matches_per_benchmark": dict(per_bench), "seconds": round(time.time() - t0, 1)}
     (out / "summary.json").write_text(json.dumps(summary, indent=1))
-    print(json.dumps({k: summary[k] for k in ("samples", "excluded", "matches_per_benchmark", "seconds")}, indent=1))
+    print(json.dumps({k: summary[k] for k in ("samples", "excluded", "excluded_by", "matches_per_benchmark", "seconds")},
+                     indent=1))
 
 
 def main() -> None:
@@ -206,6 +225,8 @@ def main() -> None:
     b.add_argument("--out", required=True)
     b.add_argument("--radius", type=int, default=4, help="distanza massima fra pHash, in bit")
     b.add_argument("--ngram", type=int, default=10)
+    b.add_argument("--max-df", type=int, default=25, help="n-gram in più di tanti testi diversi dei benchmark: ignorati")
+    b.add_argument("--max-lines", type=int, default=20, help="righe di matches.jsonl al più per campione")
     b.add_argument("--workers", type=int, default=int(os.environ.get("SLURM_CPUS_PER_TASK", "1")))
     args = ap.parse_args()
     if not os.environ.get("SLURM_JOB_ID"):

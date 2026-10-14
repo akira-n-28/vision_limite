@@ -9,6 +9,8 @@ ogni problema tiene fino a --keep soluzioni utilizzabili (scelta deterministica 
   pass rate di Violetto con la descrizione;
 - rl_pool.jsonl: problemi con nessuna soluzione corretta ma almeno una finita (al pool di RL di F4);
 - stats.json: conteggi, pass rate per sorgente, lunghezze, motivi di scarto.
+Con --exclude salta i problemi delle liste di decontaminazione (data/decontam/p6/<sorgente>/exclude_final.txt):
+non entrano né nelle soluzioni né nel pool di RL.
 """
 from __future__ import annotations
 
@@ -40,6 +42,7 @@ def main() -> None:
     ap.add_argument("--gen", required=True, type=Path, help="cartella di f2_generate.py")
     ap.add_argument("--out", required=True, type=Path)
     ap.add_argument("--keep", type=int, default=2, help="soluzioni tenute per problema")
+    ap.add_argument("--exclude", nargs="*", default=[], help="file di chiavi da saltare (decontaminazione)")
     ap.add_argument("--workers", type=int, default=int(os.environ.get("SLURM_CPUS_PER_TASK", "1")))
     args = ap.parse_args()
     if not os.environ.get("SLURM_JOB_ID"):
@@ -48,14 +51,20 @@ def main() -> None:
     parts = sorted(args.gen.glob("part-*.jsonl"))
     if not parts:
         sys.exit(f"nessuna parte in {args.gen}")
+    exclude: set[str] = set()
+    for path in args.exclude:
+        exclude.update(line.strip() for line in open(path) if line.strip())
     args.out.mkdir(parents=True, exist_ok=True)
     reasons, per_source, lengths, pass_rates = Counter(), defaultdict(lambda: [0, 0]), [], []
-    n_problems = n_selected = n_rl = 0
+    n_problems = n_selected = n_rl = n_excluded = 0
     with Pool(args.workers) as pool, open(args.out / "selected.jsonl", "w") as sel, open(args.out / "rl_pool.jsonl", "w") as rl:
         for part in parts:
             with open(part) as fh:
                 for item in pool.imap(grade_problem, fh, chunksize=16):
                     rec, grades = item["rec"], item["grades"]
+                    if rec["key"] in exclude:
+                        n_excluded += 1
+                        continue
                     n_problems += 1
                     usable = [i for i, g in enumerate(grades) if g["usable"]]
                     correct = sum(g["correct"] for g in grades)
@@ -93,7 +102,8 @@ def main() -> None:
                                              "answer": rec["answer"], "qwen4b_pass_rate": rec.get("qwen4b_pass_rate")},
                                             ensure_ascii=False) + "\n")
                         n_rl += 1
-    stats = {"problems": n_problems, "selected_solutions": n_selected, "problems_with_selection":
+    stats = {"excluded_contaminated": n_excluded, "exclude_files": args.exclude,
+             "problems": n_problems, "selected_solutions": n_selected, "problems_with_selection":
              sum(1 for r in pass_rates if r > 0), "rl_pool": n_rl, "completion_outcomes": dict(reasons),
              "violetto_pass_rate_mean": statistics.mean(pass_rates) if pass_rates else None,
              "pass_rate_by_source": {k: round(v[0] / max(1, v[1]), 3) for k, v in sorted(per_source.items())},

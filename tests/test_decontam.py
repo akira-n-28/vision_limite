@@ -20,7 +20,7 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from limite_vl.data import iter_shard  # noqa: E402
-from limite_vl.decontam import HashIndex, TextIndex, hamming, phash  # noqa: E402
+from limite_vl.decontam import HashIndex, TextIndex, hamming, normalize_words, phash  # noqa: E402
 
 MMFINE = ROOT / "data/shards/mmfinereason/7c93f724-rl/mmfinereason-rl-00000.tar"
 FAILS = []
@@ -92,8 +92,24 @@ def test_text_index():
     check("TextIndex: domanda che contiene un 10-gram del benchmark",
           idx.query("Look carefully: in the figure, AB is the diameter of circle O and the chord CD crosses it.") == [0])
     check("TextIndex: domanda diversa non trovata", idx.query("Compute the area of the shaded triangle in the plot.") == [])
-    check("TextIndex: domanda corta solo se identica", idx.query("what is the value of x") == [1]
-          and idx.query("What is the value of y?") == [])
+    check("TextIndex: domanda corta non confrontata sul testo", idx.query("What is the value of x?") == [])
+    check("normalize_words: ideogrammi uno per uno, larghezza piena ridotta",
+          normalize_words("如图，若∠１＝55°，则 \\frac{x}{2}") == ["如", "图", "若", "1", "55", "则", "frac", "x", "2"],
+          str(normalize_words("如图，若∠１＝55°，则 \\frac{x}{2}")))
+    zh = TextIndex.build(["如图，直线a∥b，直线l与直线a相交于点O，与直线b相交于点P，OM⊥l于点O．若∠1＝55°，则∠2＝（）"], n=10)
+    check("TextIndex: domanda cinese diversa con le stesse scelte non trovata",
+          zh.query("如图，把一块直角三角尺的直角顶点放在直尺的一边上，若∠1＝55°，则∠2的度数为（） A. 35° B. 45° C. 55° D. 25°") == []
+          and zh.query("已知：如图，直线a∥b，直线l与直线a相交于点O，与直线b相交于点P") == [0])
+    hint = " Hint: Please answer the question and provide the correct option letter, e.g., A, B, C, D, at the end."
+    many = [f"Question {i}: how many {w} are left in the picture?" + hint for i, w in enumerate(["red cubes"] * 30)]
+    many.append("A ladder of length 13 leans against a wall and its foot is 5 meters away from the base." + hint)
+    many += [many[-1]] * 5  # varianti identiche: un solo testo
+    idx = TextIndex.build(many, n=10, max_df=25)
+    check("TextIndex: formula di rito presente in più di max_df testi ignorata",
+          idx.query("Which bar is tallest?" + hint) == [] and idx.dropped > 0, f"dropped {idx.dropped}")
+    check("TextIndex: domanda specifica trovata anche con la formula di rito, varianti identiche contate una volta",
+          idx.query("A ladder of length 13 leans against a wall and its foot is 5 meters away." + hint)
+          == list(range(30, 36)))
 
 
 def test_end_to_end(samples, tmp: Path):

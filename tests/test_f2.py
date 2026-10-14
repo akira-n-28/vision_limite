@@ -114,6 +114,12 @@ def test_select(tmp: Path):
     check("f2_select: due soluzioni per il problema risolto, pass rate 3/4",
           len(selected) == 2 and all(s["key"] == "p1" and s["violetto_pass_rate"] == 0.75 for s in selected))
     check("f2_select: problema mai risolto nel pool di RL", [r["key"] for r in rl] == ["p2"])
+    (tmp / "exclude.txt").write_text("p1\n")
+    subprocess.run([sys.executable, "-B", str(ROOT / "scripts/f2_select.py"), "--gen", str(gen), "--out", str(tmp / "sel2"),
+                    "--keep", "2", "--workers", "2", "--exclude", str(tmp / "exclude.txt")], check=True, env=env)
+    stats = json.loads((tmp / "sel2" / "stats.json").read_text())
+    check("f2_select: problemi contaminati saltati", (tmp / "sel2" / "selected.jsonl").read_text() == ""
+          and stats["excluded_contaminated"] == 1 and stats["problems"] == 1)
 
 
 if __name__ == "__main__":
