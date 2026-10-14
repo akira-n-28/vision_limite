@@ -42,6 +42,10 @@ _REWRITES = [
 _NO_IMAGE = re.compile(r"(not provided|isn't provided|is not shown|can(?:no|')t see|cannot view|no image|"
                        r"without (?:the|an) (?:image|figure|diagram)|image is missing|figure is missing)", re.IGNORECASE)
 _LETTER = re.compile(r"^\(?([A-H])\)?[.:]?$")
+# Violetto non sa il cinese: caratteri CJK, kana o hangul in una soluzione vengono in genere copiati dalla descrizione
+# (trascrizioni delle scritte nelle figure) e insegnerebbero a produrre token che il modello non sa usare. Il 4.4%
+# delle soluzioni corrette su domande in inglese (job 29592).
+CJK = re.compile(r"[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uac00-\ud7af]")
 
 
 def bridge_prompt(question: str, caption: str) -> str:
@@ -109,6 +113,8 @@ def clean_solution(text: str) -> tuple[str, str | None]:
     """(testo riscritto, motivo di scarto o None): riferimenti al ponte -> riferimenti alla figura."""
     if _NO_IMAGE.search(text):
         return text, "no_image"
+    if CJK.search(text):
+        return text, "non_english"
     out = text
     for pattern, repl in _REWRITES:
         out = pattern.sub(lambda m: _same_case(m.group(0), m.expand(repl)), out)

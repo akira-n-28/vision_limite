@@ -53,6 +53,8 @@ def test_grade():
     blind = grade("<think>The image is not provided, so assume the side is 8.</think>\\boxed{8}", "8", "stop")
     check("grade: corretta ma dice di non avere l'immagine, scartata", blind["correct"] and not blind["usable"]
           and blind["reject"] == "no_image")
+    zh = grade("<think>The figure labels point 甲 on the circle, so the side is 8.</think>\\boxed{8}", "8", "stop")
+    check("grade: corretta ma con caratteri CJK, scartata", zh["correct"] and not zh["usable"] and zh["reject"] == "non_english")
     check("clean_solution: maiuscole e figure description", clean_solution("Description: the figure description shows")[0]
           == "Figure: the figure shows")
     openings = {
