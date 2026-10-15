@@ -4,22 +4,38 @@
  "vision": "${HF_HOME}/hub/models--google--siglip2-so400m-patch16-naflex/snapshots/cc24074f717b612951c2dead130904ab9b65a81e",
  "sources": [
   {
-   "name": "llava",
-   "kind": "llava",
-   "weight": 558.0,
-   "shards": "${DATA_ROOT}/shards/llava-pretrain/70f9d1e5/llava-pretrain-*.tar"
+   "name": "pixmo",
+   "kind": "pixmo_caption",
+   "weight": 0.048544,
+   "shards": "${DATA_ROOT}/shards/pixmo-cap/3e42775e/pixmo-cap-*.tar"
+  },
+  {
+   "name": "stem",
+   "kind": "stem_caption",
+   "weight": 0.034803,
+   "shards": "${DATA_ROOT}/shards/mmfinereason/7c93f724-sft/mmfinereason-sft-*.tar",
+   "exclude": [
+    "${DATA_ROOT}/decontam/p6/mmfinereason/exclude_final.txt",
+    "${DATA_ROOT}/lang/mmfinereason/caption_cjk.txt"
+   ]
   },
   {
    "name": "mavis",
    "kind": "mavis_caption",
-   "weight": 199.0,
+   "weight": 0.019305,
    "shards": "${DATA_ROOT}/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-*.tar"
   },
   {
    "name": "unimer",
    "kind": "unimer_formula",
-   "weight": 985.0,
+   "weight": 0.12987,
    "shards": "${DATA_ROOT}/shards/unimer/2343ddd9/unimer-train-*.tar"
+  },
+  {
+   "name": "llava",
+   "kind": "llava",
+   "weight": 0.031949,
+   "shards": "${DATA_ROOT}/shards/llava-pretrain/70f9d1e5/llava-pretrain-*.tar"
   }
  ],
  "max_len": 4096,

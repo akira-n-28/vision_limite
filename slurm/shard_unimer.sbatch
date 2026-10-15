@@ -2,6 +2,7 @@
 # UniMER (p3) -> shard tar per F1 (scripts/shard_unimer.py). Job solo CPU.
 # Legge UniMER-1M.zip e UniMER-Test.zip dallo snapshot HF verificato (job 29429); riprende dagli shard già
 # completi se viene rilanciato. Variabile LIMIT: prova sui primi N campioni del train, in una cartella a parte.
+# Variabile SCALE: ingrandimento massimo delle formule (default 2), in una cartella a parte (-xSCALE).
 #SBATCH --job-name=lvl-shard-unimer
 #SBATCH --partition=mat
 #SBATCH --nodes=1
@@ -26,9 +27,13 @@ COMMIT=2343ddd963290469da36ca83e3a56c66e068add9
 SNAP="$HF_HOME/hub/datasets--wanderkid--UniMER_Dataset/snapshots/$COMMIT"
 OUT="$DATA_ROOT/shards/unimer/${COMMIT:0:8}"
 extra=()
+if [[ -n ${SCALE:-} ]]; then  # ingrandimento massimo diverso da 2x (job 29647): cartella a parte, es. 2343ddd9-x4
+  OUT="$OUT-x$SCALE"
+  extra+=(--scale "$SCALE")
+fi
 if [[ -n ${LIMIT:-} ]]; then
   OUT="$OUT-prova$LIMIT"
-  extra=(--limit "$LIMIT")
+  extra+=(--limit "$LIMIT")
 fi
 for f in UniMER-1M.zip UniMER-Test.zip; do
   test -f "$SNAP/$f" || { echo "file mancante nello snapshot: $SNAP/$f" >&2; exit 1; }

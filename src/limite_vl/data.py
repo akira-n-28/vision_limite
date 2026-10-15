@@ -144,11 +144,17 @@ def pixmo_caption_sample(key: str, files: dict[str, bytes]) -> Sample:
     return Sample(messages, open_image(files["jpg"]), meta["max_patches"])
 
 
+# Ingrandimento massimo delle immagini STEM (2.0 nel run f1, job 29618). Con 4x le immagini di MMFineReason (lato
+# corto mediano 136 px) passano da 120 a 450 token immagine di mediana, vicino ai benchmark (circa 540, job 29649), e
+# il proiettore di F1 legge meglio le immagini piccole (formule: token giusti dal 45 al 53%, job 29647).
+STEM_MAX_SCALE = 4.0
+
+
 def stem_image(files: dict[str, bytes]) -> tuple[Image.Image, int]:
-    """Immagine STEM originale di MMFineReason portata a capped_size (al più 2x e al più 2304 patch),
+    """Immagine STEM originale di MMFineReason portata a capped_size (al più STEM_MAX_SCALE e al più 2304 patch),
     con il max_patches che il processor lascia invariato. Stessa regola in valutazione."""
     image = to_rgb(open_image(files["png"] if "png" in files else files["jpg"]))
-    h, w = capped_size(image.height, image.width, 2.0, DIAGRAM_MAX_PATCHES)
+    h, w = capped_size(image.height, image.width, STEM_MAX_SCALE, DIAGRAM_MAX_PATCHES)
     if (w, h) != image.size:
         image = image.resize((w, h), Image.BICUBIC)
     return image, exact_patches(h, w)

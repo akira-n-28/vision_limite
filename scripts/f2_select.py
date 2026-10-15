@@ -3,7 +3,8 @@
 
 Da eseguire in un job CPU (slurm/f2_select.sbatch). Per ogni generazione: limite_vl.f2.grade (finita con
 stop, con </think>, \\boxed{} corretto rispetto alla risposta verificata; nelle corrette i riferimenti alla
-descrizione diventano riferimenti alla figura, e si scartano quelle che dicono di non vedere l'immagine). Per
+descrizione diventano riferimenti alla figura, e si scartano quelle che dicono di non vedere l'immagine, quelle
+con caratteri CJK e quelle che citano la struttura della descrizione, come "Explicit Component Breakdown"). Per
 ogni problema tiene fino a --keep soluzioni utilizzabili (scelta deterministica per chiave), e scrive in --out:
 - selected.jsonl: chiave, sorgente, risposta, soluzione (testo generato da Violetto, da `<think>` in poi),
   pass rate di Violetto con la descrizione;
@@ -28,7 +29,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from limite_vl.f2 import grade  # noqa: E402
+from limite_vl.f2 import grade, no_image_phrase  # noqa: E402
 
 
 def grade_problem(line: str) -> dict:
@@ -56,7 +57,8 @@ def main() -> None:
         exclude.update(line.strip() for line in open(path) if line.strip())
     args.out.mkdir(parents=True, exist_ok=True)
     reasons, per_source, lengths, pass_rates = Counter(), defaultdict(lambda: [0, 0]), [], []
-    n_problems = n_selected = n_rl = n_excluded = 0
+    no_image_phrases, no_image_examples = Counter(), defaultdict(list)
+    n_problems = n_selected = n_rl = n_excluded = n_with_selection = 0
     with Pool(args.workers) as pool, open(args.out / "selected.jsonl", "w") as sel, open(args.out / "rl_pool.jsonl", "w") as rl:
         for part in parts:
             with open(part) as fh:
@@ -79,6 +81,14 @@ def main() -> None:
                             reasons["wrong"] += 1
                         elif g["reject"]:
                             reasons[g["reject"]] += 1
+                            if g["reject"] == "no_image":  # frase che ha fatto scartare, con un po' di contesto
+                                text = rec["completions"][i]["text"]
+                                phrase = no_image_phrase(text)
+                                no_image_phrases[phrase.lower()] += 1
+                                if len(no_image_examples[phrase.lower()]) < 3:
+                                    at = text.find(phrase)
+                                    no_image_examples[phrase.lower()].append(
+                                        {"key": rec["key"], "context": text[max(0, at - 200):at + len(phrase) + 100]})
                         else:
                             reasons["usable"] += 1
                             reasons["rewritten"] += g["cleaned"] != rec["completions"][i]["text"]
@@ -88,6 +98,7 @@ def main() -> None:
                     src[0] += correct
                     src[1] += len(grades)
                     if usable:
+                        n_with_selection += 1
                         rng = random.Random(int(hashlib.blake2b(rec["key"].encode(), digest_size=8).hexdigest(), 16))
                         for i in sorted(rng.sample(usable, min(args.keep, len(usable)))):
                             c = rec["completions"][i]
@@ -103,15 +114,17 @@ def main() -> None:
                                             ensure_ascii=False) + "\n")
                         n_rl += 1
     stats = {"excluded_contaminated": n_excluded, "exclude_files": args.exclude,
-             "problems": n_problems, "selected_solutions": n_selected, "problems_with_selection":
-             sum(1 for r in pass_rates if r > 0), "rl_pool": n_rl, "completion_outcomes": dict(reasons),
+             "problems": n_problems, "selected_solutions": n_selected, "problems_with_selection": n_with_selection,
+             "problems_solved": sum(1 for r in pass_rates if r > 0), "rl_pool": n_rl,
+             "completion_outcomes": dict(reasons), "no_image_phrases": dict(no_image_phrases.most_common()),
+             "no_image_examples": no_image_examples,
              "violetto_pass_rate_mean": statistics.mean(pass_rates) if pass_rates else None,
              "pass_rate_by_source": {k: round(v[0] / max(1, v[1]), 3) for k, v in sorted(per_source.items())},
              "selected_tokens": {"mean": statistics.mean(lengths), "median": statistics.median(lengths),
                                  "max": max(lengths)} if lengths else None,
              "seconds": round(time.time() - t0, 1)}
-    (args.out / "stats.json").write_text(json.dumps(stats, indent=1))
-    print(json.dumps(stats, indent=1))
+    (args.out / "stats.json").write_text(json.dumps(stats, indent=1, ensure_ascii=False))
+    print(json.dumps(stats, indent=1, ensure_ascii=False))
 
 
 if __name__ == "__main__":

@@ -7,13 +7,18 @@ formule stampate semplici e complesse) prende i primi --per-subset campioni dell
 (data.generation_prompt), e genera in greedy fino a <|endoftext|> o --max-new-tokens. Metriche:
 - exact: predizione e riferimento uguali a meno degli spazi (latex.same_latex);
 - token_acc: 1 - distanza di edit sui token LaTeX / token del riferimento (al minimo 0).
-Uscite: OUT.json con le metriche per sottoinsieme e OUT.jsonl con un campione per riga.
+Con --max-scale le immagini si ridimensionano di nuovo dalla dimensione originale (processing.capped_size con
+ingrandimento al più --max-scale e al più --max-patches patch), per capire se gli errori vengono dalla risoluzione:
+negli shard sono già a capped_size con 2x e 1024 patch, come nel training (job 29631: esatte 1%, token_acc 45%).
+Uscite: OUT.json con le metriche per sottoinsieme e per fasce di token immagine, OUT.jsonl con un campione per riga
+(compresi token immagine e lunghezza del riferimento).
 
     srun $RUN_PYTHON -u -B scripts/eval_f1_formulas.py --config CONFIG --adapter DIR --test-dir DIR --out OUT
 """
 from __future__ import annotations
 
 import argparse
+import io
 import json
 import sys
 import time
@@ -29,7 +34,7 @@ from limite_vl.collator import PackedCollator  # noqa: E402
 from limite_vl.data import generation_prompt, iter_shard  # noqa: E402
 from limite_vl.latex import latex_tokens  # noqa: E402
 from limite_vl.modeling import LimiteVLForConditionalGeneration, VLConfig  # noqa: E402
-from limite_vl.processing import LimiteVLProcessor  # noqa: E402
+from limite_vl.processing import LimiteVLProcessor, capped_size, exact_patches  # noqa: E402
 
 
 def edit_distance(a: list[str], b: list[str]) -> int:
@@ -42,6 +47,31 @@ def edit_distance(a: list[str], b: list[str]) -> int:
     return prev[-1]
 
 
+def rescale(files: dict[str, bytes], max_scale: float, max_patches: int) -> dict[str, bytes]:
+    """Campione con l'immagine portata a capped_size(originale, max_scale, max_patches) e max_patches esatto."""
+    from PIL import Image
+
+    meta = json.loads(files["json"])
+    h, w = capped_size(meta["orig_height"], meta["orig_width"], max_scale, max_patches)
+    with Image.open(io.BytesIO(files["png"])) as im:
+        im.load()
+        image = im if (im.width, im.height) == (w, h) else im.resize((w, h), Image.BICUBIC)
+        buf = io.BytesIO()
+        image.save(buf, format="PNG")
+    return {**files, "png": buf.getvalue(), "json": json.dumps({**meta, "width": w, "height": h,
+                                                                "max_patches": exact_patches(h, w)}).encode()}
+
+
+def by_bucket(rows: list[dict], field: str, edges: tuple[int, ...]) -> dict:
+    out = {}
+    for lo, hi in zip((0,) + edges, edges + (10**9,)):
+        sel = [r for r in rows if lo <= r[field] < hi]
+        if sel:
+            out[f"{lo}-{hi if hi < 10**9 else ''}"] = {"samples": len(sel), "exact": sum(r["exact"] for r in sel) / len(sel),
+                                                         "token_acc": sum(r["token_acc"] for r in sel) / len(sel)}
+    return out
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--config", required=True, type=Path, help="config di training (decoder, vision, attn)")
@@ -50,6 +80,8 @@ def main() -> None:
     ap.add_argument("--subsets", nargs="+", default=["spe", "cpe"])
     ap.add_argument("--per-subset", type=int, default=100)
     ap.add_argument("--max-new-tokens", type=int, default=512)
+    ap.add_argument("--max-scale", type=float, help="ridimensiona dalla dimensione originale (default: immagini dello shard)")
+    ap.add_argument("--max-patches", type=int, default=1024, help="con --max-scale: tetto di patch")
     ap.add_argument("--out", required=True, type=Path)
     args = ap.parse_args()
     cfg = load_config(args.config)
@@ -61,7 +93,9 @@ def main() -> None:
     model.eval()
     args.out.parent.mkdir(parents=True, exist_ok=True)
     rows_out = open(args.out.with_suffix(".jsonl"), "w")
-    summary = {"adapter": args.adapter, "config": str(args.config), "max_new_tokens": args.max_new_tokens, "subsets": {}}
+    summary = {"adapter": args.adapter, "config": str(args.config), "max_new_tokens": args.max_new_tokens,
+               "max_scale": args.max_scale, "max_patches": args.max_patches if args.max_scale else None, "subsets": {}}
+    all_rows = []
     for subset in args.subsets:
         shard = args.test_dir / f"unimer-test-{subset}.tar"
         if not shard.is_file():
@@ -71,6 +105,9 @@ def main() -> None:
         for key, files in iter_shard(shard):
             if n >= args.per_subset:
                 break
+            if args.max_scale:
+                files = rescale(files, args.max_scale, args.max_patches)
+            image_tokens = json.loads(files["json"])["max_patches"] // 4
             example, reference = generation_prompt(processor, "unimer_formula", key, files)
             batch = to_cuda(PackedCollator(len(example))([[example]]))
             with torch.no_grad():
@@ -87,9 +124,11 @@ def main() -> None:
             acc = max(0.0, 1 - edit_distance(pred_tokens, ref_tokens) / max(1, len(ref_tokens)))
             exact += same
             accs.append(acc)
-            rows_out.write(json.dumps({"subset": subset, "key": key, "exact": same, "token_acc": acc,
-                                       "eos": hit_eos, "reference": reference, "prediction": prediction},
-                                      ensure_ascii=False) + "\n")
+            row = {"subset": subset, "key": key, "exact": same, "token_acc": acc, "eos": hit_eos,
+                   "image_tokens": image_tokens, "ref_len": len(ref_tokens), "reference": reference,
+                   "prediction": prediction}
+            all_rows.append(row)
+            rows_out.write(json.dumps(row, ensure_ascii=False) + "\n")
             n += 1
         summary["subsets"][subset] = {"samples": n, "exact": exact / max(1, n), "token_acc": sum(accs) / max(1, n),
                                       "truncated": truncated, "seconds": round(time.time() - t0, 1)}
@@ -98,6 +137,10 @@ def main() -> None:
     total = sum(v["samples"] for v in summary["subsets"].values())
     summary["exact"] = sum(v["exact"] * v["samples"] for v in summary["subsets"].values()) / max(1, total)
     summary["token_acc"] = sum(v["token_acc"] * v["samples"] for v in summary["subsets"].values()) / max(1, total)
+    summary["by_image_tokens"] = by_bucket(all_rows, "image_tokens", (32, 64, 128, 256))
+    summary["by_ref_len"] = by_bucket(all_rows, "ref_len", (20, 40, 80, 160))
+    print("per token immagine:", json.dumps(summary["by_image_tokens"]), flush=True)
+    print("per lunghezza del riferimento (token LaTeX):", json.dumps(summary["by_ref_len"]), flush=True)
     args.out.write_text(json.dumps(summary, indent=1))
     rows_out.close()
     print(f"totale: esatte {summary['exact']:.3f}, token_acc {summary['token_acc']:.3f}; risultati in {args.out}")

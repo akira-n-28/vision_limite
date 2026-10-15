@@ -53,8 +53,39 @@ def test_grade():
     blind = grade("<think>The image is not provided, so assume the side is 8.</think>\\boxed{8}", "8", "stop")
     check("grade: corretta ma dice di non avere l'immagine, scartata", blind["correct"] and not blind["usable"]
           and blind["reject"] == "no_image")
+    for phrase in ("The user has provided a figure, but it's not an actual image.", "We don't have the image, so assume",
+                   "The figure is given as text instead of an image."):
+        g = grade(f"<think>{phrase} The side is 8.</think>\\boxed{{8}}", "8", "stop")
+        check(f"grade: scartata come no_image: {phrase!r}", g["correct"] and g["reject"] == "no_image")
+    for phrase in ("The image shows a triangle with the actual side lengths.", "We have the figure: the side is 8."):
+        g = grade(f"<think>{phrase}</think>\\boxed{{8}}", "8", "stop")
+        check(f"grade: non scartata: {phrase!r}", g["usable"])
+    for phrase in ('The "Explicit Component Breakdown" lists the vertices.', "Identified Ambiguities: None.",
+                   'The figure says "Figure 1: Geometric Diagram" with a triangle.', "The summary says the area is 8.",
+                   "We have a description of a figure with a square."):  # -> "a figure of a figure"
+        g = grade(f"<think>{phrase} The side is 8.</think>\\boxed{{8}}", "8", "stop")
+        check(f"grade: scartata come mentions_caption: {phrase!r}", g["correct"] and g["reject"] == "mentions_caption",
+              str(g["cleaned"]))
+    for phrase in ("The summary statistics give a mean of 8.", "In Figure 1 the triangle is isosceles."):
+        g = grade(f"<think>{phrase}</think>\\boxed{{8}}", "8", "stop")
+        check(f"grade: non scartata come mentions_caption: {phrase!r}", g["usable"], str(g["reject"]))
     zh = grade("<think>The figure labels point 甲 on the circle, so the side is 8.</think>\\boxed{8}", "8", "stop")
     check("grade: corretta ma con caratteri CJK, scartata", zh["correct"] and not zh["usable"] and zh["reject"] == "non_english")
+    from limite_vl.f2 import bridge_prompt, clean_caption
+    caption = ("### Image 1: Geometric Diagram\n\n**Scene Summary:** Three adjacent squares with a shaded triangle.\n\n"
+               "**Explicit Component Breakdown:**  \n* **Square (`ABCD`):** A square with vertices $A$, $B$, $C$, $D$.  \n\n"
+               "**Interactions and Relationships:**  \n* Square $ABCD$ is to the right of square $BEFG$.  \n\n"
+               "**Implicit and Inferred Properties:**  \n* **Square $BEFG$:** Side length is 3.  \n\n"
+               "**Identified Ambiguities:**  \n* The label near $K$ is partially obscured.\n\n"
+               "### Image 2: Table / Matrix\n\n**Scene Summary:** A table of values.\n\n**Identified Ambiguities:** None.")
+    want = ("Three adjacent squares with a shaded triangle.\n\n* **Square (`ABCD`):** A square with vertices $A$, $B$, $C$, $D$.\n\n"
+            "* Square $ABCD$ is to the right of square $BEFG$.\n\n* **Square $BEFG$:** Side length is 3.\n\n"
+            "A table of values.")
+    got = clean_caption(caption)
+    check("clean_caption: niente titoli delle sezioni né del tipo di immagine, niente ambiguità, contenuto intatto",
+          got == want, repr(got))
+    check("bridge_prompt: descrizione pulita solo con clean=True", "Scene Summary" in bridge_prompt("Q?", caption)
+          and "Scene Summary" not in bridge_prompt("Q?", caption, clean=True))
     check("clean_solution: maiuscole e figure description", clean_solution("Description: the figure description shows")[0]
           == "Figure: the figure shows")
     openings = {
@@ -75,12 +106,15 @@ def test_grade():
 def test_mmfine():
     from limite_vl.mmfine import choose, load_texts, mmfine_key, scan_problems
     check("mmfine_key: sorgente normalizzata nella chiave", mmfine_key("sft", "We-Math 2.0/pro", 12) == "sft-We_Math_2_0_pro-12")
-    probs = [{"key": f"k{i}", "qwen4b_pass_rate": 1.0 if i % 3 == 0 else 0.25, "file": "f", "row": i} for i in range(300)]
+    probs = [{"key": f"k{i}", "source_dataset": "S" if i % 2 else "T", "qwen4b_pass_rate": 1.0 if i % 3 == 0 else 0.25,
+              "file": "f", "row": i} for i in range(300)]
     pick = choose(probs, 60, 0.5, seed=0)
     again = choose(probs, 60, 0.5, seed=0)
     check("choose: metà facili e metà difficili, deterministico", len(pick) == 60
           and sum(p["qwen4b_pass_rate"] == 1.0 for p in pick) == 30 and pick == again)
     check("choose: esclusioni rispettate", not any(p["key"] == "k0" for p in choose(probs, 300, 0.5, 0, exclude={"k0"})))
+    no_t = choose(probs, 300, 0.5, 0, exclude_sources={"T"})
+    check("choose: sorgenti escluse", len(no_t) == 150 and all(p["source_dataset"] == "S" for p in no_t))
     snap = ROOT / "hf/hub/datasets--OpenDataArena--MMFineReason-1.8M/snapshots/7c93f724791d01246f5425e1182b14ec8d013847/data"
     shard = ROOT / "data/shards/mmfinereason/7c93f724-rl/mmfinereason-rl-00000.tar"
     parquet = snap / "rl-00000-of-00005.parquet"
@@ -96,6 +130,23 @@ def test_mmfine():
     texts = load_texts(scanned[:5])
     check("load_texts: domanda senza <image>, risposta e descrizione", len(texts) == 5
           and all("<image>" not in t["question"] and t["answer"] and t["caption"] for t in texts))
+
+
+def test_generated_keys(tmp: Path):
+    from limite_vl.f2 import generated_keys
+    run = tmp / "run"
+    run.mkdir()
+    rows = [{"key": "sft-A-1", "completions": [{"text": '"key": "falsa"', "finish_reason": "stop", "tokens": 3}]},
+            {"key": 'sft-B-"2"', "completions": []}]
+    (run / "part-00000.jsonl").write_text("".join(json.dumps(r) + "\n" for r in rows))
+    (run / "plan.json").write_text(json.dumps({"parts": 2}))
+    check("generated_keys: chiavi dalla prima voce delle righe, anche con caratteri di escape",
+          generated_keys(run) == {"sft-A-1", 'sft-B-"2"'})
+    check("generated_keys: niente keys.txt se mancano parti del piano", not (run / "keys.txt").exists())
+    (run / "part-00001.jsonl").write_text(json.dumps({"key": "sft-C-3", "completions": []}) + "\n")
+    keys = generated_keys(run)
+    check("generated_keys: keys.txt scritto a piano completo e poi usato", (run / "keys.txt").is_file()
+          and keys == {"sft-A-1", 'sft-B-"2"', "sft-C-3"} and generated_keys(run) == keys)
 
 
 def test_select(tmp: Path):
@@ -132,6 +183,7 @@ if __name__ == "__main__":
     tmp = ROOT / "outputs" / "tmp" / f"test-f2-{os.environ.get('SLURM_JOB_ID', os.getpid())}"
     tmp.mkdir(parents=True, exist_ok=True)
     try:
+        test_generated_keys(tmp)
         test_select(tmp)
     finally:
         shutil.rmtree(tmp)

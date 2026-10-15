@@ -122,19 +122,36 @@ def test_unimer_example(proc):
           meta["label"][:80])
     text = proc.tokenizer.decode(ex.input_ids.tolist())
     check("UniMER: richiesta di trascrizione dalla lista", any(p in text for p in FORMULA_PROMPTS))
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from eval_f1_formulas import rescale
+    same = rescale(files, 2.0, 1024)
+    check("eval_f1_formulas.rescale: con 2x e 1024 patch l'immagine resta quella dello shard",
+          json.loads(same["json"])["max_patches"] == meta["max_patches"])
+    big = rescale(files, 4.0, 2304)
+    big_meta = json.loads(big["json"])
+    ex_big = build_example(proc, "unimer_formula", key, big)
+    rows, cols = ex_big.grids[0]
+    with Image.open(io.BytesIO(big["png"])) as im:
+        big_size = (im.height, im.width)
+    check("eval_f1_formulas.rescale: con 4x più patch, PNG alla dimensione finale, il processor non la tocca",
+          meta["max_patches"] < big_meta["max_patches"] <= 2304 and big_meta["max_patches"] == rows * cols
+          and (rows * PATCH_SIZE, cols * PATCH_SIZE) == big_size, f"{meta['max_patches']} -> {big_meta['max_patches']}")
 
 
 def test_stem_caption_example(proc):
     if not MMFINE.is_file():
         check("shard MMFineReason presente", False, str(MMFINE))
         return
-    sizes_ok, n = True, 0
+    from limite_vl.data import STEM_MAX_SCALE
+    sizes_ok, bigger, n = True, 0, 0
     for key, files in iter_shard(MMFINE):
         meta = json.loads(files["json"])
         ex = build_example(proc, "stem_caption", key, files)
         rows, cols = ex.grids[0]
-        sizes_ok &= (rows * PATCH_SIZE, cols * PATCH_SIZE) == (meta["height"], meta["width"]) \
-            and rows * cols == meta["max_patches"]
+        with Image.open(io.BytesIO(files["png"] if "png" in files else files["jpg"])) as im:
+            want = capped_size(im.height, im.width, STEM_MAX_SCALE, 2304)
+        sizes_ok &= (rows * PATCH_SIZE, cols * PATCH_SIZE) == want and rows * cols == exact_patches(*want)
+        bigger += rows * cols > meta["max_patches"]  # il JSON dello shard ha la regola a 2x
         if n == 0:
             labelled = ex.input_ids[ex.labels != IGNORE].tolist()
             check("MMFineReason: label = descrizione + EOS", labelled[-1] == EOS_ID
@@ -144,7 +161,9 @@ def test_stem_caption_example(proc):
         n += 1
         if n >= 50:
             break
-    check("MMFineReason: immagine originale portata alla dimensione del JSON (50 campioni)", sizes_ok)
+    check(f"MMFineReason: immagine originale portata a capped_size({STEM_MAX_SCALE}x, 2304 patch) (50 campioni)", sizes_ok)
+    check("MMFineReason: con il tetto a 4x più patch che con quello a 2x del JSON in almeno metà dei campioni",
+          bigger >= n // 2, f"{bigger}/{n}")
 
 
 def write_shard(path: Path, prefix: str, n: int, seed: int) -> list[str]:

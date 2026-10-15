@@ -15,6 +15,8 @@ Da eseguire SOLO in un job SLURM con GPU (slurm/train_f1.sbatch, slurm/train_f1_
 - Checkpoint in OUT/checkpoints/step-NNNNNN (adapter, ottimizzatore, stato dei dati e del passo) ogni
   ckpt_minutes, alla fine e prima della scadenza del job; OUT/checkpoints/latest punta all'ultimo.
   Un nuovo avvio con la stessa OUT riprende da lì (stessa config, stesso numero di worker).
+- `init_adapter` (facoltativo): cartella di un adapter da cui partire, con ottimizzatore nuovo (supplemento di F1
+  con la regola di risoluzione a 4x, dopo il run f1).
 - OUT/manifest.json: config effettiva, commit e diff, shard con hash, seed, un elemento per job.
   OUT/metrics.jsonl e OUT/samples.jsonl: una riga per passo registrato e per campione generato.
 
@@ -284,6 +286,8 @@ def main() -> None:
         if trainer_state["config_digest"] != digest:
             sys.exit(f"config diversa da quella del checkpoint {ckpt_dir.name}: usare un'altra cartella --out")
         log(f"riprendo da {ckpt_dir.name} (passo {trainer_state['step']})")
+    elif cfg.get("init_adapter") and not Path(cfg["init_adapter"]).is_dir():
+        sys.exit(f"init_adapter mancante: {cfg['init_adapter']}")
 
     torch.manual_seed(cfg["seed"])
     processor = LimiteVLProcessor.from_pretrained(cfg["decoder"])
@@ -298,7 +302,8 @@ def main() -> None:
     manifest_path = out / "manifest.json"
     manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {
         "run": cfg.get("run"), "config_digest": digest, "seed": cfg["seed"], "total_steps": total_steps,
-        "tokens_per_step": tokens_per_step, "data": [shard_hashes(s) for s in sources], "jobs": []}
+        "tokens_per_step": tokens_per_step, "data": [shard_hashes(s) for s in sources],
+        "init_adapter": cfg.get("init_adapter"), "jobs": []}
     manifest["config"] = cfg
     manifest["jobs"].append({"job_id": job, "start": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
                              "resumed_from": ckpt_dir.name if ckpt_dir else None, **git_info(out, job),
@@ -309,7 +314,7 @@ def main() -> None:
     # ---- modello e ottimizzatore ----
     model = LimiteVLForConditionalGeneration.from_pretrained(
         VLConfig(decoder_path=cfg["decoder"], vision_path=cfg["vision"], vision_precision=cfg.get("vision_precision", "tf32")), dtype=torch.bfloat16,
-        adapter_dir=str(ckpt_dir) if ckpt_dir else None)
+        adapter_dir=str(ckpt_dir) if ckpt_dir else cfg.get("init_adapter"))
     lm = model.language_model
     lm.config._attn_implementation = cfg["attn"]
     allow_flex_recompiles()

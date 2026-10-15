@@ -55,10 +55,12 @@ def rank(key: str, seed: int) -> int:
     return int.from_bytes(hashlib.blake2b(f"{seed}/{key}".encode(), digest_size=8).digest(), "little")
 
 
-def choose(problems: list[dict], n: int, easy_frac: float, seed: int, exclude: set[str] = frozenset()) -> list[dict]:
+def choose(problems: list[dict], n: int, easy_frac: float, seed: int, exclude: set[str] = frozenset(),
+           exclude_sources: set[str] = frozenset()) -> list[dict]:
     """n problemi: easy_frac fra quelli che Qwen3-VL-4B risolve sempre (pass_rate 1.0), il resto fra gli altri,
-    in ordine pseudo-casuale fissato dal seed; se una fascia non basta, si completa con l'altra."""
-    pool = [p for p in problems if p["key"] not in exclude]
+    in ordine pseudo-casuale fissato dal seed; se una fascia non basta, si completa con l'altra. Salta le chiavi
+    di `exclude` e i problemi delle sorgenti (colonna `source`) di `exclude_sources`."""
+    pool = [p for p in problems if p["key"] not in exclude and p["source_dataset"] not in exclude_sources]
     easy = sorted((p for p in pool if p["qwen4b_pass_rate"] == 1.0), key=lambda p: rank(p["key"], seed))
     hard = sorted((p for p in pool if p["qwen4b_pass_rate"] != 1.0), key=lambda p: rank(p["key"], seed))
     n_easy = min(len(easy), round(n * easy_frac))

@@ -10,7 +10,9 @@ aggiunta dopo la domanda. Violetto risponde con `<think>...</think>` seguito dal
 """
 from __future__ import annotations
 
+import json
 import re
+from pathlib import Path
 
 INSTRUCTION = "\nPlease reason step by step, and put your final answer within \\boxed{}."
 # Prima prova (job 29476): con "Here is a detailed description of the figure" il 97% delle soluzioni corrette
@@ -38,18 +40,65 @@ _REWRITES = [
     (re.compile(r"\bdescribing\b", re.IGNORECASE), "showing"),
     (re.compile(r"\bdescribe\b", re.IGNORECASE), "show"),
 ]
-# Una soluzione che dichiara di non vedere l'immagine contraddice l'esempio di training (che la contiene).
+# Una soluzione che dichiara di non vedere l'immagine contraddice l'esempio di training (che la contiene). Le ultime
+# tre alternative ("it's not an actual image", "we don't have the image", "instead of an image") vengono dagli esempi
+# del job 29603: dopo la riscrittura della descrizione in figura sarebbero rimaste nelle soluzioni.
 _NO_IMAGE = re.compile(r"(not provided|isn't provided|is not shown|can(?:no|')t see|cannot view|no image|"
-                       r"without (?:the|an) (?:image|figure|diagram)|image is missing|figure is missing)", re.IGNORECASE)
+                       r"without (?:the|an) (?:image|figure|diagram)|image is missing|figure is missing|"
+                       r"(?:not|isn't|no) (?:an |the )?actual (?:image|figure|diagram|picture)|"
+                       r"(?:don't|do not|doesn't|does not) have (?:the |an |access to the )?(?:image|figure|diagram|picture)|"
+                       r"(?:instead of|rather than) (?:an |the )?(?:actual )?(?:image|picture))", re.IGNORECASE)
+# Tracce della struttura delle descrizioni di MMFineReason, che la riscrittura non toglie: titoli delle sezioni
+# ("Explicit Component Breakdown", "Identified Ambiguities: None"), intestazioni "Figure 1: Geometric Diagram",
+# "the summary" e la riscrittura goffa "figure of a figure". Nel 63% delle soluzioni scelte di f2-sft120k (job 29614):
+# con l'immagine al posto della descrizione insegnerebbero a citare un testo che non c'è.
+_CAPTION_TRACES = re.compile(r"component breakdown|inferred properties|identified ambiguities|ambiguous statements|"
+                             r"scene summary|interactions and relationships|"
+                             r"figure(?: \d+)?: (?:###\s*)?(?:geometric|puzzle|mathematical|diagram|image|chart|table)|"
+                             r"\bthe summary\b(?! statistic)|\bsummary says\b|"
+                             r"\bfigure of (?:a |the )?(?:figure|diagram|image|picture|chart)\b", re.IGNORECASE)
 _LETTER = re.compile(r"^\(?([A-H])\)?[.:]?$")
-# Violetto non sa il cinese: caratteri CJK, kana o hangul in una soluzione vengono in genere copiati dalla descrizione
-# (trascrizioni delle scritte nelle figure) e insegnerebbero a produrre token che il modello non sa usare. Il 4.4%
-# delle soluzioni corrette su domande in inglese (job 29592).
+# Violetto legge il cinese (traduce le domande e ragiona sempre in inglese, job 29603) ma ne scrive male i caratteri
+# ("静" diventa "regular", "乙" sparisce). Caratteri CJK, kana o hangul in una soluzione vengono in genere copiati
+# dalla descrizione (scritte nelle figure) e insegnerebbero a produrre token che il modello non sa usare: il 4.3%
+# delle soluzioni corrette su domande in inglese (job 29603). Le domande in cinese restano, quelle in giapponese e
+# coreano (25 in tutto) no.
 CJK = re.compile(r"[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uac00-\ud7af]")
 
 
-def bridge_prompt(question: str, caption: str) -> str:
-    return BRIDGE_HEADER + caption.strip() + "\n\n" + question.strip() + INSTRUCTION
+# Struttura fissa delle descrizioni di MMFineReason (job 29626, 100 mila descrizioni): "### Image N: <tipo>" e cinque
+# sezioni con titolo in grassetto. Violetto ne cita i titoli nel 63% delle soluzioni scelte (job 29614): con
+# clean_caption il ponte contiene solo il contenuto, senza titoli, senza la riga del tipo di immagine e senza la
+# sezione delle ambiguità ("None" quasi sempre, e comunque un commento sulla descrizione, non sulla figura).
+_IMAGE_TITLE = re.compile(r"^\s*\**\s*#{1,6}\s*Image\s*[\[(]?[\d\s,-]*[\])]?\s*:.*$", re.IGNORECASE)
+_SECTION = re.compile(r"^\s*\*\*\s*(Scene Summary|Explicit Component Breakdown|Interactions and Relationships|"
+                      r"Implicit and Inferred Properties|Identified Ambiguities)\s*:?\s*\*\*\s*:?\s*", re.IGNORECASE)
+
+
+def clean_caption(caption: str) -> str:
+    """Descrizione senza la riga "### Image N: ...", senza i titoli delle sezioni e senza la sezione
+    "Identified Ambiguities"; il resto (frasi ed elenchi) resta com'è."""
+    out, skipping = [], False
+    for line in caption.splitlines():
+        if _IMAGE_TITLE.match(line):  # anche la fine delle ambiguità dell'immagine precedente
+            skipping = False
+            continue
+        m = _SECTION.match(line)
+        if m:
+            skipping = m.group(1).lower() == "identified ambiguities"
+            rest = line[m.end():].strip()
+            if rest and not skipping:
+                out.append(rest)
+            continue
+        if not skipping:
+            out.append(line.rstrip())
+    text = "\n".join(out)
+    return re.sub(r"\n{3,}", "\n\n", text).strip()
+
+
+def bridge_prompt(question: str, caption: str, clean: bool = False) -> str:
+    caption = clean_caption(caption) if clean else caption.strip()
+    return BRIDGE_HEADER + caption + "\n\n" + question.strip() + INSTRUCTION
 
 
 def training_question(question: str) -> str:
@@ -109,6 +158,12 @@ def _same_case(word: str, repl: str) -> str:
     return repl[:1].upper() + repl[1:] if word[:1].isupper() else repl
 
 
+def no_image_phrase(text: str) -> str | None:
+    """La frase con cui la soluzione dice di non avere l'immagine (motivo di scarto no_image), o None."""
+    m = _NO_IMAGE.search(text)
+    return m.group(0) if m else None
+
+
 def clean_solution(text: str) -> tuple[str, str | None]:
     """(testo riscritto, motivo di scarto o None): riferimenti al ponte -> riferimenti alla figura."""
     if _NO_IMAGE.search(text):
@@ -118,6 +173,8 @@ def clean_solution(text: str) -> tuple[str, str | None]:
     out = text
     for pattern, repl in _REWRITES:
         out = pattern.sub(lambda m: _same_case(m.group(0), m.expand(repl)), out)
+    if _CAPTION_TRACES.search(out):
+        return out, "mentions_caption"
     if _MENTIONS_BRIDGE.search(out):
         return out, "mentions_bridge"
     return out, None
@@ -134,3 +191,32 @@ def grade(text: str, gold: str, finish_reason: str) -> dict:
     result["cleaned"], result["reject"] = clean_solution(text) if result["correct"] else (None, None)
     result["usable"] = result["correct"] and result["reject"] is None
     return result
+
+
+_KEY_PREFIX = re.compile(rb'^\{"key": ("(?:[^"\\]|\\.)*")')
+
+
+def generated_keys(run_dir: Path) -> set[str]:
+    """Chiavi dei problemi di una generazione di scripts/f2_generate.py: da keys.txt (scritto con il piano) se
+    c'è, altrimenti dalla prima voce di ogni riga delle parti, senza decodificare le generazioni. In quel caso,
+    se le parti sono tutte quelle di plan.json, le salva in keys.txt per le letture successive."""
+    cache = run_dir / "keys.txt"
+    if cache.is_file():
+        return {line.strip() for line in cache.open() if line.strip()}
+    parts = sorted(run_dir.glob("part-*.jsonl"))
+    if not parts:
+        raise FileNotFoundError(f"nessuna parte né keys.txt in {run_dir}")
+    keys: set[str] = set()
+    for part in parts:
+        with open(part, "rb") as fh:
+            for n, line in enumerate(fh, 1):
+                m = _KEY_PREFIX.match(line)
+                if not m:
+                    raise ValueError(f"{part}:{n}: riga senza la chiave come prima voce")
+                keys.add(json.loads(m.group(1)))
+    plan = run_dir / "plan.json"
+    if plan.is_file() and json.loads(plan.read_text()).get("parts") == len(parts):
+        tmp = cache.with_name("keys.txt.tmp")
+        tmp.write_text("".join(f"{k}\n" for k in sorted(keys)))
+        tmp.replace(cache)
+    return keys

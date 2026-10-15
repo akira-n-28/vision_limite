@@ -1,4 +1,5 @@
-"""Loss a blocchi e gradient checkpointing per layer, validati da scripts/f0_checks.py (job 29378)."""
+"""Loss a blocchi e gradient checkpointing per layer, validati da scripts/f0_checks.py (job 29378); pesi master
+fp32 per il decoder addestrabile di F2."""
 from __future__ import annotations
 
 import torch
@@ -45,6 +46,65 @@ def chunked_ce(model, hidden: torch.Tensor, labels: torch.Tensor, chunk: int = 2
                                    ignore_index=-100, reduction="sum")
         total = total + checkpoint(piece, h[:, s:s + chunk], y[:, s:s + chunk], use_reentrant=False)
     return total / count.clamp(min=1)
+
+
+class MasterWeights:
+    """Pesi master fp32 per i parametri bf16 del decoder (F2): il modello calcola in bf16 come in F0 (job 29402),
+    l'ottimizzatore aggiorna le copie fp32 (NorMuon le richiede; in bf16 un passo da 1e-5 su un peso da 0.02 si
+    perderebbe nell'arrotondamento) e i pesi bf16 si ricopiano dopo ogni passo.
+
+    I parametri che Limite tiene già in fp32 anche con il modello in bf16 (`_fp32_parameter`: scale, lambda
+    residue, gate, pesi del MUDD; job 29664) sono master di se stessi: niente copia né ricopiatura.
+
+    `named_parameters()` restituisce le copie fp32 con i nomi del modello, per optim.groups.assign_groups.
+    """
+
+    def __init__(self, named_params):
+        self.pairs = []
+        for name, p in named_params:
+            if p.dtype == torch.bfloat16:
+                self.pairs.append((name, p, torch.nn.Parameter(p.detach().float().clone())))
+            elif p.dtype == torch.float32:
+                self.pairs.append((name, p, p))
+            else:
+                raise ValueError(f"{name}: atteso bf16 o fp32, trovato {p.dtype}")
+
+    def named_parameters(self):
+        return [(name, m) for name, _, m in self.pairs]
+
+    def parameters(self):
+        return [m for _, _, m in self.pairs]
+
+    @torch.no_grad()
+    def grads_to_masters(self, scale: float | torch.Tensor = 1.0) -> None:
+        """Gradienti bf16 del modello -> fp32 sulle copie master, divisi per `scale`; libera quelli del modello."""
+        for _, p, m in self.pairs:
+            if p.grad is None:
+                m.grad = None
+            elif m is p:
+                p.grad.div_(scale)
+            else:
+                m.grad = p.grad.float().div_(scale)
+                p.grad = None
+
+    @torch.no_grad()
+    def masters_to_model(self) -> None:
+        for _, p, m in self.pairs:
+            if m is not p:
+                p.copy_(m)
+
+    def state_dict(self) -> dict[str, torch.Tensor]:
+        return {name: m.detach() for name, _, m in self.pairs}
+
+    @torch.no_grad()
+    def load_state_dict(self, state: dict[str, torch.Tensor]) -> None:
+        names = {name for name, _, _ in self.pairs}
+        if set(state) != names:
+            raise ValueError(f"pesi master: mancano {sorted(names - set(state))[:5]}, in più {sorted(set(state) - names)[:5]}")
+        for name, p, m in self.pairs:
+            m.copy_(state[name])
+            if m is not p:
+                p.copy_(m)
 
 
 class LayerCheckpointing:
