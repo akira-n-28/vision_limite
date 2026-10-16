@@ -1,0 +1,40 @@
+{
+ "run": "f2-abl-adamw",
+ "decoder": "${HF_HOME}/hub/models--paradigma-inc--limite-1b-violetto/snapshots/b1f3d572ccacb6919f4d64c321b70ba034ddaef2",
+ "vision": "${HF_HOME}/hub/models--google--siglip2-so400m-patch16-naflex/snapshots/cc24074f717b612951c2dead130904ab9b65a81e",
+ "init_adapter": "${OUTPUT_ROOT}/f1b/final",
+ "sources": [
+  {
+   "name": "bridge",
+   "kind": "f2_solution",
+   "weight": 1.0,
+   "shards": "${DATA_ROOT}/shards/f2-mmfinereason/f2-sft120k-v4/f2-mmfinereason-*.tar"
+  }
+ ],
+ "max_len": 32768,
+ "micro_rows": 1,
+ "rows_per_step": 8,
+ "optimizer": "adamw",
+ "phase_scale": 0.15,
+ "adamw_lr": 1e-05,
+ "projector_lr": 0.0001,
+ "warmup_frac": 0.02,
+ "grad_clip": 1.0,
+ "attn": "flex_attention",
+ "checkpointing": true,
+ "num_workers": 4,
+ "prefetch_factor": 2,
+ "shuffle_buffer": 512,
+ "pack_buffer": 64,
+ "val_count": 256,
+ "val_every": 50,
+ "log_every": 10,
+ "ckpt_minutes": 30,
+ "keep_checkpoints": 1,
+ "snapshot_frac": 0.5,
+ "samples_per_source": 2,
+ "sample_max_new_tokens": 512,
+ "seed": 0,
+ "vision_precision": "tf32",
+ "total_steps": 540
+}

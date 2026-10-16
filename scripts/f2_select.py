@@ -9,7 +9,10 @@ ogni problema tiene fino a --keep soluzioni utilizzabili (scelta deterministica 
 - selected.jsonl: chiave, sorgente, risposta, soluzione (testo generato da Violetto, da `<think>` in poi),
   pass rate di Violetto con la descrizione;
 - rl_pool.jsonl: problemi con nessuna soluzione corretta ma almeno una finita (al pool di RL di F4);
-- stats.json: conteggi, pass rate per sorgente, lunghezze, motivi di scarto.
+- stats.json: conteggi, pass rate per sorgente, lunghezze, motivi di scarto;
+- solved_unselected.txt: chiavi dei problemi con almeno una soluzione corretta ma nessuna utilizzabile (tutte
+  scartate dai filtri), da rigenerare con f2_generate.py --include. Con --keys-only si scrivono solo questo file e
+  stats.json.
 Con --exclude salta i problemi delle liste di decontaminazione (data/decontam/p6/<sorgente>/exclude_final.txt):
 non entrano né nelle soluzioni né nel pool di RL.
 """
@@ -45,6 +48,8 @@ def main() -> None:
     ap.add_argument("--keep", type=int, default=2, help="soluzioni tenute per problema")
     ap.add_argument("--exclude", nargs="*", default=[], help="file di chiavi da saltare (decontaminazione)")
     ap.add_argument("--workers", type=int, default=int(os.environ.get("SLURM_CPUS_PER_TASK", "1")))
+    ap.add_argument("--keys-only", action="store_true",
+                    help="solo stats.json e solved_unselected.txt, senza selected.jsonl e rl_pool.jsonl")
     args = ap.parse_args()
     if not os.environ.get("SLURM_JOB_ID"):
         sys.exit("f2_select.py va eseguito in un job SLURM")
@@ -59,7 +64,10 @@ def main() -> None:
     reasons, per_source, lengths, pass_rates = Counter(), defaultdict(lambda: [0, 0]), [], []
     no_image_phrases, no_image_examples = Counter(), defaultdict(list)
     n_problems = n_selected = n_rl = n_excluded = n_with_selection = 0
-    with Pool(args.workers) as pool, open(args.out / "selected.jsonl", "w") as sel, open(args.out / "rl_pool.jsonl", "w") as rl:
+    solved_unselected = []
+    sel_path = os.devnull if args.keys_only else args.out / "selected.jsonl"
+    rl_path = os.devnull if args.keys_only else args.out / "rl_pool.jsonl"
+    with Pool(args.workers) as pool, open(sel_path, "w") as sel, open(rl_path, "w") as rl:
         for part in parts:
             with open(part) as fh:
                 for item in pool.imap(grade_problem, fh, chunksize=16):
@@ -108,14 +116,17 @@ def main() -> None:
                                                   "rewritten": grades[i]["cleaned"] != c["text"], "tokens": c["tokens"],
                                                   "violetto_pass_rate": rate}, ensure_ascii=False) + "\n")
                             n_selected += 1
-                    elif correct == 0 and any(g["stopped"] for g in grades):
+                    elif correct:
+                        solved_unselected.append(rec["key"])
+                    elif any(g["stopped"] for g in grades):
                         rl.write(json.dumps({"key": rec["key"], "source_dataset": rec.get("source_dataset"),
                                              "answer": rec["answer"], "qwen4b_pass_rate": rec.get("qwen4b_pass_rate")},
                                             ensure_ascii=False) + "\n")
                         n_rl += 1
     stats = {"excluded_contaminated": n_excluded, "exclude_files": args.exclude,
              "problems": n_problems, "selected_solutions": n_selected, "problems_with_selection": n_with_selection,
-             "problems_solved": sum(1 for r in pass_rates if r > 0), "rl_pool": n_rl,
+             "problems_solved": sum(1 for r in pass_rates if r > 0), "solved_unselected": len(solved_unselected),
+             "rl_pool": n_rl,
              "completion_outcomes": dict(reasons), "no_image_phrases": dict(no_image_phrases.most_common()),
              "no_image_examples": no_image_examples,
              "violetto_pass_rate_mean": statistics.mean(pass_rates) if pass_rates else None,
@@ -124,6 +135,7 @@ def main() -> None:
                                  "max": max(lengths)} if lengths else None,
              "seconds": round(time.time() - t0, 1)}
     (args.out / "stats.json").write_text(json.dumps(stats, indent=1, ensure_ascii=False))
+    (args.out / "solved_unselected.txt").write_text("".join(f"{k}\n" for k in sorted(solved_unselected)))
     print(json.dumps(stats, indent=1, ensure_ascii=False))
 
 

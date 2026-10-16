@@ -7,6 +7,9 @@ dagli shard di MMFineReason (scripts/shard_parquet.py) oppure direttamente dai p
 di Qwen3-VL-235B. Salta quelli senza domanda, risposta o descrizione, le chiavi di --exclude (decontaminazione,
 domande non in inglese), i problemi già generati nelle cartelle di --exclude-gen e le sorgenti di
 --exclude-sources (quelle che la verifica non sa giudicare o che il ponte non risolve quasi mai, job 29598).
+Le chiavi di --include si generano comunque, oltre alle --select scelte, anche se stanno in --exclude-gen (problemi
+del primo lotto risolti ma con tutte le soluzioni scartate dai filtri: f2_select.py --keys-only); --exclude e
+--exclude-sources valgono anche per loro.
 Con --select N sceglie N problemi, --easy-frac fra quelli che Qwen3-VL-4B risolve sempre (Violetto ne risolve il
 57% contro il 20% degli altri, job 29498) e il resto fra gli altri, in ordine pseudo-casuale fissato dal seed,
 e per ognuno campiona --samples soluzioni con vLLM (temperature e top_p dai default del checkpoint, come il
@@ -76,6 +79,9 @@ def main() -> None:
     ap.add_argument("--exclude-gen", nargs="*", type=Path, default=[],
                     help="cartelle di generazioni precedenti: i loro problemi non si rigenerano")
     ap.add_argument("--exclude-sources", nargs="*", default=[], help="sorgenti (colonna source) da saltare")
+    ap.add_argument("--include", type=Path, help="con --parquet: file di chiavi da generare comunque, oltre a --select")
+    ap.add_argument("--plan-only", action="store_true",
+                    help="scrive plan.json e keys.txt e si ferma (job CPU: controllo del piano prima della generazione)")
     ap.add_argument("--clean-caption", action="store_true", help="descrizioni senza titoli delle sezioni")
     ap.add_argument("--out", required=True, type=Path)
     ap.add_argument("--samples", type=int, default=8)
@@ -105,17 +111,27 @@ def main() -> None:
         n_gen_excluded += len(keys)
         exclude |= keys
     exclude_sources = set(args.exclude_sources)
+    include: set[str] = set()
+    if args.include:
+        if not args.parquet:
+            sys.exit("--include richiede --parquet")
+        include = {line.strip() for line in open(args.include) if line.strip()}
+        include -= {k for path in args.exclude for k in (line.strip() for line in open(path)) if k}
     if args.parquet:
         missing = [str(p) for p in args.parquet if not p.is_file()]
         if missing:
             sys.exit(f"parquet mancanti: {missing[:5]}")
         inputs = [p.name for p in args.parquet]
         scanned = scan_problems(args.parquet)
-        chosen = choose(scanned, args.select or len(scanned), args.easy_frac, args.seed, exclude, exclude_sources)
+        chosen = choose(scanned, args.select or len(scanned), args.easy_frac, args.seed, exclude | include,
+                        exclude_sources)
+        forced = [p for p in scanned if p["key"] in include and p["source_dataset"] not in exclude_sources]
+        chosen = sorted(chosen + forced, key=lambda p: (p["file"], p["row"]))
         problems = load_texts(chosen)
         skipped = {"scanned": len(scanned), "excluded": sum(p["key"] in exclude for p in scanned),
                    "excluded_source": sum(p["source_dataset"] in exclude_sources for p in scanned),
-                   "chosen": len(chosen), "empty_question": len(chosen) - len(problems),
+                   "chosen": len(chosen), "included": len(forced), "include_not_found": len(include) - len(
+                       {p["key"] for p in scanned if p["key"] in include}), "empty_question": len(chosen) - len(problems),
                    "easy": sum(p["qwen4b_pass_rate"] == 1.0 for p in problems)}
     else:
         shards = sorted(glob.glob(args.shards))
@@ -135,6 +151,8 @@ def main() -> None:
         plan["exclude_sources"] = sorted(exclude_sources)
     if args.clean_caption:
         plan["clean_caption"] = True
+    if args.include:
+        plan["include"] = str(args.include)
     plan_path = args.out / "plan.json"
     if plan_path.exists():
         old = json.loads(plan_path.read_text())
@@ -148,7 +166,7 @@ def main() -> None:
     todo = [i for i in range(len(parts)) if not (args.out / f"part-{i:05d}.jsonl").exists()]
     print(f"{len(problems)} problemi in {len(parts)} parti, da fare {len(todo)}; saltati {skipped} "
           f"({time.time() - t_start:.0f} s)", flush=True)
-    if not todo:
+    if not todo or args.plan_only:
         return
 
     from vllm import LLM, SamplingParams
