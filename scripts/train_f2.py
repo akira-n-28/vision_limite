@@ -208,17 +208,17 @@ def main() -> None:
     def run_validation() -> None:
         t = time.time()
         losses = validate(model, val_batches)
-        gain = {k: losses["white"][k] - v for k, v in losses["real"].items()}
+        gain = {k: losses["white"][k] - v for k, v in losses["real"].items() if k in losses.get("white", {})}
         rows = generate_samples(model, processor, prompts, cfg.get("sample_max_new_tokens", 512))
         for r in rows:
             samples_log.write(json.dumps({"step": step, **r}, ensure_ascii=False) + "\n")
         samples_log.flush()
-        metrics.write(json.dumps({"step": step, "val_loss": losses["real"], "val_loss_white": losses["white"],
+        metrics.write(json.dumps({"step": step, "val_loss": losses["real"], "val_loss_white": losses.get("white", {}),
                                   "val_image_gain": gain, "val_seconds": round(time.time() - t, 1)}) + "\n")
         metrics.flush()
         log(f"validazione al passo {step}: " + ", ".join(
-            f"{k} {v:.4f} (bianca {losses['white'][k]:.4f}, guadagno immagine {gain[k]:.4f})"
-            for k, v in losses["real"].items()) + f" ({time.time() - t:.0f} s)")
+            f"{k} {v:.4f} (bianca {losses['white'][k]:.4f}, guadagno immagine {gain[k]:.4f})" if k in gain
+            else f"{k} {v:.4f} (solo testo)" for k, v in losses["real"].items()) + f" ({time.time() - t:.0f} s)")
         for r in rows[:2 * len(prompts)]:
             log(f"  [{r['source']} {r['key']}] {r['output'][:300]!r}")
 

@@ -16,7 +16,7 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from limite_vl.collator import PackedCollator, iter_packed_rows, pack_first_fit  # noqa: E402
-from limite_vl.data import iter_shard, llava_pretrain_example  # noqa: E402
+from limite_vl.data import generation_prompt, iter_shard, llava_pretrain_example  # noqa: E402
 from limite_vl.processing import (DEFAULT_MAX_PATCHES, DIAGRAM_MAX_PATCHES, EOS_ID, F1_PREFILL, IGNORE,  # noqa: E402
                                   IMAGE_PAD_ID, MAX_IMAGE_TOKENS, Example, LimiteVLProcessor,
                                   image_to_patches, image_tokens, target_size)
@@ -259,6 +259,17 @@ def test_llava_shard(proc):
     batch = PackedCollator(4096)(rows[:2])
     check("LLaVA: collate di due righe", int((batch["input_ids"] == IMAGE_PAD_ID).sum())
           == sum(image_tokens(tuple(g)) for g in batch["spatial_shapes"].tolist()))
+    key, files = next(iter_shard(SHARD))
+    real, ref = generation_prompt(proc, "llava", key, files)
+    white, ref_white = generation_prompt(proc, "llava", key, files, image_mode="white")
+    check("generation_prompt white: stessi token e riferimento, patch tutte bianche",
+          real.input_ids.tolist() == white.input_ids.tolist() and ref == ref_white
+          and bool((white.patches[0] == 255).all()) and not bool((real.patches[0] == 255).all()))
+    try:
+        generation_prompt(proc, "llava", key, files, image_mode="none")
+        check("generation_prompt: rifiuta image_mode none", False)
+    except ValueError:
+        check("generation_prompt: rifiuta image_mode none", True)
 
 
 if __name__ == "__main__":

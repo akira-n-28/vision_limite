@@ -16,6 +16,10 @@ e per ognuno campiona --samples soluzioni con vLLM (temperature e top_p dai defa
 valutatore). Prompt: limite_vl.f2.bridge_prompt; con --clean-caption la descrizione perde la riga del tipo di
 immagine, i titoli delle sezioni e la sezione delle ambiguità (limite_vl.f2.clean_caption, job 29614 e 29626).
 
+Con --no-caption il prompt è solo la domanda con l'istruzione (lo stesso testo degli esempi di training, senza
+descrizione): le soluzioni non possono copiare la descrizione, e servono a misurare quanti problemi si risolvono
+senza (prova solo domanda del 2026-10-19). --select 0 con --include genera solo le chiavi di --include.
+
 Uscita in --out, a parti da --part-size problemi: part-NNNNN.jsonl con, per problema, chiave, sorgente,
 risposta, pass_rate di Qwen3-VL-4B e le generazioni (testo, finish_reason, token). Ogni parte si scrive in
 `.tmp` e si rinomina; un nuovo avvio con la stessa --out salta le parti già scritte (il piano dei problemi
@@ -38,7 +42,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from limite_vl.data import iter_shard  # noqa: E402
-from limite_vl.f2 import BRIDGE_TEMPLATE, bridge_prompt, generated_keys  # noqa: E402
+from limite_vl.f2 import BRIDGE_TEMPLATE, INSTRUCTION, bridge_prompt, generated_keys, training_question  # noqa: E402
 from limite_vl.mmfine import choose, load_texts, scan_problems  # noqa: E402
 
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -83,6 +87,8 @@ def main() -> None:
     ap.add_argument("--plan-only", action="store_true",
                     help="scrive plan.json e keys.txt e si ferma (job CPU: controllo del piano prima della generazione)")
     ap.add_argument("--clean-caption", action="store_true", help="descrizioni senza titoli delle sezioni")
+    ap.add_argument("--no-caption", action="store_true",
+                    help="solo la domanda, senza descrizione della figura (prova solo domanda, regola sulla qualità dei dati)")
     ap.add_argument("--out", required=True, type=Path)
     ap.add_argument("--samples", type=int, default=8)
     ap.add_argument("--max-tokens", type=int, default=8192)
@@ -123,7 +129,7 @@ def main() -> None:
             sys.exit(f"parquet mancanti: {missing[:5]}")
         inputs = [p.name for p in args.parquet]
         scanned = scan_problems(args.parquet)
-        chosen = choose(scanned, args.select or len(scanned), args.easy_frac, args.seed, exclude | include,
+        chosen = choose(scanned, len(scanned) if args.select is None else args.select, args.easy_frac, args.seed, exclude | include,
                         exclude_sources)
         forced = [p for p in scanned if p["key"] in include and p["source_dataset"] not in exclude_sources]
         chosen = sorted(chosen + forced, key=lambda p: (p["file"], p["row"]))
@@ -145,12 +151,14 @@ def main() -> None:
     plan = {"inputs": inputs, "select": args.select, "easy_frac": args.easy_frac,
             "exclude": [str(p) for p in args.exclude], "limit": args.limit,
             "part_size": args.part_size, "samples": args.samples, "max_tokens": args.max_tokens, "seed": args.seed,
-            "template": BRIDGE_TEMPLATE, "keys_digest": hashlib.sha256("\n".join(p["key"] for p in problems).encode()).hexdigest()}
+            "template": "<question>" + INSTRUCTION if args.no_caption else BRIDGE_TEMPLATE, "keys_digest": hashlib.sha256("\n".join(p["key"] for p in problems).encode()).hexdigest()}
     if args.exclude_gen or exclude_sources:  # solo se usate: i piani dei lotti precedenti restano validi
         plan["exclude_gen"] = [str(p) for p in args.exclude_gen]
         plan["exclude_sources"] = sorted(exclude_sources)
     if args.clean_caption:
         plan["clean_caption"] = True
+    if args.no_caption:
+        plan["no_caption"] = True
     if args.include:
         plan["include"] = str(args.include)
     plan_path = args.out / "plan.json"
@@ -188,7 +196,8 @@ def main() -> None:
         t0 = time.time()
         part = parts[i]
         prompts = [tok.apply_chat_template(
-            [{"role": "user", "content": bridge_prompt(p["question"], p["caption"], clean=args.clean_caption)}],
+            [{"role": "user", "content": training_question(p["question"]) if args.no_caption
+              else bridge_prompt(p["question"], p["caption"], clean=args.clean_caption)}],
             tokenize=False, add_generation_prompt=True) for p in part]
         outputs = llm.generate(prompts, params, use_tqdm=False)
         n_out = 0

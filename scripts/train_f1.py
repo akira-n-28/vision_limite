@@ -42,7 +42,7 @@ from torch.utils.data import DataLoader
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from limite_vl.collator import PackedCollator, iter_packed_rows  # noqa: E402
-from limite_vl.data import build_example, generation_prompt  # noqa: E402
+from limite_vl.data import TEXT_ONLY_KINDS, build_example, generation_prompt  # noqa: E402
 from limite_vl.modeling import LimiteVLForConditionalGeneration, VLConfig  # noqa: E402
 from limite_vl.processing import IGNORE, LimiteVLProcessor  # noqa: E402
 from limite_vl.stream import MixedRowStream, make_sources, validation_samples  # noqa: E402
@@ -161,12 +161,18 @@ VAL_MODES = ("real", "white")
 
 
 def validation_sets(sources, processor, cfg) -> tuple[dict, dict]:
-    """Micro-batch di validazione per (sorgente, immagine vera o bianca) e campioni per la generazione."""
+    """Micro-batch di validazione per (sorgente, immagine vera o bianca) e campioni per la generazione.
+
+    Le sorgenti di solo testo (data.TEXT_ONLY_KINDS) hanno solo il modo real. Una sorgente può chiedere meno
+    esempi con `val_count` nella sua voce della config (es. il replay testuale, con soluzioni lunghe): sono i primi
+    della parte esclusa dal training, che resta quella di cfg["val_count"]."""
     collate = PackedCollator(cfg["max_len"])
     batches, prompts = {}, {}
+    specs = {spec["name"]: spec for spec in cfg["sources"]}
     for s in sources:
-        raw = validation_samples(s, cfg["val_count"])
-        for mode in VAL_MODES:
+        count = min(cfg["val_count"], specs.get(s.name, {}).get("val_count", cfg["val_count"]))
+        raw = validation_samples(s, count)
+        for mode in (("real",) if s.kind in TEXT_ONLY_KINDS else VAL_MODES):
             examples = [build_example(processor, s.kind, k, f, image_mode=mode) for k, f in raw]
             rows = list(iter_packed_rows(examples, cfg["max_len"], buffer_size=len(examples)))
             batches[(s.name, mode)] = [collate(rows[i:i + cfg["micro_rows"]])
@@ -201,9 +207,9 @@ def generate_samples(model, processor, prompts: dict, max_new_tokens: int) -> li
             for key, example, reference in items:
                 collate = PackedCollator(len(example))
                 batch = to_cuda(collate([[example]]))
-                out = model.generate(batch["input_ids"], pixel_values=batch["pixel_values"],
-                                     pixel_attention_mask=batch["pixel_attention_mask"],
-                                     spatial_shapes=batch["spatial_shapes"], do_sample=False,
+                out = model.generate(batch["input_ids"], pixel_values=batch.get("pixel_values"),
+                                     pixel_attention_mask=batch.get("pixel_attention_mask"),
+                                     spatial_shapes=batch.get("spatial_shapes"), do_sample=False,
                                      max_new_tokens=max_new_tokens, use_cache=True)
                 text = processor.tokenizer.decode(out[0, len(example):].tolist(), skip_special_tokens=False)
                 rows.append({"source": name, "key": key, "output": text, "reference": reference[:600]})

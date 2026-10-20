@@ -283,6 +283,31 @@ iperparametri rispetto al piano.
   vuote (simboli di UniMER contro figure di DynaMath) e un 10-gram in comune unisce problemi diversi. La regola di
   `scripts/decontam_review.py`: somiglianza dei pixel >= 0.90 con rapporto d'aspetto entro 1.2, oppure copertura
   degli n-gram >= 0.8 in entrambe le direzioni con almeno 15 parole (job 29577).
+- Replay testuale di F2 (DeepScaleR-Preview e DeepMath-103K, gruppo p5-replay, approvati dall'utente il 2026-10-16):
+  decontaminazione contro i 9 benchmark testuali della suite con una regola più severa, approvata il 2026-10-16:
+  escluso ogni candidato con copertura >= 0.2 o con le stesse parole (`scripts/replay_decontam.py`, job 29700: 270
+  su 143.337 in `data/decontam/text/replay/exclude_final.txt`). Senza immagini, le riscritture di OlympiadBench e
+  MATH-500 e le varianti di BeyondAIME restano fra 0.2 e 0.8; per AIME, HMMT e APEX nessun duplicato vero.
+
+## Qualità dei dati (regola dell'utente, 2026-10-19: "la qualità dei dati prima di tutto")
+
+- Nessuna fonte entra in training senza un audit alla cieca su un campione (100-200 esempi): chi controlla non vede la
+  risposta di riferimento, le divergenze si decidono guardando l'originale, il tasso d'errore va nel ledger. Soglie:
+  risposte di riferimento ≤ 1%, fatti sulle immagini ≤ 2%. L'audit si fa prima di spendere calcolo sulla fonte.
+- Un testo scritto da un modello non è un fatto: le descrizioni di Qwen3-VL-235B di MMFineReason hanno circa il 10%
+  di affermazioni false (audit del 2026-10-19, 34 descrizioni su 50 con almeno un errore) e contengono deduzioni e
+  risposte prese dalla domanda. Come target o come fonte dei fatti servono verifiche indipendenti.
+- Le soluzioni F2 del ponte testuale copiano parti non visibili della descrizione (`scripts/f2_leak.py`: 47% con almeno
+  un 8-gramma, 7.3% con la risposta già nella descrizione nel primo lotto). Il ponte attuale non supera la soglia.
+- Strumenti: `scripts/f1c_audit_export.py` (materiale alla cieca), `scripts/f1c_audit_compare.py` (confronto),
+  agenti in sola lettura; esiti in `outputs/f1c/audit/`.
+- Audit automatico STEM di MMFineReason (richiesta del 2026-10-19, solo CPU e agenti Haiku, nessun controllo umano):
+  `scripts/stem_audit_export.py` (controlli deterministici, campione stratificato, calibrazione con errori introdotti,
+  id opachi) e `scripts/stem_audit_round.py` (stato, verifica con codice dei programmi sympy degli agenti, lotti del
+  turno successivo, `--final` per i report); regole in `src/limite_vl/stem_audit.py`, istruzioni degli agenti in
+  `config/audit/` (`_rules.md` + una per compito: risolvere senza descrizione, fatti della descrizione, revisione
+  della risposta, arbitro, soluzioni F2). Esiti in `outputs/stem_audit/<nome>/`. Nei report tenere sempre distinti
+  codice, agenti e incerto; certificare solo con il limite superiore corretto per la sensibilità degli agenti.
 
 ## Ottimizzatore
 

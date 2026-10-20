@@ -3,6 +3,8 @@
 # Legge UniMER-1M.zip e UniMER-Test.zip dallo snapshot HF verificato (job 29429); riprende dagli shard già
 # completi se viene rilanciato. Variabile LIMIT: prova sui primi N campioni del train, in una cartella a parte.
 # Variabile SCALE: ingrandimento massimo delle formule (default 2), in una cartella a parte (-xSCALE).
+# Variabile DENSE (F1c): token immagine minimi per token LaTeX visibile, con SCALE 4, tetto 2304 patch e righe delle
+# formule su più righe (--lines), in una cartella a parte (-dense).
 #SBATCH --job-name=lvl-shard-unimer
 #SBATCH --partition=mat
 #SBATCH --nodes=1
@@ -30,6 +32,11 @@ extra=()
 if [[ -n ${SCALE:-} ]]; then  # ingrandimento massimo diverso da 2x (job 29647): cartella a parte, es. 2343ddd9-x4
   OUT="$OUT-x$SCALE"
   extra+=(--scale "$SCALE")
+fi
+if [[ -n ${DENSE:-} ]]; then  # F1c: formule dense leggibili e righe (job di F1c, approvato dall'utente)
+  [[ -z ${SCALE:-} ]] || { echo "DENSE usa già SCALE=4" >&2; exit 2; }
+  OUT="$OUT-dense"
+  extra+=(--scale 4 --tokens-per-symbol "$DENSE" --dense-cap 2304 --lines)
 fi
 if [[ -n ${LIMIT:-} ]]; then
   OUT="$OUT-prova$LIMIT"

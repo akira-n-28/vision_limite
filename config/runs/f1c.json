@@ -1,0 +1,117 @@
+{
+ "run": "f1c",
+ "decoder": "${HF_HOME}/hub/models--paradigma-inc--limite-1b-violetto/snapshots/b1f3d572ccacb6919f4d64c321b70ba034ddaef2",
+ "vision": "${HF_HOME}/hub/models--google--siglip2-so400m-patch16-naflex/snapshots/cc24074f717b612951c2dead130904ab9b65a81e",
+ "sources": [
+  {
+   "name": "mavis_qa",
+   "kind": "mavis_qa",
+   "weight": 0.000227,
+   "shards": "${DATA_ROOT}/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-*.tar",
+   "val_count": 128
+  },
+  {
+   "name": "mavis_count",
+   "kind": "mavis_count_caption",
+   "weight": 0.000149,
+   "shards": "${DATA_ROOT}/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-*.tar",
+   "val_count": 128
+  },
+  {
+   "name": "synth",
+   "kind": "synth_qa",
+   "weight": 0.000391,
+   "shards": "${DATA_ROOT}/shards/synth/v3/train/synth-train-*.tar",
+   "val_count": 128
+  },
+  {
+   "name": "stem",
+   "kind": "stem_visible",
+   "weight": 0.000248,
+   "shards": "${DATA_ROOT}/shards/mmfinereason/7c93f724-sft/mmfinereason-sft-*.tar",
+   "exclude": [
+    "${DATA_ROOT}/decontam/p6/mmfinereason/exclude_final.txt",
+    "${DATA_ROOT}/lang/mmfinereason/caption_cjk.txt"
+   ],
+   "val_count": 128
+  },
+  {
+   "name": "unimer",
+   "kind": "unimer_formula",
+   "weight": 0.000641,
+   "shards": "${DATA_ROOT}/shards/unimer/2343ddd9-dense/unimer-train-*.tar",
+   "val_count": 128
+  },
+  {
+   "name": "unimer_line",
+   "kind": "unimer_line",
+   "weight": 0.000285,
+   "shards": "${DATA_ROOT}/shards/unimer/2343ddd9-dense/lines/unimer-lines-*.tar",
+   "val_count": 128
+  },
+  {
+   "name": "unimer_select",
+   "kind": "unimer_line_select",
+   "weight": 9.9e-05,
+   "shards": "${DATA_ROOT}/shards/unimer/2343ddd9-dense/lines/unimer-lines-*.tar",
+   "val_count": 128
+  },
+  {
+   "name": "pixmo",
+   "kind": "pixmo_caption",
+   "weight": 0.000195,
+   "shards": "${DATA_ROOT}/shards/pixmo-cap/3e42775e/pixmo-cap-*.tar",
+   "val_count": 128
+  }
+ ],
+ "max_len": 4096,
+ "micro_rows": 1,
+ "rows_per_step": 32,
+ "lr": 0.0001,
+ "warmup_frac": 0.02,
+ "min_lr_ratio": 0.0,
+ "betas": [
+  0.9,
+  0.999
+ ],
+ "eps": 1e-08,
+ "weight_decay": 0.0,
+ "grad_clip": 1.0,
+ "attn": "flex_attention",
+ "checkpointing": false,
+ "num_workers": 4,
+ "prefetch_factor": 4,
+ "shuffle_buffer": 512,
+ "pack_buffer": 256,
+ "val_count": 256,
+ "val_every": 125,
+ "log_every": 10,
+ "ckpt_minutes": 60,
+ "keep_checkpoints": 1,
+ "samples_per_source": 2,
+ "sample_max_new_tokens": 160,
+ "seed": 2,
+ "total_tokens": 50000000,
+ "vision_precision": "tf32",
+ "init_adapter": "${OUTPUT_ROOT}/f1b/final",
+ "token_quotas": {
+  "mavis_qa": 0.15,
+  "mavis_count": 0.1,
+  "synth": 0.15,
+  "stem": 0.2,
+  "unimer": 0.15,
+  "unimer_line": 0.1,
+  "unimer_select": 0.05,
+  "pixmo": 0.1
+ },
+ "tokens_per_example": {
+  "mavis_qa": 660,
+  "mavis_count": 669,
+  "synth": 384,
+  "stem": 805,
+  "unimer": 234,
+  "unimer_line": 351,
+  "unimer_select": 506,
+  "pixmo": 514
+ }
+}

@@ -66,7 +66,7 @@ FORMULA_PROMPTS = (
 @dataclass
 class Sample:
     messages: list[dict]  # l'ultimo è l'assistente (content = target, prefill facoltativo)
-    image: Image.Image
+    image: Image.Image | None  # None: esempio di solo testo (replay testuale)
     max_patches: int | None = None  # None = budget di default del processor
 
 
@@ -170,6 +170,104 @@ def stem_caption_sample(key: str, files: dict[str, bytes]) -> Sample:
     return Sample(messages, image, max_patches)
 
 
+# ---- F1c (limite_vl.f1c, limite_vl.synth): domande verificabili e testi solo visivi ----
+
+def _qa_sample(key: str, questions: list[dict], image: Image.Image, max_patches: int) -> Sample:
+    from .f1c import pick_questions, qa_messages
+
+    prompt, answer = qa_messages(pick_questions(key, questions))
+    messages = [{"role": "user", "content": [{"type": "image"}, {"type": "text", "text": prompt}]},
+                {"role": "assistant", "content": answer, "prefill": F1_PREFILL}]
+    return Sample(messages, image, max_patches)
+
+
+def _mavis_meta(key: str, files: dict[str, bytes]) -> dict:
+    meta = json.loads(files["json"])
+    if meta.get("variant") != "caption":
+        raise ValueError(f"{key}: variante {meta.get('variant')!r}, per le domande serve 'caption'")
+    return meta
+
+
+def mavis_qa_sample(key: str, files: dict[str, bytes]) -> Sample:
+    """MAVIS-Geometry: da 1 a 5 domande verificabili ricavate dalla didascalia (f1c.mavis_questions), su caption.jpg
+    che disegna tutte le misure citate."""
+    from .f1c import mavis_questions
+
+    meta = _mavis_meta(key, files)
+    questions = mavis_questions(meta["text_en"]["caption"].strip(), meta["depth"], key)
+    return _qa_sample(key, questions, open_image(files["png"]), meta.get("max_patches", DIAGRAM_MAX_PATCHES))
+
+
+def mavis_count_caption_sample(key: str, files: dict[str, bytes]) -> Sample:
+    """MAVIS-Geometry: didascalia preceduta da "The figure contains N shapes: ..." (f1c.mavis_count_caption)."""
+    from .f1c import mavis_count_caption
+
+    meta = _mavis_meta(key, files)
+    caption = mavis_count_caption(meta["text_en"]["caption"].strip(), meta["depth"])
+    messages = [{"role": "user", "content": [{"type": "image"}, {"type": "text", "text": mavis_caption_prompt(key)}]},
+                {"role": "assistant", "content": caption, "prefill": F1_PREFILL}]
+    return Sample(messages, open_image(files["png"]), meta.get("max_patches", DIAGRAM_MAX_PATCHES))
+
+
+def stem_visible_sample(key: str, files: dict[str, bytes]) -> Sample:
+    """MMFineReason: descrizione di Qwen3-VL ridotta al contenuto visibile (f1c.visible_caption)."""
+    from .f1c import visible_caption
+
+    meta = json.loads(files["json"])
+    caption = visible_caption(meta["caption"])
+    if len(caption) < 40:
+        raise ValueError(f"{key}: descrizione visibile vuota")
+    image, max_patches = stem_image(files)
+    messages = [{"role": "user", "content": [{"type": "image"}, {"type": "text", "text": pick_prompt(key, STEM_CAPTION_PROMPTS)}]},
+                {"role": "assistant", "content": caption, "prefill": F1_PREFILL}]
+    return Sample(messages, image, max_patches)
+
+
+def _unimer_line(key: str, meta: dict) -> int:
+    from .f1c import key_rng
+
+    if not meta.get("rows"):
+        raise ValueError(f"{key}: nessuna riga (serve uno shard di scripts/shard_unimer.py --lines)")
+    return key_rng(key + "/line").randrange(len(meta["rows"]))
+
+
+def unimer_line_sample(key: str, files: dict[str, bytes]) -> Sample:
+    """UniMER, formula su più righe: una riga ritagliata (ingrandita al più 2x entro 1024 patch) e la sua
+    trascrizione."""
+    meta = json.loads(files["json"])
+    k = _unimer_line(key, meta)
+    image = open_image(files["png"])
+    lines = meta["lines"]
+    y0, y1 = lines[k]
+    pad = max(2, int(0.15 * (y1 - y0)))
+    # al più metà dello spazio verso la riga vicina, per non includerne pezzi
+    top = max(0, y0 - min(pad, (y0 - lines[k - 1][1]) // 2 if k else pad))
+    bottom = min(image.height, y1 + min(pad, (lines[k + 1][0] - y1) // 2 if k + 1 < len(lines) else pad))
+    crop = image.crop((0, top, image.width, bottom))
+    h, w = capped_size(crop.height, crop.width, 2.0, 1024)
+    if (w, h) != crop.size:
+        crop = crop.resize((w, h), Image.BICUBIC)
+    messages = [{"role": "user", "content": [{"type": "image"}, {"type": "text", "text": pick_prompt(key, FORMULA_PROMPTS)}]},
+                {"role": "assistant", "content": meta["rows"][k], "prefill": F1_PREFILL}]
+    return Sample(messages, crop, exact_patches(h, w))
+
+
+def unimer_line_select_sample(key: str, files: dict[str, bytes]) -> Sample:
+    """UniMER, formula su più righe: l'immagine intera e la richiesta di trascrivere solo la riga k."""
+    meta = json.loads(files["json"])
+    k = _unimer_line(key, meta)
+    prompt = f"Transcribe only line {k + 1} of the formula in the image into LaTeX."
+    messages = [{"role": "user", "content": [{"type": "image"}, {"type": "text", "text": prompt}]},
+                {"role": "assistant", "content": meta["rows"][k], "prefill": F1_PREFILL}]
+    return Sample(messages, open_image(files["png"]), meta["max_patches"])
+
+
+def synth_qa_sample(key: str, files: dict[str, bytes]) -> Sample:
+    """Diagramma sintetico (scripts/synth_render.py): da 1 a 5 domande con risposta esatta per costruzione."""
+    meta = json.loads(files["json"])
+    return _qa_sample(key, meta["qa"], open_image(files["png"]), meta["max_patches"])
+
+
 def f2_solution_sample(key: str, files: dict[str, bytes]) -> Sample:
     """F2 (scripts/f2_build.py): immagine STEM + domanda con l'istruzione del valutatore; target la soluzione
     di Violetto generata con il ponte testuale (`<think>...</think>` e risposta con \\boxed{}), senza prefill."""
@@ -182,13 +280,30 @@ def f2_solution_sample(key: str, files: dict[str, bytes]) -> Sample:
     return Sample(messages, image, max_patches)
 
 
+def text_replay_sample(key: str, files: dict[str, bytes]) -> Sample:
+    """Replay testuale di F2 (scripts/replay_select.py): problema di testo con l'istruzione del valutatore, già
+    composto come nella generazione (limite_vl.replay.replay_prompt); target la soluzione di Violetto
+    (`<think>...</think>` e risposta con \\boxed{}), senza prefill e senza immagine."""
+    meta = json.loads(files["json"])
+    return Sample([{"role": "user", "content": meta["prompt"]}, {"role": "assistant", "content": meta["solution"]}], None)
+
+
+TEXT_ONLY_KINDS = frozenset({"text_replay"})
+
 SAMPLE_LOADERS: dict[str, Callable[[str, dict[str, bytes]], Sample]] = {
     "llava": llava_pretrain_sample,
     "mavis_caption": mavis_caption_sample,
     "unimer_formula": unimer_formula_sample,
     "pixmo_caption": pixmo_caption_sample,
     "stem_caption": stem_caption_sample,
+    "mavis_qa": mavis_qa_sample,
+    "mavis_count_caption": mavis_count_caption_sample,
+    "stem_visible": stem_visible_sample,
+    "unimer_line": unimer_line_sample,
+    "unimer_line_select": unimer_line_select_sample,
+    "synth_qa": synth_qa_sample,
     "f2_solution": f2_solution_sample,
+    "text_replay": text_replay_sample,
 }
 
 
@@ -201,13 +316,15 @@ def build_example(processor: LimiteVLProcessor, kind: str, key: str, files: dict
     immagine, test dell'immagine bianca); none = senza immagine, solo il testo."""
     sample = SAMPLE_LOADERS[kind](key, files)
     messages, images = sample.messages, [sample.image]
-    if image_mode == "white":
+    if sample.image is None:  # solo testo: nessuna immagine in nessun modo
+        images = []
+    elif image_mode == "white":
         images = [Image.new("RGB", sample.image.size, "white")]
     elif image_mode == "none":
         messages = [{**m, "content": [c for c in m["content"] if c["type"] != "image"]}
                     if isinstance(m["content"], list) else m for m in messages]
         images = []
-    elif image_mode != "real":
+    if image_mode not in IMAGE_MODES:
         raise ValueError(f"image_mode {image_mode!r}: atteso uno di {IMAGE_MODES}")
     example = processor.encode(messages, images, max_patches=sample.max_patches)
     example.source, example.key = kind, key
@@ -215,11 +332,17 @@ def build_example(processor: LimiteVLProcessor, kind: str, key: str, files: dict
 
 
 def generation_prompt(processor: LimiteVLProcessor, kind: str, key: str,
-                      files: dict[str, bytes]) -> tuple[Example, str]:
-    """Prompt per generate() (con il prefill dell'esempio) e risposta di riferimento."""
+                      files: dict[str, bytes], image_mode: str = "real") -> tuple[Example, str]:
+    """Prompt per generate() (con il prefill dell'esempio) e risposta di riferimento. image_mode: real, oppure white
+    (immagine bianca della stessa dimensione, come in build_example)."""
+    if image_mode not in ("real", "white"):
+        raise ValueError(f"image_mode {image_mode!r}: atteso real o white")
     sample = SAMPLE_LOADERS[kind](key, files)
     *history, answer = sample.messages
-    example = processor.encode(history, [sample.image], max_patches=sample.max_patches,
+    images = [] if sample.image is None else [sample.image]
+    if images and image_mode == "white":
+        images = [Image.new("RGB", sample.image.size, "white")]
+    example = processor.encode(history, images, max_patches=sample.max_patches,
                                add_generation_prompt=True, prefill=answer.get("prefill", ""))
     return example, answer["content"]
 

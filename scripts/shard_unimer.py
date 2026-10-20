@@ -19,7 +19,12 @@ Esclusi ed elencati nel manifest: righe vuote, immagini senza riga, formule che 
 token per token, immagini illeggibili.
 
 Train in --out/unimer-train-NNNNN.tar (--per-shard campioni, nell'ordine dello zip); test in
---out/test/unimer-test-<sub>.tar. Ripresa come negli altri script di sharding: piano deterministico,
+--out/test/unimer-test-<sub>.tar. Con --tokens-per-symbol T (F1c) il tetto di patch di ogni formula è
+max(--max-patches, 4·T·token visibili), al più --dense-cap: le formule dense ricevono almeno T token immagine per
+token LaTeX visibile (latex.visible_tokens). Con --lines si scrive anche --out/lines/unimer-lines-NNNNN.tar con le
+sole formule di train che sono un ambiente array di 2+ righe (f1c.array_rows) in cui le righe di testo trovate
+nell'immagine originale si separano nei n-1 spazi bianchi più alti (f1c.split_lines): nel JSON `rows` (le righe senza &) e
+`lines` (le fasce [y0, y1) nell'immagine salvata). Ripresa come negli altri script di sharding: piano deterministico,
 shard registrati in shards.jsonl e presenti con la dimensione registrata vengono saltati, ogni tar si
 scrive in `.tmp`, si rilegge e si rinomina. --limit N: solo i primi N campioni del train (prova).
 """
@@ -44,7 +49,8 @@ sys.path.insert(0, str(ROOT / "src"))
 from shard_llava_pretrain import HashingWriter, add_member  # noqa: E402  (stessa cartella scripts/)
 from shard_mavis_geometry import check_shard  # noqa: E402
 
-from limite_vl.latex import despace, latex_tokens  # noqa: E402
+from limite_vl.f1c import array_rows, split_lines  # noqa: E402
+from limite_vl.latex import despace, latex_tokens, visible_tokens  # noqa: E402
 from limite_vl.processing import capped_size, exact_patches, target_size  # noqa: E402
 
 BATCH = 2048  # campioni letti dallo zip per volta (immagini piccole)
@@ -59,8 +65,11 @@ def read_lines(zf: zipfile.ZipFile, name: str) -> list[str]:
     return lines
 
 
-def plan_items(zf: zipfile.ZipFile, folder: str, lines: list[str], subset: str) -> tuple[list[dict], dict]:
-    """Campioni (in ordine di posizione nello zip) ed esclusi per motivo."""
+def plan_items(zf: zipfile.ZipFile, folder: str, lines: list[str], subset: str,
+               tokens_per_symbol: float | None = None, base_patches: int = 1024,
+               dense_cap: int = 2304) -> tuple[list[dict], dict]:
+    """Campioni (in ordine di posizione nello zip) ed esclusi per motivo. Con tokens_per_symbol ogni campione ha
+    il suo tetto di patch (max_patches)."""
     excluded = {"blank_label": [], "no_label": [], "despace_changes_tokens": []}
     items = []
     infos = [i for i in zf.infolist() if PurePosixPath(i.filename).parent.as_posix() == folder
@@ -79,28 +88,46 @@ def plan_items(zf: zipfile.ZipFile, folder: str, lines: list[str], subset: str) 
         if latex_tokens(label) != latex_tokens(spaced):
             excluded["despace_changes_tokens"].append(key)
             continue
-        items.append({"key": key, "member": info.filename, "index": index, "subset": subset,
-                      "label": label, "label_spaced": spaced})
+        item = {"key": key, "member": info.filename, "index": index, "subset": subset,
+                "label": label, "label_spaced": spaced}
+        if tokens_per_symbol:
+            need = int(4 * tokens_per_symbol * len(visible_tokens(label)))
+            item["max_patches"] = min(dense_cap, max(base_patches, need))
+        items.append(item)
     return items, excluded
 
 
-def convert(task: tuple[str, bytes, float, int]):
-    """PNG originale -> PNG a capped_size. Gira nei processi del pool."""
-    key, raw, scale, max_patches = task
+def ink_rows(image: Image.Image) -> list[bool]:
+    """Righe di pixel dell'immagine originale con inchiostro (più scuro di 128 su sfondo chiaro)."""
+    gray = image.convert("L")
+    width, height = gray.size
+    data = gray.tobytes()
+    return [min(data[y * width:(y + 1) * width]) < 128 for y in range(height)]
+
+
+def convert(task: tuple):
+    """PNG originale -> PNG a capped_size; con le righe del LaTeX, anche le fasce delle righe di testo (None se
+    non sono tante quante le righe). Gira nei processi del pool."""
+    key, raw, scale, max_patches, rows = task
+    bands = None
     try:
         with Image.open(io.BytesIO(raw)) as im:
             im.load()
             width, height = im.size
             image = im if im.mode in ("L", "RGB") else im.convert("RGB")
             h, w = capped_size(height, width, scale, max_patches)
+            if rows:
+                found = split_lines(ink_rows(image), len(rows))
+                if found is not None:
+                    bands = [[int(y0 * h / height), max(int(y0 * h / height) + 1, round(y1 * h / height))] for y0, y1 in found]
             if (w, h) != image.size:
                 image = image.resize((w, h), Image.BICUBIC)
             buf = io.BytesIO()
             image.save(buf, format="PNG")
     except Exception as exc:  # noqa: BLE001 - immagine illeggibile: fuori e registrata
-        return key, None, f"{type(exc).__name__}: {exc}"[:200], None
+        return key, None, f"{type(exc).__name__}: {exc}"[:200], None, None
     patches = exact_patches(h, w)
-    return key, buf.getvalue(), None, (width, height, w, h, patches, target_size(h, w, patches) == (h, w))
+    return key, buf.getvalue(), None, (width, height, w, h, patches, target_size(h, w, patches) == (h, w)), bands
 
 
 def write_shard(path: Path, zf: zipfile.ZipFile, items: list[dict], pool: Pool, args, source: str) -> dict:
@@ -109,12 +136,13 @@ def write_shard(path: Path, zf: zipfile.ZipFile, items: list[dict], pool: Pool, 
         raise ValueError(f"{path.name}: nessun campione")
     t0 = time.time()
     tmp = path.with_name(path.name + ".tmp")
-    written, bad, not_idempotent, tokens = [], [], [], []
+    written, bad, not_idempotent, tokens, unmatched = [], [], [], [], []
     timing = {"read": 0.0, "wait": 0.0, "write": 0.0}
 
     def read(batch):
         start = time.perf_counter()
-        out = [(it["key"], zf.read(it["member"]), args.scale, args.max_patches) for it in batch]
+        out = [(it["key"], zf.read(it["member"]), args.scale, it.get("max_patches", args.max_patches), it.get("rows"))
+               for it in batch]
         timing["read"] += time.perf_counter() - start
         return out
 
@@ -132,9 +160,12 @@ def write_shard(path: Path, zf: zipfile.ZipFile, items: list[dict], pool: Pool, 
                 if nxt is not None:
                     pending = pool.map_async(convert, nxt, chunksize=64)
                 start = time.perf_counter()
-                for key, png, err, dims in results:
+                for key, png, err, dims, bands in results:
                     if err:
                         bad.append(f"{key}: {err}")
+                        continue
+                    if by_key[key].get("rows") and bands is None:  # insieme delle righe: righe non accoppiate
+                        unmatched.append(key)
                         continue
                     width, height, w, h, patches, idempotent = dims
                     if not idempotent:
@@ -143,6 +174,8 @@ def write_shard(path: Path, zf: zipfile.ZipFile, items: list[dict], pool: Pool, 
                     meta = {"id": key, "subset": it["subset"], "index": it["index"], "label": it["label"],
                             "label_spaced": it["label_spaced"], "orig_width": width, "orig_height": height,
                             "width": w, "height": h, "max_patches": patches, "format": "PNG", "source": source}
+                    if bands is not None:
+                        meta.update(rows=it["rows"], lines=bands)
                     add_member(tar, f"{key}.png", png)
                     add_member(tar, f"{key}.json", json.dumps(meta, ensure_ascii=False).encode())
                     written.append(key)
@@ -150,11 +183,14 @@ def write_shard(path: Path, zf: zipfile.ZipFile, items: list[dict], pool: Pool, 
                 timing["write"] += time.perf_counter() - start
         fh.flush()
         os.fsync(fh.fileno())
+    if not written:
+        raise ValueError(f"{path.name}: nessun campione scritto")
     check_shard(tmp, written)
     os.replace(tmp, path)
     return {"name": path.name, "samples": len(written), "bytes": hw.n, "sha256": hw.sha.hexdigest(),
             "first": written[0] if written else None, "last": written[-1] if written else None,
             "image_tokens": sum(tokens), "unreadable": bad, "not_idempotent": not_idempotent,
+            "unmatched_lines": len(unmatched),
             "seconds": round(time.time() - t0, 1), "timing": {k: round(v, 1) for k, v in timing.items()}}
 
 
@@ -205,6 +241,9 @@ def main() -> None:
     ap.add_argument("--per-shard", type=int, default=200_000)
     ap.add_argument("--workers", type=int, default=int(os.environ.get("SLURM_CPUS_PER_TASK", "1")))
     ap.add_argument("--limit", type=int, help="solo i primi N campioni del train (prova), niente test")
+    ap.add_argument("--tokens-per-symbol", type=float, help="F1c: token immagine minimi per token LaTeX visibile")
+    ap.add_argument("--dense-cap", type=int, default=2304, help="con --tokens-per-symbol: tetto di patch")
+    ap.add_argument("--lines", action="store_true", help="scrive anche lines/ con le formule su più righe accoppiate")
     args = ap.parse_args()
     if not os.environ.get("SLURM_JOB_ID"):
         sys.exit("shard_unimer.py va eseguito in un job SLURM")
@@ -214,13 +253,16 @@ def main() -> None:
 
     t0 = time.time()
     common = {"source": args.source, "scale": args.scale, "max_patches": args.max_patches}
+    if args.tokens_per_symbol:
+        common.update(tokens_per_symbol=args.tokens_per_symbol, dense_cap=args.dense_cap)
+    dense = {"tokens_per_symbol": args.tokens_per_symbol, "base_patches": args.max_patches, "dense_cap": args.dense_cap}
     manifest = {**common, "job_id": os.environ.get("SLURM_JOB_ID"), "zip": str(args.zip),
                 "zip_sha256_expected": args.zip.resolve().name, "test_zip": str(args.test_zip),
                 "test_zip_sha256_expected": args.test_zip.resolve().name, "limit": args.limit, "sets": {}}
     with Pool(args.workers) as pool:
         zf = zipfile.ZipFile(open(args.zip, "rb", buffering=READ_BUFFER))
         lines = read_lines(zf, "UniMER-1M/train.txt")
-        items, excluded = plan_items(zf, "UniMER-1M/images", lines, "train")
+        items, excluded = plan_items(zf, "UniMER-1M/images", lines, "train", **dense)
         if args.limit:
             items = items[: args.limit]
         shards = [(f"unimer-train-{i // args.per_shard:05d}.tar", items[i:i + args.per_shard])
@@ -233,12 +275,26 @@ def main() -> None:
         manifest["sets"]["train"] = {"lines": len(lines), "planned": len(items),
                                      "excluded": {k: len(v) for k, v in excluded.items()},
                                      "excluded_examples": {k: v[:20] for k, v in excluded.items()}, "shards": rows}
+        if args.lines:
+            cand = [{**it, "rows": rows} for it in items if (rows := array_rows(it["label"]))]
+            line_shards = [(f"unimer-lines-{i // args.per_shard:05d}.tar", cand[i:i + args.per_shard])
+                           for i in range(0, len(cand), args.per_shard)]
+            print(f"righe: {len(cand)} formule array con 2+ righe in {len(line_shards)} shard", flush=True)
+            line_doc = {**common, "lines": True, "keys": [[it["key"] for it in s] for _, s in line_shards]}
+            line_rows = write_set(args.out / "lines", zf, line_shards, pool, args, args.source, line_doc)
+            matched = sum(r["samples"] for r in line_rows)
+            manifest["sets"]["lines"] = {"candidates": len(cand), "matched": matched,
+                                         "shards": [{k: r[k] for k in ("name", "samples", "bytes", "sha256")} for r in line_rows]}
+            (args.out / "lines" / "manifest.json").write_text(json.dumps(
+                {**common, "candidates": len(cand), "matched": matched, "shards": manifest["sets"]["lines"]["shards"]},
+                indent=1))
+            print(f"righe accoppiate: {matched} su {len(cand)}", flush=True)
         if not args.limit:
             tz = zipfile.ZipFile(open(args.test_zip, "rb", buffering=READ_BUFFER))
             test_shards, test_info = [], {}
             for sub in TEST_SUBSETS:
                 sub_lines = read_lines(tz, f"UniMER-Test/{sub}.txt")
-                sub_items, sub_excluded = plan_items(tz, f"UniMER-Test/{sub}", sub_lines, sub)
+                sub_items, sub_excluded = plan_items(tz, f"UniMER-Test/{sub}", sub_lines, sub, **dense)
                 test_shards.append((f"unimer-test-{sub}.tar", sub_items))
                 test_info[sub] = {"lines": len(sub_lines), "planned": len(sub_items),
                                   "excluded": {k: len(v) for k, v in sub_excluded.items()},

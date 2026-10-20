@@ -33,3 +33,5 @@ p6	dataset	MathLLMs/MathVision	main	-	-	valutazione (test 3040, testmini 304) e 
 p6	dataset	We-Math/We-Math	main	-	-	valutazione (testmini 1740) e decontaminazione; CC-BY-NC-4.0 (progetto solo di ricerca)
 p6	dataset	DynaMath/DynaMath_Sample	main	-	-	valutazione (501 problemi x 10 varianti) e decontaminazione; circa 346 MB; Apache-2.0
 p7	dataset	HuggingFaceM4/FineVision	main	VERIFICARE	-	solo i sottoinsiemi di grafici, tabelle e documenti: scegliere le cartelle e metterle in include
+p5-replay	dataset	agentica-org/DeepScaleR-Preview-Dataset	main	-	-	F2 replay testuale (approvato dall utente il 2026-10-16): 40315 problemi AIME 1984-2023, AMC, Omni-MATH, STILL con risposta; circa 21.5 MB; MIT
+p5-replay	dataset	zwhe99/DeepMath-103K	main	-	-	F2 replay testuale (approvato dall utente il 2026-10-16): 103022 problemi livelli 5-9 con final_answer, difficulty, topic (le soluzioni R1 non si usano); circa 2.15 GB; MIT
