@@ -224,9 +224,21 @@ def test_program_sandbox():
     check("programma che non termina fermato", not r.get("ok"), r)
 
 
+def test_inject_solution():
+    import stem_audit_export as se
+    caption = ("ABCD is a rectangle. Side AB is 30. The length of side AD is 12. Angle BAD is 90 degrees.")
+    sol = "<think>AB = 30 and AD = 12, so the area is 30*12 = 360.</think> The area is \\boxed{360}."
+    got = se.inject_solution(sol, caption, random.Random(0))
+    check("misura cambiata in un punto del ragionamento", got is not None and got[1]["original"] in ("30", "12")
+          and got[0].count(got[1]["changed"]) >= 1 and got[0].endswith("\\boxed{360}."), got)
+    check("90 e numeri non della didascalia non si cambiano", se.inject_solution("<think>angle 90, area 360</think> \\boxed{360}",
+          caption, random.Random(0)) is None)
+
+
 if __name__ == "__main__":
     test_rules()
     test_round()
     test_program_sandbox()
+    test_inject_solution()
     print("\nfalliti:", FAILS or "nessuno")
     sys.exit(1 if FAILS else 0)

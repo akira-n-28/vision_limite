@@ -683,7 +683,78 @@ def pooled(sample: list[dict], cal: dict, others: list[Path]) -> dict | None:
     return res
 
 
+def final_f2_only(audit: Audit, out: Path) -> None:
+    """Audit delle sole soluzioni F2 (stem_audit_export.py --f2-mavis): esiti per soluzione, sensibilità sulle soluzioni
+    con una misura della figura cambiata apposta (_gold/calibration_f2.json), soluzioni valide in include_f2_solutions.txt."""
+    rows = final_f2(audit, out)
+    truth_path = out / "_gold" / "calibration_f2.json"
+    truth = json.loads(truth_path.read_text()) if truth_path.exists() else {}
+    real, cal_rows = [r for r in rows if r["fid"] not in truth], [r for r in rows if r["fid"] in truth]
+    # una soluzione con una misura cambiata è trovata se la procedura la esclude (fatto sulla figura falso o
+    # ragionamento non valido: una misura cambiata in un calcolo può risultare in tutti e due)
+    proc, agent = Counter(), Counter()
+    for r in cal_rows:
+        proc[{"exclude": "trovata", "include": "persa"}.get(r["verdict"], "quarantena")] += 1
+        for rr in F2_BLIND:
+            vis, rea = audit.f2_value(rr, r["fid"], "visual_ok"), audit.f2_value(rr, r["fid"], "reasoning_valid")
+            if vis is not None or rea is not None:
+                agent["trovata" if (vis and vis[0] is False) or (rea and rea[0] is False) else "persa"] += 1
+    sens = rate(proc["trovata"], proc["trovata"] + proc["persa"])
+    sens_agent = rate(agent["trovata"], agent["trovata"] + agent["persa"])
+    c = Counter(r["verdict"] for r in real)
+    vis = [r for r in real if r["visual_ok"]["status"] == "resolved"]
+    vis_bad = rate(sum(r["visual_ok"]["value"] is False for r in vis), len(vis))
+    rea = [r for r in real if r["reasoning_valid"]["status"] == "resolved"]
+    rea_bad = rate(sum(r["reasoning_valid"]["value"] is False for r in rea), len(rea))
+    uns = [r for r in real if r["relies_on_unseen"]["status"] == "resolved"]
+    uns_bad = rate(sum(r["relies_on_unseen"]["value"] is True for r in uns), len(uns))
+    good = rate(c["include"], len(real))
+    (out / "include_f2_solutions.txt").write_text("".join(r["key"] + "\n" for r in real if r["verdict"] == "include"))
+    by_src = defaultdict(Counter)
+    for r in real:
+        by_src[r["source"]][r["verdict"]] += 1
+    summary = {"solutions": len(real), "verdicts": dict(c), "by_source": {k: dict(v) for k, v in sorted(by_src.items())},
+               "valid": good, "visual_not_ok": vis_bad, "reasoning_invalid": rea_bad, "relies_on_unseen": uns_bad,
+               "calibration": {"procedura": dict(proc), "agente_singolo": dict(agent), "sensitivity": sens,
+                               "sensitivity_agent": sens_agent},
+               "visual_not_ok_ci_hi_corrected": corrected_upper(vis_bad["hi"], sens["lo"]) if vis_bad["n"] else None}
+    (out / "f2_summary.json").write_text(json.dumps(summary, indent=1, ensure_ascii=False))
+    man = json.loads((out / "manifest.json").read_text())
+    md = ["# Audit automatico delle soluzioni F2 di Violetto su MAVIS-Geometry", "",
+          f"{len(real)} soluzioni selezionate da f2_select.py ({man['args'].get('f2_selected')}), una per problema, in parti uguali "
+          f"fra le profondità (seed {man['args']['seed']}); {len(cal_rows)} soluzioni di calibrazione con una misura della figura "
+          "cambiata apposta in un punto del ragionamento, mescolate alla cieca. Agenti Haiku: due controlli indipendenti alla cieca "
+          "(config/audit/f2_solution.md: fatti sulla figura falsi o non visibili, ragionamento valido, informazioni né nella figura "
+          "né nella domanda), poi terzo controllo e arbitri dove serve.", "",
+          "## Affidabilità degli agenti (calibrazione)", "",
+          f"- Soluzioni con una misura cambiata escluse dalla procedura: {proc['trovata']}/{sens['n']} ({pct(sens['rate'])}, IC 95% {ci(sens)}); "
+          f"in quarantena {proc['quarantena']}. Agente singolo: {agent['trovata']}/{sens_agent['n']} ({pct(sens_agent['rate'])}).", "",
+          "## Esito", "",
+          "| Controllo | Soluzioni | IC 95% | Limite sup. corretto |", "|---|---|---|---|",
+          f"| Valide (fatti visibili, ragionamento, nessuna informazione esterna) | {c['include']}/{len(real)} ({pct(good['rate'])}) | {ci(good)} | — |",
+          f"| Con fatti sulla figura falsi o non visibili | {vis_bad['k']}/{vis_bad['n']} ({pct(vis_bad['rate'])}) | {ci(vis_bad)} | "
+          f"{pct(summary['visual_not_ok_ci_hi_corrected'])} |",
+          f"| Ragionamento non valido | {rea_bad['k']}/{rea_bad['n']} ({pct(rea_bad['rate'])}) | {ci(rea_bad)} | — |",
+          f"| Informazioni né nella figura né nella domanda | {uns_bad['k']}/{uns_bad['n']} ({pct(uns_bad['rate'])}) | {ci(uns_bad)} | — |",
+          "", "Per profondità: " + "; ".join(f"{k} {v.get('include', 0)} valide, {v.get('exclude', 0)} escluse, "
+                                             f"{v.get('quarantine', 0)} in quarantena" for k, v in sorted(by_src.items())) + ".",
+          "", "## Limiti", "",
+          "- Tutti i giudizi vengono da Haiku; la calibrazione misura solo le misure cambiate, non i passaggi di ragionamento "
+          "sbagliati, che possono sfuggire di più.",
+          "- Le soluzioni sono state scelte fra quelle con la risposta finale corretta (f2_select.py): il tasso di soluzioni valide "
+          "vale per i dati che entrerebbero nel training, non per tutte le generazioni.",
+          "- Nessun controllo umano durante l'audit; nessuna modifica ai dataset, ai filtri o ai training.",
+          "", "Dettaglio per soluzione in audit_f2.jsonl; riepilogo in f2_summary.json; soluzioni valide in include_f2_solutions.txt."]
+    if audit.invalid:
+        md += ["", f"Lotti con risposte non valide (esclusi): {', '.join(sorted(audit.invalid))}."]
+    (out / "audit_report.md").write_text("\n".join(md) + "\n")
+    print("\n".join(md))
+
+
 def final(audit: Audit, out: Path, pool: list[Path] = ()) -> None:
+    if not audit.items:  # audit delle sole soluzioni F2
+        final_f2_only(audit, out)
+        return
     rows = {pid: audit.conclude(pid) for pid in sorted(audit.items)}
     audit.save_code()
     cal, cal_items = calibration_stats(audit, rows)

@@ -444,6 +444,81 @@ def mavis_items(args, skip_ids: set[str], rng: random.Random, recheck_ids: set[s
     return items, cal, sizes, checks
 
 
+_SOL_NUMBER = re.compile(r"(?<![\w.^/])(\d+(?:\.\d+)?)(?!\.?\d|[\w^/])")  # anche "30." a fine frase
+
+
+def inject_solution(solution: str, caption: str, rng: random.Random) -> tuple[str, dict] | None:
+    """Errore introdotto in una soluzione: una misura della figura (un numero delle frasi con cifre della didascalia,
+    tutte disegnate in caption.jpg) cambiata in un punto del ragionamento. None se la soluzione non ne cita."""
+    measures = {m.group(1) for s in re.split(r"(?<=\.)\s+", caption) if re.search(r"\d", s)
+                for m in _SOL_NUMBER.finditer(s)} - {"0", "1", "90", "180", "360"}
+    end = solution.rfind("\\boxed")
+    spots = [m for m in _SOL_NUMBER.finditer(solution[:end if end > 0 else len(solution)]) if m.group(1) in measures]
+    if not spots:
+        return None
+    m = rng.choice(spots)
+    v = m.group(1)
+    if "." in v:
+        new = f"{float(v) + rng.choice([0.5, 1.5, 2.5]):.{len(v.split('.')[1])}f}"
+    else:
+        iv = int(v)
+        new = str(iv + rng.choice([2, 3, 4, 5]) if iv < 20 or rng.random() < 0.5 else iv * 2)
+    text = solution[:m.start(1)] + new + solution[m.end(1):]
+    return text, {"original": v, "changed": new, "context": text[max(0, m.start(1) - 80):m.start(1) + 80]}
+
+
+def mavis_f2_items(selected: Path, n: int, n_cal: int, seed: int, shards: str, out: Path,
+                   rng: random.Random) -> tuple[list[dict], dict]:
+    """Audit delle soluzioni F2 di Violetto sui problemi MAVIS (f2_select.py): una soluzione per problema, n problemi
+    in parti uguali fra le profondità, più n_cal soluzioni di altri problemi con una misura della figura cambiata
+    (verità nota: visual_ok falso). La domanda è quella di F2 (limite_vl.mavis.f2_problem), l'immagine caption.jpg."""
+    from limite_vl.mavis import f2_problem
+
+    sols = {}
+    with open(selected) as fh:
+        for line in fh:
+            r = json.loads(line)
+            sols.setdefault(r["key"], r)
+    by_src = defaultdict(list)
+    for key, r in sols.items():
+        by_src[r["source_dataset"]].append(key)
+    alloc = allocate({s: len(v) for s, v in by_src.items()}, n)
+    chosen = {k for s in sorted(alloc) for k in sorted(by_src[s], key=lambda k: rank(k, seed))[:alloc[s]]}
+    rest = sorted((k for k in sols if k not in chosen), key=lambda k: rank(k, seed + 3))
+    wanted, metas, pngs = set(sols), {}, {}
+    for shard in sorted(glob.glob(shards)):
+        for _, files in iter_shard(shard):
+            meta = json.loads(files["json"])
+            key = f"mavis-{meta['id']}"
+            if key in wanted:
+                metas[key], pngs[key] = meta, files["png"]
+    cal, truth = [], {}
+    for key in rest:
+        if len(cal) >= n_cal:
+            break
+        p = f2_problem(metas[key]) if key in metas else None
+        got = inject_solution(sols[key]["solution"], p["caption"], rng) if p else None
+        if got:
+            cal.append((key, got[0]))
+            truth[key] = got[1]
+    entries = [(k, sols[k]["solution"], False) for k in chosen] + [(k, s, True) for k, s in cal]
+    items, cal_truth = [], {}
+    for key, solution, is_cal in sorted(entries, key=lambda e: rank(e[0], seed + 1)):
+        p = f2_problem(metas[key]) if key in metas else None
+        image, _ = image_checks(pngs.get(key))
+        if p is None or image is None:
+            continue
+        fid = f"f{len(items) + 1:03d}"
+        path = out / "img" / f"{fid}.png"
+        image.convert("RGB").save(path)
+        items.append({"fid": fid, "key": key, "source": "_cal_f2" if is_cal else sols[key]["source_dataset"],
+                      "question": p["question"], "gold": sols[key]["answer"], "solution": solution, "image": str(path),
+                      "calibration": is_cal})
+        if is_cal:
+            cal_truth[fid] = {"kind": "f2_injected", "key": key, **truth[key]}
+    return items, cal_truth
+
+
 # ---------------------------------------------------------------- lotti
 
 def write_batches(out: Path, prefix: str, items: list[dict], seed: int, size: int, build) -> list[str]:
@@ -521,6 +596,10 @@ def main() -> None:
     ap.add_argument("--f2-selected", type=Path)
     ap.add_argument("--f2-n", type=int, default=100)
     ap.add_argument("--f2-batch", type=int, default=6)
+    ap.add_argument("--f2-mavis", action="store_true",
+                    help="solo l'audit delle soluzioni F2 di Violetto sui problemi MAVIS (--f2-selected, --mavis-shards), "
+                         "senza campione di problemi")
+    ap.add_argument("--f2-cal", type=int, default=0, help="con --f2-mavis: soluzioni con una misura della figura cambiata")
     args = ap.parse_args()
     t0 = time.time()
     if args.out.exists() and any(args.out.iterdir()):
@@ -532,7 +611,12 @@ def main() -> None:
     skip = set()
     for f in args.exclude_keys:
         skip |= {it["key"] for it in json.loads(f.read_text())}
-    if args.mavis_sample:
+    if args.f2_mavis:  # problemi già certificati: solo le soluzioni (lotti FA/FB)
+        if not (args.mavis_shards and args.f2_selected):
+            raise SystemExit("--f2-mavis vuole --mavis-shards e --f2-selected")
+        items, cal, sizes, pop_checks = [], [], Counter(), {}
+        paths, rows, population, by_key, excluded, rows_by_q, texts, alloc = [], [], [], {}, {}, defaultdict(list), {}, {}
+    elif args.mavis_sample:
         if not args.mavis_shards:
             raise SystemExit("--mavis-sample vuole --mavis-shards")
         skip_ids = ({k.split("cal-mavis-", 1)[1] for k in skip if k.startswith("cal-mavis-")}
@@ -638,9 +722,13 @@ def main() -> None:
     print(f"lotti: risolvere {len(batches['SA'])} x 2, descrizioni {len(batches['DA'])} x 2; affermazioni per descrizione "
           f"media {sum(units) / max(1, len(units)):.1f}, massimo {max(units, default=0)}", flush=True)
 
-    f2 = []
-    if args.f2_selected and not args.mavis_sample:  # le soluzioni F2 di Violetto sono di MMFineReason
+    f2, f2_truth = [], {}
+    if args.f2_mavis:
+        f2, f2_truth = mavis_f2_items(args.f2_selected, args.f2_n, args.f2_cal, args.seed + 5, args.mavis_shards, args.out, rng)
+        (args.out / "_gold" / "calibration_f2.json").write_text(json.dumps(f2_truth, indent=1, ensure_ascii=False))
+    elif args.f2_selected and not args.mavis_sample:  # le soluzioni F2 di Violetto sono di MMFineReason
         f2 = f2_items(args.f2_selected, args.f2_n, args.seed + 5, by_key, args.out)
+    if f2:
         (args.out / "_gold" / "items_f2.json").write_text(json.dumps(f2, indent=1, ensure_ascii=False))
         task = lambda it: {"id": it["fid"], "image": it["image"], "question": it["question"], "solution": it["solution"]}  # noqa: E731
         f2p = [{**it, "pid": it["fid"]} for it in f2]
@@ -660,7 +748,7 @@ def main() -> None:
                 "unreadable": sum(1 for d in det.values() if not d["image"]["ok"]), "deterministic_flags": dict(flags),
                 "duplicate_conflicts": sum(1 for d in det.values() if d.get("duplicates", {}).get("conflict")),
                 "contamination_candidates": sum(d["contamination_candidate"] for d in det.values()),
-                "batches": batches, "f2_items": len(f2), "seconds": round(time.time() - t0, 1),
+                "batches": batches, "f2_items": len(f2), "f2_calibration": len(f2_truth), "seconds": round(time.time() - t0, 1),
                 "mavis_question": "domanda con la struttura della figura e la richiesta di vision_dominant (structure_question)"
                 if args.mavis_sample else None}
     (args.out / "manifest.json").write_text(json.dumps(manifest, indent=1, ensure_ascii=False))
