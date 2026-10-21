@@ -37,7 +37,13 @@ from limite_vl.f2 import grade, no_image_phrase  # noqa: E402
 
 def grade_problem(line: str) -> dict:
     rec = json.loads(line)
-    grades = [grade(c["text"], rec["answer"], c["finish_reason"]) for c in rec["completions"]]
+    grades = []
+    for c in rec["completions"]:
+        g = grade(c["text"], rec["answer"], c["finish_reason"])
+        if not g["correct"] and rec.get("answer_letter"):  # MAVIS: vale anche la lettera dell'opzione giusta
+            by_letter = grade(c["text"], rec["answer_letter"], c["finish_reason"])
+            g = by_letter if by_letter["correct"] else g
+        grades.append(g)
     return {"rec": rec, "grades": grades}
 
 

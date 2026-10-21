@@ -61,7 +61,10 @@ from limite_vl.stem_audit import (allocate, answer_letter, claim_units, mc_optio
                                   norm_question, wrong_answer)
 
 Image.MAX_IMAGE_PIXELS = None
-CAL = {"mavis": 30, "mmf_injected": 30, "synth": 20, "illegible": 10, "incoherent": 10}
+# Elementi di calibrazione per tipo e frazione con la risposta di riferimento sbagliata apposta. "cert" (certificazione
+# per RL, senza descrizioni) ha più risposte sbagliate introdotte, da cui dipende il limite inferiore della sensibilità.
+CAL_PROFILES = {"screening": ({"mavis": 30, "mmf_injected": 30, "synth": 20, "illegible": 10, "incoherent": 10}, 1 / 3),
+                "cert": ({"mavis": 30, "mmf_injected": 60, "synth": 30, "illegible": 15, "incoherent": 15}, 1 / 2)}
 
 
 def h8(text: str) -> str:
@@ -270,6 +273,7 @@ def inject_units(units: list[dict], rng: random.Random, n: int, visible_only: bo
 
 def calibration(args, population: list[dict], skip: set[str], rng: random.Random) -> list[dict]:
     """Elementi di calibrazione: dict come quelli del campione più "truth" (verità nota o errori introdotti)."""
+    CAL, gold_frac = CAL_PROFILES[args.cal_profile]
     out = []
     # MAVIS: didascalia vera su caption.jpg, due affermazioni alterate, domanda dalla risposta nota
     pool = []
@@ -344,15 +348,100 @@ def calibration(args, population: list[dict], skip: set[str], rng: random.Random
                     "units": claim_units(ta["caption"]), "raw": raws[a["key"]], "origin": a["key"], "question_from": b["key"],
                     "truth": {"kind": "incoherent", "gold_true": None, "units_true": [], "units_injected": {}, "legible": None,
                               "coherent": False}})
-    # risposta di riferimento sbagliata apposta in un terzo degli elementi con risposta modificabile
+    # risposta di riferimento sbagliata apposta in una frazione (gold_frac) degli elementi con risposta modificabile
     for it in out:
-        if it["truth"]["kind"] in ("mavis", "synth", "mmf_injected") and rng.random() < 1 / 3:
+        if it["truth"]["kind"] in ("mavis", "synth", "mmf_injected") and rng.random() < gold_frac:
             bad = wrong_answer(it["answer"], mc_options(it["question"]), rng)
             if bad and not answers_match(bad, it["answer"]):
                 it["truth"]["gold_injected"] = {"original": it["answer"], "changed": bad}
                 it["truth"]["gold_true"] = None
                 it["answer"] = bad
     return out
+
+
+# ---------------------------------------------------------------- MAVIS-Geometry (dati F2 esatti per costruzione)
+
+MAVIS_CAL = {"units": 15, "gold": 20, "illegible": 10, "incoherent": 10}
+
+
+def mavis_items(args, skip_ids: set[str], rng: random.Random, recheck_ids: set[str] = frozenset()
+                ) -> tuple[list[dict], list[dict], Counter, dict]:
+    """Campione di --mavis-sample problemi MAVIS-Geometry (in parti uguali fra le profondità 0-3) come li vedrà F2:
+    caption.jpg, domanda con la struttura della figura e le opzioni, ponte con la didascalia riscritta
+    (limite_vl.mavis); e una calibrazione dagli stessi shard (affermazioni alterate, risposte sbagliate apposta, figure
+    rimpicciolite, domande scambiate fra profondità diverse). I problemi di recheck_ids (esclusi o in quarantena in un
+    audit precedente) entrano tutti, come sorgente "MAVIS-Geometry ricontrollo"."""
+    import heapq
+
+    from limite_vl.mavis import f2_problem
+
+    per_depth = args.mavis_sample // 4
+    reserve = 18  # per profondità, per la calibrazione
+    heaps, sizes, failed, rechecks = defaultdict(list), Counter(), Counter(), []
+    for shard in sorted(glob.glob(args.mavis_shards)):
+        for key, files in iter_shard(shard):
+            meta = json.loads(files["json"])
+            src = f"MAVIS-Geometry d{meta['depth']}"
+            p = f2_problem(meta)
+            if p is None:
+                failed[src] += 1
+                continue
+            sizes[src] += 1
+            if meta["id"] in recheck_ids:
+                rechecks.append((p, files["png"]))
+                continue
+            if meta["id"] in skip_ids:
+                continue
+            entry = (-rank(p["key"], args.seed), p["key"], p, files["png"])
+            h = heaps[src]
+            if len(h) < per_depth + reserve:
+                heapq.heappush(h, entry)
+            elif entry[0] > h[0][0]:
+                heapq.heapreplace(h, entry)
+    def item(p: dict, png: bytes, src: str) -> dict:
+        return {"key": p["key"], "source": src, "question": p["question"], "question_raw": "<image>" + p["question"],
+                "answer": p["answer_letter"], "caption": p["caption"], "units": claim_units(p["caption"]), "raw": png,
+                "qhash": None, "qwen4b_pass_rate": None, "tags": [f"riscritte {p['rewritten']}"] if p["rewritten"] else []}
+
+    missing = recheck_ids - {p["key"][len("mavis-"):] for p, _ in rechecks}
+    if missing:
+        raise SystemExit(f"problemi da ricontrollare non trovati o non più validi: {sorted(missing)}")
+    items = [item(p, png, "MAVIS-Geometry ricontrollo") for p, png in sorted(rechecks, key=lambda x: x[0]["key"])]
+    pool = []
+    for src in sorted(heaps):
+        ranked = [e[2:] for e in sorted(heaps[src], key=lambda e: -e[0])]
+        for i, (p, png) in enumerate(ranked):
+            (items if i < per_depth else pool).append(item(p, png, src))
+    pool.sort(key=lambda it: rank(it["key"], args.seed + 22))
+    take = iter(pool)
+    cal = []
+    for _ in range(MAVIS_CAL["units"]):
+        it = dict(next(take))
+        units = claim_units(it["caption"])
+        injected = inject_units(units, rng, 2, visible_only=True)
+        cal.append(it | {"key": f"cal-mavis-units-{it['key']}", "source": "_cal_mavis", "units": units, "tags": [],
+                         "truth": {"kind": "mavis", "gold_true": it["answer"], "units_true": [u["cid"] for u in units if u["cid"] not in injected],
+                                   "units_injected": injected, "legible": True, "coherent": True}})
+    for _ in range(MAVIS_CAL["gold"]):
+        it = dict(next(take))
+        bad = wrong_answer(it["answer"], mc_options(it["question"]), rng)
+        cal.append(it | {"key": f"cal-mavis-gold-{it['key']}", "source": "_cal_mavis", "answer": bad, "tags": [],
+                         "truth": {"kind": "mavis", "gold_true": None, "gold_injected": {"original": it["answer"], "changed": bad},
+                                   "units_true": [u["cid"] for u in it["units"]], "units_injected": {}, "legible": True, "coherent": True}})
+    for _ in range(MAVIS_CAL["illegible"]):
+        it = dict(next(take))
+        cal.append(it | {"key": f"cal-tiny-{it['key']}", "source": "_cal_illegible", "shrink": 40, "tags": [],
+                         "truth": {"kind": "illegible", "gold_true": None, "units_true": [], "units_injected": {}, "legible": False,
+                                   "coherent": None}})
+    rest = list(take)
+    pairs = [(a, b) for a, b in zip(rest[::2], rest[1::2]) if a["source"] != b["source"]][:MAVIS_CAL["incoherent"]]
+    for a, b in pairs:
+        cal.append(a | {"key": f"cal-swap-{a['key']}", "source": "_cal_incoherent", "question": b["question"],
+                        "question_raw": b["question_raw"], "answer": b["answer"], "question_from": b["key"], "tags": [],
+                        "truth": {"kind": "incoherent", "gold_true": None, "units_true": [], "units_injected": {}, "legible": None,
+                                  "coherent": False}})
+    checks = {src: {"popolazione": sizes[src], "didascalia_non_riscrivibile": failed[src]} for src in sorted(set(sizes) | set(failed))}
+    return items, cal, sizes, checks
 
 
 # ---------------------------------------------------------------- lotti
@@ -407,7 +496,12 @@ def f2_items(selected: Path, n: int, seed: int, by_key: dict[str, dict], out: Pa
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--out", required=True, type=Path)
-    ap.add_argument("--parquet-glob", required=True, help="parquet sft dello snapshot (percorsi dello snapshot)")
+    ap.add_argument("--parquet-glob", help="parquet sft dello snapshot (percorsi dello snapshot)")
+    ap.add_argument("--mavis-sample", type=int, default=0,
+                    help="audit di MAVIS-Geometry come dati F2: problemi in tutto (in parti uguali fra le profondità)")
+    ap.add_argument("--mavis-shards", help="glob degli shard caption di MAVIS-Geometry (con --mavis-sample)")
+    ap.add_argument("--mavis-recheck", nargs="*", default=[], type=Path,
+                    help="liste di chiavi mavis-<id> da ricontrollare tutte (es. exclude.txt e quarantine.txt di un audit precedente)")
     ap.add_argument("--seed", type=int, required=True)
     ap.add_argument("--n", type=int, default=300, help="screening: problemi in tutto, in parti uguali fra le sorgenti")
     ap.add_argument("--sources", nargs="*", default=None, help="certificazione: sorgenti da campionare")
@@ -419,6 +513,9 @@ def main() -> None:
     ap.add_argument("--mavis-shard", type=Path, required=True)
     ap.add_argument("--synth-test", type=Path, required=True)
     ap.add_argument("--no-calibration", action="store_true")
+    ap.add_argument("--cal-profile", choices=sorted(CAL_PROFILES), default="screening")
+    ap.add_argument("--no-describe", action="store_true",
+                    help="niente lotti DA/DB (certificazione per RL: la descrizione non entra in training)")
     ap.add_argument("--solve-batch", type=int, default=12)
     ap.add_argument("--describe-batch", type=int, default=6)
     ap.add_argument("--f2-selected", type=Path)
@@ -432,45 +529,60 @@ def main() -> None:
         (args.out / d).mkdir(parents=True, exist_ok=True)
     rng = random.Random(args.seed + 30)
 
-    paths = sorted(glob.glob(args.parquet_glob))
-    rows, pop_checks = scan(paths)
-    by_key = {r["key"]: r for r in rows}
-    excluded, tags = read_keys(args.exclude_lists), read_keys(args.tag_lists)
-    out_keys = set().union(*excluded.values()) if excluded else set()
-    population = [r for r in rows if r["key"] not in out_keys]
-    sizes = Counter(r["source"] for r in population)
-    rows_by_q = defaultdict(list)
-    for r in population:
-        rows_by_q[r["qhash"]].append(r)
-    print(f"{len(paths)} parquet, {len(rows)} problemi con testo, popolazione {len(population)} in {len(sizes)} sorgenti "
-          f"({time.time() - t0:.0f} s)", flush=True)
-
     skip = set()
     for f in args.exclude_keys:
         skip |= {it["key"] for it in json.loads(f.read_text())}
-    if args.sources:
-        missing = [s for s in args.sources if s not in sizes]
-        if missing:
-            raise SystemExit(f"sorgenti sconosciute: {missing}")
-        alloc = {s: min(args.per_source, sizes[s]) for s in args.sources}
+    if args.mavis_sample:
+        if not args.mavis_shards:
+            raise SystemExit("--mavis-sample vuole --mavis-shards")
+        skip_ids = ({k.split("cal-mavis-", 1)[1] for k in skip if k.startswith("cal-mavis-")}
+                    | {m[1] for k in skip if (m := re.search(r"mavis-(d\d-\d+)$", k))})  # anche cal-*-mavis-<id>, campioni MAVIS
+        recheck_ids = {k[len("mavis-"):] for f in args.mavis_recheck for k in f.read_text().split() if k.startswith("mavis-")}
+        items, cal, sizes, pop_checks = mavis_items(args, skip_ids, rng, recheck_ids)
+        cal = [] if args.no_calibration else cal
+        paths, rows, population, by_key, excluded, rows_by_q, texts = [], [], [], {}, {}, defaultdict(list), {}
+        alloc = {src: sum(it["source"] == src for it in items) for src in sorted(set(sizes) | {it["source"] for it in items})}
+        print(f"MAVIS: popolazione {sum(sizes.values())}, campione {len(items)}, calibrazione {len(cal)} "
+              f"({time.time() - t0:.0f} s)", flush=True)
     else:
-        alloc = allocate(dict(sizes), args.n)
-    pools = defaultdict(list)
-    for r in population:
-        if r["key"] not in skip:
-            pools[r["source"]].append(r)
-    chosen = [r for s, n in sorted(alloc.items()) for r in sorted(pools[s], key=lambda r: rank(r["key"], args.seed))[:n]]
-    texts = load_full(chosen)
-    raws = image_bytes(chosen)
-    items = []
-    for r in chosen:
-        t = texts[r["key"]]
-        items.append({"key": r["key"], "source": r["source"], "question": t["question"], "question_raw": t["question_raw"],
-                      "answer": t["answer"], "caption": t["caption"], "units": claim_units(t["caption"]),
-                      "raw": raws.get(r["key"]), "qhash": r["qhash"], "qwen4b_pass_rate": r["pass_rate"],
-                      "tags": sorted(name for name, keys in tags.items() if r["key"] in keys)})
-    cal = [] if args.no_calibration else calibration(args, population, skip | {it["key"] for it in items}, rng)
-    print(f"campione {len(items)}, calibrazione {len(cal)} ({time.time() - t0:.0f} s)", flush=True)
+        if not args.parquet_glob:
+            raise SystemExit("serve --parquet-glob (oppure --mavis-sample)")
+        paths = sorted(glob.glob(args.parquet_glob))
+        rows, pop_checks = scan(paths)
+        by_key = {r["key"]: r for r in rows}
+        excluded, tags = read_keys(args.exclude_lists), read_keys(args.tag_lists)
+        out_keys = set().union(*excluded.values()) if excluded else set()
+        population = [r for r in rows if r["key"] not in out_keys]
+        sizes = Counter(r["source"] for r in population)
+        rows_by_q = defaultdict(list)
+        for r in population:
+            rows_by_q[r["qhash"]].append(r)
+        print(f"{len(paths)} parquet, {len(rows)} problemi con testo, popolazione {len(population)} in {len(sizes)} sorgenti "
+              f"({time.time() - t0:.0f} s)", flush=True)
+
+        if args.sources:
+            missing = [s for s in args.sources if s not in sizes]
+            if missing:
+                raise SystemExit(f"sorgenti sconosciute: {missing}")
+            alloc = {s: min(args.per_source, sizes[s]) for s in args.sources}
+        else:
+            alloc = allocate(dict(sizes), args.n)
+        pools = defaultdict(list)
+        for r in population:
+            if r["key"] not in skip:
+                pools[r["source"]].append(r)
+        chosen = [r for s, n in sorted(alloc.items()) for r in sorted(pools[s], key=lambda r: rank(r["key"], args.seed))[:n]]
+        texts = load_full(chosen)
+        raws = image_bytes(chosen)
+        items = []
+        for r in chosen:
+            t = texts[r["key"]]
+            items.append({"key": r["key"], "source": r["source"], "question": t["question"], "question_raw": t["question_raw"],
+                          "answer": t["answer"], "caption": t["caption"], "units": claim_units(t["caption"]),
+                          "raw": raws.get(r["key"]), "qhash": r["qhash"], "qwen4b_pass_rate": r["pass_rate"],
+                          "tags": sorted(name for name, keys in tags.items() if r["key"] in keys)})
+        cal = [] if args.no_calibration else calibration(args, population, skip | {it["key"] for it in items}, rng)
+        print(f"campione {len(items)}, calibrazione {len(cal)} ({time.time() - t0:.0f} s)", flush=True)
 
     contam = {line.strip() for line in open(args.contam_candidates)} if args.contam_candidates else set()
     everything = items + cal
@@ -516,15 +628,18 @@ def main() -> None:
     ok = [it for it in order if it["image"]]
     batches = {"SA": write_batches(args.out, "SA", ok, args.seed + 1, args.solve_batch, solve_task),
                "SB": write_batches(args.out, "SB", ok, args.seed + 2, args.solve_batch, solve_task)}
-    described = [it for it in ok if it["units"]]
-    batches["DA"] = write_batches(args.out, "DA", described, args.seed + 3, args.describe_batch, describe_task)
-    batches["DB"] = write_batches(args.out, "DB", described, args.seed + 4, args.describe_batch, describe_task)
+    described = [] if args.no_describe else [it for it in ok if it["units"]]
+    if described:
+        batches["DA"] = write_batches(args.out, "DA", described, args.seed + 3, args.describe_batch, describe_task)
+        batches["DB"] = write_batches(args.out, "DB", described, args.seed + 4, args.describe_batch, describe_task)
+    else:
+        batches["DA"] = batches["DB"] = []
     units = [len(it["units"]) for it in described]
     print(f"lotti: risolvere {len(batches['SA'])} x 2, descrizioni {len(batches['DA'])} x 2; affermazioni per descrizione "
           f"media {sum(units) / max(1, len(units)):.1f}, massimo {max(units, default=0)}", flush=True)
 
     f2 = []
-    if args.f2_selected:
+    if args.f2_selected and not args.mavis_sample:  # le soluzioni F2 di Violetto sono di MMFineReason
         f2 = f2_items(args.f2_selected, args.f2_n, args.seed + 5, by_key, args.out)
         (args.out / "_gold" / "items_f2.json").write_text(json.dumps(f2, indent=1, ensure_ascii=False))
         task = lambda it: {"id": it["fid"], "image": it["image"], "question": it["question"], "solution": it["solution"]}  # noqa: E731
@@ -537,7 +652,7 @@ def main() -> None:
     dirty = subprocess.run(["git", "status", "--porcelain"], cwd=ROOT, capture_output=True, text=True).stdout.count("\n")
     flags = Counter(f for d in det.values() if not d["calibration"] for f in d["image"].get("flags", []) + d["text"]["flags"])
     manifest = {"args": {k: str(v) for k, v in vars(args).items()}, "commit": commit, "dirty_files": dirty,
-                "parquet": len(paths), "problems_with_text": len(rows), "population": len(population),
+                "parquet": len(paths), "problems_with_text": len(rows), "population": len(population) or sum(sizes.values()),
                 "excluded": {name: sum(r["key"] in keys for r in rows) for name, keys in excluded.items()},
                 "allocation": alloc, "sampled": len(items), "calibration": dict(Counter(t["kind"] for t in truth.values())),
                 "gold_injected": sum("gold_injected" in t for t in truth.values()),
@@ -545,7 +660,9 @@ def main() -> None:
                 "unreadable": sum(1 for d in det.values() if not d["image"]["ok"]), "deterministic_flags": dict(flags),
                 "duplicate_conflicts": sum(1 for d in det.values() if d.get("duplicates", {}).get("conflict")),
                 "contamination_candidates": sum(d["contamination_candidate"] for d in det.values()),
-                "batches": batches, "f2_items": len(f2), "seconds": round(time.time() - t0, 1)}
+                "batches": batches, "f2_items": len(f2), "seconds": round(time.time() - t0, 1),
+                "mavis_question": "domanda con la struttura della figura e la richiesta di vision_dominant (structure_question)"
+                if args.mavis_sample else None}
     (args.out / "manifest.json").write_text(json.dumps(manifest, indent=1, ensure_ascii=False))
     print(json.dumps({k: manifest[k] for k in ("population", "excluded", "sampled", "calibration", "gold_injected",
                                                "units_injected", "unreadable", "deterministic_flags",

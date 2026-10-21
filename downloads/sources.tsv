@@ -26,7 +26,7 @@ p5-rl	dataset	skylenage/DeepVision-103K	d90619a39b1d2db7815ec958f2d728c78daa80cb
 p5-rl	dataset	TIGER-Lab/ViRL39K	812ec617dea4bc8a4e751663b88e4ebb7de4d00e	-	-	F4 RL complementare: 39k problemi visivi verificati (fonte di VL-Rethinker); 1.7 GB
 p5	dataset	Zhiqiang007/MathV360K	main	-	-	VERIFICARE id; F2 problemi (solo domande e risposte)
 p5	dataset	Luckyjhg/Geo170K	main	-	-	VERIFICARE id; F2 problemi di geometria
-p5	dataset	CaraJ/MAVIS-Function	a78fd6d04e5f8edf5f5cc8bf733ad37703ece21d	-	-	F2 problemi di funzioni (senza didascalie), 3.8 GB in 6 zip; dati parziali di MAVIS-Instruct, la geometria è MAVIS-Geometry in p3. Licenza dei dati non dichiarata (GitHub MIT)
+p5-func	dataset	CaraJ/MAVIS-Function	a78fd6d04e5f8edf5f5cc8bf733ad37703ece21d	-	-	F2 problemi di funzioni (senza didascalie), 3.8 GB in 6 zip; dati parziali di MAVIS-Instruct, la geometria è MAVIS-Geometry in p3. Licenza dei dati non dichiarata (GitHub MIT)
 p6	dataset	AI4Math/MathVista	main	-	-	valutazione (testmini 1000) e decontaminazione (test 5141); immagini nel repository; CC-BY-SA-4.0
 p6	dataset	AI4Math/MathVerse	main	-	-	valutazione testmini (788 problemi x 5 versioni, fra cui vision-dominant e vision-only) e decontaminazione; MIT
 p6	dataset	MathLLMs/MathVision	main	-	-	valutazione (test 3040, testmini 304) e decontaminazione; circa 116 MB; MIT

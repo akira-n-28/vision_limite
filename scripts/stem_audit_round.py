@@ -651,7 +651,39 @@ def calibration_stats(audit: Audit, rows: dict[str, dict]) -> tuple[dict, list[d
 
 # ---------------------------------------------------------------- risultati finali
 
-def final(audit: Audit, out: Path) -> None:
+def pooled(sample: list[dict], cal: dict, others: list[Path]) -> dict | None:
+    """Risposte e fatti visibili dei problemi MAVIS per profondità di questo audit e degli audit in --pool (stessa procedura),
+    con la sensibilità sommata delle calibrazioni. Un problema presente in più audit conta una volta (prima questo audit)."""
+    if not others:
+        return None
+    real = lambda r: not r["calibration"] and r["source"].startswith("MAVIS-Geometry d")  # noqa: E731
+    rows = {r["key"]: r for r in sample if real(r)}
+    keys = ("risposte (procedura)", "affermazioni (procedura)")
+    sens = {k: [cal["_sensibilità"][k]["k"], cal["_sensibilità"][k]["n"]] for k in keys}
+    for d in others:
+        with open(d / "audit.jsonl") as fh:
+            for line in fh:
+                r = json.loads(line)
+                if real(r):
+                    rows.setdefault(r["key"], r)
+        oc = json.loads((d / "calibration_summary.json").read_text())["_sensibilità"]
+        for k in keys:
+            sens[k][0] += oc[k]["k"]
+            sens[k][1] += oc[k]["n"]
+    live = [r for r in rows.values() if not r["unreadable"]]
+    gres = [r for r in live if r["gold"]["status"] == "resolved"]
+    g = rate(sum(r["gold"]["value"] == "wrong" for r in gres), len(gres))
+    vis = clustered_rate([(r["claims"]["vis_errors"], r["claims"]["vis_resolved"]) for r in live])
+    s_gold, s_claim = rate(*sens[keys[0]]), rate(*sens[keys[1]])
+    res = {"audits": [str(d) for d in others], "problems": len(rows), "gold": g, "gold_by_code": sum(r["gold"]["evidence"].startswith("codice") for r in gres),
+           "gold_sensitivity": s_gold, "gold_ci_hi_corrected": corrected_upper(g["hi"], s_gold["lo"]),
+           "vis": vis, "vis_sensitivity": s_claim, "vis_ci_hi_corrected": corrected_upper(vis["ci"][1], s_claim["lo"])}
+    res["gold_certified"] = g["n"] > 0 and res["gold_ci_hi_corrected"] <= GOLD_THRESHOLD
+    res["visual_certified"] = vis["total"] > 0 and res["vis_ci_hi_corrected"] <= VISUAL_THRESHOLD
+    return res
+
+
+def final(audit: Audit, out: Path, pool: list[Path] = ()) -> None:
     rows = {pid: audit.conclude(pid) for pid in sorted(audit.items)}
     audit.save_code()
     cal, cal_items = calibration_stats(audit, rows)
@@ -751,7 +783,10 @@ def final(audit: Audit, out: Path) -> None:
             w.writerow({k: (round(v, 5) if isinstance(v, float) else v) for k, v in row.items()})
     f2_rows = final_f2(audit, out)
     (out / "calibration_summary.json").write_text(json.dumps(cal, indent=1, ensure_ascii=False))
-    report(audit, out, sample, table, f2_rows, cal, pop)
+    pool_res = pooled(sample, cal, list(pool))
+    if pool_res:
+        (out / "pooled.json").write_text(json.dumps(pool_res, indent=1, ensure_ascii=False))
+    report(audit, out, sample, table, f2_rows, cal, pop, pool_res)
 
 
 def final_f2(audit: Audit, out: Path) -> list[dict]:
@@ -771,13 +806,21 @@ def ci(r: dict) -> str:
     return f"{pct(r['lo'])}-{pct(r['hi'])}"
 
 
-def report(audit: Audit, out: Path, sample: list[dict], table: list[dict], f2_rows: list[dict], cal: dict, pop: dict) -> None:
+def report(audit: Audit, out: Path, sample: list[dict], table: list[dict], f2_rows: list[dict], cal: dict, pop: dict,
+           pool: dict | None = None) -> None:
     man = json.loads((out / "manifest.json").read_text())
-    stage = "certificazione" if man["args"].get("sources") not in (None, "None") else "screening"
+    mavis = man["args"].get("mavis_sample") not in (None, "None", "0")
+    stage = "MAVIS-Geometry come dati F2" if mavis else (
+        "certificazione" if man["args"].get("sources") not in (None, "None") else "screening")
     sens, fa = cal["_sensibilità"], cal["_falsi_allarmi"]
-    md = [f"# Audit automatico STEM di MMFineReason: {stage}", "",
-          f"Campione: {len(sample)} problemi da {len(table)} sorgenti (seed {man['args']['seed']}); popolazione {man['population']} "
-          f"problemi sft senza decontaminati e domande in giapponese o coreano. Calibrazione: {len(audit.truth)} elementi con verità nota "
+    n_pop = man["population"] or sum(json.loads((out / "source_sizes.json").read_text()).values())
+    mavis_q = man.get("mavis_question") or "domanda vision_dominant"  # campioni precedenti a structure_question
+    population = (f"popolazione {n_pop} problemi MAVIS-Geometry (caption.jpg, {mavis_q}, ponte con la "
+                  "didascalia riscritta da limite_vl.mavis)" if mavis else
+                  f"popolazione {man['population']} problemi sft senza decontaminati e domande in giapponese o coreano")
+    md = [f"# Audit automatico STEM{'' if mavis else ' di MMFineReason'}: {stage}", "",
+          f"Campione: {len(sample)} problemi da {len(table)} sorgenti (seed {man['args']['seed']}); {population}. "
+          f"Calibrazione: {len(audit.truth)} elementi con verità nota "
           f"o errori introdotti ({man['units_injected']} affermazioni alterate, {man['gold_injected']} risposte sbagliate apposta), mescolati "
           "alla cieca nei lotti. Agenti Haiku: due controlli indipendenti alla cieca per compito (risolvere senza descrizione; fatti della "
           "descrizione), poi terzo controllo, revisioni della risposta e arbitri dove serve, al più cinque giudizi per campo.", "",
@@ -819,6 +862,20 @@ def report(audit: Audit, out: Path, sample: list[dict], table: list[dict], f2_ro
                   f"{pct(r['gold_ci_hi_corrected'])} | {r['illegible']}/{r['illegible_n']} | {r['incoherent']}/{r['incoherent_n']} | "
                   f"{r['vis_false']}/{r['vis_units']} ({pct(r['vis_false_rate'])}) | {pct(r['vis_ci_hi_corrected'])} | "
                   f"{r['ded_false']}/{r['ded_units']} | {pct(r['ab_disagreement_rate'])} | {rl} | {f2} |")
+    if pool:
+        g, v = pool["gold"], pool["vis"]
+        names = ", ".join(Path(d).name for d in pool["audits"])
+        md += ["", f"## Problemi MAVIS per profondità insieme (questo audit e {names})", "",
+               f"Stessa procedura e stesse regole; un problema presente in più audit conta una volta. {pool['problems']} problemi.", "",
+               "| Controllo | Errori / giudicati | IC 95% sup. | Sensibilità della procedura (lim. inf., calibrazioni sommate) | "
+               "Limite sup. corretto | Soglia | Certificato |", "|---|---|---|---|---|---|---|",
+               f"| Risposte di riferimento ({pool['gold_by_code']} da codice) | {g['k']}/{g['n']} | {pct(g['hi'])} | "
+               f"{pool['gold_sensitivity']['k']}/{pool['gold_sensitivity']['n']} ({pct(pool['gold_sensitivity']['lo'])}) | "
+               f"{pct(pool['gold_ci_hi_corrected'])} | {GOLD_THRESHOLD:.0%} | {'sì' if pool['gold_certified'] else 'no'} |",
+               f"| Fatti visibili della didascalia | {v['errors']}/{v['total']} | {pct(v['ci'][1])} | "
+               f"{pool['vis_sensitivity']['k']}/{pool['vis_sensitivity']['n']} ({pct(pool['vis_sensitivity']['lo'])}) | "
+               f"{pct(pool['vis_ci_hi_corrected'])} | {VISUAL_THRESHOLD:.0%} | {'sì' if pool['visual_certified'] else 'no'} |",
+               "", "Dettaglio in pooled.json."]
     n_rl = Counter(r["rl"] for r in sample)
     n_f2 = Counter(r["f2"] for r in sample)
     ev = Counter(r["gold"]["evidence"] for r in sample if not r["unreadable"])
@@ -853,17 +910,29 @@ def report(audit: Audit, out: Path, sample: list[dict], table: list[dict], f2_ro
            "- RL: problema ammesso con risposta valida, figura leggibile e domanda coerente, anche se la descrizione è sbagliata (non si usa). "
            "F2: in più nessun fatto falso (visibile o dedotto) nella descrizione e tutti i giudizi risolti. Evidenza insufficiente: quarantena.",
            "", "## Limiti", "",
-           "- L'accordo fra modelli non garantisce l'assenza di errori condivisi: tutti i giudizi vengono da Haiku, che legge le figure peggio di "
-           "Qwen3-VL-235B. La calibrazione misura gli errori che Haiku trova fra quelli introdotti (cambi di numeri e di direzioni); errori di altro "
+           "- L'accordo fra modelli non garantisce l'assenza di errori condivisi: tutti i giudizi vengono da Haiku"
+           + ("." if mavis else ", che legge le figure peggio di Qwen3-VL-235B.")
+           + " La calibrazione misura gli errori che Haiku trova fra quelli introdotti (cambi di numeri e di direzioni); errori di altro "
            "tipo possono sfuggire di più.",
            "- La verifica con codice controlla il calcolo, non la lettura della figura né l'impostazione del problema scritta dall'agente; è "
            "indipendente dall'immagine solo quando tutti gli input stanno nel testo della domanda.",
-           "- Le revisioni della risposta vedono la risposta di riferimento e possono esserne influenzate.",
-           "- Le descrizioni di Qwen scrivono (`None`) per un componente senza etichetta: nel secondo passaggio alla cieca 7 fatti su 702 unità "
-           "lo hanno letto come un'etichetta \"None\" e segnato falso; il chiarimento nelle istruzioni vale solo da DC-13 e per gli arbitri.",
-           "- Gli agenti a volte scambiano le immagini di problemi diversi quando ne aprono più d'una insieme (verificato su p299/p301 in R1-10 "
-           "con le dimensioni dei PNG); la regola di aprire un'immagine alla volta vale solo dai lotti DC-27, R1-12 e R2 in poi.",
-           "- Le figure non sono sempre in scala: alcuni arbitri hanno giudicato false deduzioni che usano dati del testo (rapporti, angoli) "
+           "- Le revisioni della risposta vedono la risposta di riferimento e possono esserne influenzate."]
+    if mavis and man.get("mavis_question"):
+        md += ["- Le domande riscritte (limite_vl.mavis.structure_question) dicono nel testo forme, costruzioni e direzioni prese dalla "
+               "didascalia riscritta; le misure restano solo nella figura. I problemi esclusi o in quarantena in un audit precedente "
+               "formano la sorgente \"MAVIS-Geometry ricontrollo\", fuori dai conteggi per profondità e dal conteggio comune."]
+    elif mavis:
+        md += ["- Le domande vision_dominant di MAVIS nominano lati che la figura non disegna (\"Side CD extends into an equilateral "
+               "triangle\": il lato CD è tolto) e non ripetono le premesse sulle forme (\"ECFG is a rectangle\"): gli agenti le giudicano "
+               "spesso incoerenti anche quando la risposta si ricava dalla figura, e le soluzioni alla cieca discordano di più. Le "
+               "esclusioni per coerenza misurano la formulazione delle domande, non errori nelle risposte."]
+    else:
+        md += ["- Le descrizioni di Qwen scrivono (`None`) per un componente senza etichetta: nel secondo passaggio alla cieca 7 fatti su 702 "
+               "unità lo hanno letto come un'etichetta \"None\" e segnato falso; il chiarimento nelle istruzioni vale solo da DC-13 e per gli "
+               "arbitri.",
+               "- Gli agenti a volte scambiano le immagini di problemi diversi quando ne aprono più d'una insieme (verificato su p299/p301 in "
+               "R1-10 con le dimensioni dei PNG); la regola di aprire un'immagine alla volta vale solo dai lotti DC-27, R1-12 e R2 in poi."]
+    md += ["- Le figure non sono sempre in scala: alcuni arbitri hanno giudicato false deduzioni che usano dati del testo (rapporti, angoli) "
            "perché il disegno non li rispetta, quindi l'errore sulle deduzioni può essere sovrastimato.",
            "- Un verdetto fuori dai valori ammessi (es. \"unverifiable\" invece di \"not_false\") conta come incerto e manda il campo in quarantena.",
            "- Nessun controllo umano durante l'audit; nessuna modifica ai dataset, ai filtri o ai training."]
@@ -879,6 +948,8 @@ def main() -> None:
     ap.add_argument("--recheck-frac", type=float, default=0.10)
     ap.add_argument("--seed", type=int, default=None, help="default: seed del campione + 10")
     ap.add_argument("--final", action="store_true")
+    ap.add_argument("--pool", nargs="*", default=[], type=Path,
+                    help="con --final: audit MAVIS precedenti (cartelle) da contare insieme a questo per la certificazione")
     args = ap.parse_args()
     man = json.loads((args.dir / "manifest.json").read_text())
     seed = args.seed if args.seed is not None else int(man["args"]["seed"]) + 10
@@ -891,7 +962,7 @@ def main() -> None:
         if missing or audit.invalid or any(open_tasks.values()):
             print(f"attenzione: lotti senza risposta {missing}, non validi {sorted(audit.invalid)}, compiti ancora da assegnare "
                   f"{({r: len(v) for r, v in open_tasks.items() if v})}")
-        final(audit, args.dir)
+        final(audit, args.dir, args.pool)
         return
     tasks = audit.next_tasks()
     names = audit.write_tasks(tasks)

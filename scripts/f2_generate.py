@@ -16,6 +16,10 @@ e per ognuno campiona --samples soluzioni con vLLM (temperature e top_p dai defa
 valutatore). Prompt: limite_vl.f2.bridge_prompt; con --clean-caption la descrizione perde la riga del tipo di
 immagine, i titoli delle sezioni e la sezione delle ambiguità (limite_vl.f2.clean_caption, job 29614 e 29626).
 
+Con --mavis-shards i problemi sono di MAVIS-Geometry (limite_vl.mavis): domanda con la struttura della figura (frasi
+senza misure della didascalia riscritta) e la richiesta di vision_dominant, opzioni A-D, risposta esatta, ponte con la
+didascalia del motore riscritta dove era letteralmente falsa; --select in parti uguali fra le profondità 0-3.
+
 Con --no-caption il prompt è solo la domanda con l'istruzione (lo stesso testo degli esempi di training, senza
 descrizione): le soluzioni non possono copiare la descrizione, e servono a misurare quanti problemi si risolvono
 senza (prova solo domanda del 2026-10-19). --select 0 con --include genera solo le chiavi di --include.
@@ -43,7 +47,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from limite_vl.data import iter_shard  # noqa: E402
 from limite_vl.f2 import BRIDGE_TEMPLATE, INSTRUCTION, bridge_prompt, generated_keys, training_question  # noqa: E402
-from limite_vl.mmfine import choose, load_texts, scan_problems  # noqa: E402
+from limite_vl.mavis import f2_problem as mavis_problem  # noqa: E402
+from limite_vl.mmfine import choose, load_texts, rank, scan_problems  # noqa: E402
 
 sys.path.insert(0, str(ROOT / "scripts"))
 from train_f1 import seconds_left_in_job  # noqa: E402
@@ -71,12 +76,42 @@ def load_problems(shards: list[str], exclude: set[str], exclude_sources: set[str
     return problems, skipped
 
 
+def load_mavis(shards: list[str], exclude: set[str], select: int, seed: int) -> tuple[list[dict], dict]:
+    """Problemi MAVIS-Geometry (limite_vl.mavis.f2_problem: domanda con la struttura della figura e le opzioni, ponte
+    con la didascalia riscritta), select in parti uguali fra le profondità in ordine pseudo-casuale fissato dal seed."""
+    import tarfile
+
+    by_depth, skipped = {}, {"not_rewritable": 0, "excluded": 0}
+    for shard in shards:
+        with tarfile.open(shard, "r|") as tar:
+            for member in tar:
+                if not (member.isfile() and member.name.endswith(".json")):
+                    continue
+                p = mavis_problem(json.loads(tar.extractfile(member).read()))
+                if p is None:
+                    skipped["not_rewritable"] += 1
+                elif p["key"] in exclude:
+                    skipped["excluded"] += 1
+                else:
+                    by_depth.setdefault(p["depth"], []).append(p)
+    per = select // max(1, len(by_depth))
+    problems = []
+    for depth in sorted(by_depth):
+        for p in sorted(by_depth[depth], key=lambda p: rank(p["key"], seed))[:per]:
+            problems.append({"key": p["key"], "source_dataset": f"MAVIS-Geometry d{depth}", "question": p["question"],
+                             "answer": p["answer_text"], "answer_letter": p["answer_letter"], "caption": p["caption"],
+                             "qwen4b_pass_rate": None})
+    skipped["available"] = sum(len(v) for v in by_depth.values())
+    return problems, skipped
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--model", required=True, help="snapshot di Violetto")
     src = ap.add_mutually_exclusive_group(required=True)
     src.add_argument("--shards", help="glob degli shard di MMFineReason")
     src.add_argument("--parquet", nargs="+", type=Path, help="parquet dello snapshot di MMFineReason")
+    src.add_argument("--mavis-shards", help="glob degli shard caption di MAVIS-Geometry (con --select)")
     ap.add_argument("--select", type=int, help="con --parquet: quanti problemi scegliere")
     ap.add_argument("--easy-frac", type=float, default=0.5, help="frazione con pass_rate di Qwen3-VL-4B = 1.0")
     ap.add_argument("--exclude", nargs="*", default=[], help="file di chiavi da saltare (decontaminazione)")
@@ -139,6 +174,12 @@ def main() -> None:
                    "chosen": len(chosen), "included": len(forced), "include_not_found": len(include) - len(
                        {p["key"] for p in scanned if p["key"] in include}), "empty_question": len(chosen) - len(problems),
                    "easy": sum(p["qwen4b_pass_rate"] == 1.0 for p in problems)}
+    elif args.mavis_shards:
+        shards = sorted(glob.glob(args.mavis_shards))
+        if not shards or not args.select:
+            sys.exit(f"--mavis-shards vuole shard esistenti e --select (shard: {len(shards)})")
+        inputs = [Path(s).name for s in shards]
+        problems, skipped = load_mavis(shards, exclude, args.select, args.seed)
     else:
         shards = sorted(glob.glob(args.shards))
         if not shards:
@@ -208,9 +249,12 @@ def main() -> None:
                 completions = [{"text": c.text, "finish_reason": c.finish_reason, "tokens": len(c.token_ids)}
                                for c in out.outputs]
                 n_out += sum(c["tokens"] for c in completions)
-                fh.write(json.dumps({"key": p["key"], "source_dataset": p["source_dataset"], "answer": p["answer"],
-                                     "qwen4b_pass_rate": p["qwen4b_pass_rate"], "prompt_tokens": len(out.prompt_token_ids),
-                                     "completions": completions}, ensure_ascii=False) + "\n")
+                row = {"key": p["key"], "source_dataset": p["source_dataset"], "answer": p["answer"],
+                       "qwen4b_pass_rate": p["qwen4b_pass_rate"], "prompt_tokens": len(out.prompt_token_ids),
+                       "completions": completions}
+                if "answer_letter" in p:  # MAVIS: scelta multipla, vale la lettera o il contenuto dell'opzione
+                    row["answer_letter"] = p["answer_letter"]
+                fh.write(json.dumps(row, ensure_ascii=False) + "\n")
         os.replace(tmp, path)
         dt = time.time() - t0
         durations.append(dt)
