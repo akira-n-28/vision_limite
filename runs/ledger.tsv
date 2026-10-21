@@ -598,3 +598,78 @@ time	job_id	job_name	status	note
 2026-10-20T16:23:00+02:00	29797	lvl-stem-round	submitted	audit STEM screening --final rifatto: solo intestazione della colonna risposte (le risposte 'da codice' sono quelle risolte con codice, non quelle sbagliate)
 2026-10-20T16:23:13+02:00	29797	lvl-stem-round	ok	audit STEM, turno screening --final
 2026-10-20T16:23:32+02:00	29797	lvl-stem-round	ok	audit STEM screening FINALE (outputs/stem_audit/screening/audit_report.md): nessuna sorgente certificabile (campione 13-14 per sorgente); 8 risposte di riferimento sbagliate confermate da agenti su 253 risolte (p029 visualwebinstruct, p067/p267/p364 mmopenr1-8k, p159 geometry3k, p198 MMR1, p354/p389 LLaVA-CoT); fatti visibili falsi per affermazione 2.3%-27.5% per sorgente (soglia 2%); promettenti per RL: GameQA-140K, Euclid30K, MMK12, FineVision-tqa, geo170k, ai2d_merged, Zebra-CoT-Physics; per F2 nessuna. Calibrazione: affermazioni alterate trovate 113/117 (IC 91.5-99.1), risposte introdotte 16/16 (IC 79.4-100), falsi allarmi su MAVIS vere 13/358. Soluzioni F2 Violetto: 35/100 valide, 63% con affermazioni sulla figura false o non verificabili. Ricontrollo del 10%: 4/44 cambiati
+2026-10-20T17:41:29+02:00	29798	lvl-peek-shard	submitted	primi 6 campioni dello shard MAVIS-Geometry caption 00003 (domande text_dominant/text_lite/vision_dominant, CoT_reasoning) per valutare MAVIS come dati F2 esatti per costruzione; 0 GPU 2 CPU 2G 0:10
+2026-10-20T20:22:35+02:00	-	fetch-p5-func	submitted	download di CaraJ/MAVIS-Function@a78fd6d0 (9 file, 3.58 GiB: abs/cos/log/poly/sin/tan.zip) approvato dall utente per F2 (problemi di funzioni esatti per costruzione); riga spostata nel gruppo p5-func di sources.tsv; log data/logs/fetch-2026-10-20-p5-func.log. Chiuso un ciclo di attesa rimasto da 4 giorni (pgrep trovava se stesso)
+2026-10-20T20:23:15+02:00	29799	lvl-mavis-capsurvey	submitted	formule delle didascalie MAVIS-Geometry (schemi delle frasi, figure modificate, direzione dentro/fuori in diagram_generation) per la riscrittura esatta del ponte F2; 0 GPU 2 CPU 4G 0:30
+2026-10-20T20:26:31+02:00	29800	lvl-tests	submitted	test CPU con il nuovo tests/test_mavis.py (riscrittura esatta delle didascalie MAVIS per il ponte F2, domanda vision_dominant, risposta)
+2026-10-20T20:26:31+02:00	29801	lvl-mavis-capsurvey	submitted	censimento rifatto con la riscrittura del ponte (limite_vl.mavis) su tutte le didascalie: riscritte, fallite, frasi residue, problemi F2 scartati; 0 GPU 2 CPU 4G 0:30
+2026-10-20T20:32:18+02:00	29800	lvl-tests	ok	tests_cpu
+2026-10-20T20:32:52+02:00	29802	lvl-tests	submitted	test CPU dopo le correzioni della riscrittura MAVIS (prefisso con apostrofo, semicerchio inscritto = dentro)
+2026-10-20T20:32:52+02:00	29803	lvl-mavis-capsurvey	submitted	censimento della riscrittura MAVIS dopo le correzioni (29801: 466 didascalie con semicerchio inscritto non riscritte, 2633 frasi residue con 'What s more,')
+2026-10-20T20:32:52+02:00	29801	lvl-mavis-capsurvey	ok	riscrittura su 199050 didascalie: 111394 frasi riscritte in 94365 didascalie, 466 didascalie fallite (semicerchio 'inscribe' senza parola di direzione), 2633 frasi residue (prefisso What's more): corretti
+2026-10-20T20:33:07+02:00	29804	lvl-verify	submitted	verifica hash di CaraJ/MAVIS-Function@a78fd6d0 (7 file scaricati, 3665 MiB): downloads/manifests/p5-func.tsv
+2026-10-20T20:33:07+02:00	-	fetch-p5-func	ok	MAVIS-Function scaricato: 7 file 3665 MiB (+2 gia presenti), snapshot collegato
+2026-10-20T20:33:18+02:00	29804	lvl-verify	ok	verify downloads/manifests/p5-func.tsv -> /home/prignano/vision_limite/outputs/verify/report-29804.tsv
+2026-10-20T20:38:58+02:00	29802	lvl-tests	ok	tests_cpu
+2026-10-20T20:39:23+02:00	29803	lvl-mavis-capsurvey	ok	riscrittura MAVIS (limite_vl.mavis) su 199050 didascalie: 114497 frasi riscritte in 96493 didascalie, 0 fallite, 0 frasi residue con rettangolo+triangolo/semicerchio; nessun problema F2 scartato
+2026-10-20T20:39:23+02:00	29804	lvl-verify	ok	MAVIS-Function@a78fd6d0: hash verificati, nessun problema
+2026-10-20T20:39:23+02:00	29805	lvl-stem-audit	submitted	audit alla cieca di MAVIS-Geometry come dati F2 (approvato dall utente): 152 problemi (38 per profondita), caption.jpg + domanda vision_dominant con opzioni, ponte con didascalia riscritta; calibrazione dagli stessi shard (15 affermazioni alterate, 20 risposte sbagliate, 10 rimpicciolite, 10 scambiate); senza i MAVIS dello screening; 0 GPU 2 CPU 12G 1:00
+2026-10-20T20:39:57+02:00	29805	lvl-stem-audit	ok	audit STEM, esportazione mavis-f2 -> /home/prignano/vision_limite/outputs/stem_audit/mavis-f2
+2026-10-21T09:19:33+02:00	-	stem-audit	note	audit MAVIS (outputs/stem_audit/mavis-f2): sessione di Claude Code interrotta con 7 agenti in corso (SA-12, SB-10, DA-24..26, DB-24..25), nessuna risposta scritta; 66/106 lotti fatti e validi, si riprende dai mancanti
+2026-10-21T09:29:23+02:00	29806	lvl-stem-round	submitted	audit MAVIS (mavis-f2): turno dopo DA/DB completi (35+35 lotti) e SA completo; SB-14..18 ancora in corso e contati come assegnati. Prepara DC e il 10% di controllo delle descrizioni
+2026-10-21T09:29:23+02:00	29806	lvl-stem-round	ok	audit STEM, turno mavis-f2 
+2026-10-21T09:29:36+02:00	29806	lvl-stem-round	ok	audit MAVIS, turno: DC-01..05 (28 compiti: descrizioni con disaccordo A/B o nel 10% di controllo); in corso SA-17, SB-14..18
+2026-10-21T09:31:49+02:00	29807	lvl-stem-round	submitted	audit MAVIS: turno dopo SA/SB completi (18+18) e DC-02; DC-01,03,04,05 in corso. Prepara SC (controllo e campi contestati), revisioni G1/G2 delle risposte e arbitri R1
+2026-10-21T09:32:00+02:00	29807	lvl-stem-round	ok	audit STEM, turno mavis-f2 
+2026-10-21T09:32:21+02:00	29807	lvl-stem-round	ok	audit MAVIS, turno: G1-01..08 e G2-01..08 (91 risposte da rivedere: soluzioni alla cieca discordi o assenti, spesso per le domande vision_dominant ambigue), SC-01..04 (41), R1-01 (3)
+2026-10-21T09:40:04+02:00	29808	lvl-stem-round	submitted	audit MAVIS: turno dopo G1/G2 (8+8), SC (4) e DC (5) completi. Prepara gli arbitri
+2026-10-21T09:40:09+02:00	29808	lvl-stem-round	ok	audit STEM, turno mavis-f2 
+2026-10-21T09:40:33+02:00	29808	lvl-stem-round	ok	audit MAVIS, turno: R1-02..08 (53 contestazioni, soprattutto coerenza delle domande vision_dominant e risposte), R2-01 (1), G1-09/G2-09 (2+2)
+2026-10-21T09:43:52+02:00	29809	lvl-stem-round	submitted	audit MAVIS: turno dopo R1-02..08, R2-01, G1-09/G2-09 completi
+2026-10-21T09:43:58+02:00	29809	lvl-stem-round	ok	audit STEM, turno mavis-f2 
+2026-10-21T09:44:15+02:00	29809	lvl-stem-round	ok	audit MAVIS, turno: R2-02..04 (17 contestazioni rimaste dopo R1)
+2026-10-21T09:45:41+02:00	29810	lvl-stem-round	submitted	audit MAVIS: turno dopo R2-02..04 completi
+2026-10-21T09:45:46+02:00	29810	lvl-stem-round	ok	audit STEM, turno mavis-f2 
+2026-10-21T09:46:06+02:00	29810	lvl-stem-round	ok	audit MAVIS, turno: nessun compito rimasto (145 lotti)
+2026-10-21T09:46:06+02:00	29811	lvl-stem-round	submitted	audit MAVIS: --final (report, liste, calibrazione)
+2026-10-21T09:46:11+02:00	29811	lvl-stem-round	ok	audit STEM, turno mavis-f2 --final
+2026-10-21T09:46:30+02:00	29811	lvl-stem-round	ok	audit MAVIS --final: report in outputs/stem_audit/mavis-f2/audit_report.md
+2026-10-21T09:49:00+02:00	29812	lvl-stem-round	submitted	audit MAVIS: --final di nuovo, sezione Limiti del report specifica per MAVIS (togli le note dello screening)
+2026-10-21T09:49:05+02:00	29812	lvl-stem-round	ok	audit STEM, turno mavis-f2 --final
+2026-10-21T09:49:25+02:00	29812	lvl-stem-round	ok	audit MAVIS --final: report con Limiti specifici per MAVIS; esiti invariati
+2026-10-21T09:55:51+02:00	29813	lvl-tests-cpu	submitted	test CPU dopo structure_question (domande F2 di MAVIS con la struttura della figura) e --mavis-recheck
+2026-10-21T09:55:51+02:00	29814	lvl-mavis-capsurvey	submitted	sondaggio MAVIS con le domande F2 riscritte (structure_question): frasi di struttura, richieste con cifre, esempi; dopo 29813
+2026-10-21T10:01:38+02:00	29813	lvl-tests	ok	tests_cpu
+2026-10-21T10:02:57+02:00	29813	lvl-tests	ok	test CPU: tutti ok (test_mavis con structure_question)
+2026-10-21T10:02:57+02:00	29814	lvl-mavis-capsurvey	ok	domande F2 riscritte su 199.050: richieste con cifre 0, f2_none 0, frasi di struttura = profondità+1, connettivi iniziali 0, 7.283 richieste senza punto interrogativo (imperative)
+2026-10-21T10:02:57+02:00	29815	lvl-stem-audit	submitted	secondo audit MAVIS (mavis-f2b, approvato 2026-10-21): domande riscritte con structure_question, 300 nuovi (75 per profondità, seed 20261022, esclusi i campioni precedenti) + 33 esclusi/quarantena di mavis-f2 da ricontrollare + calibrazione
+2026-10-21T10:03:37+02:00	29815	lvl-stem-audit	ok	audit STEM, esportazione mavis-f2b -> /home/prignano/vision_limite/outputs/stem_audit/mavis-f2b
+2026-10-21T10:08:43+02:00	29816	lvl-tests	submitted	test CPU dopo arc_ask (richieste sull'arco di un semicerchio nelle domande F2 di MAVIS)
+2026-10-21T10:08:43+02:00	29817	lvl-mavis-capsurvey	submitted	sondaggio MAVIS dopo arc_ask: richieste sull'arco riscritte, risposte senza π, schemi; dopo 29816
+2026-10-21T10:14:52+02:00	29816	lvl-tests	failed	tests_cpu: tests/test_mavis.py
+2026-10-21T10:39:26+02:00	29816	lvl-tests	failed	test_mavis: un controllo confrontava i conteggi senza la nuova chiave arc (test da aggiornare, codice corretto)
+2026-10-21T10:39:26+02:00	29817	lvl-mavis-capsurvey	cancelled	dipendenza da 29816 fallito
+2026-10-21T10:39:26+02:00	29818	lvl-tests	submitted	test CPU dopo arc_ask, test dei conteggi aggiornato
+2026-10-21T10:39:26+02:00	29819	lvl-mavis-capsurvey	submitted	sondaggio MAVIS dopo arc_ask: richieste sull'arco riscritte, risposte senza π, schemi; dopo 29818
+2026-10-21T10:45:23+02:00	29818	lvl-tests	ok	tests_cpu
+2026-10-21T10:46:49+02:00	29818	lvl-tests	ok	test CPU: tutti ok (test_mavis con arc_ask)
+2026-10-21T10:46:49+02:00	29819	lvl-mavis-capsurvey	ok	arc_ask su 199.050: 10.847 richieste sull'arco riscritte (9 forme), 0 con risposta senza π, f2_none 0
+2026-10-21T10:46:49+02:00	29815	lvl-stem-audit	interrupted	mavis-f2b fermato dopo 21 lotti (SA-01..09, DA-01..12): 19 richieste su 387 chiedono la lunghezza di un lato sostituito da un semicerchio (risposta = arco, ambigua); si rifà come mavis-f2c con arc_ask, riusando i lotti con input identici
+2026-10-21T10:46:49+02:00	29820	lvl-stem-audit	submitted	secondo audit MAVIS (mavis-f2c, al posto di mavis-f2b): domande con structure_question e arc_ask, stessi argomenti e seed 20261022
+2026-10-21T10:47:30+02:00	29820	lvl-stem-audit	ok	audit STEM, esportazione mavis-f2c -> /home/prignano/vision_limite/outputs/stem_audit/mavis-f2c
+2026-10-21T10:47:59+02:00	29820	lvl-stem-audit	ok	mavis-f2c: stesso campione di mavis-f2b (gold, idmap e calibrazione identici), 16 domande cambiate da arc_ask; copiate da mavis-f2b le risposte dei 17 lotti con input identici (DA-01..12, SA-01/03/05/08/09); da rifare SA-02/04/06/07
+2026-10-21T14:42:01+02:00	29823	lvl-stem-round	submitted	audit MAVIS mavis-f2c: turno dopo SA/SB (33+33) e DA/DB (65+65) completi
+2026-10-21T14:42:19+02:00	29823	lvl-stem-round	ok	audit STEM, turno mavis-f2c 
+2026-10-21T14:42:47+02:00	29823	lvl-stem-round	ok	audit MAVIS mavis-f2c, turno: G1-01..12 e G2-01..12 (141 risposte da rivedere), SC-01..03 (33), DC-01..11 (64); nessun lotto non valido
+2026-10-21T14:51:11+02:00	29824	lvl-stem-round	submitted	audit MAVIS mavis-f2c: turno dopo G1/G2 (12+12), SC (3) e DC (11) completi
+2026-10-21T14:51:19+02:00	29824	lvl-stem-round	ok	audit STEM, turno mavis-f2c 
+2026-10-21T14:51:56+02:00	29824	lvl-stem-round	ok	audit MAVIS mavis-f2c, turno: R1-01..06 (47 contestazioni), G1-13/G2-13 (5+5)
+2026-10-21T14:53:48+02:00	29825	lvl-stem-round	submitted	audit MAVIS mavis-f2c: turno dopo R1-01..06 e G1/G2-13 completi
+2026-10-21T14:53:56+02:00	29825	lvl-stem-round	ok	audit STEM, turno mavis-f2c 
+2026-10-21T15:00:33+02:00	29825	lvl-stem-round	ok	audit MAVIS mavis-f2c, turno: R2-01..02 (11 contestazioni rimaste dopo R1)
+2026-10-21T15:02:11+02:00	29826	lvl-stem-round	submitted	audit MAVIS mavis-f2c: turno dopo R2-01..02 completi
+2026-10-21T15:02:18+02:00	29826	lvl-stem-round	ok	audit STEM, turno mavis-f2c 
+2026-10-21T15:02:40+02:00	29826	lvl-stem-round	ok	audit MAVIS mavis-f2c, turno: nessun compito rimasto (244 lotti)
+2026-10-21T15:02:40+02:00	29827	lvl-stem-round	submitted	audit MAVIS mavis-f2c --final --pool mavis-f2 (report, liste, conteggio comune per la certificazione)
+2026-10-21T15:02:48+02:00	29827	lvl-stem-round	ok	audit STEM, turno mavis-f2c --final --pool /home/prignano/vision_limite/outputs/stem_audit/mavis-f2
+2026-10-21T15:03:49+02:00	29827	lvl-stem-round	ok	audit MAVIS mavis-f2c --final --pool mavis-f2: 452 problemi per profondità insieme, risposte 0/443 (lim. sup. corretto 0.9%, certificato all'1%), fatti visibili 6/3915 (0.4%, certificato al 2%; i 6 verificati a mano come errori degli agenti); F2 323 ammessi, 7 esclusi, 3 in quarantena
