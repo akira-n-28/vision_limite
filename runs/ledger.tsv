@@ -673,3 +673,42 @@ time	job_id	job_name	status	note
 2026-10-21T15:02:40+02:00	29827	lvl-stem-round	submitted	audit MAVIS mavis-f2c --final --pool mavis-f2 (report, liste, conteggio comune per la certificazione)
 2026-10-21T15:02:48+02:00	29827	lvl-stem-round	ok	audit STEM, turno mavis-f2c --final --pool /home/prignano/vision_limite/outputs/stem_audit/mavis-f2
 2026-10-21T15:03:49+02:00	29827	lvl-stem-round	ok	audit MAVIS mavis-f2c --final --pool mavis-f2: 452 problemi per profondità insieme, risposte 0/443 (lim. sup. corretto 0.9%, certificato all'1%), fatti visibili 6/3915 (0.4%, certificato al 2%; i 6 verificati a mano come errori degli agenti); F2 323 ammessi, 7 esclusi, 3 in quarantena
+2026-10-21T15:16:20+02:00	29828	lvl-f2-plan	submitted	pilota F2 MAVIS (approvato 2026-10-21): piano di f2-mavis2k, 2000 problemi (500 per profondità, seed 1), 4 soluzioni, domande riscritte e ponte con la didascalia riscritta; esclusi decontaminazione p6 e i 38 esclusi/quarantena degli audit
+2026-10-21T15:16:20+02:00	29829	lvl-f2-gen	submitted	pilota F2 MAVIS: generazione f2-mavis2k (stessi argomenti del piano); 1 GPU 8 CPU 32G 1:00; afterok:29828
+2026-10-21T15:16:31+02:00	29828	lvl-f2-plan	failed	F2 piano f2-mavis2k -> /home/prignano/vision_limite/outputs/f2_gen/f2-mavis2k/plan.json
+2026-10-21T15:20:06+02:00	29830	lvl-tests	submitted	test CPU dopo l'audit F2 solo soluzioni per MAVIS (inject_solution, --f2-mavis, report F2)
+2026-10-21T15:20:18+02:00	29828	lvl-f2-plan	failed	glob degli shard espanso dalla shell (argomenti non riconosciuti); da rilanciare con il glob tra virgolette
+2026-10-21T15:20:18+02:00	29829	lvl-f2-gen	cancelled	dipendenza da 29828 fallito
+2026-10-21T15:20:18+02:00	29831	lvl-f2-plan	submitted	pilota F2 MAVIS: piano di f2-mavis2k (rilancio con il glob tra virgolette)
+2026-10-21T15:20:18+02:00	29832	lvl-f2-gen	submitted	pilota F2 MAVIS: generazione f2-mavis2k (2000 problemi, 4 soluzioni); 1 GPU 8 CPU 32G 1:00; afterok:29831
+2026-10-21T15:20:49+02:00	29831	lvl-f2-plan	ok	F2 piano f2-mavis2k -> /home/prignano/vision_limite/outputs/f2_gen/f2-mavis2k/plan.json
+2026-10-21T15:25:13+02:00	29830	lvl-tests	failed	tests_cpu: tests/test_stem_audit.py
+2026-10-21T15:26:07+02:00	29830	lvl-tests	failed	test_stem_audit: inject_solution non trovava i numeri seguiti dal punto a fine frase (regex corretta)
+2026-10-21T15:26:07+02:00	29833	lvl-tests	submitted	test CPU dopo la correzione di inject_solution
+2026-10-21T15:31:36+02:00	29833	lvl-tests	ok	tests_cpu
+2026-10-21T15:57:10+02:00	29833	lvl-tests	ok	test CPU: tutti ok (inject_solution corretta)
+2026-10-21T16:11:08+02:00	29832	lvl-f2-gen	ok	F2 generazione f2-mavis2k -> /home/prignano/vision_limite/outputs/f2_gen/f2-mavis2k
+2026-10-21T16:11:30+02:00	29832	lvl-f2-gen	ok	f2-mavis2k: 2000 problemi x 4 in 3005 s (parte 1: 5060 token per soluzione, parte 2: 7827)
+2026-10-21T16:11:30+02:00	29835	lvl-f2-select	submitted	pilota F2 MAVIS: selezione delle soluzioni di f2-mavis2k (risposta per valore o per lettera); 4 CPU 8G 0:30
+2026-10-21T16:11:44+02:00	29835	lvl-f2-select	ok	f2_select: --gen /home/prignano/vision_limite/outputs/f2_gen/f2-mavis2k --out /home/prignano/vision_limite/outputs/f2_select/f2-mavis2k
+2026-10-21T16:12:17+02:00	29835	lvl-f2-select	ok	f2-mavis2k: 1491 soluzioni scelte per 855 problemi su 2000; pass rate d0 0.70, d1 0.32, d2 0.17, d3 0.08; 4455/8000 troncate a 8192 token, 1037 sbagliate, 278 'non vedo la figura'
+2026-10-21T16:12:17+02:00	29836	lvl-stem-audit	submitted	audit delle soluzioni F2 MAVIS (mavis-f2sol): 150 soluzioni di f2-mavis2k divise per profondità + 20 con una misura della figura cambiata (calibrazione), lotti FA/FB
+2026-10-21T16:12:38+02:00	29836	lvl-stem-audit	ok	audit STEM, esportazione mavis-f2sol -> /home/prignano/vision_limite/outputs/stem_audit/mavis-f2sol
+2026-10-21T16:13:02+02:00	29836	lvl-stem-audit	ok	mavis-f2sol: 170 soluzioni (150 + 20 di calibrazione), 29 lotti FA + 29 FB
+2026-10-21T16:13:02+02:00	29837	lvl-stem-round	submitted	audit soluzioni F2 MAVIS: prova del turno prima delle risposte (audit senza problemi)
+2026-10-21T16:13:02+02:00	29837	lvl-stem-round	ok	audit STEM, turno mavis-f2sol 
+2026-10-21T16:13:34+02:00	29837	lvl-stem-round	ok	mavis-f2sol: prova del turno riuscita (58 lotti senza risposta, nessun errore)
+2026-10-21T16:25:57+02:00	29838	lvl-stem-round	submitted	audit soluzioni F2 MAVIS (mavis-f2sol): turno dopo i 58 lotti FA/FB, terzi giudizi e arbitri
+2026-10-21T16:25:57+02:00	29838	lvl-stem-round	ok	audit STEM, turno mavis-f2sol 
+2026-10-21T16:28:29+02:00	29839	lvl-stem-round	submitted	audit soluzioni F2 MAVIS (mavis-f2sol): turno dopo i 6 lotti FC
+2026-10-21T16:28:29+02:00	29839	lvl-stem-round	ok	audit STEM, turno mavis-f2sol 
+2026-10-21T16:30:53+02:00	29840	lvl-stem-round	submitted	audit soluzioni F2 MAVIS (mavis-f2sol): turno dopo i 6 lotti FR1
+2026-10-21T16:30:54+02:00	29840	lvl-stem-round	ok	audit STEM, turno mavis-f2sol 
+2026-10-21T16:33:03+02:00	29841	lvl-stem-round	submitted	audit soluzioni F2 MAVIS (mavis-f2sol): turno dopo i 4 lotti FR2
+2026-10-21T16:33:03+02:00	29841	lvl-stem-round	ok	audit STEM, turno mavis-f2sol 
+2026-10-21T16:33:14+02:00	29842	lvl-stem-round	submitted	audit soluzioni F2 MAVIS (mavis-f2sol): report finale
+2026-10-21T16:33:15+02:00	29842	lvl-stem-round	ok	audit STEM, turno mavis-f2sol --final
+2026-10-21T16:33:45+02:00	29843	lvl-f2-layout	submitted	f2-mavis2k: parole di disposizione, coordinate, tracce del ponte e </think> nelle 1491 soluzioni selezionate, confronto con visual_ok di mavis-f2sol
+2026-10-21T16:34:50+02:00	29842	lvl-stem-round	ok	mavis-f2sol finale: valide 97/150 (64.7%, IC 56.5-72.3); fatti sulla figura falsi 51/148 (34.5%, IC 26.8-42.7), quasi tutti disposizione e orientamento nel think (132 citazioni su 138 nel think); ragionamento non valido 1/150, informazioni esterne 1/150; quarantena 2
+2026-10-21T16:34:50+02:00	29842	lvl-stem-round	ok	mavis-f2sol calibrazione: misure cambiate trovate dalla procedura 10/19 (52.6%, IC 28.9-75.6), agente singolo 20/43; limite superiore corretto 100%: soglia del 2% non raggiungibile, sorgente non certificabile
+2026-10-21T16:34:50+02:00	29843	lvl-f2-layout	ok	f2-mavis2k: 1220/1491 soluzioni con parole di disposizione o coordinate (filtro non discriminante: fra le auditate 86 valide le hanno); 1453/1491 con tracce del ponte, 136/150 auditate citano il prompt ('It says: "Figure: ...'); 1 con due </think>
