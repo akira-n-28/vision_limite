@@ -370,6 +370,27 @@ iperparametri rispetto al piano.
     (p044 e p029 veri, p037 falsi), le ipotesi scartate contano come errori e le proporzioni in pixel danno falsi
     allarmi (p017: quadrato con cerchio inscritto letto come rettangolo). Alcune alterazioni di orientamento e
     costruzione cadono in frasi ipotetiche, dove la verità non è definita.
+  - Pilota f2-pilot/2 (correzioni 1-3 approvate il 2026-10-22; codice e test, nessun job né agente): `scripts/f2_pilot.py`
+    riscritto (lo schema f2-pilot/1 di v2c è nel commit 86a94e9).
+    - Candidati deterministici (`f2_claims.classify_sentences`): ogni frase che nomina punti della didascalia, coordinate,
+      forme, relazioni o direzioni, o dà un valore a una grandezza ("Total = …", "h = …"). Frasi uguali formano un gruppo
+      con tutti gli span. Sul campione di sviluppo v2c le candidate sono in media 217 per soluzione vera, e coprono:
+      24/24 punti alterati, 965/972 affermazioni estratte da v2c, 36/37 errori trovati da v2c sulle vere (l'ultimo è una
+      frase copiata dalla didascalia, letta male dai verificatori), 25/25 citazioni d'errore di v1.
+    - Scorciatoia del codice: le frasi `caption_verbatim` e `measure_only` e i fatti di sole misure uguali alla didascalia
+      (`code_only_measures`, nell'affermazione e nella citazione) non vanno agli agenti, salvo un campione (`--shortcut-frac`).
+    - Copertura del generatore: un campione delle frasi scartate va agli agenti alla cieca.
+    - Classificazione (`config/audit/f2_classify.md`): fatti per frase con stance, basis e used_in_answer.
+    - Verifica (`config/audit/f2_claim_verify2.md`): `config` a meno di rotazioni e riflessioni, `page` separata, niente
+      proporzioni in pixel.
+    - Categorie e traduzione futura in politica: `config/audit/f2_policy_definitions.md`.
+    - Alterazioni con verità certa solo in frasi asserite (`asserted_at`): misura, costruzione, configurazione
+      (dentro/fuori dalla didascalia, opposti/adiacenti, vertice dell'angolo retto). L'orientamento resta a parte.
+    - Controlli sugli assi leciti e rotti per i verificatori (`frame_control`).
+    - Export con `--exclude-dirs` (campioni di sviluppo) e `--regression-pids`. Codice, istruzioni e criteri sono
+      congelati nel manifest: round e final si fermano se cambiano.
+  - `tests/test_f2_gate.py` importa torch (`f2_generate.py` → `train_f1.py`): solo in un job SLURM. `test_f2_pilot.py`
+    (27 MB) e `test_stem_audit.py` (95 MB) usano solo numpy e PIL.
   - Recupero delle domande storiche: `scripts/f2_questions.py` (job CPU, cartella nuova) le ricalcola con il codice del
     commit del job (git archive, processo a parte) e classifica exact / inferred / conflict / missing; solo exact
     (codice del job pulito, dati verificati per sha256, token del prompt non smentiti) ha `question_origin: reconstructed`.
