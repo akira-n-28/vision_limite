@@ -40,6 +40,11 @@ from limite_vl.stem_audit import (ALLOWED_IMPORTS, FORBIDDEN_NAMES, UNSURE, clop
 S_BLIND, D_BLIND, ARBITERS = ("SA", "SB", "SC"), ("DA", "DB", "DC"), ("R1", "R2")
 F2_BLIND, F2_ARBITERS = ("FA", "FB", "FC"), ("FR1", "FR2")
 F2_FIELDS = ("visual_ok", "reasoning_valid", "relies_on_unseen")
+# Audit v2 (stem_audit_export.py --f2-v2, config/audit/f2_solution_v2.md): frame_ok separa i sistemi di riferimento
+# assunti che contraddicono la figura dalle altre affermazioni false, perché se contino come errore lo decide la politica
+# (config/audit/f2_policy.json), non gli agenti.
+F2_FIELDS_V2 = ("visual_ok", "frame_ok", "reasoning_valid", "relies_on_unseen")
+F2_GOOD = {"visual_ok": True, "frame_ok": True, "reasoning_valid": True, "relies_on_unseen": False}
 GOLD_THRESHOLD, VISUAL_THRESHOLD = 0.01, 0.02
 # Regola fissata prima dello screening per scegliere le sorgenti da certificare (audit_report.md la riporta).
 PROMISING = {"min_population": 1000, "max_gold_quarantine": 2, "max_bad_items": 1, "max_claim_rate": VISUAL_THRESHOLD,
@@ -143,6 +148,11 @@ class Audit:
         self.det = json.loads((root / "deterministic.json").read_text())
         f2 = g / "items_f2.json"
         self.f2 = {it["fid"]: it for it in json.loads(f2.read_text())} if f2.exists() else {}
+        man = root / "manifest.json"
+        self.manifest = json.loads(man.read_text()) if man.exists() else {}
+        self.version = self.manifest.get("audit_version", 1)
+        self.f2_fields = F2_FIELDS_V2 if self.version == 2 else F2_FIELDS
+        self.f2_recheck_frac = (self.manifest.get("f2_v2") or {}).get("design", {}).get("recheck_frac", 0.0)
         self.batches, self.answers, self.invalid = {}, defaultdict(dict), {}
         for path in sorted((root / "batches").glob("*.json")):
             self.batches[path.stem] = json.loads(path.read_text())
@@ -177,8 +187,7 @@ class Audit:
                                 for n in self.batches if round_of(n) == r) and any(round_of(n) == r for n in self.batches)
                          for r in ("SA", "SB", "DA", "DB", "FA", "FB")}
 
-    @staticmethod
-    def task_fields(r: str, t: dict) -> list[str]:
+    def task_fields(self, r: str, t: dict) -> list[str]:
         if r in S_BLIND:
             return list(t.get("check", []))
         if r in D_BLIND:
@@ -186,7 +195,7 @@ class Audit:
         if r in ("G1", "G2"):
             return ["gold"]
         if r in F2_BLIND:
-            return list(F2_FIELDS)
+            return list(self.f2_fields)
         return [d["field"] for d in t.get("disputes", [])]
 
     def done(self, r: str, pid: str, field: str) -> bool:
@@ -232,7 +241,7 @@ class Audit:
                 v = low(d.get("verdict"))
                 if field == "gold":
                     cls = v if v in ("correct", "wrong") else None
-                elif field in F2_FIELDS:
+                elif field in F2_FIELDS_V2:
                     cls = as_bool(v)
                 elif field == "legibility":
                     cls = legibility_class(v)
@@ -248,11 +257,29 @@ class Audit:
             return None
         a = self.answers[r][pid]
         v = as_bool(a.get(field))
-        note = a.get("reasoning_note") if field == "reasoning_valid" else json.dumps(a.get("issues") or [], ensure_ascii=False)[:800]
+        if field == "reasoning_valid":
+            note = a.get("reasoning_note")
+        else:  # v2: le citazioni di frame_ok sono quelle di tipo frame, quelle di visual_ok le altre
+            issues = [i for i in a.get("issues") or [] if isinstance(i, dict)] if self.version == 2 else a.get("issues") or []
+            if self.version == 2:
+                issues = [i for i in issues if (str(i.get("kind", "")).lower() == "frame") == (field == "frame_ok")]
+            note = json.dumps(issues, ensure_ascii=False)[:800]
         return v, v, note
 
+    def f2_recheck(self) -> set[str]:
+        """Audit v2: soluzioni approvate all'unanimità da FA e FB (tutti i campi uguali e buoni) ricontrollate da FC, una
+        frazione recheck_frac scelta con il seed; vuoto per gli audit v1 e finché FA e FB non sono completi. Vale anche per
+        la calibrazione, così la sensibilità misura la stessa procedura applicata alle soluzioni vere."""
+        if self.version != 2 or not self.f2_recheck_frac or not (self.complete["FA"] and self.complete["FB"]):
+            return set()
+        if not hasattr(self, "_f2_recheck"):
+            agreed = [fid for fid in self.f2 if all(fid in self.answers[r] for r in ("FA", "FB"))
+                      and all(as_bool(self.answers[r][fid].get(f)) is F2_GOOD[f] for r in ("FA", "FB") for f in self.f2_fields)]
+            self._f2_recheck = recheck_sample({"f2": agreed}, self.f2_recheck_frac, self.seed) if agreed else set()
+        return self._f2_recheck
+
     def field_state(self, pid: str, field: str) -> dict:
-        if field in F2_FIELDS:
+        if field in F2_FIELDS_V2:
             blind = [x for r in F2_BLIND if (x := self.f2_value(r, pid, field)) is not None]
             arbs = [x for r in F2_ARBITERS if (x := self.arbiter_value(r, pid, field)) is not None]
         else:
@@ -430,8 +457,9 @@ class Audit:
             if not (self.complete["FA"] and self.complete["FB"]) or not all(fid in self.answers[r] for r in ("FA", "FB")):
                 continue
             base = {"id": fid, "image": it["image"], "question": it["question"], "solution": it["solution"]}
-            states = {f: self.field_state(fid, f) for f in F2_FIELDS}
-            if any(s["status"] == "need_blind" for s in states.values()) and (fid, F2_FIELDS[0]) not in self.assigned["FC"]:
+            states = {f: self.field_state(fid, f) for f in self.f2_fields}
+            if ((any(s["status"] == "need_blind" for s in states.values()) or fid in self.f2_recheck())
+                    and (fid, self.f2_fields[0]) not in self.assigned["FC"]):
                 tasks["FC"].append(base)
             for r in F2_ARBITERS:
                 disputes = [{"field": f, "judgments": [{"value": b["value"], "note": b["note"]} for b in s["blind"]]}
@@ -753,7 +781,7 @@ def final_f2_only(audit: Audit, out: Path) -> None:
 
 def final(audit: Audit, out: Path, pool: list[Path] = ()) -> None:
     if not audit.items:  # audit delle sole soluzioni F2
-        final_f2_only(audit, out)
+        (final_f2_v2 if audit.version == 2 else final_f2_only)(audit, out)
         return
     rows = {pid: audit.conclude(pid) for pid in sorted(audit.items)}
     audit.save_code()
@@ -860,17 +888,42 @@ def final(audit: Audit, out: Path, pool: list[Path] = ()) -> None:
     report(audit, out, sample, table, f2_rows, cal, pop, pool_res)
 
 
-def final_f2(audit: Audit, out: Path) -> list[dict]:
+def f2_outcomes(audit: Audit) -> list[dict]:
+    """Esito per soluzione: include se tutti i campi sono risolti e buoni, exclude se risolti e almeno uno no, altrimenti
+    quarantena. Negli audit v2 il verdetto è quello più severo (frame_ok compreso): la politica lo ricalcola in
+    scripts/f2_certify.py."""
     rows = []
     for fid, it in sorted(audit.f2.items()):
-        fs = {f: audit.field_state(fid, f) for f in F2_FIELDS}
+        fs = {f: audit.field_state(fid, f) for f in audit.f2_fields}
         ok = all(s["status"] == "resolved" for s in fs.values())
-        good = ok and fs["visual_ok"]["value"] is True and fs["reasoning_valid"]["value"] is True and fs["relies_on_unseen"]["value"] is False
-        rows.append({"fid": fid, "key": it["key"], "source": it["source"], "verdict": "include" if good else ("exclude" if ok else "quarantine"),
-                     **{f: {k: s[k] for k in ("status", "value", "how", "blind", "arbiters")} for f, s in fs.items()}})
+        good = ok and all(fs[f]["value"] is F2_GOOD[f] for f in fs)
+        row = {"fid": fid, "key": it["key"], "source": it["source"], "verdict": "include" if good else ("exclude" if ok else "quarantine")}
+        if audit.version == 2:
+            row |= {k: it.get(k) for k in ("sid", "text_sha256", "source_sid", "calibration")}
+        rows.append(row | {f: {k: s[k] for k in ("status", "value", "how", "blind", "arbiters")} for f, s in fs.items()})
+    return rows
+
+
+def final_f2(audit: Audit, out: Path) -> list[dict]:
+    rows = f2_outcomes(audit)
     with open(out / "audit_f2.jsonl", "w") as fh:
         fh.writelines(json.dumps(r, ensure_ascii=False) + "\n" for r in rows)
     return rows
+
+
+def final_f2_v2(audit: Audit, out: Path) -> None:
+    """Audit v2: esiti per soluzione in audit_f2.jsonl; tassi, calibrazione attribuibile e certificato li calcola
+    scripts/f2_certify.py con la politica (config/audit/f2_policy.json), in una cartella a parte."""
+    rows = final_f2(audit, out)
+    c = Counter(r["verdict"] for r in rows if not r["calibration"])
+    md = ["# Audit v2 delle soluzioni F2", "",
+          f"{sum(not r['calibration'] for r in rows)} soluzioni del campione e {sum(r['calibration'] for r in rows)} di calibrazione; "
+          f"verdetto più severo (frame_ok compreso): {c['include']} include, {c['exclude']} exclude, {c['quarantine']} quarantena.",
+          "", "Tassi, sensibilità attribuibile e certificato: scripts/f2_certify.py (questo report non certifica nulla)."]
+    if audit.invalid:
+        md += ["", f"Lotti con risposte non valide (esclusi): {', '.join(sorted(audit.invalid))}."]
+    (out / "audit_report.md").write_text("\n".join(md) + "\n")
+    print("\n".join(md))
 
 
 def ci(r: dict) -> str:

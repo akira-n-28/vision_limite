@@ -155,7 +155,9 @@ def main() -> None:
                                          raw_text=c["text"], finish_reason=c["finish_reason"], tokens=c["tokens"],
                                          source_dataset=rec.get("source_dataset"), answer=rec["answer"],
                                          rewritten=grades[i]["cleaned"] != c["text"], violetto_pass_rate=rate,
-                                         origin="select", answer_letter=rec.get("answer_letter"))
+                                         origin="select", answer_letter=rec.get("answer_letter"),
+                                         question=rec.get("question"), question_sha256=rec.get("question_sha256"),
+                                         prompt_sha256=rec.get("prompt_sha256"))
                     if v2["failed"]:
                         new_rejects.update(v2["failed"])
                         if rej is not None:

@@ -1,0 +1,28 @@
+{
+ "schema": "f2-policy/1",
+ "note": "Politica del gate F2 (scripts/f2_certify.py, f2_records.admit). Un valore null è una scelta ancora aperta: finché ce n'è una nessun lotto si certifica. Le scelte spettano all'utente (revisione tecnica, sezione 10); qui nessuna è stata presa.",
+ "thresholds": {
+  "solution_visual": null,
+  "claim_visual": null,
+  "reasoning_invalid": null,
+  "relies_on_unseen": null
+ },
+ "frame_counts_as_error": null,
+ "flag_policy": {
+  "prompt_quote": null,
+  "text_before_think": null
+ },
+ "calibration": {
+  "required_kinds": ["measure", "layout"]
+ },
+ "options": {
+  "thresholds.solution_visual": "limite superiore corretto del tasso di soluzioni con almeno un fatto visivo falso o non visibile; nessuna soglia approvata",
+  "thresholds.claim_visual": "limite superiore corretto del tasso per affermazione (figure_claims come denominatore); proposta 0.02 come la regola del 2026-10-19 sui fatti delle immagini, da confermare per le soluzioni F2 (con circa 10 affermazioni per soluzione equivale a circa il 18% di soluzioni con un errore)",
+  "thresholds.reasoning_invalid": "limite superiore (non corretto: errori di ragionamento non calibrati) del tasso di ragionamenti non validi",
+  "thresholds.relies_on_unseen": "limite superiore (non corretto) del tasso di soluzioni che usano informazioni né nella figura né nella domanda",
+  "frame_counts_as_error": "true: un sistema di riferimento o un orientamento assunto che contraddice la figura esclude la soluzione (lettura letterale, quella degli audit v1); false: conta solo come segnalazione",
+  "flag_policy.prompt_quote": "reject: scarto delle soluzioni che citano il prompt (\"Figure: ...\", 96% delle soluzioni MAVIS selezionate, 4.6% di MMFineReason v4); keep: restano, con riscrittura deterministica da approvare a parte",
+  "flag_policy.text_before_think": "reject o keep per il testo prima di <think>",
+  "calibration.required_kinds": "tipi di errore che devono essere calibrati; senza calibrazione di un tipo la sensibilità vale zero e il limite corretto 100%"
+ }
+}

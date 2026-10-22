@@ -322,8 +322,27 @@ iperparametri rispetto al piano.
   selezioni v2 (`*-rec2`) coincidono col backfill tranne gli scarti di `think_tags` (1 e 39).
 - Controlli: `think_tags` (un solo `<think>` e un solo `</think>`) scarta; citazioni del prompt (`"Figure: …`) e testo prima
   di `<think>` sono solo segnalati, la decisione spetta all'utente.
-- Nessun record è certificato e nessuno script scrive ancora certificati (`f2-cert/1`): il gate e l'audit v2 (passi 4-8 del
-  piano) non sono ancora approvati.
+- Passi 4-7 (approvati il 2026-10-22, "vai con i prossimi passi"):
+  - `f2_generate.py` salva per problema la domanda di training (`question`, `question_sha256`) e `prompt_sha256`;
+    `provenance.json` (sha256 dei file del modello, campionamento effettivo, vLLM, codice per job) blocca una ripresa con
+    modello o parametri diversi. Le generazioni precedenti non hanno la domanda: i loro record non arrivano al build.
+  - Audit v2: `stem_audit_export.py --f2-v2` su un `selected.v2.jsonl` (unità = soluzione, sid e hash negli item,
+    calibrazione con misure cambiate, parole di posizione scambiate e controlli negativi MAVIS, ricontrollo FC del 15% delle
+    approvazioni unanimi); istruzioni `config/audit/f2_solution_v2.md` e `f2_arbiter_v2.md` (campo `frame_ok` separato,
+    `figure_claims` come denominatore, citazioni esatte).
+  - `scripts/f2_certify.py` (job CPU, cartella nuova): certificato `f2-cert/1` con calibrazione attribuibile (la citazione
+    deve coprire il punto alterato, `stem_audit.quote_covers`), tassi per soluzione e per affermazione, limite corretto
+    con la sensibilità più bassa fra i tipi richiesti. Decide con `config/audit/f2_policy.json`: lì soglie,
+    `frame_counts_as_error` e decisioni sulle segnalazioni sono `null` (scelte aperte dell'utente), quindi oggi ogni
+    certificato esce `rejected`. Non si cambiano quei valori senza una decisione esplicita dell'utente.
+  - `f2_build.py` è il gate: vuole `--certificate` `certified` della stessa selezione (sha256), ammette record per record
+    con `admit()`, usa la domanda salvata, scrive `<chiave>-g<indice>`, `samples.jsonl` e manifest `f2-build/2`; ha il
+    percorso MAVIS (`--mavis-shards`).
+  - `train_f2.py` verifica la catena (`f2_records.f2_data_certification`) per ogni sorgente `f2_solution`; shard senza gate
+    (f2-sft120k-v4 e le config f2-smoke, f2-abl-*) partono solo da una copia della config con `uncertified_reason`
+    nella sorgente, registrato nel manifest. `stream` applica le esclusioni per problema anche ai campioni F2,
+    `data.f2_solution_sample` riverifica `text_sha256`.
+  - Passo 8 (spostare gli helper di train_f1.py in un modulo comune) non fatto: facoltativo.
 
 ## Ottimizzatore
 
@@ -366,7 +385,7 @@ iperparametri rispetto al piano.
   - `limite_code.py`: import verificato del codice di Limite;
   - `optim/`: NorMuon e gruppi della Tabella 1;
   - `provenance.py`: hash di testi e file, identità del codice (commit + sha del diff), file nuovi senza sovrascrivere;
-  - `f2_records.py`: record f2-sol/2 delle soluzioni F2 (sid, hash, controlli deterministici, certificati, `admit`).
-- `tests/` — test CPU (`test_normuon.py`, `test_vl_data.py`, `test_f1_data.py`, `test_f2_records.py`, …), lanciati tutti da `slurm/tests_cpu.sbatch`
+  - `f2_records.py`: record f2-sol/2 delle soluzioni F2 (sid, hash, controlli deterministici), politica, certificati, `admit` e verifica degli shard nel training.
+- `tests/` — test CPU (`test_normuon.py`, `test_vl_data.py`, `test_f1_data.py`, `test_f2_records.py`, `test_f2_gate.py`, …), lanciati tutti da `slurm/tests_cpu.sbatch`
 - `config/runs/` — config dei run di training (`f1.json` è il run completo, da aggiornare con il nuovo mix)
 - `runs/ledger.tsv` — registro dei job (testo piccolo, versionato)

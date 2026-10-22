@@ -6,6 +6,10 @@ Da eseguire SOLO in un job SLURM con GPU (slurm/train_f2.sbatch).
 - Partenza: Violetto e il proiettore di F1 (`init_adapter`, la cartella final del run di F1).
 - Dati: limite_vl.stream.MixedRowStream con le sorgenti della config (soluzioni del ponte, f2_solution; più avanti
   replay testuale), righe impacchettate da max_len (32k), rows_per_step righe per passo (circa 256k token).
+- Gate: ogni sorgente f2_solution deve avere la catena del certificato verificata (f2_records.check_f2_shards: manifest
+  f2-build/2, certificato `certified`, samples.jsonl) oppure un `uncertified_reason` esplicito nella sorgente (ablation
+  di ricerca su dati non certificati, scritta nel manifest del run); senza l'una e l'altro il run non parte. Le config
+  storiche (f2-smoke, f2-abl-*) puntano a shard costruiti prima del gate: si rilanciano solo da una copia con il motivo.
 - Precisione: decoder in bf16 per il calcolo, come in F0 (job 29402); pesi master fp32 (train_utils.MasterWeights)
   aggiornati dall'ottimizzatore e ricopiati in bf16 dopo ogni passo. Proiettore e righe dei token visivi in fp32.
 - Ottimizzatore (`optimizer`):
@@ -43,6 +47,7 @@ from torch.utils.data import DataLoader
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "scripts"))
+from limite_vl.f2_records import f2_data_certification  # noqa: E402
 from limite_vl.modeling import LimiteVLForConditionalGeneration, VLConfig  # noqa: E402
 from limite_vl.optim.groups import build_optimizers, describe, assign_groups  # noqa: E402
 from limite_vl.optim.normuon import sync_adamw_weight_decay  # noqa: E402
@@ -149,6 +154,13 @@ def main() -> None:
     torch.manual_seed(cfg["seed"])
     processor = LimiteVLProcessor.from_pretrained(cfg["decoder"])
     sources = make_sources(cfg["sources"])
+    try:
+        certification = f2_data_certification(cfg["sources"], [s.shards for s in sources])
+    except ValueError as e:
+        sys.exit(str(e))
+    for c in certification:
+        log(f"sorgente {c['name']}: " + ("shard certificati" if c["certified"] else
+                                        f"shard NON certificati ({c['why']}); uncertified_reason: {c['uncertified_reason']}"))
     tokens_per_step = cfg["max_len"] * cfg["rows_per_step"]
     total_steps = cfg.get("total_steps") or math.ceil(float(cfg["total_tokens"]) / tokens_per_step)
     if cfg["rows_per_step"] % cfg["micro_rows"]:
@@ -160,10 +172,11 @@ def main() -> None:
     manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {
         "run": cfg.get("run"), "config_digest": digest, "seed": cfg["seed"], "total_steps": total_steps,
         "tokens_per_step": tokens_per_step, "data": [shard_hashes(s) for s in sources],
-        "init_adapter": cfg["init_adapter"], "jobs": []}
+        "data_certification": certification, "init_adapter": cfg["init_adapter"], "jobs": []}
     manifest["config"] = cfg
     manifest["jobs"].append({"job_id": job, "start": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
                              "resumed_from": ckpt_dir.name if ckpt_dir else None, **git_info(out, job),
+                             "data_certification": certification,
                              "torch": torch.__version__, "gpu": torch.cuda.get_device_name(0),
                              "seconds_left_at_start": left})
     manifest_path.write_text(json.dumps(manifest, indent=1))

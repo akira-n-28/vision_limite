@@ -24,7 +24,9 @@ rimpicciolite fino a renderle illeggibili; domande scambiate fra problemi di sor
 Gli agenti vedono solo id opachi (p001, f001): niente sorgente, niente segno della calibrazione. Scrive in OUT:
 - batches/SA-NN.json, SB-NN.json: risolvere dalla sola immagine e domanda, leggibilità, coerenza (senza descrizione);
 - batches/DA-NN.json, DB-NN.json: affermazioni della descrizione da dividere in fatti e verificare sull'immagine;
-- batches/FA-NN.json, FB-NN.json (con --f2-selected): soluzioni F2 di Violetto da verificare contro l'immagine;
+- batches/FA-NN.json, FB-NN.json (con --f2-selected): soluzioni F2 di Violetto da verificare contro l'immagine; con
+  --f2-v2 (selezione v2) l'unità è la soluzione, gli item portano sid e hash, la calibrazione ha misure, posizioni e
+  controlli negativi (f2_v2_items) e il certificato si calcola poi con scripts/f2_certify.py;
 - img/: immagini come le vede il modello in training; _gold/: items.json, gold.json, idmap.json, calibration.json,
   items_f2.json (mai nei lotti); deterministic.json, population_checks.json, source_sizes.json, manifest.json.
 
@@ -56,7 +58,9 @@ from limite_vl.data import iter_shard, open_image, stem_image  # noqa: E402
 from limite_vl.decontam import hamming, phash  # noqa: E402
 from limite_vl.f1c import mavis_questions  # noqa: E402
 from limite_vl.f2 import answers_match  # noqa: E402
+from limite_vl.f2_records import record_version  # noqa: E402
 from limite_vl.mmfine import mmfine_key, rank, split_of  # noqa: E402
+from limite_vl.provenance import code_identity, sha256_file, sha256_text  # noqa: E402
 from limite_vl.stem_audit import (allocate, answer_letter, claim_units, mc_options, mutate_text,  # noqa: E402
                                   norm_question, wrong_answer)
 
@@ -464,7 +468,141 @@ def inject_solution(solution: str, caption: str, rng: random.Random) -> tuple[st
         iv = int(v)
         new = str(iv + rng.choice([2, 3, 4, 5]) if iv < 20 or rng.random() < 0.5 else iv * 2)
     text = solution[:m.start(1)] + new + solution[m.end(1):]
-    return text, {"original": v, "changed": new, "context": text[max(0, m.start(1) - 80):m.start(1) + 80]}
+    return text, {"original": v, "changed": new, "context": text[max(0, m.start(1) - 80):m.start(1) + 80],
+                  "start": m.start(1), "end": m.start(1) + len(new)}
+
+
+# Parole di posizione e orientamento (sottoinsieme di stem_audit.SWAPS più alto/basso): l'errore dominante delle soluzioni
+# del ponte MAVIS è la disposizione (mavis-f2sol, 132 citazioni su 138), che le misure cambiate non calibrano.
+LAYOUT_SWAPS = [("left", "right"), ("above", "below"), ("horizontal", "vertical"), ("upward", "downward"),
+                ("inside", "outside"), ("top", "bottom"), ("upper", "lower"), ("clockwise", "counterclockwise")]
+
+
+def inject_layout(solution: str, rng: random.Random) -> tuple[str, dict] | None:
+    """Errore di disposizione introdotto nel ragionamento: una parola di posizione o orientamento sostituita con
+    l'opposta, prima di </think>. Il testo originale non è verificato: se era già falso e lo scambio lo rende vero,
+    l'errore risulta non trovato e la sensibilità esce più bassa del vero (direzione prudente). None se non ce ne sono."""
+    end = solution.find("</think>")
+    head = solution[:end if end > 0 else len(solution)]
+    spots = [(m, y) for a, b in LAYOUT_SWAPS for x, y in ((a, b), (b, a)) for m in re.finditer(rf"\b{x}\b", head, re.IGNORECASE)]
+    if not spots:
+        return None
+    m, repl = rng.choice(sorted(spots, key=lambda s: s[0].start()))
+    word = m.group(0)
+    repl = repl.upper() if word.isupper() else repl.capitalize() if word[0].isupper() else repl
+    text = solution[:m.start()] + repl + solution[m.end():]
+    return text, {"original": word, "changed": repl, "context": text[max(0, m.start() - 80):m.start() + 80],
+                  "start": m.start(), "end": m.start() + len(repl)}
+
+
+def read_v2_selection(path: Path) -> tuple[list[dict], dict]:
+    """Record f2-sol/2 di una selezione (f2_select.py o f2_backfill.py) e voce del file con lo sha256."""
+    h, recs = hashlib.sha256(), []
+    with open(path, "rb") as fh:
+        for n, line in enumerate(fh, 1):
+            h.update(line)
+            rec = json.loads(line)
+            if record_version(rec) != 2:
+                raise SystemExit(f"{path}:{n}: --f2-v2 vuole una selezione v2 (selected.v2.jsonl), non selected.jsonl")
+            recs.append(rec)
+    return recs, {"path": str(path), "bytes": path.stat().st_size, "sha256": h.hexdigest()}
+
+
+def f2_v2_items(args, out: Path, rng: random.Random) -> tuple[list[dict], dict, dict]:
+    """Audit v2 delle soluzioni F2 (unità = soluzione, revisione tecnica sezione 6): campione di --f2-n soluzioni fra
+    quelle della selezione che superano i controlli che scartano, stratificato per source_dataset (profondità per
+    MAVIS); ogni item porta sid, text_sha256 e question_sha256. Calibrazione da altre soluzioni della stessa
+    selezione: --f2-cal-measure misure cambiate, --f2-cal-layout parole di posizione scambiate, --f2-negatives
+    controlli negativi (MAVIS: il CoT del motore, coerente con la figura, dei problemi con didascalia senza frasi
+    riscritte). Domanda: quella salvata nella generazione; se manca, ricostruita (MAVIS con f2_problem, MMFineReason dal
+    parquet), e una domanda salvata diversa da quella ricostruita è contata in question_mismatch."""
+    from limite_vl.mavis import f2_problem
+
+    recs, sel_entry = read_v2_selection(args.f2_selected)
+    eligible = [r for r in recs if not r["failed"]]
+    if len({r["sid"] for r in eligible}) != len(eligible):
+        raise SystemExit("sid ripetuti nella selezione")
+    by_src = defaultdict(list)
+    for r in eligible:
+        by_src[r["source_dataset"]].append(r)
+    alloc = allocate({s: len(v) for s, v in by_src.items()}, args.f2_n)
+    chosen = [r for s in sorted(alloc) for r in sorted(by_src[s], key=lambda r: rank(r["sid"], args.seed))[:alloc[s]]]
+    chosen_sids = {r["sid"] for r in chosen}
+    pool = sorted((r for r in eligible if r["sid"] not in chosen_sids), key=lambda r: rank(r["sid"], args.seed + 3))
+
+    keys = {r["key"] for r in eligible}
+    problems: dict[str, dict] = {}  # chiave -> domanda ricostruita, didascalia, immagine, cot
+    mavis = all(k.startswith("mavis-") for k in keys)
+    if mavis:
+        if not args.mavis_shards:
+            raise SystemExit("soluzioni MAVIS: serve --mavis-shards")
+        for shard in sorted(glob.glob(args.mavis_shards)):
+            for _, files in iter_shard(shard):
+                meta = json.loads(files["json"])
+                key = f"mavis-{meta['id']}"
+                if key in keys and (p := f2_problem(meta)):
+                    problems[key] = {"question": p["question"], "caption": p["caption"], "png": files["png"],
+                                     "cot": p["cot"] if p["rewritten"] == 0 else "", "letter": p["answer_letter"]}
+    else:
+        if not args.parquet_glob:
+            raise SystemExit("soluzioni MMFineReason: serve --parquet-glob")
+        rows, _ = scan(sorted(glob.glob(args.parquet_glob)))
+        need = [r for r in rows if r["key"] in keys]
+        texts, raws = load_full(need), image_bytes(need)
+        problems = {k: {"question": texts[k]["question"], "caption": texts[k]["caption"], "png": raws.get(k), "cot": "",
+                        "letter": None} for k in texts}
+
+    cal: list[tuple[str, dict, str, dict]] = []  # (tipo, record base, testo, verità)
+    want = {"measure": args.f2_cal_measure, "layout": args.f2_cal_layout, "negative": args.f2_negatives}
+    used: set[str] = set()
+    for kind in ("measure", "layout", "negative"):
+        n_kind = 0
+        for r in pool:
+            if n_kind >= want[kind]:
+                break
+            p = problems.get(r["key"])
+            if r["sid"] in used or p is None:
+                continue
+            if kind == "measure":
+                got = inject_solution(r["solution"], p["caption"], rng)
+            elif kind == "layout":
+                got = inject_layout(r["solution"], rng)
+            else:
+                got = (f"<think>{p['cot'].strip()}</think>\n\nThe answer is \\boxed{{{p['letter']}}}.", {}) if p["cot"] else None
+            if got:
+                cal.append((kind, r, got[0], got[1]))
+                used.add(r["sid"])
+                n_kind += 1
+
+    entries = [("real", r, r["solution"], {}) for r in chosen] + cal
+    items, truth, mismatch = [], {}, 0
+    for kind, r, text, info in sorted(entries, key=lambda e: rank(f"{e[0]}:{e[1]['sid']}", args.seed + 1)):
+        p = problems.get(r["key"])
+        image, _ = image_checks(p["png"] if p else None)
+        if p is None or image is None:
+            continue
+        if r.get("question") is not None and r["question"].strip() != p["question"].strip():
+            mismatch += 1
+        question = r["question"] if r.get("question") is not None else p["question"]
+        fid = f"f{len(items) + 1:03d}"
+        path = out / "img" / f"{fid}.png"
+        image.convert("RGB").save(path)
+        it = {"fid": fid, "key": r["key"], "source": r["source_dataset"] if kind == "real" else "_cal_f2", "question": question,
+              "question_sha256": r.get("question_sha256"), "gold": r["answer"], "solution": text, "image": str(path),
+              "calibration": kind != "real", "text_sha256": sha256_text(text)}
+        if kind == "real":
+            it["sid"] = r["sid"]
+        else:
+            it.update({"sid": None, "source_sid": r["sid"], "source_text_sha256": r["text_sha256"]})
+            truth[fid] = {"kind": kind, "key": r["key"], "source_sid": r["sid"], **info}
+        items.append(it)
+    design = {"unit": "soluzione", "strata": "source_dataset", "seed": args.seed, "sample": sum(not it["calibration"] for it in items),
+              "allocation": alloc, "eligible": len(eligible), "selection_records": len(recs),
+              "eligible_by_source": {s: len(v) for s, v in sorted(by_src.items())},
+              "calibration": dict(Counter(t["kind"] for t in truth.values())), "calibration_requested": want,
+              "recheck_frac": args.f2_recheck_frac, "question_mismatch": mismatch,
+              "questions_saved": sum(it["question_sha256"] is not None for it in items)}
+    return items, truth, {"selection": sel_entry, "design": design}
 
 
 def mavis_f2_items(selected: Path, n: int, n_cal: int, seed: int, shards: str, out: Path,
@@ -600,7 +738,17 @@ def main() -> None:
                     help="solo l'audit delle soluzioni F2 di Violetto sui problemi MAVIS (--f2-selected, --mavis-shards), "
                          "senza campione di problemi")
     ap.add_argument("--f2-cal", type=int, default=0, help="con --f2-mavis: soluzioni con una misura della figura cambiata")
+    ap.add_argument("--f2-v2", action="store_true",
+                    help="audit v2 delle soluzioni F2 (--f2-selected = selected.v2.jsonl): unità = soluzione, sid e hash negli "
+                         "item, calibrazione per tipo, controlli negativi, ricontrollo dei consensi; istruzioni *_v2.md")
+    ap.add_argument("--f2-cal-measure", type=int, default=60, help="con --f2-v2: soluzioni con una misura cambiata")
+    ap.add_argument("--f2-cal-layout", type=int, default=60, help="con --f2-v2: soluzioni con una parola di posizione scambiata")
+    ap.add_argument("--f2-negatives", type=int, default=30, help="con --f2-v2: controlli negativi (solo MAVIS)")
+    ap.add_argument("--f2-recheck-frac", type=float, default=0.15,
+                    help="con --f2-v2: frazione delle soluzioni approvate da FA e FB all'unanimità ricontrollata da FC")
     args = ap.parse_args()
+    if args.f2_v2 and not args.f2_selected:
+        raise SystemExit("--f2-v2 vuole --f2-selected (selected.v2.jsonl)")
     t0 = time.time()
     if args.out.exists() and any(args.out.iterdir()):
         raise SystemExit(f"{args.out} esiste e non è vuota: un campione non si riscrive")
@@ -611,8 +759,8 @@ def main() -> None:
     skip = set()
     for f in args.exclude_keys:
         skip |= {it["key"] for it in json.loads(f.read_text())}
-    if args.f2_mavis:  # problemi già certificati: solo le soluzioni (lotti FA/FB)
-        if not (args.mavis_shards and args.f2_selected):
+    if args.f2_mavis or args.f2_v2:  # solo le soluzioni (lotti FA/FB), nessun campione di problemi
+        if args.f2_mavis and not (args.mavis_shards and args.f2_selected):
             raise SystemExit("--f2-mavis vuole --mavis-shards e --f2-selected")
         items, cal, sizes, pop_checks = [], [], Counter(), {}
         paths, rows, population, by_key, excluded, rows_by_q, texts, alloc = [], [], [], {}, {}, defaultdict(list), {}, {}
@@ -722,8 +870,16 @@ def main() -> None:
     print(f"lotti: risolvere {len(batches['SA'])} x 2, descrizioni {len(batches['DA'])} x 2; affermazioni per descrizione "
           f"media {sum(units) / max(1, len(units)):.1f}, massimo {max(units, default=0)}", flush=True)
 
-    f2, f2_truth = [], {}
-    if args.f2_mavis:
+    f2, f2_truth, f2_v2 = [], {}, None
+    if args.f2_v2:
+        f2, f2_truth, f2_v2 = f2_v2_items(args, args.out, rng)
+        (args.out / "_gold" / "calibration_f2.json").write_text(json.dumps(f2_truth, indent=1, ensure_ascii=False))
+        files = {"FA": "f2_solution_v2.md", "FB": "f2_solution_v2.md", "FC": "f2_solution_v2.md", "FR1": "f2_arbiter_v2.md",
+                 "FR2": "f2_arbiter_v2.md", "rules": "_rules.md"}
+        f2_v2["instructions"] = {r: {"path": f"config/audit/{f}", "sha256": sha256_file(ROOT / "config" / "audit" / f)}
+                                 for r, f in files.items()}
+        f2_v2["code"] = code_identity()
+    elif args.f2_mavis:
         f2, f2_truth = mavis_f2_items(args.f2_selected, args.f2_n, args.f2_cal, args.seed + 5, args.mavis_shards, args.out, rng)
         (args.out / "_gold" / "calibration_f2.json").write_text(json.dumps(f2_truth, indent=1, ensure_ascii=False))
     elif args.f2_selected and not args.mavis_sample:  # le soluzioni F2 di Violetto sono di MMFineReason
@@ -751,6 +907,8 @@ def main() -> None:
                 "batches": batches, "f2_items": len(f2), "f2_calibration": len(f2_truth), "seconds": round(time.time() - t0, 1),
                 "mavis_question": "domanda con la struttura della figura e la richiesta di vision_dominant (structure_question)"
                 if args.mavis_sample else None}
+    if f2_v2 is not None:
+        manifest |= {"audit_version": 2, "f2_v2": f2_v2}
     (args.out / "manifest.json").write_text(json.dumps(manifest, indent=1, ensure_ascii=False))
     print(json.dumps({k: manifest[k] for k in ("population", "excluded", "sampled", "calibration", "gold_injected",
                                                "units_injected", "unreadable", "deterministic_flags",

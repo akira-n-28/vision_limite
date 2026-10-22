@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import glob
 import hashlib
+import json
 import random
 from collections import Counter
 from dataclasses import dataclass
@@ -50,7 +51,8 @@ class Source:
 
 def make_sources(specs: list[dict]) -> list[Source]:
     """[{name, kind, shards: glob, weight, exclude: [file]}] -> Source, con controlli su tipi, nomi e shard
-    presenti. `exclude` (facoltativo) elenca file con una chiave per riga, da saltare sempre."""
+    presenti. `exclude` (facoltativo) elenca file con una chiave per riga, da saltare sempre; per f2_solution vale
+    anche come chiave del problema (campo `problem` del JSON). `uncertified_reason` lo legge train_f2.py."""
     sources, names = [], set()
     for spec in specs:
         if spec["kind"] not in SAMPLE_LOADERS:
@@ -129,6 +131,11 @@ class SourceReader:
             if self._path == self.source.val_shard and index < self.val_count:
                 continue
             if key in self.source.exclude:
+                continue
+            # i campioni F2 si chiamano <chiave>-s<k> o <chiave>-g<indice>: le liste per problema (decontaminazione,
+            # esiti degli audit) valgono sulla chiave del problema scritta nel JSON
+            if self.source.exclude and self.source.kind == "f2_solution" \
+                    and json.loads(files["json"]).get("problem") in self.source.exclude:
                 continue
             return key, files
 

@@ -62,7 +62,8 @@ def completion_digests(line: bytes) -> dict:
         comps.append({"i": i, "raw": sha256_text(text), "cleaned": sha256_text(cleaned),
                       "finish_reason": c["finish_reason"], "tokens": c.get("tokens")})
     return {"key": row["key"], "source_dataset": row.get("source_dataset"), "answer": row.get("answer"),
-            "answer_letter": row.get("answer_letter"), "completions": comps}
+            "answer_letter": row.get("answer_letter"), "question": row.get("question"),
+            "question_sha256": row.get("question_sha256"), "prompt_sha256": row.get("prompt_sha256"), "completions": comps}
 
 
 def match_key(old: list[dict], comps: list[dict]) -> dict:
@@ -254,7 +255,9 @@ def main() -> None:
                                  finish_reason=c["finish_reason"], tokens=rec.get("tokens", c["tokens"]),
                                  source_dataset=rec.get("source_dataset"), answer=rec["answer"],
                                  rewritten=method.startswith("cleaned"), violetto_pass_rate=rec.get("violetto_pass_rate"),
-                                 origin="backfill", answer_letter=m.get("answer_letter"), match=method)
+                                 origin="backfill", answer_letter=m.get("answer_letter"), match=method,
+                                 question=m.get("question"), question_sha256=m.get("question_sha256"),
+                                 prompt_sha256=m.get("prompt_sha256"))
             sel.write_json_line(v2)
             methods[method] += 1
             failed.update(v2["failed"])

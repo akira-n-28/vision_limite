@@ -33,6 +33,13 @@ def file_entry(path: Path | str, digest: str | None = None) -> dict:
     return {"path": str(path), "bytes": path.stat().st_size, "sha256": digest or sha256_file(path)}
 
 
+def files_digest(folder: Path | str) -> dict[str, str]:
+    """sha256 dei file al primo livello di una cartella (seguendo i link, come negli snapshot HF): identità dei pesi e
+    della configurazione di un modello. Da calcolare in un job (qualche secondo per GB)."""
+    folder = Path(folder)
+    return {p.name: sha256_file(p) for p in sorted(folder.iterdir()) if p.is_file()}
+
+
 def code_identity(root: Path = ROOT) -> dict:
     """Commit, stato del working tree e sha256 di `git diff HEAD` (modifiche dei file tracciati); i file non
     tracciati si elencano per nome. Con un albero sporco il commit da solo non basta (LAGRANGE.md, sezione 7)."""
@@ -98,4 +105,13 @@ def write_new_json(path: Path | str, obj: dict) -> None:
     tmp = path.with_name(path.name + ".tmp")
     tmp.write_text(json.dumps(obj, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
     refuse_existing(path)
+    os.replace(tmp, path)
+
+
+def replace_json(path: Path | str, obj: dict) -> None:
+    """JSON riscritto per intero in modo atomico (`.tmp` e rinomina): solo per i registri che crescono, come
+    provenance.json delle generazioni, mai per gli artefatti."""
+    path = Path(path)
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.write_text(json.dumps(obj, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
     os.replace(tmp, path)

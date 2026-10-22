@@ -17,8 +17,8 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from f2_backfill import is_injection, match_key  # noqa: E402
 
 from limite_vl.f2_records import (CERT_SCHEMA, admit, association_ok, check_failures, compare_selections,  # noqa: E402
-                                  duplicate_sids, make_sid, parse_sid, read_selected, record_version, solution_checks,
-                                  solution_record, validate_certificate, validate_record)
+                                  duplicate_sids, eligible, make_sid, parse_sid, policy_open, read_selected, record_policy,
+                                  record_version, solution_checks, solution_record, validate_certificate, validate_record)
 from limite_vl.provenance import HashingTextWriter, sha256_file, sha256_text, write_new_json  # noqa: E402
 
 FAILS = []
@@ -41,17 +41,19 @@ def raises(fn, exc=Exception) -> bool:
 def record(key="p1", completion=0, solution="<think>2+2</think>\\boxed{4}", gen_run="gen-a", **kw) -> dict:
     args = dict(gen_run=gen_run, key=key, completion=completion, solution=solution, raw_text=solution,
                 finish_reason="stop", tokens=10, source_dataset="S", answer="4", rewritten=False,
-                violetto_pass_rate=0.5, origin="select")
+                violetto_pass_rate=0.5, origin="select", question="What is 2+2?")
     args.update(kw)
     return solution_record(**args)
 
 
-def certificate(selection_sha: str, decision: str = "certified", audited=(), excluded=(), quarantined=()) -> dict:
-    """Certificato di prova, solo in memoria: nessuno script di questa fase ne scrive."""
+def certificate(selection_sha: str, decision: str = "certified", audited=(), excluded=(), quarantined=(),
+                flags=None) -> dict:
+    """Certificato di prova, solo in memoria (quelli veri li scrive scripts/f2_certify.py)."""
     return {"schema": CERT_SCHEMA, "population": {"selection_sha256": selection_sha, "solutions": 3},
             "decision": decision, "audited": [list(a) for a in audited], "excluded": [list(e) for e in excluded],
             "quarantined": [list(q) for q in quarantined], "audit": {"name": "prova", "manifest_sha256": "0" * 64},
-            "thresholds": {"solution_visual": 0.05}, "rates": {"solution_visual": {"k": 0, "n": 300}}}
+            "thresholds": {"solution_visual": 0.05}, "rates": {"solution_visual": {"k": 0, "n": 300}},
+            "record_policy": {"rejecting": ["think_tags"], "flags": flags or {"prompt_quote": "keep", "text_before_think": "keep"}}}
 
 
 def test_ids():
@@ -128,6 +130,41 @@ def test_no_certification():
     check("record v1: non ammissibile", admit(v1, certificate(sel), sel)[0] is False)
     check("solo record v2 coerente con certificato valido: ammessa", admit(r, certificate(sel), sel) == (True, "ammessa"))
     check("certificato schema sbagliato", validate_certificate({**certificate(sel), "schema": "x"}) != [])
+    no_q = record(question=None)
+    check("domanda non salvata nella generazione: non ammessa", admit(no_q, certificate(sel), sel)
+          == (False, "domanda non salvata nella generazione") and validate_record(no_q) == [])
+    check("domanda diversa dal suo hash nella generazione: errore",
+          raises(lambda: record(question="Q", question_sha256="0" * 64), ValueError))
+    check("domanda cambiata dopo la selezione: record incoerente",
+          "domanda diversa dal suo question_sha256" in validate_record({**r, "question": "altro"}))
+    q = record(solution='<think>It says: "Figure: AB = 3".</think>\\boxed{4}')
+    check("citazione del prompt: scartata se la politica dice reject",
+          admit(q, certificate(sel, flags={"prompt_quote": "reject", "text_before_think": "keep"}), sel)[1]
+          == "segnalazione scartata dalla politica: prompt_quote")
+    check("citazione del prompt: ammessa se la politica dice keep", admit(q, certificate(sel), sel)[0] is True)
+    undecided = certificate(sel, flags={"prompt_quote": None, "text_before_think": "keep"})
+    check("certificato con segnalazioni non decise: non valido", "record_policy con segnalazioni non decise"
+          in validate_certificate(undecided) and admit(q, undecided, sel)[0] is False)
+    check("certificato senza record_policy: non valido", admit(r, {k: v for k, v in certificate(sel).items()
+                                                                  if k != "record_policy"}, sel)[0] is False)
+
+
+def test_policy():
+    repo = json.loads((ROOT / "config" / "audit" / "f2_policy.json").read_text())
+    open_ = policy_open(repo)
+    check("politica del repository: tutte le scelte aperte, nessuna decisa dal codice",
+          {"thresholds.solution_visual", "thresholds.claim_visual", "frame_counts_as_error", "flag_policy.prompt_quote",
+           "flag_policy.text_before_think"} <= set(open_), open_)
+    decided = {**repo, "thresholds": {k: 0.05 for k in repo["thresholds"]}, "frame_counts_as_error": True,
+               "flag_policy": {"prompt_quote": "reject", "text_before_think": "keep"}}
+    check("politica decisa: nessuna scelta aperta", policy_open(decided) == [])
+    check("politica: schema sbagliato", policy_open({"schema": "x"}) != [])
+    rules = record_policy(repo)
+    check("regole per record: segnalazioni non decise restano None", rules["flags"] == {"prompt_quote": None, "text_before_think": None}
+          and rules["rejecting"] == ["think_tags"])
+    q = record(solution='<think>It says: "Figure: AB = 3".</think>\\boxed{4}')
+    check("popolazione: segnalazione non decisa fuori", eligible(q, rules) == (False, "segnalazione senza decisione: prompt_quote")
+          and eligible(record(), rules) == (True, "ok"))
 
 
 def test_v1_readable(tmp: Path):
@@ -298,6 +335,7 @@ if __name__ == "__main__":
     test_hash_invalidation()
     test_checks()
     test_no_certification()
+    test_policy()
     test_match_key()
     tmp = ROOT / "outputs" / "tmp" / f"test-f2-records-{os.environ.get('SLURM_JOB_ID', os.getpid())}"
     tmp.mkdir(parents=True, exist_ok=True)

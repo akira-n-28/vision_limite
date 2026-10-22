@@ -306,6 +306,63 @@ def clustered_rate(clusters: list[tuple[int, int]], conf: float = 0.95, min_erro
     return {"errors": k, "total": n, "rate": p, "ci": (min(lo, p), max(hi, p)), "deff": round(deff, 2), "deff_rule": rule}
 
 
+_QUOTE_DROP = re.compile(r"\\[()\[\]]|\$")
+_ELLIPSIS = re.compile(r"\.\.\.|…")
+
+
+def _norm_map(text: str) -> tuple[str, list[int]]:
+    """Testo in minuscolo senza i delimitatori LaTeX \\( \\) \\[ \\] e $, con gli spazi compressi, e la posizione
+    originale di ogni carattere: le citazioni degli agenti copiano il testo ma non sempre delimitatori e a capo."""
+    out, pos, i = [], [], 0
+    while i < len(text):
+        m = _QUOTE_DROP.match(text, i)
+        if m:
+            i = m.end()
+            continue
+        ch = text[i]
+        if ch.isspace():
+            if out and out[-1] != " ":
+                out.append(" ")
+                pos.append(i)
+        else:
+            out.append(ch.lower())
+            pos.append(i)
+        i += 1
+    return "".join(out), pos
+
+
+def quote_covers(text: str, quote: str, start: int, end: int, min_len: int = 3) -> bool:
+    """True se un pezzo della citazione (i pezzi sono separati da "...") si ritrova nel testo e copre almeno un
+    carattere di [start, end). È il criterio deterministico della calibrazione attribuibile: un errore introdotto è
+    trovato solo se una citazione indica proprio il punto alterato (revisione tecnica, C1)."""
+    norm, pos = _norm_map(text)
+    for frag in _ELLIPSIS.split(quote or ""):
+        q = _norm_map(frag)[0].strip(" \"'“”‘’`.,;:")
+        if len(q) < min_len:
+            continue
+        at = norm.find(q)
+        while at >= 0:
+            if pos[at] < end and pos[at + len(q) - 1] + 1 > start:
+                return True
+            at = norm.find(q, at + 1)
+    return False
+
+
+def note_covers(text: str, note: str, start: int, end: int, min_len: int = 8, reach: int = 40) -> bool:
+    """True se la nota libera di un agente riproduce almeno min_len caratteri consecutivi del testo che contengono il punto
+    alterato [start, end) (es. "12+15+16+12+15" in una nota sul ragionamento). Più largo di quote_covers: serve alla
+    sensibilità per qualunque campo, che il certificato riporta ma non usa per correggere i tassi visivi."""
+    norm, pos = _norm_map(text)
+    n_note = _norm_map(note or "")[0]
+    s = next((i for i, p in enumerate(pos) if p >= start), len(pos))
+    e = next((i for i, p in enumerate(pos) if p >= end), len(pos))
+    for a in range(max(0, s - reach), s + 1):
+        for b in range(min(len(norm), e + reach), max(e, a + min_len) - 1, -1):
+            if b - a >= min_len and norm[a:b] in n_note:
+                return True
+    return False
+
+
 def corrected_upper(upper: float, sensitivity_lower: float | None) -> float:
     """Limite superiore del tasso vero quando gli agenti trovano solo una parte degli errori: il tasso osservato
     sottostima quello vero di un fattore pari alla sensibilità; si divide per il suo limite inferiore (prudente)."""

@@ -25,7 +25,11 @@ descrizione): le soluzioni non possono copiare la descrizione, e servono a misur
 senza (prova solo domanda del 2026-10-19). --select 0 con --include genera solo le chiavi di --include.
 
 Uscita in --out, a parti da --part-size problemi: part-NNNNN.jsonl con, per problema, chiave, sorgente,
-risposta, pass_rate di Qwen3-VL-4B e le generazioni (testo, finish_reason, token). Ogni parte si scrive in
+risposta, pass_rate di Qwen3-VL-4B, la domanda di training (quella dell'esempio F2: audit e build la leggono da qui
+invece di ricalcolarla) con il suo sha256, lo sha256 del prompt dato a vLLM e le generazioni (testo, finish_reason,
+token). provenance.json registra modello (sha256 dei file), campionamento effettivo, versione di vLLM e, per ogni job,
+codice e parti scritte; una ripresa con modello o parametri diversi si ferma. Resta fuori dal confronto di plan.json,
+così le cartelle precedenti riprendono (le loro parti già scritte risultano senza provenienza). Ogni parte si scrive in
 `.tmp` e si rinomina; un nuovo avvio con la stessa --out salta le parti già scritte (il piano dei problemi
 dipende solo da shard, esclusioni e --limit, e si controlla con plan.json). Non inizia una parte che, con la
 durata della più lunga già fatta nel job, finirebbe a meno di --margin-min minuti dalla scadenza: una parte
@@ -49,9 +53,32 @@ from limite_vl.data import iter_shard  # noqa: E402
 from limite_vl.f2 import BRIDGE_TEMPLATE, INSTRUCTION, bridge_prompt, generated_keys, training_question  # noqa: E402
 from limite_vl.mavis import f2_problem as mavis_problem  # noqa: E402
 from limite_vl.mmfine import choose, load_texts, rank, scan_problems  # noqa: E402
+from limite_vl.provenance import code_identity, files_digest, replace_json, sha256_text  # noqa: E402
 
 sys.path.insert(0, str(ROOT / "scripts"))
 from train_f1 import seconds_left_in_job  # noqa: E402
+
+
+def problem_fields(p: dict, prompt: str) -> dict:
+    """Campi di provenienza di un problema nella sua riga: domanda dell'esempio di training (f2.training_question vi
+    aggiunge l'istruzione) con lo sha256, e sha256 del prompt esatto dato a vLLM."""
+    return {"question": p["question"], "question_sha256": sha256_text(p["question"]), "prompt_sha256": sha256_text(prompt)}
+
+
+def start_provenance(path: Path, invariant: dict, job: dict, written: list[str]) -> dict:
+    """provenance.json: `invariant` (sha256 dei file del modello, campionamento, vLLM) deve essere lo stesso per ogni job
+    che scrive parti della cartella; ogni job aggiunge la sua voce. Le parti già scritte quando il file non c'era
+    (cartelle precedenti) restano elencate come senza provenienza."""
+    if path.exists():
+        prov = json.loads(path.read_text())
+        diff = sorted(k for k in invariant.keys() | prov["invariant"].keys() if invariant.get(k) != prov["invariant"].get(k))
+        if diff:
+            sys.exit(f"{path}: {diff} diversi da quelli delle parti già generate: usare un'altra cartella --out")
+    else:
+        prov = {"schema": "f2-gen-provenance/1", "invariant": invariant, "parts_without_provenance": written, "jobs": []}
+    prov["jobs"].append(job)
+    replace_json(path, prov)
+    return prov
 
 
 def load_problems(shards: list[str], exclude: set[str], exclude_sources: set[str],
@@ -226,6 +253,18 @@ def main() -> None:
                             max_tokens=args.max_tokens, seed=args.seed)
     print(f"engine pronto in {time.time() - t_start:.0f} s; temperature {params.temperature}, top_p {params.top_p}, "
           f"max_tokens {params.max_tokens}, n {params.n}", flush=True)
+    import transformers
+    import vllm
+    invariant = {"model_files": files_digest(args.model), "dtype": "bfloat16", "vllm": vllm.__version__,
+                 "sampling": {"n": params.n, "temperature": params.temperature, "top_p": params.top_p, "top_k": params.top_k,
+                              "max_tokens": params.max_tokens, "seed": params.seed}}
+    job = {"job_id": os.environ.get("SLURM_JOB_ID"), "start": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+           "model_path": str(Path(args.model).resolve()), "transformers": transformers.__version__, "code": code_identity(),
+           "parts": []}
+    prov_path = args.out / "provenance.json"
+    prov = start_provenance(prov_path, invariant, job,
+                            [f"part-{i:05d}.jsonl" for i in range(len(parts)) if i not in todo])
+    print(f"provenienza in {prov_path} (sha256 dei file del modello in {time.time() - t_start:.0f} s)", flush=True)
 
     durations: list[float] = []
     for i in todo:
@@ -245,17 +284,19 @@ def main() -> None:
         path = args.out / f"part-{i:05d}.jsonl"
         tmp = path.with_suffix(".jsonl.tmp")
         with open(tmp, "w") as fh:
-            for p, out in zip(part, outputs):
+            for p, prompt, out in zip(part, prompts, outputs, strict=True):
                 completions = [{"text": c.text, "finish_reason": c.finish_reason, "tokens": len(c.token_ids)}
                                for c in out.outputs]
                 n_out += sum(c["tokens"] for c in completions)
                 row = {"key": p["key"], "source_dataset": p["source_dataset"], "answer": p["answer"],
                        "qwen4b_pass_rate": p["qwen4b_pass_rate"], "prompt_tokens": len(out.prompt_token_ids),
-                       "completions": completions}
+                       **problem_fields(p, prompt), "completions": completions}
                 if "answer_letter" in p:  # MAVIS: scelta multipla, vale la lettera o il contenuto dell'opzione
                     row["answer_letter"] = p["answer_letter"]
                 fh.write(json.dumps(row, ensure_ascii=False) + "\n")
         os.replace(tmp, path)
+        prov["jobs"][-1]["parts"].append(path.name)
+        replace_json(prov_path, prov)
         dt = time.time() - t0
         durations.append(dt)
         print(f"parte {i + 1}/{len(parts)}: {len(part)} problemi, {n_out} token generati in {dt:.0f} s "
