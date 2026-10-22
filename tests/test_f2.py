@@ -162,17 +162,23 @@ def test_select(tmp: Path):
     env = dict(os.environ, SLURM_JOB_ID=os.environ.get("SLURM_JOB_ID", "test"))
     subprocess.run([sys.executable, "-B", str(ROOT / "scripts/f2_select.py"), "--gen", str(gen), "--out", str(tmp / "sel"),
                     "--keep", "2", "--workers", "2"], check=True, env=env)
-    selected = [json.loads(line) for line in (tmp / "sel" / "selected.jsonl").read_text().splitlines()]
+    selected = [json.loads(line) for line in (tmp / "sel" / "selected.v2.jsonl").read_text().splitlines()]
     rl = [json.loads(line) for line in (tmp / "sel" / "rl_pool.jsonl").read_text().splitlines()]
     check("f2_select: due soluzioni per il problema risolto, pass rate 3/4",
           len(selected) == 2 and all(s["key"] == "p1" and s["violetto_pass_rate"] == 0.75 for s in selected))
+    check("f2_select: record v2 con sid diversi per soluzioni dal testo identico",
+          all(s["schema"] == "f2-sol/2" for s in selected) and len({s["sid"] for s in selected}) == 2
+          and len({s["text_sha256"] for s in selected}) == 1)
     check("f2_select: problema mai risolto nel pool di RL", [r["key"] for r in rl] == ["p2"])
     (tmp / "exclude.txt").write_text("p1\n")
     subprocess.run([sys.executable, "-B", str(ROOT / "scripts/f2_select.py"), "--gen", str(gen), "--out", str(tmp / "sel2"),
                     "--keep", "2", "--workers", "2", "--exclude", str(tmp / "exclude.txt")], check=True, env=env)
     stats = json.loads((tmp / "sel2" / "stats.json").read_text())
-    check("f2_select: problemi contaminati saltati", (tmp / "sel2" / "selected.jsonl").read_text() == ""
+    check("f2_select: problemi contaminati saltati", (tmp / "sel2" / "selected.v2.jsonl").read_text() == ""
           and stats["excluded_contaminated"] == 1 and stats["problems"] == 1)
+    again = subprocess.run([sys.executable, "-B", str(ROOT / "scripts/f2_select.py"), "--gen", str(gen), "--out", str(tmp / "sel"),
+                            "--keep", "2", "--workers", "2"], env=env, capture_output=True, text=True)
+    check("f2_select: una selezione esistente non si sovrascrive", again.returncode != 0)
 
 
 if __name__ == "__main__":

@@ -309,6 +309,22 @@ iperparametri rispetto al piano.
   della risposta, arbitro, soluzioni F2). Esiti in `outputs/stem_audit/<nome>/`. Nei report tenere sempre distinti
   codice, agenti e incerto; certificare solo con il limite superiore corretto per la sensibilità degli agenti.
 
+## Record delle soluzioni F2 (v2, alternativa C approvata il 2026-10-22)
+
+- Ogni soluzione F2 ha un `sid` = `<cartella della generazione>/<chiave>/<indice della generazione>`, lo sha256 del testo
+  generato (`raw_sha256`) e di quello selezionato (`text_sha256`). Un esito d'audit vale solo per quella coppia
+  (sid, hash): un testo cambiato dopo l'audit perde l'associazione.
+- `f2_select.py` scrive `selected.v2.jsonl` (campi v1 + quelli nuovi), `rejected.v2.jsonl` (scarti dei controlli nuovi,
+  non sostituiti), `selection.json` (hash di input e uscite, codice) e rifiuta una `--out` non vuota. Le selezioni
+  storiche (`selected.jsonl`) restano leggibili; `scripts/f2_backfill.py` scrive `selected.v2.jsonl` per corrispondenza
+  esatta con le generazioni (mai per somiglianza) e la mappa degli item di audit, in `outputs/f2_backfill/<selezione>/`
+  (`--out-dir`: le cartelle storiche restano solo lette). Job 29846-29849: f2-mavis2k e f2-sft120k-v4 tutte esatte, le
+  selezioni v2 (`*-rec2`) coincidono col backfill tranne gli scarti di `think_tags` (1 e 39).
+- Controlli: `think_tags` (un solo `<think>` e un solo `</think>`) scarta; citazioni del prompt (`"Figure: …`) e testo prima
+  di `<think>` sono solo segnalati, la decisione spetta all'utente.
+- Nessun record è certificato e nessuno script scrive ancora certificati (`f2-cert/1`): il gate e l'audit v2 (passi 4-8 del
+  piano) non sono ancora approvati.
+
 ## Ottimizzatore
 
 - F1: AdamW (proiettore e righe di embedding dei token visivi).
@@ -348,7 +364,9 @@ iperparametri rispetto al piano.
   - `latex.py`: formule im2latex in LaTeX naturale e confronto fra trascrizioni;
   - `train_utils.py`: loss a blocchi e checkpointing per layer;
   - `limite_code.py`: import verificato del codice di Limite;
-  - `optim/`: NorMuon e gruppi della Tabella 1.
-- `tests/` — test CPU (`test_normuon.py`, `test_vl_data.py`, `test_f1_data.py`), lanciati tutti da `slurm/tests_cpu.sbatch`
+  - `optim/`: NorMuon e gruppi della Tabella 1;
+  - `provenance.py`: hash di testi e file, identità del codice (commit + sha del diff), file nuovi senza sovrascrivere;
+  - `f2_records.py`: record f2-sol/2 delle soluzioni F2 (sid, hash, controlli deterministici, certificati, `admit`).
+- `tests/` — test CPU (`test_normuon.py`, `test_vl_data.py`, `test_f1_data.py`, `test_f2_records.py`, …), lanciati tutti da `slurm/tests_cpu.sbatch`
 - `config/runs/` — config dei run di training (`f1.json` è il run completo, da aggiornare con il nuovo mix)
 - `runs/ledger.tsv` — registro dei job (testo piccolo, versionato)
