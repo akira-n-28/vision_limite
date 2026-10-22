@@ -12,10 +12,10 @@ un uncertified_reason esplicito nella config.
 Per ogni record ammesso cerca il problema negli shard (--shards: MMFineReason, stessa chiave; --mavis-shards: shard
 caption di MAVIS-Geometry, chiave `mavis-<meta["id"]>`) e scrive un campione `<chiave>-g<indice della generazione>` con
 l'immagine (byte invariati: l'originale di MMFineReason, caption.jpg di MAVIS già a 2304 patch) e un JSON con la domanda
-salvata nella generazione (non quella dello shard), la soluzione, sid, text_sha256 e question_sha256
-(data.f2_solution_sample riverifica l'hash del testo). Uscite in --out, nuova o vuota: tar da --per-shard campioni
-(scritti in `.tmp`, riletti verificando chiavi e hash dei testi, poi rinominati), samples.jsonl (sample_id, sid,
-text_sha256, question_sha256, tar) e manifest.json (schema f2-build/2, con gli sha256 di certificato, selezione,
+salvata nella generazione o ricostruita esattamente (non quella dello shard), la soluzione, sid e gli sha256 di testo,
+domanda e immagine (data.f2_solution_sample li riverifica). Uscite in --out, nuova o vuota: tar da --per-shard campioni
+(scritti in `.tmp`, riletti verificando chiavi e hash di testo, domanda e immagine, poi rinominati), samples.jsonl (sample_id, sid,
+text_sha256, question_sha256, image_sha256, tar) e manifest.json (schema f2-build/2, con gli sha256 di certificato, selezione,
 samples.jsonl e tar, i non ammessi per motivo e l'identità del codice). Chiavi ripetute negli shard, sid ripetuti nella
 selezione o problemi ammessi non trovati: errore, e al posto di manifest.json resta build_failed.json.
 
@@ -40,7 +40,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from shard_llava_pretrain import HashingWriter, add_member  # noqa: E402  (stessa cartella scripts/)
 
 from limite_vl.data import iter_shard  # noqa: E402
-from limite_vl.f2_records import admit, record_version, validate_certificate  # noqa: E402
+from limite_vl.f2_records import admit, eligible, record_version, validate_certificate  # noqa: E402
 from limite_vl.provenance import HashingTextWriter, code_identity, file_entry, sha256_text, write_new_json  # noqa: E402
 
 BUILD_SCHEMA = "f2-build/2"
@@ -96,6 +96,13 @@ def main() -> None:
     if cert["population"]["selection_sha256"] != sel_entry["sha256"]:
         sys.exit(f"{args.certificate}: certificato di un'altra selezione (sha256 {cert['population']['selection_sha256'][:12]}, "
                  f"{args.selected} ha {sel_entry['sha256'][:12]})")
+    by_sid = {r["sid"]: r["text_sha256"] for r in recs}
+    stale = [e[0] for f in ("audited", "excluded", "quarantined") for e in cert[f] if by_sid.get(e[0]) != e[1]]
+    if stale:
+        sys.exit(f"{args.certificate}: esiti per soluzione che non corrispondono alla selezione (sid o text_sha256): {stale[:5]}")
+    pop = sum(eligible(r, cert["record_policy"])[0] for r in recs)
+    if pop != cert["population"]["solutions"]:
+        sys.exit(f"{args.certificate}: popolazione di {cert['population']['solutions']} soluzioni, la selezione ne ha {pop} ammissibili")
     exclude: set[str] = set()
     for path in args.exclude:
         exclude.update(line.strip() for line in open(path) if line.strip())
@@ -140,6 +147,9 @@ def main() -> None:
             meta = json.loads(files["json"])
             if sha256_text(meta["solution"]) != expect.get(k) or meta["text_sha256"] != expect.get(k):
                 raise RuntimeError(f"{tmp.name}: {k} riletto con un testo diverso da quello ammesso")
+            image = files.get("png") or files.get("jpg") or b""
+            if hashlib.sha256(image).hexdigest() != meta["image_sha256"] or sha256_text(meta["question"]) != meta["question_sha256"]:
+                raise RuntimeError(f"{tmp.name}: {k} riletto con immagine o domanda diverse da quelle scritte")
             got.append(k)
         if got != keys:
             raise RuntimeError(f"{path.name}: {len(got)} campioni riletti invece di {len(keys)}")
@@ -168,8 +178,10 @@ def main() -> None:
                         hw = HashingWriter(fh)
                         tar = tarfile.open(fileobj=hw, mode="w", format=tarfile.USTAR_FORMAT)
                     sample = f"{key}-g{rec['completion']}"
+                    image_sha = hashlib.sha256(files[ext]).hexdigest()
                     out = {"id": sample, "problem": key, "sid": rec["sid"], "text_sha256": rec["text_sha256"],
-                           "question_sha256": rec["question_sha256"], "source_dataset": rec.get("source_dataset"),
+                           "question_sha256": rec["question_sha256"], "image_sha256": image_sha,
+                           "question_origin": rec["question_origin"], "source_dataset": rec.get("source_dataset"),
                            "question": rec["question"], "answer": rec["answer"], "solution": rec["solution"],
                            "solution_tokens": rec.get("tokens"), "violetto_pass_rate": rec.get("violetto_pass_rate"),
                            "qwen4b_pass_rate": meta.get("pass_rate"), "max_patches": meta.get("max_patches"),
@@ -177,7 +189,8 @@ def main() -> None:
                     add_member(tar, f"{sample}.{ext}", files[ext])
                     add_member(tar, f"{sample}.json", json.dumps(out, ensure_ascii=False).encode())
                     samples.write_json_line({"sample_id": sample, "sid": rec["sid"], "text_sha256": rec["text_sha256"],
-                                             "question_sha256": rec["question_sha256"], "tar": f"{prefix}-{shard_idx:05d}.tar"})
+                                             "question_sha256": rec["question_sha256"], "image_sha256": image_sha,
+                                             "tar": f"{prefix}-{shard_idx:05d}.tar"})
                     keys.append(sample)
                     expect[sample] = rec["text_sha256"]
                     count += 1

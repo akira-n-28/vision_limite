@@ -43,6 +43,8 @@ class Source:
     shards: list[str]  # percorsi in ordine di nome
     weight: float
     exclude: frozenset[str] = frozenset()  # chiavi da saltare (decontaminazione, scripts/decontam.py scan)
+    # esito di f2_records.f2_data_certification per le sorgenti f2_solution: senza, MixedRowStream non le usa
+    certification: dict | None = None
 
     @property
     def val_shard(self) -> str:
@@ -164,6 +166,11 @@ class MixedRowStream(IterableDataset):
                  seed: int = 0, shuffle_buffer: int = 1024, pack_buffer: int = 512, val_count: int = 512,
                  resume: dict | None = None):
         super().__init__()
+        # fail-closed per ogni trainer (anche train_f1.py): le soluzioni F2 entrano nel flusso di training solo dopo la
+        # verifica del gate (certificato o uncertified_reason esplicito), che train_f2.py registra in Source.certification
+        unchecked = [s.name for s in sources if s.kind == "f2_solution" and not s.certification]
+        if unchecked:
+            raise ValueError(f"sorgenti f2_solution senza verifica del gate (f2_records.f2_data_certification): {unchecked}")
         self.sources, self.processor = sources, processor
         self.max_len, self.micro_rows, self.seed = max_len, micro_rows, seed
         self.shuffle_buffer, self.pack_buffer, self.val_count = shuffle_buffer, pack_buffer, val_count

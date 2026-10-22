@@ -278,6 +278,13 @@ def f2_solution_sample(key: str, files: dict[str, bytes]) -> Sample:
     meta = json.loads(files["json"])
     if "text_sha256" in meta and sha256_text(meta["solution"]) != meta["text_sha256"]:
         raise ValueError(f"{key}: soluzione diversa dal suo text_sha256 (shard alterato dopo il build)")
+    if "question_sha256" in meta and sha256_text(meta["question"]) != meta["question_sha256"]:
+        raise ValueError(f"{key}: domanda diversa dal suo question_sha256 (shard alterato dopo il build)")
+    if "image_sha256" in meta:
+        import hashlib
+
+        if hashlib.sha256(files["png"] if "png" in files else files["jpg"]).hexdigest() != meta["image_sha256"]:
+            raise ValueError(f"{key}: immagine diversa dal suo image_sha256 (shard alterato dopo il build)")
     image, max_patches = stem_image(files)
     messages = [{"role": "user", "content": [{"type": "image"}, {"type": "text", "text": training_question(meta["question"])}]},
                 {"role": "assistant", "content": meta["solution"]}]

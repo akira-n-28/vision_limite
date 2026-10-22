@@ -20,6 +20,7 @@ from limite_vl.f2_records import (CERT_SCHEMA, admit, association_ok, check_fail
                                   duplicate_sids, eligible, make_sid, parse_sid, policy_open, read_selected, record_policy,
                                   record_version, solution_checks, solution_record, validate_certificate, validate_record)
 from limite_vl.provenance import HashingTextWriter, sha256_file, sha256_text, write_new_json  # noqa: E402
+from limite_vl.stem_audit import clopper_pearson, corrected_upper  # noqa: E402
 
 FAILS = []
 
@@ -46,14 +47,30 @@ def record(key="p1", completion=0, solution="<think>2+2</think>\\boxed{4}", gen_
     return solution_record(**args)
 
 
+TEST_POLICY = {"schema": "f2-policy/1", "thresholds": {"solution_visual": 0.05}, "frame_counts_as_error": True,
+               "flag_policy": {"prompt_quote": "keep", "text_before_think": "keep"}, "calibration": {"required_kinds": ["measure"]}}
+
+
 def certificate(selection_sha: str, decision: str = "certified", audited=(), excluded=(), quarantined=(),
                 flags=None) -> dict:
-    """Certificato di prova, solo in memoria (quelli veri li scrive scripts/f2_certify.py)."""
-    return {"schema": CERT_SCHEMA, "population": {"selection_sha256": selection_sha, "solutions": 3},
-            "decision": decision, "audited": [list(a) for a in audited], "excluded": [list(e) for e in excluded],
-            "quarantined": [list(q) for q in quarantined], "audit": {"name": "prova", "manifest_sha256": "0" * 64},
-            "thresholds": {"solution_visual": 0.05}, "rates": {"solution_visual": {"k": 0, "n": 300}},
-            "record_policy": {"rejecting": ["think_tags"], "flags": flags or {"prompt_quote": "keep", "text_before_think": "keep"}}}
+    """Certificato di prova coerente anche nei numeri, solo in memoria (quelli veri li scrive scripts/f2_certify.py):
+    0 errori su 300 soluzioni, sensibilità 60/60 sulle misure, limite corretto sotto la soglia del 5%."""
+    policy = {**TEST_POLICY, "flag_policy": flags or TEST_POLICY["flag_policy"]}
+    entries = [list(a) if len(a) > 2 else [*a, "include"] for a in audited]
+    entries += [[*e[:2], "exclude"] for e in excluded] + [[*q[:2], "quarantine"] for q in quarantined]
+    s_lo = clopper_pearson(60, 60)[0]
+    lo, hi = clopper_pearson(0, 300)
+    verdicts = {v: sum(e[2] == v for e in entries) for v in ("include", "exclude", "quarantine")}
+    return {"schema": CERT_SCHEMA, "population": {"selection_sha256": selection_sha, "solutions": 3000},
+            "decision": decision, "reasons": [], "stale": [], "retroactive": False,
+            "audited": entries, "excluded": [list(e[:2]) for e in excluded], "quarantined": [list(q[:2]) for q in quarantined],
+            "audit": {"name": "prova", "manifest_sha256": "0" * 64, "version": 2},
+            "policy": {"content": policy, "open": policy_open(policy)}, "thresholds": dict(policy["thresholds"]),
+            "record_policy": record_policy(policy),
+            "rates": {"solution_visual": {"k": 0, "n": 300, "rate": 0.0, "lo": lo, "hi": hi},
+                      "verdicts": {k: v for k, v in verdicts.items() if v}, "sample_in_population": len(entries)},
+            "sensitivity": {"measure": {"k": 60, "n": 60, "rate": 1.0, "lo": s_lo, "hi": 1.0}},
+            "corrected_upper": {"solution_visual": corrected_upper(hi, s_lo), "sensitivity_lower": s_lo}}
 
 
 def test_ids():
@@ -147,6 +164,50 @@ def test_no_certification():
           in validate_certificate(undecided) and admit(q, undecided, sel)[0] is False)
     check("certificato senza record_policy: non valido", admit(r, {k: v for k, v in certificate(sel).items()
                                                                   if k != "record_policy"}, sel)[0] is False)
+
+
+def test_certificate_consistency():
+    """Certificati `certified` alterati: ognuno deve risultare non valido dal solo certificato."""
+    import copy
+
+    sel = "d" * 64
+    base = certificate(sel, audited=[("g/k/0", "a" * 64, "include"), ("g/k/1", "b" * 64)], excluded=[("g/k/2", "c" * 64)])
+    check("certificato coerente: valido", validate_certificate(base) == [], validate_certificate(base))
+
+    def bad(name, change, expect):
+        c = copy.deepcopy(base)
+        change(c)
+        problems = validate_certificate(c)
+        check(f"certificato alterato rifiutato: {name}", any(expect in p for p in problems), problems)
+
+    def over_threshold(c):  # soglia più severa del limite, ma coerente fra politica e certificato
+        c["policy"]["content"]["thresholds"]["solution_visual"] = 0.001
+        c["thresholds"]["solution_visual"] = 0.001
+    bad("limite corretto oltre la soglia", over_threshold, "oltre la soglia")
+    bad("metrica obbligatoria mancante", lambda c: c["rates"].pop("solution_visual"), "tasso mancante")
+    bad("metrica non valida (k > n)", lambda c: c["rates"]["solution_visual"].update(k=400), "conteggi non validi")
+    bad("rate incoerente con k/n", lambda c: c["rates"]["solution_visual"].update(rate=0.2), "incoerenti")
+    bad("calibrazione richiesta non eseguita", lambda c: c["sensitivity"].pop("measure"), "sensitivity.measure")
+    bad("calibrazione vuota", lambda c: c["sensitivity"]["measure"].update(k=0, n=0, rate=None), "sensitivity.measure")
+    bad("scelte della politica aperte", lambda c: c["policy"]["content"].update(frame_counts_as_error=None), "aperte")
+    bad("soglie diverse dalla politica", lambda c: c["thresholds"].update(solution_visual=0.5), "soglie diverse")
+    bad("regole per record diverse dalla politica", lambda c: c["record_policy"]["flags"].update(prompt_quote="reject"),
+        "record_policy diversa")
+    bad("limite corretto non ricalcolabile", lambda c: c["corrected_upper"].update(solution_visual=0.001), "ricalcolato")
+    bad("sensibilità usata diversa dalla calibrazione", lambda c: c["corrected_upper"].update(sensitivity_lower=0.99),
+        "sensitivity_lower")
+    bad("certified con motivi di rifiuto", lambda c: c["reasons"].append("x"), "motivi di rifiuto")
+    bad("audit retroattivo", lambda c: c.update(retroactive=True), "audit v2 non retroattivo")
+    bad("audit v1", lambda c: c["audit"].update(version=1), "audit v2 non retroattivo")
+    bad("esclusa non fra gli auditati", lambda c: c["excluded"].append(["g/k/9", "e" * 64]), "excluded diverso")
+    bad("verdetto cambiato senza aggiornare gli esclusi", lambda c: c["audited"][0].__setitem__(2, "exclude"), "excluded diverso")
+    bad("conteggio dei verdetti incoerente", lambda c: c["rates"]["verdicts"].update(include=7), "rates.verdicts")
+    bad("sid ripetuti negli esiti", lambda c: c["audited"].append(list(c["audited"][0])), "sid ripetuti")
+    bad("hash non valido negli esiti", lambda c: c["audited"][0].__setitem__(1, "zz"), "voce non valida")
+    bad("riferimento alla selezione incoerente", lambda c: c["population"].update(selection={"sha256": "e" * 64}),
+        "population.selection.sha256")
+    rejected = {**copy.deepcopy(base), "decision": "rejected", "reasons": ["x"]}
+    check("certificato rejected: basta la struttura (non ammette nulla)", validate_certificate(rejected) == [])
 
 
 def test_policy():
@@ -335,6 +396,7 @@ if __name__ == "__main__":
     test_hash_invalidation()
     test_checks()
     test_no_certification()
+    test_certificate_consistency()
     test_policy()
     test_match_key()
     tmp = ROOT / "outputs" / "tmp" / f"test-f2-records-{os.environ.get('SLURM_JOB_ID', os.getpid())}"

@@ -47,7 +47,7 @@ from torch.utils.data import DataLoader
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "scripts"))
-from limite_vl.f2_records import f2_data_certification  # noqa: E402
+from limite_vl.f2_records import f2_data_certification, run_certification_summary  # noqa: E402
 from limite_vl.modeling import LimiteVLForConditionalGeneration, VLConfig  # noqa: E402
 from limite_vl.optim.groups import build_optimizers, describe, assign_groups  # noqa: E402
 from limite_vl.optim.normuon import sync_adamw_weight_decay  # noqa: E402
@@ -158,9 +158,15 @@ def main() -> None:
         certification = f2_data_certification(cfg["sources"], [s.shards for s in sources])
     except ValueError as e:
         sys.exit(str(e))
+    by_name = {c["name"]: c for c in certification}
+    for s in sources:
+        s.certification = by_name.get(s.name)
     for c in certification:
         log(f"sorgente {c['name']}: " + ("shard certificati" if c["certified"] else
                                         f"shard NON certificati ({c['why']}); uncertified_reason: {c['uncertified_reason']}"))
+    summary = run_certification_summary(certification)
+    if not summary["f2_data_certified"]:
+        log("RUN NON CERTIFICATO: ablation di ricerca su dati F2 non certificati (manifest: f2_data_certified false)")
     tokens_per_step = cfg["max_len"] * cfg["rows_per_step"]
     total_steps = cfg.get("total_steps") or math.ceil(float(cfg["total_tokens"]) / tokens_per_step)
     if cfg["rows_per_step"] % cfg["micro_rows"]:
@@ -172,7 +178,9 @@ def main() -> None:
     manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {
         "run": cfg.get("run"), "config_digest": digest, "seed": cfg["seed"], "total_steps": total_steps,
         "tokens_per_step": tokens_per_step, "data": [shard_hashes(s) for s in sources],
-        "data_certification": certification, "init_adapter": cfg["init_adapter"], "jobs": []}
+        "data_certification": certification, **summary, "init_adapter": cfg["init_adapter"], "jobs": []}
+    if manifest.get("f2_data_certified") != summary["f2_data_certified"]:
+        sys.exit("certificazione dei dati diversa da quella con cui il run è iniziato: usare un'altra cartella --out")
     manifest["config"] = cfg
     manifest["jobs"].append({"job_id": job, "start": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
                              "resumed_from": ckpt_dir.name if ckpt_dir else None, **git_info(out, job),

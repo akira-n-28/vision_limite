@@ -231,7 +231,40 @@ def test_pipeline(tmp: Path, shards: str, metas: list[dict]):
     check("certificato con la politica del repository: rejected per le scelte aperte", rc.get("decision") == "rejected"
           and any("scelte della politica ancora aperte" in x for x in rc.get("reasons", [])), r.stderr[-400:])
 
+    # ---- certificati alterati: dal solo certificato e rileggendo gli artefatti (f2_certify.py --verify) ----
+    import copy
+
+    from limite_vl.f2_records import validate_certificate
+
+    check("certificato vero: valido anche nei numeri", validate_certificate(cert) == [], validate_certificate(cert))
+    r = run("f2_certify.py", "--verify", cert_dir / "certificate.json")
+    check("--verify: certificato ricalcolato uguale dagli artefatti", r.returncode == 0 and '"ok": true' in r.stdout, r.stdout[-600:] + r.stderr[-300:])
+    forged = copy.deepcopy(cert)
+    forged["thresholds"] = {k: 0.0001 for k in forged["thresholds"]}
+    forged["policy"]["content"]["thresholds"] = dict(forged["thresholds"])
+    check("certificato con limiti oltre le soglie dichiarate: non valido", any("oltre la soglia" in p for p in validate_certificate(forged)))
+    include = next(i for i, e in enumerate(cert["audited"]) if e[2] == "include")
+    swapped = copy.deepcopy(cert)
+    swapped["audited"][include][1] = sha256_text("un altro testo")
+    sw_path = tmp / "cert-swapped.json"
+    sw_path.write_text(json.dumps(swapped))
+    r = run("f2_certify.py", "--verify", sw_path)
+    check("--verify: esito per soluzione con un hash diverso da quello auditato rifiutato",
+          validate_certificate(swapped) == [] and r.returncode == 1 and "audited: ricalcolato diverso" in r.stdout, r.stdout[-500:])
+    pol2 = tmp / "policy-test-2.json"
+    pol2.write_text(json.dumps({**decided, "thresholds": {k: 0.9 for k in decided["thresholds"]}}))
+    moved = copy.deepcopy(cert)
+    moved["policy"]["file"]["path"] = str(pol2)
+    mv_path = tmp / "cert-policy.json"
+    mv_path.write_text(json.dumps(moved))
+    r = run("f2_certify.py", "--verify", mv_path)
+    check("--verify: politica diversa da quella del certificato rifiutata", r.returncode == 1 and "politica cambiata" in r.stdout, r.stdout[-400:])
+
     # ---- gate del build ----
+    r = run("f2_build.py", "--selected", sel / "selected.v2.jsonl", "--certificate", sw_path, "--mavis-shards", shards,
+            "--out", tmp / "shards-swapped")
+    check("build: certificato con esiti che non corrispondono alla selezione rifiutato", r.returncode != 0
+          and "non corrispondono alla selezione" in r.stderr, r.stderr[-300:])
     built = tmp / "shards-ok"
     r = run("f2_build.py", "--selected", sel / "selected.v2.jsonl", "--certificate", cert_dir / "certificate.json",
             "--mavis-shards", shards, "--out", built, "--per-shard", "5")
@@ -295,6 +328,65 @@ def test_pipeline(tmp: Path, shards: str, metas: list[dict]):
     other.write_text(other.read_text().replace('"certified"', '"certified" ', 1))
     check("training: certificato cambiato dopo il build", not check_f2_shards(sorted(str(p) for p in b2.glob("*.tar")))["certified"])
 
+    # tar modificati dopo il build: stesso nome, contenuto diverso
+    def tampered_copy(name: str, edit) -> list[str]:
+        d = tmp / name
+        shutil.copytree(built, d)
+        tars_d = sorted(d.glob("*.tar"))
+        edit(d, tars_d)
+        man_d = json.loads((d / "manifest.json").read_text())
+        man_d["certificate"]["path"] = str(cert_dir / "certificate.json")
+        (d / "manifest.json").write_text(json.dumps(man_d))
+        return [str(p) for p in tars_d]
+
+    def flip_byte(d, tars_d):
+        data = bytearray(tars_d[0].read_bytes())
+        data[700] ^= 0x01  # dentro i dati del primo membro (dopo l'intestazione di 512 byte)
+        tars_d[0].write_bytes(bytes(data))
+
+    t1 = tampered_copy("shards-flip", flip_byte)
+    chain = check_f2_shards(t1)
+    check("training: tar con un byte cambiato dopo il build rifiutato", not chain["certified"] and "sha256" in chain["why"], chain)
+    try:
+        f2_data_certification([spec], [t1])
+        refused = False
+    except ValueError:
+        refused = True
+    check("training: f2_data_certification rifiuta il tar alterato senza motivo", refused)
+
+    def drop_member(d, tars_d):  # tar riscritto senza un campione, manifest aggiornato in modo coerente con il tar
+        with tarfile.open(tars_d[0]) as tar:
+            members = [(m.name, tar.extractfile(m).read()) for m in tar.getmembers()]
+        write_tar(tars_d[0], members[2:])
+        man_d = json.loads((d / "manifest.json").read_text())
+        row = next(x for x in man_d["shards"] if x["name"] == tars_d[0].name)
+        row.update(sha256=sha256_file(tars_d[0]), bytes=tars_d[0].stat().st_size)
+        (d / "manifest.json").write_text(json.dumps(man_d))
+
+    chain = check_f2_shards(tampered_copy("shards-drop", drop_member))
+    check("training: tar senza un campione di samples.jsonl rifiutato anche con il manifest riallineato",
+          not chain["certified"] and "membri del tar" in chain["why"], chain)
+
+    # fail-closed: il motivo non rende certificata una sorgente e non si mette su una sorgente certificata
+    from limite_vl.f2_records import run_certification_summary
+
+    try:
+        f2_data_certification([{**spec, "uncertified_reason": "ablation di prova su dati certificati"}], [tars])
+        mixed = False
+    except ValueError as e:
+        mixed = "togliere il motivo" in str(e)
+    check("fail-closed: uncertified_reason su shard certificati rifiutato", mixed)
+    try:
+        f2_data_certification([{**spec, "uncertified_reason": "x"}], [[str(old / Path(tars[0]).name)]])
+        short = False
+    except ValueError as e:
+        short = "almeno" in str(e)
+    check("fail-closed: motivo troppo corto rifiutato", short)
+    summ = run_certification_summary(entry)
+    check("fail-closed: run con una sorgente non certificata dichiarato non certificato",
+          summ["f2_data_certified"] is False and summ["uncertified_sources"][0]["uncertified_reason"].startswith("riproduzione")
+          and run_certification_summary(ok)["f2_data_certified"] is True)
+
     from limite_vl.data import f2_solution_sample, iter_shard
     from limite_vl.stream import Source, SourceReader
 
@@ -309,12 +401,85 @@ def test_pipeline(tmp: Path, shards: str, metas: list[dict]):
     except ValueError:
         caught = True
     check("campione F2 con testo alterato dopo il build: errore", caught)
+    for what, changed in (("immagine", dict(files, png=png(9))),
+                          ("domanda", dict(files, json=json.dumps({**meta, "question": meta["question"] + " "}).encode()))):
+        try:
+            f2_solution_sample(key, changed)
+            caught = False
+        except ValueError as e:
+            caught = what in str(e)
+        check(f"campione F2 con {what} alterata dopo il build: errore", caught)
+    from limite_vl.stream import MixedRowStream
+
+    try:
+        MixedRowStream([Source("bridge", "f2_solution", tars, 1.0)], None, 1024, 1)
+        gated = False
+    except ValueError as e:
+        gated = "senza verifica del gate" in str(e)
+    check("fail-closed: flusso di training (anche train_f1) rifiuta f2_solution senza verifica del gate", gated)
+    MixedRowStream([Source("bridge", "f2_solution", tars, 1.0, certification=ok[0])], None, 1024, 1)
+    check("flusso di training: f2_solution verificata accettata", True)
     excluded_problem = meta["problem"]
     src = Source("bridge", "f2_solution", tars, 1.0, frozenset({excluded_problem}))
     reader = SourceReader(src, 0, 0, 1, 0)
     seen = [reader.next()[0] for _ in range(13 - sum(x["sample_id"].startswith(excluded_problem + "-g") for x in lines))]
     check("stream: lista per problema applicata ai campioni F2", seen and not any(k.startswith(excluded_problem + "-g") for k in seen)
           and len(set(seen)) == len(seen), seen[:3])
+
+
+def test_questions(tmp: Path, shards: str, metas: list[dict]):
+    """Recupero delle domande per una generazione storica (senza domanda nelle righe): codice del commit del job pulito
+    e dati verificati -> exact; file della domanda modificati nel job o dati non verificati -> inferred, senza domanda."""
+    gen = tmp / "gen-hist"
+    make_generation(gen, metas)
+    part = gen / "part-00000.jsonl"
+    rows = [json.loads(x) for x in part.read_text().splitlines()]
+    for row in rows:
+        for k in ("question", "question_sha256", "prompt_sha256"):
+            row.pop(k)
+    part.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows))
+    (gen / "plan.json").write_text(json.dumps({"parts": 1, "part_size": 100}))
+    sel = tmp / "sel-hist"
+    r = run("f2_select.py", "--gen", gen, "--out", sel, "--keep", "2", "--workers", "1")
+    recs = list(read_selected(sel / "selected.v2.jsonl")) if r.returncode == 0 else []
+    check("generazione storica: record senza domanda", recs and all(x["question"] is None for x in recs), r.stderr[-300:])
+    sdir = Path(shards).parent
+    (sdir / "manifest.json").write_text(json.dumps({"shards": [{"name": p.name, "sha256": sha256_file(p)} for p in sorted(sdir.glob("*.tar"))]}))
+    head = subprocess.run(["git", "-C", str(ROOT), "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
+
+    def log(name: str, dirty: list[str]) -> Path:
+        p = tmp / name
+        p.write_text("\n".join(["=== provenienza job 111 ===", "2026-10-21T15:20:49+02:00", "lagrange0", str(ROOT), head,
+                                *[f" M {f}" for f in dirty], "=== fine provenienza ===", "100 problemi in 1 parti",
+                                "parte 1/1: 8 problemi, 100 token generati in 1 s"]) + "\n")
+        return p
+
+    out = tmp / "q-clean"
+    r = run("f2_questions.py", "--selected", sel / "selected.v2.jsonl", "--gen", gen, "--gen-logs", log("clean.out", ["runs/ledger.tsv"]),
+            "--mavis-shards", shards, "--out-dir", out)
+    info = json.loads((out / "questions.json").read_text()) if r.returncode == 0 else {}
+    got = list(read_selected(out / "selected.v2q.jsonl")) if info else []
+    want = {f2_problem(m)["key"]: f2_problem(m)["question"] for m in metas}
+    check("recupero: codice del job pulito e dati verificati -> exact, domanda identica a quella della generazione",
+          info.get("counts") == {"exact": len(recs)} and all(x["question"] == want[x["key"]] and x["question_origin"] == "reconstructed"
+                                                             for x in got) and [x["sid"] for x in got] == [x["sid"] for x in recs],
+          (info.get("counts"), r.stderr[-800:]))
+    check("recupero: selezione originale non toccata", list(read_selected(sel / "selected.v2.jsonl")) == recs)
+    out2 = tmp / "q-dirty"
+    r = run("f2_questions.py", "--selected", sel / "selected.v2.jsonl", "--gen", gen, "--gen-logs",
+            log("dirty.out", ["src/limite_vl/mavis.py"]), "--mavis-shards", shards, "--out-dir", out2)
+    info2 = json.loads((out2 / "questions.json").read_text()) if r.returncode == 0 else {}
+    got2 = list(read_selected(out2 / "selected.v2q.jsonl")) if info2 else []
+    inferred = [json.loads(x) for x in (out2 / "questions_inferred.jsonl").read_text().splitlines()] if info2 else []
+    check("recupero: mavis.py modificato nel job -> inferred, nessuna domanda nei record",
+          info2.get("counts") == {"inferred": len(recs)} and all(x["question"] is None for x in got2)
+          and len(inferred) == len(recs) and all(x["question"] == want[x["key"]] for x in inferred), (info2.get("counts"), r.stderr[-500:]))
+    out3 = tmp / "q-nodata"
+    r = run("f2_questions.py", "--selected", sel / "selected.v2.jsonl", "--gen", gen, "--gen-logs", log("clean2.out", []),
+            "--mavis-shards", shards, "--out-dir", out3, "--no-data-check")
+    info3 = json.loads((out3 / "questions.json").read_text()) if r.returncode == 0 else {}
+    check("recupero: dati non verificati -> inferred", info3.get("counts") == {"inferred": len(recs)}, r.stderr[-300:])
+    (sdir / "manifest.json").unlink()
 
 
 if __name__ == "__main__":
@@ -331,6 +496,7 @@ if __name__ == "__main__":
         test_quote_covers()
         test_generate(tmp, shards)
         test_pipeline(tmp, shards, metas)
+        test_questions(tmp, shards, metas)
     finally:
         shutil.rmtree(tmp)
     print("\nfalliti:", FAILS or "nessuno")

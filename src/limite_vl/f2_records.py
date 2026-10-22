@@ -31,6 +31,10 @@ BUILD_SCHEMA = "f2-build/2"
 CERT_SCHEMA = "f2-cert/1"
 POLICY_SCHEMA = "f2-policy/1"
 FLAG_DECISIONS = ("reject", "keep")
+# Origine della domanda di training di un record: "generation" = salvata da f2_generate.py nella riga del problema;
+# "reconstructed" = ricostruita da scripts/f2_questions.py con il codice storico dimostrato (commit del job, file puliti)
+# e i dati verificati per hash. Una domanda solo inferita non entra nei record (resta None).
+QUESTION_ORIGINS = ("generation", "reconstructed")
 THINK_OPEN, THINK_CLOSE = "<think>", "</think>"
 _HEX64 = re.compile(r"^[0-9a-f]{64}$")
 
@@ -130,7 +134,8 @@ def solution_record(*, gen_run: str, key: str, completion: int, solution: str, r
         rec["answer_letter"] = answer_letter
     rec.update({"question": question, "solution": solution, "raw_sha256": raw_sha256 or sha256_text(raw_text),
                 "text_sha256": sha256_text(solution), "question_sha256": None if question is None else sha256_text(question),
-                "prompt_sha256": prompt_sha256, "rewritten": rewritten,
+                "question_origin": None if question is None else "generation", "prompt_sha256": prompt_sha256,
+                "rewritten": rewritten,
                 "tokens": tokens, "finish_reason": finish_reason, "violetto_pass_rate": violetto_pass_rate,
                 "answer_correct": True, "checks": checks, "failed": check_failures(checks),
                 "flags": check_flags(checks), "origin": origin})
@@ -182,6 +187,8 @@ def validate_record(rec: dict) -> list[str]:
         problems.append("question_sha256 senza domanda o domanda senza hash")
     elif question is not None and rec["question_sha256"] != sha256_text(question):
         problems.append("domanda diversa dal suo question_sha256")
+    if question is not None and rec.get("question_origin") not in QUESTION_ORIGINS:
+        problems.append(f"origine della domanda {rec.get('question_origin')!r} non ammessa")
     checks = solution_checks(rec.get("solution", ""))
     if rec.get("checks") != checks or rec.get("failed") != check_failures(checks) or rec.get("flags") != check_flags(checks):
         problems.append("controlli diversi da quelli ricalcolati")
@@ -258,9 +265,101 @@ def eligible(rec: dict, rules: dict) -> tuple[bool, str]:
     return True, "ok"
 
 
+def _rate_problems(name: str, r, k_key: str = "k", n_key: str = "n") -> list[str]:
+    """Un tasso {k, n, rate, lo, hi} (o {errors, claims, ...}) coerente: interi, 0 <= k <= n, n > 0, rate = k/n,
+    0 <= lo <= rate <= hi <= 1."""
+    if not isinstance(r, dict):
+        return [f"{name}: tasso mancante"]
+    k, n, rate, lo, hi = r.get(k_key), r.get(n_key), r.get("rate"), r.get("lo"), r.get("hi")
+    if not (isinstance(k, int) and isinstance(n, int) and 0 <= k <= n and n > 0):
+        return [f"{name}: conteggi non validi ({k_key}={k!r}, {n_key}={n!r})"]
+    if not all(isinstance(x, (int, float)) for x in (rate, lo, hi)):
+        return [f"{name}: rate, lo o hi mancanti"]
+    if abs(rate - k / n) > 1e-9 or not (0 <= lo <= rate + 1e-12 and rate <= hi + 1e-12 and hi <= 1):
+        return [f"{name}: rate {rate} e intervallo [{lo}, {hi}] incoerenti con {k}/{n}"]
+    return []
+
+
+def _certified_problems(cert: dict) -> list[str]:
+    """Coerenza numerica di un certificato `certified`, verificabile dal solo certificato: politica chiusa e uguale a
+    quella incorporata, soglie e regole per record ricavate dalla politica, tassi e calibrazione validi, limiti
+    corretti ricalcolati e sotto le soglie, esiti per soluzione coerenti fra loro. Che selezione, audit e politica
+    citati siano davvero quelli lo verifica f2_certify.py --verify rileggendo gli artefatti."""
+    from .stem_audit import corrected_upper
+
+    problems = []
+    if cert.get("reasons"):
+        problems.append(f"certified con motivi di rifiuto: {cert['reasons'][:3]}")
+    if cert.get("stale"):
+        problems.append("certified con item stale")
+    if cert.get("retroactive") is not False or (cert.get("audit") or {}).get("version") != 2:
+        problems.append("solo un audit v2 non retroattivo può certificare")
+    policy = (cert.get("policy") or {}).get("content")
+    if not isinstance(policy, dict):
+        return problems + ["politica incorporata mancante"]
+    if policy_open(policy) or (cert.get("policy") or {}).get("open"):
+        problems.append(f"scelte della politica aperte: {policy_open(policy) or cert['policy']['open']}")
+    thresholds, rates, corrected = cert.get("thresholds") or {}, cert.get("rates") or {}, cert.get("corrected_upper") or {}
+    if not thresholds or any(v is None for v in thresholds.values()):
+        problems.append("certificato senza soglie")
+    if thresholds != policy.get("thresholds"):
+        problems.append("soglie diverse da quelle della politica incorporata")
+    if cert.get("record_policy") != record_policy(policy):
+        problems.append("record_policy diversa da quella della politica incorporata")
+    required = (policy.get("calibration") or {}).get("required_kinds") or []
+    sens = cert.get("sensitivity") or {}
+    for kind in required:
+        problems += _rate_problems(f"sensitivity.{kind}", sens.get(kind))
+    if problems:
+        return problems
+    s_lo = min(sens[k]["lo"] for k in required)
+    if abs(corrected.get("sensitivity_lower", -1) - s_lo) > 1e-12:
+        problems.append("corrected_upper.sensitivity_lower diverso dal minimo della calibrazione richiesta")
+    for key, thr in thresholds.items():
+        r = rates.get(key)
+        problems += _rate_problems(f"rates.{key}", r, *(("errors", "claims") if key == "claim_visual" else ("k", "n")))
+        if problems:
+            continue
+        expect = corrected_upper(r["hi"], s_lo) if key in ("solution_visual", "claim_visual") else r["hi"]
+        got = corrected.get(key)
+        if not isinstance(got, (int, float)) or abs(got - expect) > 1e-9:
+            problems.append(f"corrected_upper.{key} = {got!r}, ricalcolato {expect:.6g}")
+        elif got > thr:
+            problems.append(f"{key}: limite corretto {got:.4g} oltre la soglia {thr}")
+    audited = cert.get("audited") or []
+    sids = [e[0] for e in audited]
+    if len(set(sids)) != len(sids):
+        problems.append("sid ripetuti in audited")
+    if any(len(e) < 3 or e[2] not in ("include", "exclude", "quarantine") for e in audited):
+        problems.append("audited senza verdetto valido")
+    else:
+        by = {v: {(e[0], e[1]) for e in audited if e[2] == v} for v in ("exclude", "quarantine")}
+        if {tuple(e[:2]) for e in cert.get("excluded") or []} != by["exclude"]:
+            problems.append("excluded diverso dagli item auditati con verdetto exclude")
+        if {tuple(e[:2]) for e in cert.get("quarantined") or []} != by["quarantine"]:
+            problems.append("quarantined diverso dagli item auditati con verdetto quarantine")
+        counts = {v: sum(e[2] == v for e in audited) for v in ("include", "exclude", "quarantine")}
+        if {k: v for k, v in counts.items() if v} != {k: v for k, v in (rates.get("verdicts") or {}).items() if v}:
+            problems.append("rates.verdicts diverso dagli esiti per soluzione")
+        if rates.get("sample_in_population") != len(audited):
+            problems.append("rates.sample_in_population diverso dagli item auditati")
+    for sid in sids:
+        try:
+            parse_sid(sid)
+        except ValueError:
+            problems.append(f"sid non valido in audited: {sid!r}")
+            break
+    solutions = (cert.get("population") or {}).get("solutions")
+    if not (isinstance(solutions, int) and solutions >= len(audited) and solutions > 0):
+        problems.append("population.solutions non valido")
+    return problems
+
+
 def validate_certificate(cert: dict) -> list[str]:
-    """Problemi strutturali di un certificato f2-cert/1 (vuoto = ben formato). Un certificato `certified` deve
-    dichiarare le soglie e i tassi su cui è stato deciso: un certificato senza numeri non vale."""
+    """Problemi di un certificato f2-cert/1 (vuoto = valido). Per ogni certificato: struttura, riferimenti e liste di
+    (sid, text_sha256). Per un certificato `certified` anche la coerenza numerica della decisione (_certified_problems):
+    un certificato che dichiara certified con un limite sopra la soglia, una metrica mancante, una calibrazione non
+    eseguita o scelte aperte non vale."""
     problems = []
     if not isinstance(cert, dict):
         return ["non è un oggetto JSON"]
@@ -283,17 +382,16 @@ def validate_certificate(cert: dict) -> list[str]:
     audit = cert.get("audit") or {}
     if not (audit.get("name") and _HEX64.match(str(audit.get("manifest_sha256", "")))):
         problems.append("audit.name o audit.manifest_sha256 mancante")
+    sel = pop.get("selection") or {}
+    if sel and sel.get("sha256") != pop.get("selection_sha256"):
+        problems.append("population.selection.sha256 diverso da population.selection_sha256")
     if cert.get("decision") == "certified":
-        thresholds, rates = cert.get("thresholds") or {}, cert.get("rates") or {}
-        if not thresholds or any(v is None for v in thresholds.values()):
-            problems.append("certificato senza soglie")
-        if not rates or any(rates.get(k) is None for k in thresholds):
-            problems.append("certificato senza i tassi delle sue soglie")
         rules = cert.get("record_policy") or {}
         if not set(REJECTING) <= set(rules.get("rejecting") or []):
             problems.append("record_policy senza i controlli che scartano")
         if any((rules.get("flags") or {}).get(f) not in FLAG_DECISIONS for f in FLAGGED):
             problems.append("record_policy con segnalazioni non decise")
+        problems += _certified_problems(cert)
     return problems
 
 
@@ -344,10 +442,46 @@ def _project_path(p: str) -> Path:
     return path if path.is_absolute() else ROOT / path
 
 
-def check_f2_shards(shards: list[str]) -> dict:
+def _samples_problems(folder: Path, man: dict, shards: list[str]) -> str | None:
+    """Coerenza fra samples.jsonl, manifest e tar: righe, sample_id e sid unici, campioni per tar uguali a quelli del
+    manifest, nomi dei membri di ogni tar (solo le intestazioni, senza leggere le immagini) uguali ai campioni attesi."""
+    import tarfile
+
+    per_tar: dict[str, set[str]] = {}
+    ids, sids = set(), set()
+    with open(folder / "samples.jsonl", encoding="utf-8") as fh:
+        for line in fh:
+            s = json.loads(line)
+            if s["sample_id"] in ids or s["sid"] in sids:
+                return f"samples.jsonl: sample_id o sid ripetuto ({s['sample_id']})"
+            if not all(_HEX64.match(str(s.get(k, ""))) for k in ("text_sha256", "question_sha256", "image_sha256")):
+                return f"samples.jsonl: hash mancanti per {s['sample_id']}"
+            ids.add(s["sample_id"])
+            sids.add(s["sid"])
+            per_tar.setdefault(s["tar"], set()).add(s["sample_id"])
+    if len(ids) != man["samples"] or sum(r["samples"] for r in man["shards"]) != man["samples"]:
+        return f"samples.jsonl ({len(ids)} righe), manifest ({man['samples']}) e tar del manifest non tornano"
+    for path in shards:
+        name = Path(path).name
+        row = next(r for r in man["shards"] if r["name"] == name)
+        want = per_tar.get(name, set())
+        if len(want) != row["samples"]:
+            return f"{name}: {len(want)} campioni in samples.jsonl, {row['samples']} nel manifest"
+        with tarfile.open(path) as tar:
+            files = [m.name for m in tar.getmembers() if m.isfile()]
+        members, n_json = {f.rsplit(".", 1)[0] for f in files}, sum(f.endswith(".json") for f in files)
+        if members != want or n_json != len(want):
+            return f"{name}: membri del tar diversi dai campioni di samples.jsonl"
+    return None
+
+
+def check_f2_shards(shards: list[str], verify_tars: bool = True) -> dict:
     """Catena del gate per i tar di una sorgente f2_solution: manifest f2-build/2 nella loro cartella (scripts/f2_build.py),
-    certificato e samples.jsonl ancora con lo sha256 registrato, certificato ben formato, `certified` e della stessa
-    selezione, tar della sorgente uguali a quelli del build. {"certified": False, "why": ...} se un anello manca."""
+    certificato e samples.jsonl ancora con lo sha256 registrato, certificato valido (validate_certificate, coerenza
+    numerica compresa), `certified` e della stessa selezione, tar della sorgente uguali a quelli del build per nome e
+    per sha256 (lettura completa: qualche secondo per GB, una volta per job), samples.jsonl coerente con manifest e
+    membri dei tar. {"certified": False, "why": ...} se un anello manca. verify_tars=False salta solo gli sha256 dei tar
+    (per i test di velocità, mai nel training)."""
     folder = Path(shards[0]).parent
     man_path = folder / "manifest.json"
     if not man_path.is_file():
@@ -374,23 +508,49 @@ def check_f2_shards(shards: list[str]) -> dict:
     names, built = sorted(Path(s).name for s in shards), sorted(r["name"] for r in man["shards"])
     if names != built:
         return {"certified": False, "why": f"tar della sorgente diversi da quelli del build ({len(names)} contro {len(built)})"}
+    if verify_tars:
+        by_name = {r["name"]: r for r in man["shards"]}
+        for path in shards:
+            row = by_name[Path(path).name]
+            if Path(path).stat().st_size != row["bytes"] or sha256_file(path) != row["sha256"]:
+                return {"certified": False, "why": f"{Path(path).name}: contenuto diverso da quello del build (sha256)"}
+    why = _samples_problems(folder, man, shards)
+    if why:
+        return {"certified": False, "why": why}
     return {"certified": True, "why": None, "manifest_sha256": sha256_file(man_path),
             "certificate_sha256": man["certificate"]["sha256"], "selection_sha256": man["selection_sha256"],
-            "samples_sha256": man["samples_file"]["sha256"], "samples": man["samples"]}
+            "samples_sha256": man["samples_file"]["sha256"], "samples": man["samples"], "tars_verified": verify_tars}
+
+
+MIN_REASON = 20
 
 
 def f2_data_certification(specs: list[dict], shards: list[list[str]]) -> list[dict]:
     """Per ogni sorgente f2_solution della config (nell'ordine di make_sources): catena del gate verificata oppure un
     `uncertified_reason` esplicito (ablation di ricerca su dati non certificati, registrata nel manifest del run).
-    ValueError se manca l'una e l'altro: un training F2 non usa dati non certificati in silenzio."""
+    Fail-closed: ValueError se manca l'una e l'altro, se il motivo è troppo corto per dire qualcosa (meno di MIN_REASON
+    caratteri) e anche se una sorgente certificata porta un uncertified_reason, così una config non può dichiarare
+    insieme le due cose. Il motivo non rende mai certificata una sorgente: `certified` resta quello della catena."""
     out = []
     for spec, files in zip(specs, shards, strict=True):
         if spec["kind"] != "f2_solution":
             continue
         chain = check_f2_shards(files)
         reason = spec.get("uncertified_reason")
-        if not chain["certified"] and not (isinstance(reason, str) and reason.strip()):
+        if reason is not None and not (isinstance(reason, str) and len(reason.strip()) >= MIN_REASON):
+            raise ValueError(f"sorgente {spec['name']}: uncertified_reason deve spiegare l'ablation (almeno {MIN_REASON} caratteri)")
+        if chain["certified"] and reason is not None:
+            raise ValueError(f"sorgente {spec['name']}: shard certificati con un uncertified_reason: togliere il motivo")
+        if not chain["certified"] and reason is None:
             raise ValueError(f"sorgente {spec['name']}: shard F2 non certificati ({chain['why']}). Per un'ablation di ricerca "
                              "su questi dati serve un uncertified_reason esplicito nella sorgente, in una copia della config")
         out.append({"name": spec["name"], **chain, "uncertified_reason": reason})
     return out
+
+
+def run_certification_summary(entries: list[dict]) -> dict:
+    """Riepilogo per il manifest del run: certificato solo se ogni sorgente f2_solution lo è; altrimenti il run è
+    un'ablation su dati non certificati, con l'elenco delle sorgenti e dei motivi."""
+    uncertified = [{"name": e["name"], "why": e["why"], "uncertified_reason": e["uncertified_reason"]}
+                   for e in entries if not e["certified"]]
+    return {"f2_data_certified": bool(entries) and not uncertified, "f2_sources": len(entries), "uncertified_sources": uncertified}

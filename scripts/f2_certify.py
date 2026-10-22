@@ -118,26 +118,15 @@ def claim_cluster(audit: Audit, fid: str, row: dict) -> tuple[int, int] | None:
     return errors, max(errors, round(statistics.median(claims)))
 
 
-def main() -> None:
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--audit", required=True, type=Path)
-    ap.add_argument("--selection", required=True, type=Path, help="selected.v2.jsonl su cui l'audit ha campionato")
-    ap.add_argument("--policy", required=True, type=Path)
-    ap.add_argument("--out", required=True, type=Path, help="cartella nuova o vuota")
-    ap.add_argument("--audit-map", type=Path, help="audit v1: audit_map-<audit>.jsonl di f2_backfill.py")
-    args = ap.parse_args()
-    if not os.environ.get("SLURM_JOB_ID"):
-        sys.exit("f2_certify.py va eseguito in un job SLURM")
-    if args.out.exists() and any(args.out.iterdir()):
-        sys.exit(f"{args.out} non è vuota: un certificato non si riscrive")
-    t0 = time.time()
-    man = json.loads((args.audit / "manifest.json").read_text())
-    audit = Audit(args.audit, 0.10, int(man["args"]["seed"]) + 10)
+def certify(audit_dir: Path, selection: Path, policy_path: Path, audit_map: Path | None) -> tuple[dict, list[dict], list[str]]:
+    """Certificato (in memoria), esiti per item e righe del report: lo stesso calcolo serve a scriverlo e a --verify."""
+    man = json.loads((audit_dir / "manifest.json").read_text())
+    audit = Audit(audit_dir, 0.10, int(man["args"]["seed"]) + 10)
     if not audit.f2:
-        sys.exit(f"{args.audit}: nessuna soluzione F2 (_gold/items_f2.json)")
-    policy = json.loads(args.policy.read_text())
+        sys.exit(f"{audit_dir}: nessuna soluzione F2 (_gold/items_f2.json)")
+    policy = json.loads(policy_path.read_text())
     open_choices, rules = policy_open(policy), record_policy(policy)
-    sel, sel_entry = read_selection(args.selection)
+    sel, sel_entry = read_selection(selection)
     reasons = []
     if open_choices:
         reasons.append("scelte della politica ancora aperte: " + ", ".join(open_choices))
@@ -150,19 +139,19 @@ def main() -> None:
         binding = {fid: {"sid": it.get("sid"), "text_sha256": it["text_sha256"], "source_sid": it.get("source_sid")}
                    for fid, it in audit.f2.items()}
     else:
-        if not args.audit_map:
+        if not audit_map:
             sys.exit("audit v1: serve --audit-map (f2_backfill.py --audit)")
         binding = {}
-        for line in open(args.audit_map):
+        for line in open(audit_map):
             r = json.loads(line)
-            if r["audit"] != args.audit.name:
-                sys.exit(f"{args.audit_map}: mappa dell'audit {r['audit']}, non di {args.audit.name}")
+            if r["audit"] != audit_dir.name:
+                sys.exit(f"{audit_map}: mappa dell'audit {r['audit']}, non di {audit_dir.name}")
             binding[r["fid"]] = {"sid": r.get("sid"), "text_sha256": r["audited_text_sha256"], "source_sid": r.get("source_sid")}
         missing = sorted(set(audit.f2) - set(binding))
         if missing:
-            sys.exit(f"{args.audit_map}: mancano gli item {missing[:5]}")
+            sys.exit(f"{audit_map}: mancano gli item {missing[:5]}")
         reasons.append("audit v1: certificato solo retroattivo (nessun frame_ok, nessun conteggio delle affermazioni)")
-    pending = [n for n in audit.batches if not (args.audit / "answers" / f"{n}.json").exists()]
+    pending = [n for n in audit.batches if not (audit_dir / "answers" / f"{n}.json").exists()]
     open_tasks = {r: len(v) for r, v in audit.next_tasks().items() if v}
     if pending or audit.invalid or open_tasks:
         reasons.append(f"audit incompleto: lotti senza risposta {len(pending)}, non validi {len(audit.invalid)}, compiti da "
@@ -175,8 +164,8 @@ def main() -> None:
     frame_rule = policy.get("frame_counts_as_error")
     has_frame = audit.version == 2
     fields = ["visual_ok", "reasoning_valid", "relies_on_unseen"] + (["frame_ok"] if has_frame and frame_rule is not False else [])
-    truth = json.loads((args.audit / "_gold" / "calibration_f2.json").read_text()) \
-        if (args.audit / "_gold" / "calibration_f2.json").exists() else {}
+    truth = json.loads((audit_dir / "_gold" / "calibration_f2.json").read_text()) \
+        if (audit_dir / "_gold" / "calibration_f2.json").exists() else {}
     details, real, stale = [], [], []
     cal = {k: Counter() for k in ("measure", "layout", "negative")}
     agents = {k: Counter() for k in ("measure", "layout")}
@@ -286,11 +275,12 @@ def main() -> None:
             "population": {"selection_sha256": sel_entry["sha256"], "selection": sel_entry, "solutions": len(pop),
                            "problems": len({r["key"] for r in pop}), "by_source": dict(Counter(r["source_dataset"] for r in pop)),
                            "flags_decided": flags_decided},
-            "audit": {"name": args.audit.name, "dir": str(args.audit), "version": audit.version,
-                      "manifest_sha256": sha256_file(args.audit / "manifest.json"),
+            "audit": {"name": audit_dir.name, "dir": str(audit_dir), "version": audit.version,
+                      "manifest_sha256": sha256_file(audit_dir / "manifest.json"),
+                      "audit_map": file_entry(audit_map) if audit_map else None,
                       "design": (man.get("f2_v2") or {}).get("design") or {"unit": "una soluzione per problema (v1)",
                                                                             "seed": man["args"].get("seed")}},
-            "policy": {"file": file_entry(args.policy), "content": policy, "open": open_choices},
+            "policy": {"file": file_entry(policy_path), "content": policy, "open": open_choices},
             "record_policy": rules, "fields": fields, "rates": rates, "sensitivity": sensitivity,
             "sensitivity_agent": sensitivity_agent, "false_alarms": false_alarms, "corrected_upper": corrected,
             "thresholds": thresholds,
@@ -304,20 +294,14 @@ def main() -> None:
     problems = validate_certificate(cert)
     if problems:
         raise RuntimeError(f"certificato non valido: {problems}")
-    args.out.mkdir(parents=True, exist_ok=True)
-    w = HashingTextWriter(args.out / "certify_items.jsonl")
-    for d in details:
-        w.write_json_line(d)
-    cert["items_file"] = w.close()
-    write_new_json(args.out / "certificate.json", cert)
 
     def line(name: str, r: dict | None) -> str:
         return "—" if not r or not r.get("n", r.get("claims")) else \
             f"{r.get('k', r.get('errors'))}/{r.get('n', r.get('claims'))} ({pct(r['rate'])}, IC {pct(r['lo'])}-{pct(r['hi'])})"
 
-    md = [f"# Certificato F2 di {args.audit.name}: {decision}", "",
+    md = [f"# Certificato F2 di {audit_dir.name}: {decision}", "",
           f"Selezione {sel_entry['path']} (sha256 {sel_entry['sha256'][:12]}), popolazione {len(pop)} soluzioni; audit v{audit.version}"
-          f"{' (retroattivo)' if audit.version == 1 else ''}; politica {args.policy} (scelte aperte: {', '.join(open_choices) or 'nessuna'}).",
+          f"{' (retroattivo)' if audit.version == 1 else ''}; politica {policy_path} (scelte aperte: {', '.join(open_choices) or 'nessuna'}).",
           "", "## Tassi sul campione", "",
           f"- Item del campione nella popolazione: {len(real)}; stale {len(stale)}; verdetti {rates['verdicts']}.",
           f"- Soluzioni con fatti visivi falsi o non visibili ({'+'.join(visual_fields)}): {line('v', rates['solution_visual'])}; "
@@ -335,6 +319,78 @@ def main() -> None:
     md += [f"- Controlli negativi: falsi allarmi {line('n', false_alarms)}.",
            f"- Limite inferiore della sensibilità usato (tipi {', '.join(required) or 'nessuno'}): {pct(s_lo)}.", "",
            "## Decisione", "", f"**{decision}**." + ("" if not reasons else " Motivi:"), *[f"- {r}" for r in reasons]]
+    return cert, details, md
+
+
+# campi che decidono il certificato: --verify li ricalcola dagli artefatti e li confronta
+DECIDING = ("decision", "reasons", "retroactive", "population", "fields", "rates", "sensitivity", "false_alarms",
+            "corrected_upper", "thresholds", "record_policy", "audited", "excluded", "quarantined", "stale")
+
+
+def _path(p: str) -> Path:
+    path = Path(p)
+    return path if path.is_absolute() else ROOT / path
+
+
+def verify(cert: dict) -> list[str]:
+    """Verifica che richiede gli artefatti originali (validate_certificate copre ciò che si controlla dal solo
+    certificato): sha256 di selezione, manifest dell'audit, politica e mappa uguali a quelli registrati, politica
+    incorporata uguale al file, e certificato ricalcolato da quegli artefatti uguale in ogni campo di DECIDING."""
+    problems = [f"certificato: {p}" for p in validate_certificate(cert)]
+    a, pop, pol = cert.get("audit") or {}, cert.get("population") or {}, cert.get("policy") or {}
+    audit_dir, selection = _path(a.get("dir", "")), _path((pop.get("selection") or {}).get("path", ""))
+    policy_path = _path((pol.get("file") or {}).get("path", ""))
+    amap = _path(a["audit_map"]["path"]) if a.get("audit_map") else None
+    checks = [(selection, pop.get("selection_sha256"), "selezione"), (audit_dir / "manifest.json", a.get("manifest_sha256"), "manifest dell'audit"),
+              (policy_path, (pol.get("file") or {}).get("sha256"), "politica")] + ([(amap, a["audit_map"]["sha256"], "mappa dell'audit")] if amap else [])
+    for path, sha, what in checks:
+        if not path.is_file():
+            problems.append(f"{what} mancante: {path}")
+        elif sha256_file(path) != sha:
+            problems.append(f"{what} cambiata dopo il certificato: {path}")
+    if problems:
+        return problems
+    if json.loads(policy_path.read_text()) != pol.get("content"):
+        problems.append("politica incorporata diversa dal file")
+    new, _, _ = certify(audit_dir, selection, policy_path, amap)
+
+    def deciding(c: dict) -> dict:  # il percorso della selezione può essere scritto in modi diversi: conta lo sha256
+        c = json.loads(json.dumps({k: c.get(k) for k in DECIDING}))
+        ((c.get("population") or {}).get("selection") or {}).pop("path", None)
+        return c
+
+    old, now = deciding(cert), deciding(new)
+    problems += [f"{k}: ricalcolato diverso da quello del certificato" for k in DECIDING if old[k] != now[k]]
+    return problems
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--audit", type=Path)
+    ap.add_argument("--selection", type=Path, help="selected.v2.jsonl su cui l'audit ha campionato")
+    ap.add_argument("--policy", type=Path)
+    ap.add_argument("--out", type=Path, help="cartella nuova o vuota")
+    ap.add_argument("--audit-map", type=Path, help="audit v1: audit_map-<audit>.jsonl di f2_backfill.py")
+    ap.add_argument("--verify", type=Path, help="certificate.json da verificare rileggendo gli artefatti (non scrive nulla)")
+    args = ap.parse_args()
+    if not os.environ.get("SLURM_JOB_ID"):
+        sys.exit("f2_certify.py va eseguito in un job SLURM")
+    t0 = time.time()
+    if args.verify:
+        problems = verify(json.loads(args.verify.read_text()))
+        print(json.dumps({"certificate": str(args.verify), "ok": not problems, "problems": problems}, indent=1, ensure_ascii=False))
+        sys.exit(1 if problems else 0)
+    if not (args.audit and args.selection and args.policy and args.out):
+        sys.exit("servono --audit, --selection, --policy e --out (oppure --verify)")
+    if args.out.exists() and any(args.out.iterdir()):
+        sys.exit(f"{args.out} non è vuota: un certificato non si riscrive")
+    cert, details, md = certify(args.audit, args.selection, args.policy, args.audit_map)
+    args.out.mkdir(parents=True, exist_ok=True)
+    w = HashingTextWriter(args.out / "certify_items.jsonl")
+    for d in details:
+        w.write_json_line(d)
+    cert["items_file"] = w.close()
+    write_new_json(args.out / "certificate.json", cert)
     (args.out / "certify_report.md").write_text("\n".join(md) + "\n")
     print("\n".join(md))
     print(f"fine in {time.time() - t0:.0f} s")

@@ -343,6 +343,36 @@ iperparametri rispetto al piano.
     nella sorgente, registrato nel manifest. `stream` applica le esclusioni per problema anche ai campioni F2,
     `data.f2_solution_sample` riverifica `text_sha256`.
   - Passo 8 (spostare gli helper di train_f1.py in un modulo comune) non fatto: facoltativo.
+- Rafforzamento del gate (richiesta del 2026-10-22, codice e test; nessun job senza approvazione):
+  - `check_f2_shards` confronta lo sha256 di ogni tar con il manifest del build (prima solo i nomi) e la coerenza fra
+    `samples.jsonl`, manifest e membri dei tar; ogni campione porta anche `image_sha256`, riverificato da
+    `data.f2_solution_sample` insieme a testo e domanda.
+  - `validate_certificate` per un `certified` ricalcola la decisione dal certificato (politica chiusa e incorporata,
+    soglie e regole derivate, tassi e calibrazione validi, limiti corretti ricalcolati e sotto soglia, esiti per
+    soluzione coerenti, solo audit v2 non retroattivi); `f2_certify.py --verify CERT` rilegge selezione, audit, politica
+    e mappa e ricalcola il certificato. `f2_build.py` rifiuta esiti che non corrispondono alla selezione.
+  - Fail-closed: `MixedRowStream` rifiuta sorgenti `f2_solution` senza verifica del gate (vale anche per train_f1.py);
+    `uncertified_reason` almeno 20 caratteri, vietato su sorgenti certificate, e il manifest del run dice
+    `f2_data_certified: false` se una sorgente non lo è.
+  - Pilota dell'audit v2 (richiesta del 2026-10-22, test del metodo, mai una certificazione): `scripts/f2_pilot.py`
+    export / round / final con `src/limite_vl/f2_claims.py` (misure della didascalia MAVIS contro quelle scritte nella
+    soluzione, alterazioni di misura e costruzione con verità nota, di orientamento senza, controlli negativi
+    verificabili) e due compiti nuovi per gli agenti: `config/audit/f2_extract.md` (affermazioni atomiche, solo testo) e
+    `config/audit/f2_claim_verify.md` (ogni affermazione contro l'immagine, senza la soluzione). Criteri di riuscita
+    fissati nell'export; agenti e job solo con l'approvazione esplicita dell'utente.
+  - Esito del pilota `mavis-v2c` (job 29869-29872, 117 chiamate Haiku, 6.9 milioni di token, circa 45 mila fissi per
+    chiamata): il metodo non passa. L'estrazione libera da tracce di 2-31 mila caratteri trova 5 alterazioni su 24
+    (misura 4/12, costruzione 0/6, orientamento 1/6): circa 16-25 affermazioni per soluzione a prescindere dalla
+    lunghezza, un solo valore per elemento (la ripetizione con valore diverso si perde) e manca errori che v1 aveva
+    trovato (p051, rettangolo dal lato sbagliato di DB). Il codice trova 12/12 alterazioni di misura e nessuna
+    contraddizione sulle 24 soluzioni vere. I verificatori giudicano bene ciò che ricevono (5/5, disaccordo VA/VB 4%,
+    quarantene 1%), ma i riferimenti scelti per calcolare (assi ruotati o riflessi) sono giudicati in modo incoerente
+    (p044 e p029 veri, p037 falsi), le ipotesi scartate contano come errori e le proporzioni in pixel danno falsi
+    allarmi (p017: quadrato con cerchio inscritto letto come rettangolo). Alcune alterazioni di orientamento e
+    costruzione cadono in frasi ipotetiche, dove la verità non è definita.
+  - Recupero delle domande storiche: `scripts/f2_questions.py` (job CPU, cartella nuova) le ricalcola con il codice del
+    commit del job (git archive, processo a parte) e classifica exact / inferred / conflict / missing; solo exact
+    (codice del job pulito, dati verificati per sha256, token del prompt non smentiti) ha `question_origin: reconstructed`.
 
 ## Ottimizzatore
 
