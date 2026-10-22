@@ -786,3 +786,5 @@ time	job_id	job_name	status	note
 2026-10-22T18:16:00+02:00	29872	lvl-f2-pilot	submitted	pilota mavis-v2c: final dopo VC (27 lotti; 117 chiamate Haiku in tutto, 6.90M token, answers/_usage.json); 0 GPU 2 CPU 4G 0:10
 2026-10-22T18:16:22+02:00	29872	lvl-f2-pilot	ok	f2_pilot: final --dir outputs/f2_pilot/mavis-v2c
 2026-10-22T18:20:50+02:00	29872	lvl-f2-pilot	ok	pilota mavis-v2c: criteri non superati (recall estrazione measure 4/12, construction 0/6, orientation 1/6; sensibilita verificatori 5/5 sulle estratte; negativi 1/12 item, 1/74 affermazioni; disaccordo VA/VB 4%; quarantene 6/993; codice 12/12 alterazioni di misura, 0 contraddizioni sulle vere); 117 chiamate, 6.90M token, 1.95 chiamate e 115k token per soluzione
+2026-10-22T19:17:54+02:00	29873	lvl-tests	submitted	test CPU completi prima del pilota f2-pilot/2 (test_f2_gate importa torch: solo SLURM); approvato dall utente; 0 GPU 4 CPU 8G 0:20
+2026-10-22T19:25:11+02:00	29873	lvl-tests	ok	tests_cpu
