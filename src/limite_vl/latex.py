@@ -106,3 +106,36 @@ def visible_tokens(text: str) -> list[str]:
         out.append("'" if toks[i] == r"\prime" else toks[i])
         i += 1
     return out
+
+
+def structure_problems(text: str) -> list[str]:
+    """Problemi di struttura che rendono la formula non compilabile o ambigua (controllo di UniMER senza LLM):
+    "graffe" (sbilanciate), "left_right" (numero di \\left diverso da \\right), "ambiente" (\\begin/\\end non
+    corrispondenti). Lista vuota se non ce ne sono."""
+    toks = latex_tokens(text)
+    problems, depth = set(), 0
+    for t in toks:
+        depth += (t == "{") - (t == "}")
+        if depth < 0:
+            problems.add("graffe")
+            depth = 0
+    if depth:
+        problems.add("graffe")
+    if toks.count(r"\left") != toks.count(r"\right"):
+        problems.add("left_right")
+    envs, i = [], 0
+    while i < len(toks):
+        if toks[i] in (r"\begin", r"\end") and i + 1 < len(toks) and toks[i + 1] == "{":
+            j = i + 2
+            while j < len(toks) and toks[j] != "}":
+                j += 1
+            name = "".join(toks[i + 2:j])
+            if toks[i] == r"\begin":
+                envs.append(name)
+            elif not envs or envs.pop() != name:
+                problems.add("ambiente")
+            i = j
+        i += 1
+    if envs:
+        problems.add("ambiente")
+    return sorted(problems)
