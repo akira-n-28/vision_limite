@@ -22,6 +22,31 @@ ADDED = [
     ("testo inventato", "A sign reads \"FREE PARKING TODAY\" above three cars.", "quotes"),
     ("conteggio cambiato", "Four cars are parked on the street at night.", "numbers"),
 ]
+# forme equivalenti viste negli esempi del job 30028 (falsi allarmi della prima versione), con la trascrizione vera
+EQUIVALENT = [
+    ("orario 16:19 contro 1619", "Across the top, the screen shows the time \"16:19\" and the network status \"4G\". The clock "
+     "reads 16:19.", ["There is text across the top in white that reads 1619 for the time, 4G."]),
+    ("cifre dette una a una", "The tail shows the serial number \"29000.\" and the number 29000 again.",
+     ["there's a number it says two nine zero zero zero"]),
+    ("lettere sillabate", "A receipt from the online retailer \"FRUUGO,\" on a white background.",
+     ["the background is all white, at the top it says F R U U G O underneath that"]),
+    ("parola storpiata dalla trascrizione", "The text indicates it is from \"Peggy's Supermarkt in Messingladde.\"",
+     ["it says Peggy's and then there's some smaller lettering that says supermarket in Messingladde"]),
+    ("colore con suffisso", "It features a gray plastic handle and a pink interior.",
+     ["It's got kind of a grayish plastic handle there, showing the pinkness of the steak"]),
+    ("numeri degli elenchi", "Four screwdrivers are shown:\n1. **First:** small.\n2. **Second:** larger.\n3. Third one.",
+     ["In this photo we see four small hand tools"]),
+    ("virgolette accoppiate male", "The label reads \"OK\" followed by \"Close\" on a 5\" screen.",
+     ["a button that says OK and another that says close on a five inch screen"]),
+    # terza versione (esempi del job 30031)
+    ("creamy e golden hour non sono colori", "A creamy sauce is lit by the golden hour sun.",
+     ["there is some sauce and it's outside in the evening sun"]),
+    ("orario detto a parole", "The clock at the top shows 8:27.", ["at the top the clock says eight twenty seven"]),
+    ("citazioni numeriche corte", "It shows the time \"8:43\" and the number \"7\" in a box.",
+     ["it's 843 and there is a seven in a box"]),
+    ("zero letto anche come parola", "White text saying \"IsNotZero\" on the right.",
+     ["In white text it says is not zero on the right"]),
+]
 
 
 def check(name, cond, detail=None):
@@ -41,6 +66,12 @@ def main() -> int:
     for name, cap, kind in ADDED:
         r = compare(cap, TRANSCRIPT)
         ok &= check(f"aggiunta trovata: {name}", bool(r[kind]), r)
+    for name, cap, tr in EQUIVALENT:
+        r = compare(cap, tr)
+        ok &= check(f"forma equivalente senza segnalazioni: {name}", not (r["numbers"] or r["colors"] or r["quotes"]), r)
+    r = compare("The movie was released in 2011 and the clock shows 9:41.",
+                ["a soccer punch Like 2010 11 12 something like that"])
+    ok &= check("anno e orario aggiunti dal riscrittore", r["numbers"] == ["9:41", "2011"], r)
     return 0 if ok else 1
 
 

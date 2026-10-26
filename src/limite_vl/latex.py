@@ -139,3 +139,20 @@ def structure_problems(text: str) -> list[str]:
     if envs:
         problems.add("ambiente")
     return sorted(problems)
+
+
+# comandi che non rendono il loro argomento come testo visibile nella formula (\footnote diventa un segno, \label
+# sparisce, \cite e \ref diventano [?] o ??): con questi l'etichetta non corrisponde all'immagine (controllo di UniMER)
+UNRENDERED = (r"\footnote", r"\label", r"\cite", r"\ref", r"\eqref", r"\pageref")
+_BARE = re.compile(r"^\s*(?:\{\s*\}\s*)?[\^_]")
+
+
+def unrendered_commands(text: str) -> list[str]:
+    toks = set(latex_tokens(text))
+    return [c for c in UNRENDERED if c in toks]
+
+
+def bare_fragment(text: str) -> bool:
+    """Formula che comincia con un apice o un pedice senza base (`^2`, `{}_{3}`): ritagliata, l'immagine mostra solo
+    il simbolo e non dice se era in alto o in basso."""
+    return bool(_BARE.match(text))

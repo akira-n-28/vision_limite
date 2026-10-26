@@ -5,8 +5,9 @@ Legge dai parquet originali solo le colonne `caption` e `transcripts` (le trascr
 `pixmo-<file>-<riga>` è quella di scripts/shard_parquet.py, quindi gli esiti si applicano agli shard. Numeri, colori e
 testi citati che nessuna trascrizione contiene sono candidati aggiunti dal riscrittore: da confermare, non errori.
 
-Uscite in --out (cartella nuova): report.json (tassi, distribuzioni, esempi, identità di codice e file) e
-flagged.jsonl (righe con almeno un candidato). Job CPU: slurm/pixmo_transcript_check.sbatch.
+Uscite in --out (cartella nuova): report.json (tassi, distribuzioni, esempi, identità di codice e file), flagged.jsonl
+(righe con almeno un candidato) ed exclude.txt (le loro chiavi: filtro conservativo, PixMo ha molte più descrizioni di
+quante ne servano a F1). Job CPU: slurm/pixmo_transcript_check.sbatch.
 """
 from __future__ import annotations
 
@@ -44,7 +45,7 @@ def main() -> None:
     examples = defaultdict(list)
     values = defaultdict(Counter)
     files = []
-    with open(args.out / "flagged.jsonl", "w") as fh:
+    with open(args.out / "flagged.jsonl", "w") as fh, open(args.out / "exclude.txt", "w") as ex:
         for shard in shards:
             file_index = int(shard["name"].rsplit("-", 1)[1].split(".")[0])
             (path,) = shard["files"]
@@ -75,13 +76,14 @@ def main() -> None:
                     flags_per_row[min(n, 5)] += 1
                     if n:
                         flagged += 1
+                        ex.write(key + "\n")
                         fh.write(json.dumps({"id": key, "numbers": r["numbers"], "colors": r["colors"],
                                              "quotes": r["quotes"]}, ensure_ascii=False) + "\n")
             print(f"{Path(path).name}: {rows} righe, {flagged} con candidati", flush=True)
 
     compared = rows - no_transcript
     report = {
-        "schema": "pixmo-transcript-check/1",
+        "schema": "pixmo-transcript-check/3",
         "job_id": os.environ.get("SLURM_JOB_ID"),
         "code": code_identity(),
         "files": files,
@@ -89,6 +91,7 @@ def main() -> None:
         "rows_without_transcript": no_transcript,
         "rows_compared": compared,
         "rows_with_candidates": flagged,
+        "excluded_rows": flagged,
         "rows_with_candidates_by_kind": dict(with_flag),
         "items_checked": dict(checked),
         "items_missing": dict(missing_items),

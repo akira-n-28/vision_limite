@@ -3,6 +3,8 @@
 
 Per ogni campione (immagine PNG e JSON con la formula):
 - struttura del LaTeX (latex.structure_problems: graffe, \\left/\\right, ambienti);
+- frammento senza base (`^2`, `_{3}`: ritagliato non si distingue l'apice dal pedice) e comandi che non rendono il loro
+  testo (\\footnote, \\label, \\cite, \\ref);
 - formula senza token visibili;
 - stessa immagine (sha256 dei byte) con formule visibili diverse: etichette in conflitto. Con le stesse formule
   visibili è solo un duplicato;
@@ -13,8 +15,9 @@ Per ogni campione (immagine PNG e JSON con la formula):
 Le etichette vengono dal LaTeX che ha generato l'immagine (salvo CROHME, scritta a mano, < 1%): i controlli cercano
 disallineamenti, rese fallite ed etichette malformate.
 
-Uscite in --out (cartella nuova): report.json (conteggi, esempi, soglie, identità di codice e shard) e flagged.jsonl
-(un record per campione segnalato). Job CPU: slurm/unimer_check.sbatch.
+Uscite in --out (cartella nuova): report.json (conteggi, esempi, soglie, identità di codice e shard), flagged.jsonl
+(un record per campione segnalato) ed exclude.txt (chiavi da togliere dal training: tutte le categorie tranne le
+proporzioni, che restano candidati). Job CPU: slurm/unimer_check.sbatch.
 """
 from __future__ import annotations
 
@@ -34,7 +37,7 @@ from pathlib import Path
 from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from limite_vl.latex import structure_problems, visible_tokens  # noqa: E402
+from limite_vl.latex import bare_fragment, structure_problems, unrendered_commands, visible_tokens  # noqa: E402
 from limite_vl.provenance import code_identity, file_entry  # noqa: E402
 
 EXAMPLES = 20
@@ -62,6 +65,10 @@ def check_shard(path: Path) -> list[tuple]:
         label = meta["label"]
         vis = visible_tokens(label)
         problems = structure_problems(label)
+        if bare_fragment(label):
+            problems.append("frammento_senza_base")
+        if unrendered_commands(label):
+            problems.append("comando_non_reso")
         if not vis:
             problems.append("formula_vuota")
         with Image.open(io.BytesIO(png)) as im:
@@ -129,6 +136,8 @@ def main() -> None:
 
     info = {r[0]: r for r in rows}
     counts, examples = Counter(), defaultdict(list)
+    excluded = sorted(k for k, cats in flags.items() if any(not c.startswith("proporzioni_") for c in cats))
+    (args.out / "exclude.txt").write_text("".join(k + "\n" for k in excluded))
     with open(args.out / "flagged.jsonl", "w") as fh:
         for key, cats in flags.items():
             if not cats:
@@ -143,12 +152,13 @@ def main() -> None:
                     examples[c].append(rec)
     outliers.sort(key=lambda o: -abs(o["z"]))
     report = {
-        "schema": "unimer-check/1",
+        "schema": "unimer-check/2",
         "job_id": os.environ.get("SLURM_JOB_ID"),
         "code": code_identity(),
         "shards": [file_entry(s) for s in args.shards],
         "samples": len(rows),
         "flagged_samples": sum(1 for c in flags.values() if c),
+        "excluded_samples": len(excluded),
         "issue_samples": dict(counts.most_common()),
         "image_duplicates_same_formula": duplicates,
         "conflicts": conflicts[:200],
@@ -158,7 +168,7 @@ def main() -> None:
         "note": "proporzioni_* sono candidati da guardare, non errori; gli altri sono difetti dell'etichetta o dell'immagine",
     }
     (args.out / "report.json").write_text(json.dumps(report, indent=1, ensure_ascii=False))
-    print(json.dumps({k: report[k] for k in ("samples", "flagged_samples", "issue_samples", "image_duplicates_same_formula",
+    print(json.dumps({k: report[k] for k in ("samples", "flagged_samples", "excluded_samples", "issue_samples", "image_duplicates_same_formula",
                                              "ratio_log_median", "ratio_log_mad")}, ensure_ascii=False))
 
 
