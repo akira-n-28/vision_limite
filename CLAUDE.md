@@ -289,6 +289,29 @@ iperparametri rispetto al piano.
   su 143.337 in `data/decontam/text/replay/exclude_final.txt`). Senza immagini, le riscritture di OlympiadBench e
   MATH-500 e le varianti di BeyondAIME restano fra 0.2 e 0.8; per AIME, HMMT e APEX nessun duplicato vero.
 
+## Strategia dei dati e F1-clean (decisioni dell'utente, 2026-10-26)
+
+Dove contraddice le sezioni successive, prevale questa.
+
+- **Obiettivo:** dati di training affidabili al minimo costo in token di agenti.
+- **Gerarchia dei controlli:**
+  1. vero per costruzione: generatore, programma, sorgente LaTeX;
+  2. controlli del codice sul 100%, con test di mutazione e controlli sui falsi allarmi;
+  3. agenti solo in audit una tantum a campione (domande chiuse, 15-20 unità per chiamata);
+  4. scarto, come target, delle sorgenti i cui errori nascono dal processo.
+- **Secondo verificatore:** solo su incerti, disaccordi e 10% delle approvazioni. Le dispute si decidono con il
+  codice, con l'originale o con la quarantena, mai a maggioranza.
+- **Budget degli audit:** ogni audit con agenti ha un budget di chiamate e token dichiarato e approvato prima. Il
+  consumo va nel ledger a ogni giro; al tetto ci si ferma e si riferisce.
+- **Audit precedenti:** non contano come audit (F1c, screening STEM, mavis-f2/f2b/f2c, mavis-f2sol, piloti v2c e
+  v3a). I loro numeri orientano i controlli nuovi, non giustificano decisioni.
+- **F1:** riparte da capo (F1-clean, senza adapter ereditati).
+- **Ordine dei lavori:** la revisione dell'architettura procede in parallelo ai controlli dei dati. Gli audit di
+  leggibilità si fanno dopo, sugli shard alla risoluzione scelta.
+- **Piano:** https://claude.ai/artifact/PMFgabBMybVYD4Hr8z3Sq4
+- **Strumenti congelati, non cancellati:** il pilota f2-pilot/2 è chiuso senza VC e senza final; `f2_pilot.py`,
+  `config/audit/f2_*` v2 e `f2_certify.py` per le soluzioni di Violetto non si sviluppano più.
+
 ## Qualità dei dati (regola dell'utente, 2026-10-19: "la qualità dei dati prima di tutto")
 
 - Nessuna fonte entra in training senza un audit alla cieca su un campione (100-200 esempi): chi controlla non vede la
