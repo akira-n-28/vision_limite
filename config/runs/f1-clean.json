@@ -1,0 +1,77 @@
+{
+ "run": "f1-clean",
+ "notes": "BOZZA del 2026-10-26: liste dei dati definitive per MAVIS, UniMER e sintetici; architettura (encoder, patch, precisione, cosa si addestra), mix e volume da fissare dopo la revisione dell'architettura; PixMo e righe di UniMER fuori finché non sono decisi; da capo, senza init_adapter",
+ "decoder": "${HF_HOME}/hub/models--paradigma-inc--limite-1b-violetto/snapshots/b1f3d572ccacb6919f4d64c321b70ba034ddaef2",
+ "vision": "${HF_HOME}/hub/models--google--siglip2-so400m-patch16-naflex/snapshots/cc24074f717b612951c2dead130904ab9b65a81e",
+ "sources": [
+  {
+   "name": "mavis",
+   "kind": "mavis_f1",
+   "weight": 0.00075,
+   "shards": "${DATA_ROOT}/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-*.tar",
+   "exclude": [
+    "${DATA_ROOT}/decontam/p6/mavis/exclude_final.txt",
+    "${DATA_ROOT}/decontam/f1eval/mavis/exclude_final.txt",
+    "${OUTPUT_ROOT}/split_duplicates/run1/mavis/val_duplicates.txt"
+   ],
+   "val_count": 256
+  },
+  {
+   "name": "unimer",
+   "kind": "unimer_formula",
+   "weight": 0.0015,
+   "shards": "${DATA_ROOT}/shards/unimer/2343ddd9-dense/unimer-train-*.tar",
+   "exclude": [
+    "${DATA_ROOT}/decontam/p6/unimer/exclude_final.txt",
+    "${DATA_ROOT}/decontam/f1eval/unimer/exclude_final.txt",
+    "${OUTPUT_ROOT}/unimer_check/run4/quality_excluded.txt",
+    "${OUTPUT_ROOT}/unimer_check/run4/uncertain.txt",
+    "${OUTPUT_ROOT}/unimer_overlap/run2/train_contamination_long.txt",
+    "${OUTPUT_ROOT}/split_duplicates/run1/unimer/val_duplicates.txt"
+   ],
+   "relabel": [
+    "${OUTPUT_ROOT}/unimer_check/run4/relabel.jsonl"
+   ],
+   "val_count": 256
+  },
+  {
+   "name": "synth",
+   "kind": "synth_qa",
+   "weight": 0.0005,
+   "shards": "${DATA_ROOT}/shards/synth/v3/train/synth-train-*.tar",
+   "exclude": [
+    "${DATA_ROOT}/decontam/f1eval/synth/exclude_final.txt"
+   ],
+   "val_count": 256
+  }
+ ],
+ "max_len": 4096,
+ "micro_rows": 1,
+ "rows_per_step": 32,
+ "lr": 0.001,
+ "warmup_frac": 0.02,
+ "min_lr_ratio": 0.0,
+ "betas": [
+  0.9,
+  0.999
+ ],
+ "eps": 1e-08,
+ "weight_decay": 0.0,
+ "grad_clip": 1.0,
+ "attn": "flex_attention",
+ "checkpointing": false,
+ "num_workers": 4,
+ "prefetch_factor": 4,
+ "shuffle_buffer": 512,
+ "pack_buffer": 256,
+ "val_count": 256,
+ "val_every": 125,
+ "log_every": 10,
+ "ckpt_minutes": 60,
+ "keep_checkpoints": 1,
+ "samples_per_source": 2,
+ "sample_max_new_tokens": 400,
+ "seed": 3,
+ "total_tokens": 300000000,
+ "vision_precision": "tf32"
+}

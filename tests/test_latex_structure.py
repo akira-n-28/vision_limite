@@ -7,7 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from limite_vl.latex import bare_fragment, lone_index, structure_problems, unrendered_commands, visible_tokens  # noqa: E402
+from limite_vl.latex import bare_fragment, effective_label, lone_index, structure_problems, unrendered_commands, visible_tokens  # noqa: E402
 
 VALID = [
     r"\frac{a+b}{2}\geq\sqrt{ab}",
@@ -61,6 +61,16 @@ def main() -> int:
         ok &= check(f"stessi token visibili: {a!r} e {b!r}", visible_tokens(a) == visible_tokens(b),
                     (visible_tokens(a), visible_tokens(b)))
     ok &= check("token visibili diversi: \\lambda e \\bar{\\lambda}", visible_tokens(r"\lambda") != visible_tokens(r"\bar{\lambda}"))
+    # quarta versione (job 30046): graffe codificate, accenti maiuscoli, indici isolati fra graffe
+    for label, expected in (("^Ḋ74Ḍ", ("74", ["graffe_codificate", "indice_isolato"])),
+                            (r"\ensuremath Ḋ\mathbf ḊyḌḌ(0)", (r"\ensuremath {\mathbf {y}}(0)", ["graffe_codificate"])),
+                            ("ḊaḌ_{2}Ḍ", ("ḊaḌ_{2}Ḍ", [])),
+                            ("{_4}", ("4", ["indice_isolato"])),
+                            ("x^2", ("x^2", []))):
+        ok &= check(f"etichetta effettiva di {label!r}", effective_label(label) == expected, effective_label(label))
+    for a, b in ((r"\Vec{V}", r"\vec{V}"), (r"\Bar{\tau}", r"\bar{\tau}"), (r"\Hat{x}", r"\hat{x}")):
+        ok &= check(f"accento maiuscolo: {a!r} e {b!r}", visible_tokens(a) == visible_tokens(b))
+    ok &= check("graffe esterne che non racchiudono tutto: non è un indice isolato", lone_index("{_4}x{}") is None)
     return 0 if ok else 1
 
 

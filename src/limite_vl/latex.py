@@ -53,7 +53,10 @@ SIZING = {r"\left", r"\right", r"\big", r"\Big", r"\bigg", r"\Bigg", r"\bigl", r
 SYNONYMS = {r"\ge": r"\geq", r"\le": r"\leq", r"\ne": r"\neq", r"\to": r"\rightarrow", r"\gets": r"\leftarrow",
             r"\lbrace": r"\{", r"\rbrace": r"\}", r"\vert": "|", r"\lvert": "|", r"\rvert": "|", r"\Vert": r"\|",
             r"\lVert": r"\|", r"\rVert": r"\|", r"\dots": r"\ldots", r"\dotsc": r"\ldots", r"\dotsb": r"\cdots",
-            r"\land": r"\wedge", r"\lor": r"\vee", r"\lnot": r"\neg", r"\colon": ":", r"\vline": "|"}
+            r"\land": r"\wedge", r"\lor": r"\vee", r"\lnot": r"\neg", r"\colon": ":", r"\vline": "|",
+            # accenti maiuscoli di amsmath: stesso glifo dei minuscoli (conflitti di UniMER, job 30046)
+            r"\Vec": r"\vec", r"\Bar": r"\bar", r"\Hat": r"\hat", r"\Tilde": r"\tilde", r"\Dot": r"\dot",
+            r"\Ddot": r"\ddot", r"\Breve": r"\breve", r"\Check": r"\check", r"\Acute": r"\acute", r"\Grave": r"\grave"}
 GREEK = {"alpha", "beta", "gamma", "delta", "epsilon", "varepsilon", "zeta", "eta", "theta", "vartheta", "iota",
          "kappa", "lambda", "mu", "nu", "xi", "pi", "varpi", "rho", "varrho", "sigma", "varsigma", "tau", "upsilon",
          "phi", "varphi", "chi", "psi", "omega", "Gamma", "Delta", "Theta", "Lambda", "Xi", "Pi", "Sigma", "Upsilon",
@@ -161,12 +164,25 @@ _LONE = re.compile(r"^\s*(?:\{\s*\}\s*)?[\^_]\s*(?:\{(?P<group>(?:[^{}]|\{[^{}]*
                    r"|(?P<single>\\[A-Za-z]+(?:\s*\{[^{}]*\})?|[^\s{}\\^_]))\s*$")
 
 
+def _strip_outer_braces(text: str) -> str:
+    """`{_4}` -> `_4`: una sola coppia di graffe che racchiude tutta la formula."""
+    t = text.strip()
+    if t.startswith("{") and t.endswith("}"):
+        depth = 0
+        for i, ch in enumerate(t):
+            depth += (ch == "{") - (ch == "}")
+            if depth == 0 and i < len(t) - 1:
+                return text  # la prima graffa si chiude prima della fine: non racchiude tutto
+        return t[1:-1]
+    return text
+
+
 def lone_index(text: str) -> str | None:
     """Contenuto di una formula fatta solo di un apice o di un pedice senza base (`^{26}` -> `26`, `_2` -> `2`,
     `^\\circ` -> `\\circ`), altrimenti None. Ritagliata, l'immagine mostra solo quel contenuto: come etichetta è
     esatto, mentre `^{26}` non si distingue da `_{26}`. `^2S_{1/2}` e `^{14}C` non sono indici isolati (l'indice si
     vede alzato rispetto a ciò che segue)."""
-    m = _LONE.match(text)
+    m = _LONE.match(text) or _LONE.match(_strip_outer_braces(text))
     if not m:
         return None
     content = (m["group"] if m["group"] is not None else m["single"]).strip()
@@ -177,3 +193,24 @@ def bare_fragment(text: str) -> bool:
     """Formula che comincia con un apice o un pedice senza base (`^2`, `{}_{3}`): ritagliata, l'immagine mostra solo
     il simbolo e non dice se era in alto o in basso."""
     return bool(_BARE.match(text))
+
+
+MARKERS = {"Ḋ": "{", "Ḍ": "}"}
+
+
+def effective_label(label: str) -> tuple[str, list[str]]:
+    """(etichetta da usare, regole applicate). Due rietichettature esatte rispetto all'immagine:
+    - "graffe_codificate": in 259 etichette di UniMER le graffe sono scritte Ḋ e Ḍ (`^Ḋ74Ḍ` = `^{74}`); si
+      sostituiscono solo se dopo la sostituzione le graffe sono bilanciate;
+    - "indice_isolato": un apice o un pedice senza base diventa il suo contenuto (lone_index)."""
+    rules, out = [], label
+    if any(m in label for m in MARKERS):
+        fixed = "".join(MARKERS.get(c, c) for c in label)
+        if "graffe" not in structure_problems(fixed):
+            out = fixed
+            rules.append("graffe_codificate")
+    new = lone_index(out)
+    if new is not None:
+        out = new
+        rules.append("indice_isolato")
+    return out, rules

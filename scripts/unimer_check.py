@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
-"""Controlli di UniMER senza LLM su tutti gli shard di train (F1-clean), terza versione: categorie separate.
+"""Controlli di UniMER senza LLM su tutti gli shard di train (F1-clean), quarta versione: categorie separate.
 
 Per ogni campione (immagine PNG e JSON con la formula):
 - errori certi (quality_excluded): struttura del LaTeX rotta (latex.structure_problems), formula senza token visibili,
   immagine vuota o con dimensioni diverse dal JSON, comandi che non disegnano il loro testo (\\footnote, \\label, \\cite,
   \\ref: l'etichetta contiene testo che nell'immagine non c'è);
-- rietichettati (relabel.jsonl): formula fatta solo di un indice senza base (`^{26}`): ritagliata, l'immagine mostra
-  solo il contenuto, che diventa l'etichetta (latex.lone_index). `^2S_{1/2}` e `^{14}C` restano come sono;
+- rietichettati (relabel.jsonl, latex.effective_label): graffe scritte Ḋ e Ḍ (`^Ḋ74Ḍ` = `^{74}`); formula fatta solo
+  di un indice senza base (`^{26}`, anche `{_4}`): ritagliata, l'immagine mostra solo il contenuto, che diventa
+  l'etichetta. `^2S_{1/2}` e `^{14}C` restano come sono;
 - stessa immagine (sha256 dei byte) con etichette visibili diverse dopo la rietichettatura e la normalizzazione di
   latex.visible_tokens: si disegnano le etichette candidate con matplotlib (latex_render) e si tiene quella che
   corrisponde ai pixel. Le altre del gruppo vanno fra gli errori certi (stessa immagine, etichetta sbagliata). La scelta
   si usa solo se i controlli con verità nota (etichetta vera contro etichetta alterata su formule brevi non segnalate)
   danno almeno --min-control-accuracy; altrimenti, e quando non c'è un vincitore netto, il gruppo va fra gli incerti;
-- incerti (uncertain): gruppi irrisolti, proporzioni fuori norma (z robusto oltre --z), marcatori `Ḋ…Ḍ` di origine
-  sconosciuta.
+- incerti (uncertain): gruppi irrisolti, proporzioni fuori norma (z robusto oltre --z), marcatori Ḋ e Ḍ che non si
+  riparano (graffe sbilanciate dopo la sostituzione).
 Le stesse immagini con la stessa etichetta sono duplicati, contati qui e trattati dal controllo dei duplicati (test E).
 
 Uscite in --out (cartella nuova): quality_excluded.txt e uncertain.txt (una chiave per riga, per `exclude` della config),
@@ -40,7 +41,7 @@ from pathlib import Path
 from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from limite_vl.latex import lone_index, structure_problems, unrendered_commands, visible_tokens  # noqa: E402
+from limite_vl.latex import effective_label, structure_problems, unrendered_commands, visible_tokens  # noqa: E402
 from limite_vl.latex_render import best_label, to_gray  # noqa: E402
 from limite_vl.provenance import code_identity, file_entry  # noqa: E402
 
@@ -48,7 +49,7 @@ EXAMPLES = 20
 CONTROLS = 400
 CERTAIN = {"graffe", "left_right", "ambiente", "formula_vuota", "immagine_vuota", "dimensioni_diverse_dal_json",
            "comando_non_reso", "etichetta_diversa_dall_immagine"}
-UNCERTAIN = {"conflitto_irrisolto", "proporzioni_fuori_norma", "marcatori_sconosciuti"}
+UNCERTAIN = {"conflitto_irrisolto", "proporzioni_fuori_norma", "marcatori_non_riparabili"}
 
 
 def iter_pairs(path: Path):
@@ -71,11 +72,11 @@ def check_shard(path: Path) -> list[tuple]:
     out = []
     for key, meta, png in iter_pairs(path):
         label = meta["label"]
-        new = lone_index(label)
-        effective = new if new is not None else label
+        effective, rules = effective_label(label)
+        new = effective if rules else None
         vis = visible_tokens(effective)
-        problems = list(structure_problems(label))
-        if unrendered_commands(label):
+        problems = list(structure_problems(effective))
+        if unrendered_commands(effective):
             problems.append("comando_non_reso")
         if not vis:
             problems.append("formula_vuota")
@@ -87,8 +88,9 @@ def check_shard(path: Path) -> list[tuple]:
                 problems.append("dimensioni_diverse_dal_json")
         if hi - lo < 16 or dark == 0:
             problems.append("immagine_vuota")
-        if "Ḋ" in label or "Ḍ" in label:
-            problems.append("marcatori_sconosciuti")
+        if "Ḋ" in effective or "Ḍ" in effective:
+            problems.append("marcatori_non_riparabili")
+        problems += [f"rietichettato_{r}" for r in rules]
         area = meta["orig_width"] * meta["orig_height"]
         ratio = math.log(area / len(vis)) if vis and area else None
         out.append((key, str(path), hashlib.sha256(png).digest(), " ".join(vis), label, new, ratio, problems))
@@ -134,8 +136,6 @@ def main() -> None:
     cats: dict[str, list[str]] = defaultdict(list)
     for key, _, _, _, _, new, _, problems in rows:
         cats[key].extend(problems)
-        if new is not None:
-            cats[key].append("rietichettato_indice_isolato")
 
     # gruppi con la stessa immagine ed etichette visibili diverse (dopo rietichettatura e normalizzazione)
     groups: dict[bytes, list[str]] = defaultdict(list)
@@ -226,7 +226,8 @@ def main() -> None:
                 state = "accepted"
             states[state] += 1
             if state == "accepted" and r[5] is not None:
-                relabels.append({"key": key, "label": r[4], "new_label": r[5], "rule": "lone_index"})
+                rules = [c.removeprefix("rietichettato_") for c in cs if c.startswith("rietichettato_")]
+                relabels.append({"key": key, "label": r[4], "new_label": r[5], "rule": "+".join(rules)})
             rec = {"key": key, "state": state, "categories": cs, "label": r[4]}
             fh.write(json.dumps(rec, ensure_ascii=False) + "\n")
             for c in cs:
@@ -238,7 +239,7 @@ def main() -> None:
         fh.writelines(json.dumps(x, ensure_ascii=False) + "\n" for x in relabels)
 
     report = {
-        "schema": "unimer-check/3",
+        "schema": "unimer-check/4",
         "job_id": os.environ.get("SLURM_JOB_ID"),
         "code": code_identity(),
         "shards": [file_entry(s) for s in args.shards],

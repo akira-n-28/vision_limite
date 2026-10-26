@@ -10,7 +10,7 @@ Lo stesso schema sarà il preambolo percettivo di F2. Per le figure geometriche 
     Angles: ∠BAD = 90°.
 
 - punti in ordine alfabetico; figure in ordine di costruzione; segmenti e angoli in ordine alfabetico;
-- i valori si scrivono come compaiono, in LaTeX senza `$` (2\\sqrt{3}, 3/2);
+- i valori si scrivono come compaiono nella figura, in LaTeX senza `$` (2\\sqrt{3}, 1.5 per 3/2);
 - un angolo si scrive con il vertice al centro e gli estremi in ordine alfabetico (∠BAD).
 
 `render_geometry` scrive la descrizione dalla verità, `parse_geometry` la rilegge (anche dall'uscita del modello),
@@ -33,7 +33,12 @@ PAIR = re.compile(r"^(?:∠)?(?P<name>[A-Z]{2,3})\s*=\s*(?P<value>.+)$")
 
 
 def latex_value(value: str) -> str:
-    """Valore normalizzato di facts.norm_value (2√3, 10√3/3, √2, 3/2) in LaTeX senza `$` (2\\sqrt{3})."""
+    """Valore normalizzato di facts.norm_value (2√3, 10√3/3, √2, 3/2) come è scritto nella figura, in LaTeX senza `$`.
+    Il motore di MAVIS scrive i razionali senza radice come decimali con al più due cifre (3/2 -> 1.5, 44/3 -> 14.67:
+    immagini del job 30049) e le frazioni con la radice come frazioni (22√3/3 -> 22\\sqrt{3}/3)."""
+    m = re.fullmatch(r"(\d+)/(\d+)", value)
+    if m:
+        return f"{int(m.group(1)) / int(m.group(2)):.2f}".rstrip("0").rstrip(".")
     return re.sub(r"√(\d+(?:\.\d+)?)", r"\\sqrt{\1}", value)
 
 

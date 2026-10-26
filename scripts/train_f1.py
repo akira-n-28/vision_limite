@@ -45,6 +45,7 @@ from limite_vl.collator import PackedCollator, iter_packed_rows  # noqa: E402
 from limite_vl.data import TEXT_ONLY_KINDS, build_example, generation_prompt  # noqa: E402
 from limite_vl.modeling import LimiteVLForConditionalGeneration, VLConfig  # noqa: E402
 from limite_vl.processing import IGNORE, LimiteVLProcessor  # noqa: E402
+from limite_vl.data_lists import missing_required, provenance  # noqa: E402
 from limite_vl.stream import MixedRowStream, make_sources, validation_samples  # noqa: E402
 from limite_vl.train_utils import LayerCheckpointing, allow_flex_recompiles  # noqa: E402
 
@@ -297,6 +298,9 @@ def main() -> None:
 
     torch.manual_seed(cfg["seed"])
     processor = LimiteVLProcessor.from_pretrained(cfg["decoder"])
+    missing = missing_required(cfg["sources"])
+    if missing:
+        sys.exit("liste di decontaminazione mancanti nella config:\n" + "\n".join(missing))
     sources = make_sources(cfg["sources"])
     tokens_per_step = cfg["max_len"] * cfg["rows_per_step"]
     total_steps = cfg.get("total_steps") or math.ceil(float(cfg["total_tokens"]) / tokens_per_step)
@@ -309,6 +313,7 @@ def main() -> None:
     manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {
         "run": cfg.get("run"), "config_digest": digest, "seed": cfg["seed"], "total_steps": total_steps,
         "tokens_per_step": tokens_per_step, "data": [shard_hashes(s) for s in sources],
+        "data_lists": provenance(cfg["sources"]),
         "init_adapter": cfg.get("init_adapter"), "jobs": []}
     manifest["config"] = cfg
     manifest["jobs"].append({"job_id": job, "start": time.strftime("%Y-%m-%dT%H:%M:%S%z"),

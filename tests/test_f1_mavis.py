@@ -29,8 +29,8 @@ def perfect(s: dict) -> bool:
 
 def main() -> int:
     ok = True
-    ok &= check("valori in LaTeX", [latex_value(v) for v in ("2√3", "10√3/3", "√2", "3/2", "42")] ==
-                ["2\\sqrt{3}", "10\\sqrt{3}/3", "\\sqrt{2}", "3/2", "42"])
+    ok &= check("valori come nella figura", [latex_value(v) for v in ("2√3", "10√3/3", "√2", "3/2", "44/3", "1/2", "42")] ==
+                ["2\\sqrt{3}", "10\\sqrt{3}/3", "\\sqrt{2}", "1.5", "14.67", "0.5", "42"])
     truth, why = mavis_truth(*REAL["d0-41141"])
     ok &= check("verità di d0-41141", why == "ok" and truth == {
         "points": ["A", "B", "C", "D", "E"],

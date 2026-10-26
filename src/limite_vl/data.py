@@ -209,6 +209,24 @@ def mavis_count_caption_sample(key: str, files: dict[str, bytes]) -> Sample:
     return Sample(messages, open_image(files["png"]), meta.get("max_patches", DIAGRAM_MAX_PATCHES))
 
 
+def mavis_f1_sample(key: str, files: dict[str, bytes]) -> Sample:
+    """MAVIS-Geometry per F1-clean (f1_mavis): verità da diagram_generation confermata dalla didascalia. Metà dei
+    campioni, scelti dalla chiave, chiede la descrizione canonica di f1_schema; l'altra metà da 1 a 5 domande brevi."""
+    from .f1_mavis import describe, mavis_truth, questions_example
+
+    meta = _mavis_meta(key, files)
+    truth, why = mavis_truth(meta["text_en"]["caption"], meta["text_en"]["diagram_generation"])
+    if truth is None:
+        raise ValueError(f"{key}: verità MAVIS non disponibile ({why})")
+    if int.from_bytes(hashlib.blake2b((key + "/task").encode(), digest_size=8).digest(), "little") % 2 == 0:
+        prompt, answer = describe(key, truth)
+    else:
+        prompt, answer, _ = questions_example(key, truth)
+    messages = [{"role": "user", "content": [{"type": "image"}, {"type": "text", "text": prompt}]},
+                {"role": "assistant", "content": answer, "prefill": F1_PREFILL}]
+    return Sample(messages, open_image(files["png"]), meta.get("max_patches", DIAGRAM_MAX_PATCHES))
+
+
 def stem_visible_sample(key: str, files: dict[str, bytes]) -> Sample:
     """MMFineReason: descrizione di Qwen3-VL ridotta al contenuto visibile (f1c.visible_caption)."""
     from .f1c import visible_caption
@@ -309,6 +327,7 @@ SAMPLE_LOADERS: dict[str, Callable[[str, dict[str, bytes]], Sample]] = {
     "stem_caption": stem_caption_sample,
     "mavis_qa": mavis_qa_sample,
     "mavis_count_caption": mavis_count_caption_sample,
+    "mavis_f1": mavis_f1_sample,
     "stem_visible": stem_visible_sample,
     "unimer_line": unimer_line_sample,
     "unimer_line_select": unimer_line_select_sample,

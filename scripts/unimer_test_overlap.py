@@ -12,7 +12,10 @@ Le formule brevi si ripetono per forza (`x^2`): il report divide i conteggi per 
 togliere dal training le formule del test o valutare a parte i casi mai visti.
 
 Uscite in --out (cartella nuova): report.json, test_seen.jsonl (per ogni campione di test visto nel training: come e
-quante volte) e train_matches_test.txt (chiavi di training con formula o immagine di un campione di test).
+quante volte), train_matches_test.txt (chiavi di training con formula o immagine di un campione di test),
+train_contamination_long.txt (chiavi di training con la formula di un campione di test di più di --long token visibili,
+o con la sua stessa immagine: da togliere dal training) e test_unseen_<sottoinsieme>.txt (campioni di test mai visti,
+né come formula né come immagine: per la metrica senza contaminazione).
 Job CPU: slurm/unimer_test_overlap.sbatch.
 """
 from __future__ import annotations
@@ -32,7 +35,7 @@ from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from limite_vl.decontam import HashIndex, phash  # noqa: E402
-from limite_vl.latex import lone_index, visible_tokens  # noqa: E402
+from limite_vl.latex import effective_label, visible_tokens  # noqa: E402
 from limite_vl.provenance import code_identity, file_entry  # noqa: E402
 
 BUCKETS = ((1, 5), (6, 20), (21, 50), (51, 10**9))
@@ -58,8 +61,7 @@ def label_of(meta: dict) -> str:
 
 
 def vis_string(label: str) -> str:
-    new = lone_index(label)
-    return " ".join(visible_tokens(new if new is not None else label))
+    return " ".join(visible_tokens(effective_label(label)[0]))
 
 
 def describe(path: Path) -> list[tuple]:
@@ -96,6 +98,7 @@ def main() -> None:
     ap.add_argument("--train-shards", nargs="+", type=Path, required=True)
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--radius", type=int, default=2)
+    ap.add_argument("--long", type=int, default=20, help="formule del test più lunghe di così: tolte dal training")
     args = ap.parse_args()
     if not os.environ.get("SLURM_JOB_ID"):
         sys.exit("unimer_test_overlap.py va eseguito in un job SLURM")
@@ -121,9 +124,11 @@ def main() -> None:
             print(f"{path.name}: {len(res)} campioni di training con una corrispondenza", flush=True)
 
     seen = defaultdict(Counter)
-    train_keys = []
+    train_keys, contamination = [], set()
     near_only = 0
     for key, shard, vis, formula, image, near, sha in hits:
+        if image or (formula and len(vis.split()) > args.long):
+            contamination.add(key)
         if formula:
             for t in by_vis[vis]:
                 seen[t]["formula"] += 1
@@ -151,8 +156,15 @@ def main() -> None:
         for key in sorted(k for k in seen if seen[k]):
             fh.write(json.dumps({"key": key, "subset": subset[key], "visible_tokens": test_len[key], **seen[key]}) + "\n")
     (args.out / "train_matches_test.txt").write_text("".join(k + "\n" for k in sorted(set(train_keys))))
+    (args.out / "train_contamination_long.txt").write_text("".join(k + "\n" for k in sorted(contamination)))
+    unseen = defaultdict(list)
+    for key in sorted(subset):
+        if not seen[key]["formula"] and not seen[key]["image"]:
+            unseen[subset[key]].append(key)
+    for sub, keys in unseen.items():
+        (args.out / f"test_unseen_{sub}.txt").write_text("".join(k + "\n" for k in keys))
     report = {
-        "schema": "unimer-test-overlap/1",
+        "schema": "unimer-test-overlap/2",
         "job_id": os.environ.get("SLURM_JOB_ID"),
         "code": code_identity(),
         "test_shards": [file_entry(p) for p in args.test_shards],
@@ -160,12 +172,14 @@ def main() -> None:
         "test_samples": len(test_rows),
         "train_samples_matching": len(set(train_keys)),
         "train_samples_near_image_only": near_only,
+        "long": args.long, "train_contamination_long": len(contamination),
+        "test_unseen": {k: len(v) for k, v in sorted(unseen.items())},
         "per_subset": {k: dict(v) for k, v in sorted(per_subset.items())},
         "note": "formula_seen: la formula visibile del test compare nel training; image_seen: stessa immagine",
     }
     (args.out / "report.json").write_text(json.dumps(report, indent=1, ensure_ascii=False))
     print(json.dumps({k: report[k] for k in ("test_samples", "train_samples_matching", "train_samples_near_image_only",
-                                             "per_subset")}, ensure_ascii=False))
+                                             "train_contamination_long", "test_unseen", "per_subset")}, ensure_ascii=False))
 
 
 if __name__ == "__main__":

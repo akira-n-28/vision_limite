@@ -45,6 +45,8 @@ class Source:
     exclude: frozenset[str] = frozenset()  # chiavi da saltare (decontaminazione, scripts/decontam.py scan)
     # esito di f2_records.f2_data_certification per le sorgenti f2_solution: senza, MixedRowStream non le usa
     certification: dict | None = None
+    # rietichettature esatte (scripts/unimer_check.py, relabel.jsonl): chiave -> (etichetta attesa, nuova etichetta)
+    relabel: dict[str, tuple[str, str]] | None = None
 
     @property
     def val_shard(self) -> str:
@@ -52,9 +54,11 @@ class Source:
 
 
 def make_sources(specs: list[dict]) -> list[Source]:
-    """[{name, kind, shards: glob, weight, exclude: [file]}] -> Source, con controlli su tipi, nomi e shard
-    presenti. `exclude` (facoltativo) elenca file con una chiave per riga, da saltare sempre; per f2_solution vale
-    anche come chiave del problema (campo `problem` del JSON). `uncertified_reason` lo legge train_f2.py."""
+    """[{name, kind, shards: glob, weight, exclude: [file], relabel: [file]}] -> Source, con controlli su tipi, nomi e
+    shard presenti. `exclude` (facoltativo) elenca file con una chiave per riga, da saltare sempre; per f2_solution vale
+    anche come chiave del problema (campo `problem` del JSON). `relabel` (facoltativo) elenca file JSONL
+    {key, label, new_label}: il campo `label` del JSON del campione diventa new_label, solo se coincide con `label`
+    (altrimenti la lista è vecchia e il campione fa fallire il training). `uncertified_reason` lo legge train_f2.py."""
     sources, names = [], set()
     for spec in specs:
         if spec["kind"] not in SAMPLE_LOADERS:
@@ -71,8 +75,29 @@ def make_sources(specs: list[dict]) -> list[Source]:
         for path in spec.get("exclude", []):
             with open(path) as fh:
                 exclude.update(line.strip() for line in fh if line.strip())
-        sources.append(Source(spec["name"], spec["kind"], shards, float(spec["weight"]), frozenset(exclude)))
+        relabel: dict[str, tuple[str, str]] = {}
+        for path in spec.get("relabel", []):
+            with open(path) as fh:
+                for line in fh:
+                    if line.strip():
+                        r = json.loads(line)
+                        relabel[r["key"]] = (r["label"], r["new_label"])
+        sources.append(Source(spec["name"], spec["kind"], shards, float(spec["weight"]), frozenset(exclude),
+                              relabel=relabel or None))
     return sources
+
+
+def apply_relabel(source: Source, key: str, files: dict[str, bytes]) -> dict[str, bytes]:
+    """File del campione con l'etichetta sostituita se la chiave è in source.relabel; errore se l'etichetta nel JSON
+    non è quella attesa dalla lista."""
+    if not source.relabel or key not in source.relabel:
+        return files
+    old, new = source.relabel[key]
+    meta = json.loads(files["json"])
+    if meta.get("label") != old:
+        raise RuntimeError(f"{source.name}: {key} ha etichetta {meta.get('label')!r}, la lista si aspetta {old!r}")
+    meta["label"] = new
+    return {**files, "json": json.dumps(meta, ensure_ascii=False).encode()}
 
 
 def u01(*parts) -> float:
@@ -139,7 +164,7 @@ class SourceReader:
             if self.source.exclude and self.source.kind == "f2_solution" \
                     and json.loads(files["json"]).get("problem") in self.source.exclude:
                 continue
-            return key, files
+            return key, apply_relabel(self.source, key, files)
 
 
 class Shuffler:
@@ -244,5 +269,5 @@ def validation_samples(source: Source, count: int) -> list[tuple[str, dict[str, 
         if index >= count:
             break
         if key not in source.exclude:  # la parte di validazione resta la stessa, meno i contaminati
-            out.append((key, files))
+            out.append((key, apply_relabel(source, key, files)))
     return out
