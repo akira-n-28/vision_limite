@@ -44,7 +44,10 @@ SPACING = {r"\,", r"\;", r"\:", r"\!", r"\quad", r"\qquad", "\\ ", "~", r"\enspa
 FONT = {r"\mathrm", r"\mathbf", r"\mathcal", r"\mathit", r"\mathsf", r"\mathtt", r"\mathbb", r"\mathfrak",
         r"\mathscr", r"\boldsymbol", r"\bm", r"\operatorname", r"\text", r"\textrm", r"\textbf", r"\textit",
         r"\rm", r"\bf", r"\it", r"\cal", r"\sf", r"\tt", r"\displaystyle", r"\textstyle", r"\scriptstyle",
-        r"\scriptscriptstyle", r"\mathop", r"\mathbin", r"\mathrel", r"\mathord"}
+        r"\scriptscriptstyle", r"\mathop", r"\mathbin", r"\mathrel", r"\mathord",
+        # aggiunti dopo il controllo di UniMER (job 30029): stessi pixel con e senza questi comandi
+        r"\ensuremath", r"\textsf", r"\textup", r"\textnormal", r"\textsc", r"\mathnormal", r"\mbox", r"\hbox",
+        r"\emph", r"\pmb", r"\protect", r"\centering", r"\relax", r"\nonumber", r"\notag"}
 SIZING = {r"\left", r"\right", r"\big", r"\Big", r"\bigg", r"\Bigg", r"\bigl", r"\bigr", r"\Bigl", r"\Bigr",
           r"\biggl", r"\biggr", r"\Biggl", r"\Biggr", r"\limits", r"\nolimits", r"\middle"}
 SYNONYMS = {r"\ge": r"\geq", r"\le": r"\leq", r"\ne": r"\neq", r"\to": r"\rightarrow", r"\gets": r"\leftarrow",
@@ -94,7 +97,9 @@ def tclass(tok: str) -> str:
 
 
 def visible_tokens(text: str) -> list[str]:
-    """Token che cambiano l'aspetto della formula, con i sinonimi unificati e x^{\\prime} = x'."""
+    """Token che cambiano l'aspetto della formula, con i sinonimi unificati e x^{\\prime} = x'. Apici e pedici vuoti
+    (`h_{}`) non disegnano nulla e si tolgono."""
+    text = re.sub(r"[\^_]\s*\{\s*\}", " ", text)
     text = re.sub(r"\\begin\{array\}\{[^{}]*\}", " ", text)
     text = re.sub(r"\\(?:begin|end)\{[A-Za-z*]+\}", " ", text)
     toks = [SYNONYMS.get(t, t) for t in latex_tokens(text)]
@@ -150,6 +155,22 @@ _BARE = re.compile(r"^\s*(?:\{\s*\}\s*)?[\^_]")
 def unrendered_commands(text: str) -> list[str]:
     toks = set(latex_tokens(text))
     return [c for c in UNRENDERED if c in toks]
+
+
+_LONE = re.compile(r"^\s*(?:\{\s*\}\s*)?[\^_]\s*(?:\{(?P<group>(?:[^{}]|\{[^{}]*\})*)\}"
+                   r"|(?P<single>\\[A-Za-z]+(?:\s*\{[^{}]*\})?|[^\s{}\\^_]))\s*$")
+
+
+def lone_index(text: str) -> str | None:
+    """Contenuto di una formula fatta solo di un apice o di un pedice senza base (`^{26}` -> `26`, `_2` -> `2`,
+    `^\\circ` -> `\\circ`), altrimenti None. Ritagliata, l'immagine mostra solo quel contenuto: come etichetta è
+    esatto, mentre `^{26}` non si distingue da `_{26}`. `^2S_{1/2}` e `^{14}C` non sono indici isolati (l'indice si
+    vede alzato rispetto a ciò che segue)."""
+    m = _LONE.match(text)
+    if not m:
+        return None
+    content = (m["group"] if m["group"] is not None else m["single"]).strip()
+    return content or None
 
 
 def bare_fragment(text: str) -> bool:

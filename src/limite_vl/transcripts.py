@@ -24,9 +24,10 @@ UNITS = {"zero": 0, "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six":
          "seventeen": 17, "eighteen": 18, "nineteen": 19, "twenty": 20, "thirty": 30, "forty": 40, "fifty": 50,
          "sixty": 60, "seventy": 70, "eighty": 80, "ninety": 90, "hundred": 100, "dozen": 12}
 DIGIT_WORDS = {w: str(v) for w, v in UNITS.items() if v < 10}
+# senza i nomi che sono spesso oggetti o sapori (lime, mint, peach, olive, cream: quarta versione, dopo il job 30032)
 COLORS = {"red", "orange", "yellow", "green", "blue", "purple", "violet", "pink", "brown", "black", "white", "gray",
-          "beige", "tan", "gold", "silver", "teal", "turquoise", "navy", "maroon", "cyan", "magenta", "cream",
-          "ivory", "khaki", "olive", "lavender", "peach", "burgundy", "crimson", "indigo", "aqua", "lime", "mint"}
+          "beige", "tan", "gold", "silver", "teal", "turquoise", "navy", "maroon", "cyan", "magenta", "ivory", "khaki",
+          "lavender", "burgundy", "crimson", "indigo", "aqua"}
 WORD = re.compile(r"[a-z]+(?:-[a-z]+)?|\d+(?:[.,]\d+)?")
 QUOTE = re.compile(r"\"([^\"\n]{1,120})\"|“([^”\n]{1,120})”")
 TIME = re.compile(r"\b(\d{1,2}):(\d{2})\b")
@@ -38,7 +39,7 @@ NOT_COUNT = re.compile(r"\b(?:one|ones)\s+(?:of|another|side|end|hand|another's)
 
 def _color_forms() -> dict[str, str]:
     forms = {"grey": "gray", "greyish": "gray", "golden": "gold", "bluish": "blue", "silvery": "silver",
-             "peachy": "peach", "orangey": "orange"}
+             "orangey": "orange"}
     for c in COLORS:
         for f in (c, c + "ish", c[:-1] + "ish", c + c[-1] + "ish", c + "ness"):
             forms.setdefault(f, c)
@@ -132,6 +133,21 @@ def quote_supported(quote: str, transcript: str, compacts: tuple[str, str], tr_n
         return True
     have = set(WORD.findall(transcript.lower()))
     return sum(_word_present(w, have) for w in words) / len(words) >= 0.5
+
+
+YEAR = re.compile(r"^(1[89]\d\d|20\d\d)$")
+
+
+def number_kind(value: str) -> str:
+    """Tipo di un numero non trovato, per i segnali di rischio: orario, anno, piccolo conteggio (2-12), altro."""
+    if ":" in value:
+        return "orario"
+    if YEAR.match(value):
+        return "anno"
+    try:
+        return "conteggio_2_12" if 2 <= float(value) <= 12 else "altro_numero"
+    except ValueError:
+        return "altro_numero"
 
 
 def compare(caption: str, transcripts: list[str]) -> dict:

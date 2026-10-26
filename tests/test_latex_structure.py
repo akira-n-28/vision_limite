@@ -7,7 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from limite_vl.latex import bare_fragment, structure_problems, unrendered_commands  # noqa: E402
+from limite_vl.latex import bare_fragment, lone_index, structure_problems, unrendered_commands, visible_tokens  # noqa: E402
 
 VALID = [
     r"\frac{a+b}{2}\geq\sqrt{ab}",
@@ -49,6 +49,18 @@ def main() -> int:
     ok &= check("comando non reso: \\footnote", unrendered_commands(r"x^{1}\footnote{Corresponding author}") == [r"\footnote"])
     ok &= check("comandi non resi: \\label e \\cite", unrendered_commands(r"E=mc^2\label{eq:1}\cite{x}") == [r"\label", r"\cite"])
     ok &= check("nessun comando non reso", unrendered_commands(r"\frac{a}{b}\mathrm{d}x\text{if }x>0") == [])
+    # indici isolati: si rietichettano col contenuto; con altro dopo restano come sono (terza versione, job 30029)
+    for f, content in (("^{26}", "26"), ("_2", "2"), ("^\\circ", "\\circ"), ("_{4\\sigma}", "4\\sigma"), ("{}^{-1}", "-1"),
+                       ("^\\mathrm{16}", "\\mathrm{16}"), ("^{\\mathrm{c}}", "\\mathrm{c}"), ("^{-}", "-")):
+        ok &= check(f"indice isolato {f!r} -> {content!r}", lone_index(f) == content, lone_index(f))
+    for f in ("^2S_{1/2}", "^{14}C", "x^2", "^{+1.6}_{-0.5}", "^{}", r"\frac{1}{2}"):
+        ok &= check(f"non è un indice isolato: {f!r}", lone_index(f) is None, lone_index(f))
+    # normalizzazione: stessi pixel, stessi token visibili
+    for a, b in ((r"\ensuremath{\delta}", r"\delta"), (r"\protect\phi", r"\phi"), ("h_{}", "h"), (r"\textsf{R}", "R"),
+                 (r"x^{ }+1", "x+1")):
+        ok &= check(f"stessi token visibili: {a!r} e {b!r}", visible_tokens(a) == visible_tokens(b),
+                    (visible_tokens(a), visible_tokens(b)))
+    ok &= check("token visibili diversi: \\lambda e \\bar{\\lambda}", visible_tokens(r"\lambda") != visible_tokens(r"\bar{\lambda}"))
     return 0 if ok else 1
 
 

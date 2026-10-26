@@ -5,9 +5,11 @@ Legge dai parquet originali solo le colonne `caption` e `transcripts` (le trascr
 `pixmo-<file>-<riga>` è quella di scripts/shard_parquet.py, quindi gli esiti si applicano agli shard. Numeri, colori e
 testi citati che nessuna trascrizione contiene sono candidati aggiunti dal riscrittore: da confermare, non errori.
 
-Uscite in --out (cartella nuova): report.json (tassi, distribuzioni, esempi, identità di codice e file), flagged.jsonl
-(righe con almeno un candidato) ed exclude.txt (le loro chiavi: filtro conservativo, PixMo ha molte più descrizioni di
-quante ne servano a F1). Job CPU: slurm/pixmo_transcript_check.sbatch.
+Quarta versione: sono segnali di rischio, non esclusioni (l'assenza di un dettaglio nelle trascrizioni non prova che
+sia falso nell'immagine). Ogni segnale ha un tipo: numero (orario, anno, conteggio 2-12, altro), colore, testo citato.
+Uscite in --out (cartella nuova): report.json (tassi per tipo, esempi, identità di codice e file), flagged.jsonl (righe
+con almeno un segnale, con i tipi) e risk_<tipo>.txt (chiavi per tipo, per decidere dopo una verifica sulle immagini).
+Nessuna lista di esclusione. Job CPU: slurm/pixmo_transcript_check.sbatch.
 """
 from __future__ import annotations
 
@@ -22,7 +24,7 @@ import pyarrow.parquet as pq
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from limite_vl.provenance import code_identity  # noqa: E402
-from limite_vl.transcripts import compare  # noqa: E402
+from limite_vl.transcripts import compare, number_kind  # noqa: E402
 
 EXAMPLES = 30
 
@@ -45,7 +47,9 @@ def main() -> None:
     examples = defaultdict(list)
     values = defaultdict(Counter)
     files = []
-    with open(args.out / "flagged.jsonl", "w") as fh, open(args.out / "exclude.txt", "w") as ex:
+    risk_keys: dict[str, list[str]] = defaultdict(list)
+    risk_rows = Counter()
+    with open(args.out / "flagged.jsonl", "w") as fh:
         for shard in shards:
             file_index = int(shard["name"].rsplit("-", 1)[1].split(".")[0])
             (path,) = shard["files"]
@@ -76,14 +80,20 @@ def main() -> None:
                     flags_per_row[min(n, 5)] += 1
                     if n:
                         flagged += 1
-                        ex.write(key + "\n")
-                        fh.write(json.dumps({"id": key, "numbers": r["numbers"], "colors": r["colors"],
+                        kinds = sorted({f"numero_{number_kind(v)}" for v in r["numbers"]}
+                                       | ({"colore"} if r["colors"] else set()) | ({"testo_citato"} if r["quotes"] else set()))
+                        for k in kinds:
+                            risk_keys[k].append(key)
+                            risk_rows[k] += 1
+                        fh.write(json.dumps({"id": key, "risks": kinds, "numbers": r["numbers"], "colors": r["colors"],
                                              "quotes": r["quotes"]}, ensure_ascii=False) + "\n")
             print(f"{Path(path).name}: {rows} righe, {flagged} con candidati", flush=True)
 
+    for k, keys in risk_keys.items():
+        (args.out / f"risk_{k}.txt").write_text("".join(x + "\n" for x in keys))
     compared = rows - no_transcript
     report = {
-        "schema": "pixmo-transcript-check/3",
+        "schema": "pixmo-transcript-check/4",
         "job_id": os.environ.get("SLURM_JOB_ID"),
         "code": code_identity(),
         "files": files,
@@ -91,7 +101,8 @@ def main() -> None:
         "rows_without_transcript": no_transcript,
         "rows_compared": compared,
         "rows_with_candidates": flagged,
-        "excluded_rows": flagged,
+        "risk_rows_by_type": dict(risk_rows.most_common()),
+        "risk_rate_by_type": {k: round(v / max(1, compared), 4) for k, v in risk_rows.items()},
         "rows_with_candidates_by_kind": dict(with_flag),
         "items_checked": dict(checked),
         "items_missing": dict(missing_items),
@@ -100,11 +111,11 @@ def main() -> None:
         "candidates_per_row": {str(k): v for k, v in sorted(flags_per_row.items())},
         "top_missing_values": {k: v.most_common(30) for k, v in values.items()},
         "examples": examples,
-        "note": "candidati aggiunti dal riscrittore rispetto alle trascrizioni: da confermare su un campione, non errori",
+        "note": "segnali di rischio per tipo, non esclusioni: da verificare sulle immagini prima di qualunque decisione",
     }
     (args.out / "report.json").write_text(json.dumps(report, indent=1, ensure_ascii=False))
     print(json.dumps({k: report[k] for k in ("rows", "rows_without_transcript", "rows_with_candidates",
-                                             "rows_with_candidates_by_kind", "rate_rows", "rate_items")}, ensure_ascii=False))
+                                             "rows_with_candidates_by_kind", "risk_rows_by_type", "rate_items")}, ensure_ascii=False))
 
 
 if __name__ == "__main__":

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Controlli di UniMER senza LLM su tutti gli shard di train densi (scripts/unimer_check.py). Prima i test della struttura
-# del LaTeX (tests/test_latex_structure.py); se falliscono il controllo non parte. Job solo CPU.
+# del LaTeX (tests/test_latex_structure.py) e del confronto col disegno di matplotlib (tests/test_latex_render.py);
+# se falliscono il controllo non parte. Job solo CPU.
 # Uso: sbatch slurm/unimer_check.sbatch OUT
 #SBATCH --job-name=lvl-unimer-check
 #SBATCH --partition=mat
@@ -23,10 +24,12 @@ cd "$PROJECT_ROOT"
 test -x "$RUN_PYTHON"
 source slurm/prologue.sh
 lagrange_prologue cpu
-if ! srun "$RUN_PYTHON" -B tests/test_latex_structure.py; then
-  ledger_note failed "unimer_check: tests/test_latex_structure.py fallito, controllo non eseguito"
-  exit 1
-fi
+for t in tests/test_latex_structure.py tests/test_latex_render.py; do
+  if ! srun "$RUN_PYTHON" -B "$t"; then
+    ledger_note failed "unimer_check: $t fallito, controllo non eseguito"
+    exit 1
+  fi
+done
 if srun "$RUN_PYTHON" -u -B scripts/unimer_check.py --shards "$SHARDS"/unimer-train-*.tar --out "$1"; then
   ledger_note ok "unimer_check -> $1"
 else

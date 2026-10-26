@@ -7,7 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from limite_vl.transcripts import compare, numbers  # noqa: E402
+from limite_vl.transcripts import compare, number_kind, numbers  # noqa: E402
 
 TRANSCRIPT = ["okay so this is a street at night, there are three cars parked, one of them is grey and the other two are "
               "red, and there's a sign that says open twenty four hours, and maybe twenty-five people walking"]
@@ -46,6 +46,9 @@ EQUIVALENT = [
      ["it's 843 and there is a seven in a box"]),
     ("zero letto anche come parola", "White text saying \"IsNotZero\" on the right.",
      ["In white text it says is not zero on the right"]),
+    # quarta versione: nomi che sono spesso oggetti o sapori non contano come colori
+    ("lime, mint, olive e peach non sono colori", "A drink with a slice of lime, mint leaves, olive oil and a peach.",
+     ["a drink and some leaves and a bottle of oil and a fruit"]),
 ]
 
 
@@ -72,6 +75,8 @@ def main() -> int:
     r = compare("The movie was released in 2011 and the clock shows 9:41.",
                 ["a soccer punch Like 2010 11 12 something like that"])
     ok &= check("anno e orario aggiunti dal riscrittore", r["numbers"] == ["9:41", "2011"], r)
+    ok &= check("tipi dei numeri", [number_kind(v) for v in ("9:41", "2011", "4", "250")] ==
+                ["orario", "anno", "conteggio_2_12", "altro_numero"])
     return 0 if ok else 1
 
 
