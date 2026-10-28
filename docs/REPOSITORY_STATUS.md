@@ -1,33 +1,39 @@
-# Stato da verificare su Lagrange
+# Stato del repository rispetto alla pipeline v1.4
 
-Preparato il 28 ottobre 2026 per la migrazione alla [pipeline v1.4](../PIPELINE_ADDESTRAMENTO_LIMITE_VL.md).
+Preparato il 28 ottobre 2026 sul portatile per la migrazione alla [pipeline v1.4](../PIPELINE_ADDESTRAMENTO_LIMITE_VL.md);
+**aggiornato lo stesso giorno sul cluster** dopo la [migrazione](MIGRATION_REPORT.md), con le evidenze del checkout reale.
 
-**Questo documento non dichiara eseguita la migrazione sul cluster.** L'analisi del codice ha usato lo snapshot `9d977b691190256d25fd0f31c0969fc24e1356ad`; Claude deve riconciliare queste informazioni con il checkout reale, le modifiche locali e gli artefatti fuori Git. L'utente riferisce repository aggiornata e assenza di job attivi.
+## Esito della verifica sul cluster
 
-## Base disponibile
+- Checkout reale: `main` a `6e888d5` dopo il fast-forward da `9d977b6`, albero pulito, nessun job attivo, nessun lavoro
+  locale non pubblicato. Il codice coincide con lo snapshot analizzato sul portatile.
+- I 13 JSON di run storici sono archiviati come previsto; i launcher legati alla vecchia sequenza sono 29 (il portatile ne
+  contava 28: [rapporto](MIGRATION_REPORT.md), §4). Elenco e hash in `archive/pipeline-precedente/MOVES.tsv`.
+- Gli artefatti fuori da Git (`data/`, `hf/`, `outputs/`, `venvs/`, cache) sono inventariati in
+  [`ARTIFACT_INVENTORY.tsv`](ARTIFACT_INVENTORY.tsv); i file versionati in [`REPOSITORY_INDEX.tsv`](REPOSITORY_INDEX.tsv).
 
-La pipeline recepisce progettualmente i rilievi delle due revisioni. La [matrice dei rilievi](REVIEW_ACTIONS.md) distingue requisiti e verifiche residue. I rapporti originali restano riferiti alle versioni esaminate; nessuno di questi documenti prova che i requisiti siano già implementati.
-
-Nel riordino locale preparatorio sono stati individuati 13 JSON di run storici e 28 launcher legati alla vecchia sequenza, inclusa la bozza F1-clean. Si tratta di candidati da verificare sul cluster. Il contenuto di `data/`, `hf/`, `outputs/`, `venvs/` e delle altre directory ignorate da Git non è stato inventariato da questa consegna.
+La pipeline recepisce progettualmente i rilievi delle due revisioni ([matrice](REVIEW_ACTIONS.md)). I rapporti originali
+restano riferiti alle versioni esaminate; nessuno di questi documenti prova che i requisiti siano già implementati.
 
 ## Verifica dell'implementazione
 
-| Area | Componenti individuati nello snapshot | Requisito da verificare sul cluster |
-| --- | --- | --- |
-| Formato delle risposte | Template Violetto ed estrattori storici | Contratto diretto/ragionato, label, stop e verificatori per compito |
-| Encoder e collegamento | SigLIP2, pixel shuffle/MLP e hook visivi | Scelta Qwen, estrazione/preprocessing e confronto di proiettori, layer e ingressi |
-| ViT addestrabile | Ramo autograd e trainer di riferimento | Gruppi distinti, precisione, gradienti, salvataggio e ripresa completi |
-| Dati e gold | Parser, generatori, controlli e provenienza | Regole per QA, ambiguità, osservabilità e evidenza indipendente |
-| Split e manifest | Reader, esclusioni e controlli di overlap | Gruppi trasversali, varianti/crop ammessi e contabilità dei dati consumati |
-| Replay e più immagini | Loader testuale e liste nel processor | Mix effettivo, lunghezze, loader multi-immagine e contesto validato |
-| F3 | Componenti SFT riutilizzabili | Curriculum, copertura e supervisione coerente |
-| F4 | Helper e verificatori parziali | Trainer multimodale, rollout/log-probabilità, riferimento e GRPO definiti |
-| Interpolazioni | Componenti dei checkpoint | Tensori compatibili, pesi legati e valutazioni testo/visione/comportamento |
+| Area | Componenti presenti sul cluster | Stato rispetto alla pipeline | Interventi |
+| --- | --- | --- | --- |
+| Formato delle risposte | Template Violetto, `F1_PREFILL`, estrattore storico (`f2.grade`) | Formato generato verificato; contratto diretto/ragionato mancante | [F0 punto 1](F0_IMPLEMENTATION_PLAN.md) |
+| Encoder e collegamento | SigLIP2, pixel shuffle 2x2 + MLP, hook su embedding e value embeddings | Baseline verificata; encoder Qwen, proiettori alternativi, layer intermedi, DeepStack, rami MUDD/value mancanti | punto 5 |
+| ViT addestrabile | Ramo autograd presente; `set_trainable` congela sempre l'encoder; conteggi di parametri fissi; checkpoint senza ViT | Mancante | punto 6 |
+| Dati e gold | Parser, generatori, controlli deterministici, rietichettature, provenienza delle liste | Gold tipizzato, valore esatto/visualizzato, ambiguità dei sintetici, answer-only mancanti | punto 2 |
+| Split e manifest | Reader con esclusioni per chiave, validazione dal prefisso dell'ultimo shard, liste storiche | Manifest per compito/variante, gruppi globali e contabilità del consumato mancanti | punto 3 |
+| Replay e più immagini | Loader testuale; processor con liste di immagini; `Sample` con una sola immagine | Caricatori multi-immagine e mix del replay mancanti | punti 3, 4 |
+| Valutazione | Valutatore testuale ufficiale, trascrizione UniMER-Test, immagine vera/bianca/assente | Valutatore dei benchmark visivi e pannelli di documenti e pagine mancanti | punto 7 |
+| F3 | Componenti SFT riutilizzabili | Fuori dal primo perimetro | — |
+| F4 | Helper e verificatori parziali | Fuori dal primo perimetro | — |
+| Interpolazioni | `export_decoder.py` (round trip di Violetto) | Fuori dal primo perimetro | — |
 
-Non creare nuove ricette quantitative o dichiararle pronte soltanto perché i file storici sono stati archiviati. Mantenere import e prove di provenienza necessari; correggere le dipendenze prima di eliminare codice.
+Non creare nuove ricette quantitative o dichiararle pronte soltanto perché i file storici sono stati archiviati. Mantenere
+import e prove di provenienza necessari; correggere le dipendenze prima di eliminare codice.
 
-## Prima consegna richiesta
+## Prossimo lavoro
 
-Eseguire la [migrazione](../ISTRUZIONI_MIGRAZIONE_LAGRANGE.md): rendere corrente la pipeline, ritirare i percorsi superati, inventariare gli artefatti e preparare gli interventi F0. Non servono ancora implementazione completa del RL o certificazione generale dei dati.
-
-Claude aggiornerà lo stato con evidenze reali e produrrà `docs/MIGRATION_REPORT.md`, `docs/ARTIFACT_INVENTORY.tsv` e `docs/F0_IMPLEMENTATION_PLAN.md`. Distinguere controlli effettivamente eseguiti, controlli da pianificare in allocazione e decisioni ancora aperte. La pulizia massiva degli artefatti e il training non fanno parte di questa prima consegna.
+Le decisioni D1-D6 e le quattro specifiche brevi S1-S4 di [`F0_IMPLEMENTATION_PLAN.md`](F0_IMPLEMENTATION_PLAN.md), poi
+gli interventi 1-7 in ordine. Training, piloti GPU, audit con agenti e download richiedono l'ok esplicito dell'utente.

@@ -1,0 +1,280 @@
+percorso	tipo	stato	ruolo_o_motivo	dipendenze_o_limiti
+.gitignore	documento	corrente	cartelle pesanti escluse	-
+CLAUDE.md	documento	corrente	istruzioni operative	-
+ISTRUZIONI_MIGRAZIONE_LAGRANGE.md	documento	corrente	incarico della migrazione del 2026-10-28	-
+LAGRANGE.md	documento	corrente	guida del cluster	-
+PIPELINE_ADDESTRAMENTO_LIMITE_VL.md	documento	corrente	riferimento corrente v1.4	-
+README.md	documento	corrente	presentazione e stato	-
+archive/pipeline-precedente/CLAUDE.pre-migrazione.md	archivio	storico	documento dell'archivio	-
+archive/pipeline-precedente/MOVES.tsv	archivio	storico	documento dell'archivio	-
+archive/pipeline-precedente/README.md	archivio	storico	documento dell'archivio	-
+archive/pipeline-precedente/README.pre-migrazione.md	archivio	storico	documento dell'archivio	-
+archive/pipeline-precedente/config/runs/f1-clean.json	archivio	storico	ricetta: config della strategia precedente (pipeline v1.4 §17: nessun vecchio JSON diventa ricetta)	prima in config/runs/f1-clean.json
+archive/pipeline-precedente/config/runs/f1-diag-llava.json	archivio	storico	ricetta: config della strategia precedente (pipeline v1.4 §17: nessun vecchio JSON diventa ricetta)	prima in config/runs/f1-diag-llava.json
+archive/pipeline-precedente/config/runs/f1-mid.json	archivio	storico	ricetta: config della strategia precedente (pipeline v1.4 §17: nessun vecchio JSON diventa ricetta)	prima in config/runs/f1-mid.json
+archive/pipeline-precedente/config/runs/f1-smoke-mix.json	archivio	storico	ricetta: config della strategia precedente (pipeline v1.4 §17: nessun vecchio JSON diventa ricetta)	prima in config/runs/f1-smoke-mix.json
+archive/pipeline-precedente/config/runs/f1-smoke.json	archivio	storico	ricetta: config della strategia precedente (pipeline v1.4 §17: nessun vecchio JSON diventa ricetta)	prima in config/runs/f1-smoke.json
+archive/pipeline-precedente/config/runs/f1-smoke3.json	archivio	storico	ricetta: config della strategia precedente (pipeline v1.4 §17: nessun vecchio JSON diventa ricetta)	prima in config/runs/f1-smoke3.json
+archive/pipeline-precedente/config/runs/f1.json	archivio	storico	ricetta: config della strategia precedente (pipeline v1.4 §17: nessun vecchio JSON diventa ricetta)	prima in config/runs/f1.json
+archive/pipeline-precedente/config/runs/f1b.json	archivio	storico	ricetta: config della strategia precedente (pipeline v1.4 §17: nessun vecchio JSON diventa ricetta)	prima in config/runs/f1b.json
+archive/pipeline-precedente/config/runs/f1c-control.json	archivio	storico	ricetta: config della strategia precedente (pipeline v1.4 §17: nessun vecchio JSON diventa ricetta)	prima in config/runs/f1c-control.json
+archive/pipeline-precedente/config/runs/f1c.json	archivio	storico	ricetta: config della strategia precedente (pipeline v1.4 §17: nessun vecchio JSON diventa ricetta)	prima in config/runs/f1c.json
+archive/pipeline-precedente/config/runs/f2-abl-adamw.json	archivio	storico	ricetta: config della strategia precedente (pipeline v1.4 §17: nessun vecchio JSON diventa ricetta)	prima in config/runs/f2-abl-adamw.json
+archive/pipeline-precedente/config/runs/f2-abl-normuon.json	archivio	storico	ricetta: config della strategia precedente (pipeline v1.4 §17: nessun vecchio JSON diventa ricetta)	prima in config/runs/f2-abl-normuon.json
+archive/pipeline-precedente/config/runs/f2-smoke.json	archivio	storico	ricetta: config della strategia precedente (pipeline v1.4 §17: nessun vecchio JSON diventa ricetta)	prima in config/runs/f2-smoke.json
+archive/pipeline-precedente/slurm/f1_diag.sbatch	archivio	storico	training: diagnostica dei run F1 storici (job 29421-29423)	prima in slurm/f1_diag.sbatch
+archive/pipeline-precedente/slurm/f1c_audit_compare.sbatch	archivio	storico	f1c: fase F1c della strategia precedente; adapter ereditati non riusati (F1 da capo)	prima in slurm/f1c_audit_compare.sbatch
+archive/pipeline-precedente/slurm/f1c_audit_export.sbatch	archivio	storico	f1c: fase F1c della strategia precedente; adapter ereditati non riusati (F1 da capo)	prima in slurm/f1c_audit_export.sbatch
+archive/pipeline-precedente/slurm/f1c_data_check.sbatch	archivio	storico	f1c: fase F1c della strategia precedente; adapter ereditati non riusati (F1 da capo)	prima in slurm/f1c_data_check.sbatch
+archive/pipeline-precedente/slurm/f1c_eval.sbatch	archivio	storico	f1c: fase F1c della strategia precedente; adapter ereditati non riusati (F1 da capo)	prima in slurm/f1c_eval.sbatch
+archive/pipeline-precedente/slurm/f1c_report.sbatch	archivio	storico	f1c: fase F1c della strategia precedente; adapter ereditati non riusati (F1 da capo)	prima in slurm/f1c_report.sbatch
+archive/pipeline-precedente/slurm/f1c_stem_extract.sbatch	archivio	storico	f1c: fase F1c della strategia precedente; adapter ereditati non riusati (F1 da capo)	prima in slurm/f1c_stem_extract.sbatch
+archive/pipeline-precedente/slurm/f2_backfill.sbatch	archivio	storico	audit-gate: audit con agenti e gate di certificazione F2 congelati (CLAUDE.md, 2026-10-26)	prima in slurm/f2_backfill.sbatch
+archive/pipeline-precedente/slurm/f2_build.sbatch	archivio	storico	audit-gate: audit con agenti e gate di certificazione F2 congelati (CLAUDE.md, 2026-10-26)	prima in slurm/f2_build.sbatch
+archive/pipeline-precedente/slurm/f2_certify.sbatch	archivio	storico	audit-gate: audit con agenti e gate di certificazione F2 congelati (CLAUDE.md, 2026-10-26)	prima in slurm/f2_certify.sbatch
+archive/pipeline-precedente/slurm/f2_generate.sbatch	archivio	storico	ponte-teacher: ponte testuale di Violetto su MMFineReason, superato dalla pipeline v1.4 (§9 Scelta delle soluzioni)	prima in slurm/f2_generate.sbatch
+archive/pipeline-precedente/slurm/f2_inspect.sbatch	archivio	storico	ponte-teacher: ponte testuale di Violetto su MMFineReason, superato dalla pipeline v1.4 (§9 Scelta delle soluzioni)	prima in slurm/f2_inspect.sbatch
+archive/pipeline-precedente/slurm/f2_layout.sbatch	archivio	storico	ponte-teacher: ponte testuale di Violetto su MMFineReason, superato dalla pipeline v1.4 (§9 Scelta delle soluzioni)	prima in slurm/f2_layout.sbatch
+archive/pipeline-precedente/slurm/f2_leak.sbatch	archivio	storico	ponte-teacher: ponte testuale di Violetto su MMFineReason, superato dalla pipeline v1.4 (§9 Scelta delle soluzioni)	prima in slurm/f2_leak.sbatch
+archive/pipeline-precedente/slurm/f2_phrases.sbatch	archivio	storico	ponte-teacher: ponte testuale di Violetto su MMFineReason, superato dalla pipeline v1.4 (§9 Scelta delle soluzioni)	prima in slurm/f2_phrases.sbatch
+archive/pipeline-precedente/slurm/f2_pilot.sbatch	archivio	storico	audit-gate: audit con agenti e gate di certificazione F2 congelati (CLAUDE.md, 2026-10-26)	prima in slurm/f2_pilot.sbatch
+archive/pipeline-precedente/slurm/f2_plan.sbatch	archivio	storico	ponte-teacher: ponte testuale di Violetto su MMFineReason, superato dalla pipeline v1.4 (§9 Scelta delle soluzioni)	prima in slurm/f2_plan.sbatch
+archive/pipeline-precedente/slurm/f2_qonly_compare.sbatch	archivio	storico	ponte-teacher: ponte testuale di Violetto su MMFineReason, superato dalla pipeline v1.4 (§9 Scelta delle soluzioni)	prima in slurm/f2_qonly_compare.sbatch
+archive/pipeline-precedente/slurm/f2_questions.sbatch	archivio	storico	audit-gate: audit con agenti e gate di certificazione F2 congelati (CLAUDE.md, 2026-10-26)	prima in slurm/f2_questions.sbatch
+archive/pipeline-precedente/slurm/f2_select.sbatch	archivio	storico	ponte-teacher: ponte testuale di Violetto su MMFineReason, superato dalla pipeline v1.4 (§9 Scelta delle soluzioni)	prima in slurm/f2_select.sbatch
+archive/pipeline-precedente/slurm/f2_sources.sbatch	archivio	storico	ponte-teacher: ponte testuale di Violetto su MMFineReason, superato dalla pipeline v1.4 (§9 Scelta delle soluzioni)	prima in slurm/f2_sources.sbatch
+archive/pipeline-precedente/slurm/f2_yield.sbatch	archivio	storico	ponte-teacher: ponte testuale di Violetto su MMFineReason, superato dalla pipeline v1.4 (§9 Scelta delle soluzioni)	prima in slurm/f2_yield.sbatch
+archive/pipeline-precedente/slurm/replay_generate.sbatch	archivio	storico	replay-storico: generazione e selezione delle tracce di Violetto per il replay; il replay v1.4 parte dai riferimenti originali (§5.7)	prima in slurm/replay_generate.sbatch
+archive/pipeline-precedente/slurm/replay_select.sbatch	archivio	storico	replay-storico: generazione e selezione delle tracce di Violetto per il replay; il replay v1.4 parte dai riferimenti originali (§5.7)	prima in slurm/replay_select.sbatch
+archive/pipeline-precedente/slurm/stem_audit_export.sbatch	archivio	storico	audit-gate: audit con agenti e gate di certificazione F2 congelati (CLAUDE.md, 2026-10-26)	prima in slurm/stem_audit_export.sbatch
+archive/pipeline-precedente/slurm/stem_audit_round.sbatch	archivio	storico	audit-gate: audit con agenti e gate di certificazione F2 congelati (CLAUDE.md, 2026-10-26)	prima in slurm/stem_audit_round.sbatch
+archive/pipeline-precedente/slurm/train_f1.sbatch	archivio	storico	training: launcher del vecchio trainer F1; nessuna ricetta corrente da lanciare	prima in slurm/train_f1.sbatch
+archive/pipeline-precedente/slurm/train_f1_smoke.sbatch	archivio	storico	training: prova breve legata a config/runs/f1-smoke.json (archiviata)	prima in slurm/train_f1_smoke.sbatch
+archive/pipeline-precedente/slurm/train_f2.sbatch	archivio	storico	training: trainer F2 storico (ponte teacher, gate f2-cert, ViT congelato)	prima in slurm/train_f2.sbatch
+config/audit/INDEX.md	istruzioni audit	corrente	indice delle istruzioni congelate	-
+config/audit/_rules.md	istruzioni audit	storico-congelato	indice e sha256 in config/audit/INDEX.md	citato per percorso o hash da outputs/f2_pilot, f2_cert, stem_audit
+config/audit/f2_arbiter.md	istruzioni audit	storico-congelato	indice e sha256 in config/audit/INDEX.md	citato per percorso o hash da outputs/f2_pilot, f2_cert, stem_audit
+config/audit/f2_arbiter_v2.md	istruzioni audit	storico-congelato	indice e sha256 in config/audit/INDEX.md	citato per percorso o hash da outputs/f2_pilot, f2_cert, stem_audit
+config/audit/f2_claim_verify.md	istruzioni audit	storico-congelato	indice e sha256 in config/audit/INDEX.md	citato per percorso o hash da outputs/f2_pilot, f2_cert, stem_audit
+config/audit/f2_claim_verify2.md	istruzioni audit	storico-congelato	indice e sha256 in config/audit/INDEX.md	citato per percorso o hash da outputs/f2_pilot, f2_cert, stem_audit
+config/audit/f2_classify.md	istruzioni audit	storico-congelato	indice e sha256 in config/audit/INDEX.md	citato per percorso o hash da outputs/f2_pilot, f2_cert, stem_audit
+config/audit/f2_extract.md	istruzioni audit	storico-congelato	indice e sha256 in config/audit/INDEX.md	citato per percorso o hash da outputs/f2_pilot, f2_cert, stem_audit
+config/audit/f2_policy.json	istruzioni audit	storico-congelato	indice e sha256 in config/audit/INDEX.md	citato per percorso o hash da outputs/f2_pilot, f2_cert, stem_audit
+config/audit/f2_policy_definitions.md	istruzioni audit	storico-congelato	indice e sha256 in config/audit/INDEX.md	citato per percorso o hash da outputs/f2_pilot, f2_cert, stem_audit
+config/audit/f2_solution.md	istruzioni audit	storico-congelato	indice e sha256 in config/audit/INDEX.md	citato per percorso o hash da outputs/f2_pilot, f2_cert, stem_audit
+config/audit/f2_solution_v2.md	istruzioni audit	storico-congelato	indice e sha256 in config/audit/INDEX.md	citato per percorso o hash da outputs/f2_pilot, f2_cert, stem_audit
+config/audit/stem_arbiter.md	istruzioni audit	storico-congelato	indice e sha256 in config/audit/INDEX.md	citato per percorso o hash da outputs/f2_pilot, f2_cert, stem_audit
+config/audit/stem_describe.md	istruzioni audit	storico-congelato	indice e sha256 in config/audit/INDEX.md	citato per percorso o hash da outputs/f2_pilot, f2_cert, stem_audit
+config/audit/stem_gold.md	istruzioni audit	storico-congelato	indice e sha256 in config/audit/INDEX.md	citato per percorso o hash da outputs/f2_pilot, f2_cert, stem_audit
+config/audit/stem_solve.md	istruzioni audit	storico-congelato	indice e sha256 in config/audit/INDEX.md	citato per percorso o hash da outputs/f2_pilot, f2_cert, stem_audit
+config/paths.env	config	corrente	percorsi offline	-
+config/runs/README.md	config	corrente	nessuna ricetta corrente	-
+docs/ACTIVE_WORK_AND_UNTOUCHED_PATHS.md	documento	corrente	stato, piano o inventario della migrazione	-
+docs/ARTIFACT_INVENTORY.tsv	documento	corrente	stato, piano o inventario della migrazione	-
+docs/F0_IMPLEMENTATION_PLAN.md	documento	corrente	stato, piano o inventario della migrazione	-
+docs/MIGRATION_REPORT.md	documento	corrente	stato, piano o inventario della migrazione	-
+docs/REPOSITORY_INDEX.tsv	documento	corrente	stato, piano o inventario della migrazione	-
+docs/REPOSITORY_STATUS.md	documento	corrente	stato, piano o inventario della migrazione	-
+docs/REVIEW_ACTIONS.md	documento	corrente	stato, piano o inventario della migrazione	-
+docs/reviews/PIPELINE_ADDESTRAMENTO_LIMITE_VL.md	documento	corrente	navigazione dei rapporti	-
+docs/reviews/README.md	documento	corrente	navigazione dei rapporti	-
+docs/reviews/REVISIONE_INDIPENDENTE_GOLD_E_DECONTAMINAZIONE.md	documento	storico	rapporto indipendente immutato (versione e hash propri)	-
+docs/reviews/REVISIONE_INDIPENDENTE_PIPELINE_LIMITE_VL.md	documento	storico	rapporto indipendente immutato (versione e hash propri)	-
+downloads/build_manifests.sh	catalogo	corrente	catalogo e manifest dei download	-
+downloads/catalog_status.tsv	catalogo	corrente	catalogo e manifest dei download	-
+downloads/manifests/.gitkeep	catalogo	corrente	catalogo e manifest dei download	-
+downloads/sources.tsv	catalogo	corrente	catalogo e manifest dei download	-
+env-evals/pyproject.toml	ambiente	corrente	pyproject/lock riproducibile dell'ambiente adottato	da ricollaudare per un encoder Qwen
+env-evals/uv.lock	ambiente	corrente	pyproject/lock riproducibile dell'ambiente adottato	da ricollaudare per un encoder Qwen
+env/README.md	ambiente	corrente	pyproject/lock riproducibile dell'ambiente adottato	da ricollaudare per un encoder Qwen
+env/pyproject.cu12.template.toml	ambiente	corrente	modello per un nuovo ambiente	da ricollaudare per un encoder Qwen
+env/pyproject.cu13.template.toml	ambiente	corrente	modello per un nuovo ambiente	da ricollaudare per un encoder Qwen
+env/pyproject.toml	ambiente	corrente	pyproject/lock riproducibile dell'ambiente adottato	da ricollaudare per un encoder Qwen
+env/uv.lock	ambiente	corrente	pyproject/lock riproducibile dell'ambiente adottato	da ricollaudare per un encoder Qwen
+runs/ledger.tsv	registro	corrente	registro dei job (storia degli esperimenti)	esiti storici non sono gold né prova
+runs/reports/stem_audit-mavis-f2sol.md	registro	storico	rapporto di un audit storico	esiti storici non sono gold né prova
+scripts/caption_survey.py	script	riutilizzabile	ispezione dei dati senza training	-
+scripts/check_train_config.py	script	da adeguare	legge lo schema delle config storiche; da rifare sul nuovo manifest	-
+scripts/check_vision_padding.py	script	da adeguare	solo SigLIP2 congelato; da ripetere per i candidati	importato da check_vision_precision
+scripts/check_vision_precision.py	script	da adeguare	precisione con encoder congelato; con il ViT addestrabile va rifatta (§14)	-
+scripts/decontam.py	script	riutilizzabile	decontaminazione: segnali di candidati (pipeline §5.8)	importato da decontam_review, image_sizes
+scripts/decontam_review.py	script	riutilizzabile	decontaminazione: segnali di candidati (pipeline §5.8)	-
+scripts/eval_compare.py	script	riutilizzabile	valutazione testuale con il valutatore ufficiale, export del decoder	-
+scripts/eval_f1_formulas.py	script	da adeguare	trascrizione su UniMER-Test con adapter; da collegare al contratto e ai pannelli	importato da f1c_eval, tests/test_f1_data
+scripts/eval_f1_val.py	script	da adeguare	loss di validazione con immagine vera/bianca/assente; base per i controfattuali (§11)	-
+scripts/eval_text_local.py	script	riutilizzabile	valutazione testuale con il valutatore ufficiale, export del decoder	-
+scripts/export_decoder.py	script	riutilizzabile	valutazione testuale con il valutatore ufficiale, export del decoder	-
+scripts/f0_checks.py	script	corrente	verifiche F0 di Violetto (inputs_embeds, checkpointing, loss a blocchi, gruppi)	-
+scripts/f0_vl_checks.py	script	da adeguare	verifiche del modello VL baseline: mancano encoder B, più immagini, ViT addestrabile (§3.2)	-
+scripts/f1_error_gen.py	script	da adeguare	analisi degli errori con immagine vera e bianca; adattare ai pannelli F0	importato da f1c_eval
+scripts/f1_error_report.py	script	da adeguare	report dell'analisi degli errori	importato da f1c_report, tests/test_f1_errors
+scripts/f1_mavis_check.py	script	riutilizzabile	controllo deterministico dei dati (pipeline §5.3); esiti come evidenze, non ammissione	-
+scripts/f1c_audit_compare.py	script	storico	fase F1c della strategia precedente	-
+scripts/f1c_audit_export.py	script	storico	fase F1c della strategia precedente	-
+scripts/f1c_data_check.py	script	storico	fase F1c della strategia precedente	-
+scripts/f1c_eval.py	script	storico	fase F1c della strategia precedente	-
+scripts/f1c_report.py	script	storico	fase F1c della strategia precedente	-
+scripts/f1c_stem_extract.py	script	storico	fase F1c della strategia precedente	-
+scripts/f2_backfill.py	script	storico-congelato	audit e gate F2 congelati (CLAUDE.md, Strumenti congelati)	importato da tests/test_f2_records
+scripts/f2_build.py	script	storico-congelato	audit e gate F2 congelati (CLAUDE.md, Strumenti congelati)	-
+scripts/f2_certify.py	script	storico-congelato	audit e gate F2 congelati (CLAUDE.md, Strumenti congelati)	-
+scripts/f2_generate.py	script	storico	ponte testuale di Violetto per F2 (superato, pipeline §9)	importato da tests/test_f2_gate (torch)
+scripts/f2_inspect.py	script	storico	ponte testuale di Violetto per F2 (superato, pipeline §9)	-
+scripts/f2_layout.py	script	storico	ponte testuale di Violetto per F2 (superato, pipeline §9)	-
+scripts/f2_leak.py	script	storico	ponte testuale di Violetto per F2 (superato, pipeline §9)	importato da tests/test_f2_leak
+scripts/f2_phrases.py	script	storico	ponte testuale di Violetto per F2 (superato, pipeline §9)	-
+scripts/f2_pilot.py	script	storico-congelato	audit e gate F2 congelati (CLAUDE.md, Strumenti congelati)	-
+scripts/f2_qonly_compare.py	script	storico	ponte testuale di Violetto per F2 (superato, pipeline §9)	-
+scripts/f2_questions.py	script	storico-congelato	audit e gate F2 congelati (CLAUDE.md, Strumenti congelati)	-
+scripts/f2_select.py	script	storico	ponte testuale di Violetto per F2 (superato, pipeline §9)	-
+scripts/f2_sources.py	script	storico	ponte testuale di Violetto per F2 (superato, pipeline §9)	-
+scripts/f2_yield.py	script	storico	ponte testuale di Violetto per F2 (superato, pipeline §9)	-
+scripts/fetch.sh	script	corrente	kit: ambiente, download controllati, cache HF, verifica	-
+scripts/fetch_manifest.sh	script	corrente	kit: ambiente, download controllati, cache HF, verifica	-
+scripts/guarded_run.sh	script	corrente	kit: ambiente, download controllati, cache HF, verifica	-
+scripts/hf_manifest.py	script	corrente	kit: ambiente, download controllati, cache HF, verifica	-
+scripts/image_sizes.py	script	riutilizzabile	ispezione dei dati senza training	-
+scripts/inspect_zip.py	script	riutilizzabile	ispezione dei dati senza training	-
+scripts/lang_scripts.py	script	riutilizzabile	ispezione dei dati senza training	-
+scripts/lang_survey.py	script	riutilizzabile	ispezione dei dati senza training	-
+scripts/link_eval_datasets.py	script	corrente	kit: ambiente, download controllati, cache HF, verifica	-
+scripts/link_hf_snapshot.py	script	corrente	kit: ambiente, download controllati, cache HF, verifica	-
+scripts/mavis_caption_check.py	script	riutilizzabile	controllo deterministico dei dati (pipeline §5.3); esiti come evidenze, non ammissione	-
+scripts/mavis_caption_survey.py	script	riutilizzabile	ispezione dei dati senza training	-
+scripts/mavis_contact_sheet.py	script	riutilizzabile	controllo deterministico dei dati (pipeline §5.3); esiti come evidenze, non ammissione	-
+scripts/mavis_fraction_values.py	script	riutilizzabile	controllo deterministico dei dati (pipeline §5.3); esiti come evidenze, non ammissione	-
+scripts/mavis_geometry_check.py	script	riutilizzabile	controllo deterministico dei dati (pipeline §5.3); esiti come evidenze, non ammissione	importato da tests/test_mavis_geometry
+scripts/mavis_variants.py	script	riutilizzabile	ispezione dei dati senza training	-
+scripts/mavis_zip_survey.py	script	riutilizzabile	ispezione dei dati senza training	-
+scripts/peek_parquet.py	script	riutilizzabile	ispezione dei dati senza training	-
+scripts/peek_shard.py	script	riutilizzabile	ispezione dei dati senza training	-
+scripts/pixmo_transcript_check.py	script	riutilizzabile	controllo deterministico dei dati (pipeline §5.3); esiti come evidenze, non ammissione	-
+scripts/replay_decontam.py	script	riutilizzabile	decontaminazione: segnali di candidati (pipeline §5.8)	-
+scripts/replay_generate.py	script	storico	replay con tracce generate da Violetto (il replay v1.4 parte dai riferimenti originali)	-
+scripts/replay_select.py	script	storico	replay con tracce generate da Violetto (il replay v1.4 parte dai riferimenti originali)	-
+scripts/setup_env.sh	script	corrente	kit: ambiente, download controllati, cache HF, verifica	-
+scripts/shard_llava_pretrain.py	script	riutilizzabile	conversione in shard tar	importato da shard_mavis_geometry, shard_parquet, shard_unimer, synth_render, f2_build, replay_select
+scripts/shard_mavis_geometry.py	script	riutilizzabile	conversione in shard tar	importato da shard_unimer, synth_render
+scripts/shard_parquet.py	script	riutilizzabile	conversione in shard tar	-
+scripts/shard_unimer.py	script	riutilizzabile	conversione in shard tar	-
+scripts/split_duplicates.py	script	da adeguare	duplicati per sorgente con target identici; da estendere ai gruppi globali (§5.10.3)	-
+scripts/stem_audit_export.py	script	storico-congelato	audit e gate F2 congelati (CLAUDE.md, Strumenti congelati)	importato da tests/test_stem_audit
+scripts/stem_audit_round.py	script	storico-congelato	audit e gate F2 congelati (CLAUDE.md, Strumenti congelati)	importato da f2_certify, tests/test_stem_audit
+scripts/stream_stats.py	script	da adeguare	statistiche del flusso con lo schema storico; servono contatori del consumato (§5.8.6)	-
+scripts/synth_render.py	script	da adeguare	render dei sintetici; generatore con domande ambigue da correggere (§5.7)	-
+scripts/train_f1.py	script	da adeguare	trainer F1 storico (ViT congelato); helper importati da molti strumenti; base del nuovo trainer (§17.4)	importato da check_train_config, check_vision_padding, check_vision_precision, eval_f1_formulas, eval_f1_val, f1_error_gen, f1c_*, f2_generate, replay_generate, stream_stats, train_f2
+scripts/train_f2.py	script	storico	trainer F2 storico: gate f2-cert, conteggi di parametri fissi, ViT congelato; riusabili MasterWeights e gruppi	importato da tests/test_f2_train
+scripts/unimer_check.py	script	riutilizzabile	controllo deterministico dei dati (pipeline §5.3); esiti come evidenze, non ammissione	-
+scripts/unimer_survey.py	script	riutilizzabile	ispezione dei dati senza training	-
+scripts/unimer_test_overlap.py	script	riutilizzabile	controllo deterministico dei dati (pipeline §5.3); esiti come evidenze, non ammissione	-
+scripts/uvlock_manifest.py	script	corrente	kit: ambiente, download controllati, cache HF, verifica	-
+scripts/vendor_limite_modeling.py	script	corrente	kit: ambiente, download controllati, cache HF, verifica	-
+scripts/verify_manifest.py	script	corrente	kit: ambiente, download controllati, cache HF, verifica	-
+scripts/vllm_smoke.py	script	riutilizzabile	valutazione testuale con il valutatore ufficiale, export del decoder	-
+slurm/caption_survey.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
+slurm/check_train_config.sbatch	launcher	da adeguare	launcher di uno strumento da adeguare (vedi lo script)	-
+slurm/check_vision_padding.sbatch	launcher	da adeguare	launcher di uno strumento da adeguare (vedi lo script)	-
+slurm/check_vision_precision.sbatch	launcher	da adeguare	launcher di uno strumento da adeguare (vedi lo script)	-
+slurm/cpu_affinity_probe.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
+slurm/decontam.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
+slurm/decontam_review.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
+slurm/env_install.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
+slurm/eval_compare.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
+slurm/eval_datasets_check.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
+slurm/eval_f1_formulas.sbatch	launcher	da adeguare	launcher di uno strumento da adeguare (vedi lo script)	-
+slurm/eval_text_baseline.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
+slurm/eval_text_local.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
+slurm/eval_text_resolve.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
+slurm/export_decoder.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
+slurm/extract_tools.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
+slurm/f0_checks.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
+slurm/f0_gpu_probe.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
+slurm/f0_vl_checks.sbatch	launcher	da adeguare	launcher di uno strumento da adeguare (vedi lo script)	-
+slurm/f1_error_gen.sbatch	launcher	da adeguare	launcher di uno strumento da adeguare (vedi lo script)	-
+slurm/f1_error_report.sbatch	launcher	da adeguare	launcher di uno strumento da adeguare (vedi lo script)	-
+slurm/f1_mavis_check.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
+slurm/image_sizes.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
+slurm/inspect_zip.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
+slurm/lang_scripts.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
+slurm/lang_survey.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
+slurm/mavis_caption_check.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
+slurm/mavis_caption_survey.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
+slurm/mavis_contact_sheet.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
+slurm/mavis_fraction_values.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
+slurm/mavis_geometry_check.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
+slurm/mavis_variants.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
+slurm/mavis_zip_survey.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
+slurm/peek_parquet.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
+slurm/peek_shard.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
+slurm/pixmo_transcript_check.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
+slurm/prologue.sh	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
+slurm/replay_decontam.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
+slurm/shard_llava_pretrain.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
+slurm/shard_mavis_geometry.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
+slurm/shard_parquet.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
+slurm/shard_unimer.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
+slurm/split_duplicates.sbatch	launcher	da adeguare	launcher di uno strumento da adeguare (vedi lo script)	-
+slurm/stream_stats.sbatch	launcher	da adeguare	launcher di uno strumento da adeguare (vedi lo script)	-
+slurm/synth_render.sbatch	launcher	da adeguare	launcher di uno strumento da adeguare (vedi lo script)	-
+slurm/tests_cpu.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
+slurm/unimer_check.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
+slurm/unimer_survey.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
+slurm/unimer_test_overlap.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
+slurm/verify_hashes.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
+slurm/vllm_smoke.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
+src/limite_vl/.gitkeep	modulo	corrente	segnaposto	-
+src/limite_vl/__init__.py	modulo	corrente	pacchetto	-
+src/limite_vl/collator.py	modulo	da adeguare	packing e collate	posizioni azzerate a ogni esempio; scarta gli esempi troppo lunghi senza contabilità
+src/limite_vl/data.py	modulo	da adeguare	lettura degli shard ed esempi per tipo	un'immagine per Sample; QA costruite al volo senza identità compito/variante
+src/limite_vl/data_lists.py	modulo	riutilizzabile	liste obbligatorie e loro provenienza	da collegare al manifest di ammissione
+src/limite_vl/decontam.py	modulo	riutilizzabile	pHash e n-gram per candidati di contaminazione	segnale, non prova (§5.10.3)
+src/limite_vl/f1_mavis.py	modulo	riutilizzabile	verità, descrizione canonica e domande MAVIS da diagram_generation	valore esatto/visualizzato/richiesto da separare (§5.6)
+src/limite_vl/f1_schema.py	modulo	riutilizzabile	schema delle descrizioni strutturate e parser inverso	-
+src/limite_vl/f1c.py	modulo	storico	dati di F1c	importato da data.py, shard_unimer, f1_mavis
+src/limite_vl/f2.py	modulo	storico	estrazione e confronto delle risposte del ponte F2	grade richiede </think> ed estrae l'ultimo \boxed{}; base per l'estrattore (§5.10.4)
+src/limite_vl/f2_claims.py	modulo	storico-congelato	candidati e alterazioni del pilota f2-pilot/2	sha256 congelato in outputs/f2_pilot/*
+src/limite_vl/f2_records.py	modulo	storico-congelato	record, certificati e gate F2	fail-closed in MixedRowStream per f2_solution
+src/limite_vl/facts.py	modulo	storico	fatti delle didascalie MAVIS per F1c	importato da mavis_gen
+src/limite_vl/generation.py	modulo	riutilizzabile	generazione a batch per il modello VL	-
+src/limite_vl/latex.py	modulo	riutilizzabile	formule e confronto fra trascrizioni	separare equivalenza matematica e trascrizione (§5.7)
+src/limite_vl/latex_render.py	modulo	riutilizzabile	confronto col disegno di matplotlib	-
+src/limite_vl/limite_code.py	modulo	corrente	import verificato del codice di Limite	-
+src/limite_vl/mavis.py	modulo	storico	MAVIS come dati F2 col ponte testuale	importato da mavis_gen e f2_claims
+src/limite_vl/mavis_gen.py	modulo	riutilizzabile	diagram_generation di MAVIS e confronto con la didascalia	coerenza ≠ fedeltà ai pixel
+src/limite_vl/mmfine.py	modulo	riutilizzabile	chiavi e lettura dei problemi di MMFineReason	-
+src/limite_vl/modeling.py	modulo	da adeguare	modello VL baseline	loader solo SigLIP2; set_trainable congela sempre l'encoder; save_adapter senza ViT; un solo punto di iniezione
+src/limite_vl/optim/__init__.py	modulo	riutilizzabile	ottimizzatori	-
+src/limite_vl/optim/groups.py	modulo	riutilizzabile	gruppi della Tabella 1	regole sui nomi da verificare; servono gruppi disgiunti per il ViT (§8)
+src/limite_vl/optim/normuon.py	modulo	riutilizzabile	NorMuon, alternativa ad AdamW (§14)	-
+src/limite_vl/processing.py	modulo	da adeguare	immagini in patch e chat in token	template di Violetto con \boxed{}; tetto 768 token; immagini solo prima del testo
+src/limite_vl/provenance.py	modulo	corrente	hash, identità del codice, scrittura senza sovrascrivere	-
+src/limite_vl/replay.py	modulo	da adeguare	replay testuale	prompt con ragionamento e \boxed{} obbligatori
+src/limite_vl/stem_audit.py	modulo	storico-congelato	regole dello screening STEM	sha256 congelato in outputs/f2_pilot/*
+src/limite_vl/stream.py	modulo	da adeguare	flusso misto riprendibile, esclusioni e rietichettature	validazione = primi val_count dell'ultimo shard; esclusioni per chiave immagine
+src/limite_vl/synth.py	modulo	da adeguare	generatore dei sintetici	shape_type ambiguo (quadrato/rettangolo/parallelogramma; isoscele/equilatero)
+src/limite_vl/train_utils.py	modulo	riutilizzabile	loss a blocchi, checkpointing per layer, ricompilazioni di flex	-
+src/limite_vl/transcripts.py	modulo	riutilizzabile	PixMo: descrizioni contro trascrizioni degli annotatori	-
+tests/data/violetto_params_b1f3d572.json	test	riutilizzabile	dati dei test	-
+tests/test_data_lists.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
+tests/test_decontam.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
+tests/test_f1_data.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
+tests/test_f1_errors.py	test	da adeguare	test CPU (slurm/tests_cpu.sbatch)	-
+tests/test_f1_mavis.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
+tests/test_f1c.py	test	storico	test di codice storico mantenuto importabile	-
+tests/test_f2.py	test	storico	test di codice storico mantenuto importabile	-
+tests/test_f2_gate.py	test	storico-congelato	test di codice storico mantenuto importabile	importa torch: solo in job
+tests/test_f2_leak.py	test	storico	test di codice storico mantenuto importabile	-
+tests/test_f2_pilot.py	test	storico-congelato	test di codice storico mantenuto importabile	-
+tests/test_f2_records.py	test	storico-congelato	test di codice storico mantenuto importabile	-
+tests/test_f2_train.py	test	storico	test di codice storico mantenuto importabile	-
+tests/test_latex_render.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
+tests/test_latex_structure.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
+tests/test_mavis.py	test	storico	test di codice storico mantenuto importabile	-
+tests/test_mavis_gen.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
+tests/test_mavis_geometry.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
+tests/test_normuon.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
+tests/test_replay.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
+tests/test_stem_audit.py	test	storico-congelato	test di codice storico mantenuto importabile	-
+tests/test_transcripts.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
+tests/test_vl_data.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
+third_party/.gitkeep	documento	corrente	cartella dei repository esterni	-

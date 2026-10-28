@@ -43,3 +43,20 @@ G1–G7 corrispondono ai sette rilievi numerati del rapporto.
 
 Prima dell'esecuzione si aggiorna questa tabella con evidenze delle verifiche effettive,
 senza modificare retroattivamente i rapporti indipendenti.
+
+## Corrispondenza con gli interventi F0 (2026-10-28)
+
+Nessun rilievo è ancora chiuso da un'implementazione collaudata. Lo stato del codice per ciascun requisito, con file,
+righe e job, è in [`F0_IMPLEMENTATION_PLAN.md`](F0_IMPLEMENTATION_PLAN.md):
+
+| Interventi F0 | Rilievi |
+| --- | --- |
+| Punto 1 — contratto di risposta | R1, G2 |
+| Punto 2 — gold per compito, ambiguità, answer-only | R6, R13, G2, G3, G4 |
+| Punto 3 — split globali, manifest, esclusioni storiche, contabilità | R5, R7, G1, G5 |
+| Punto 4 — più immagini e contesto | R2 |
+| Punto 5 — encoder Qwen, proiettore, layer, ingressi visivi | R3, R10 |
+| Punto 6 — ViT addestrabile, gruppi, checkpoint | R4 |
+| Punto 7 — pannelli e preventivo | R9, R10 |
+| Specifica S4 — campionamento e budget | R8, G6, G7 |
+| Fuori dal primo perimetro | R11, R12, R14 |
