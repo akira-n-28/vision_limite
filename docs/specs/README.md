@@ -2,7 +2,8 @@
 
 Le quattro specifiche brevi della pipeline v1.4 §5.10, da approvare prima di scrivere codice
 (`docs/F0_IMPLEMENTATION_PLAN.md`, §1). Seconde bozze del 2026-10-28, rivedute dopo la revisione esterna dei push
-fino a `e81f884`. Nessuna è approvata e nessun codice le implementa ancora.
+fino a `e81f884`, con le correzioni chieste sul commit `1c1e852`. Nessuna è approvata. Implementato solo C1-C2
+(S2 §2, sintetici), non ancora collaudato in allocazione.
 
 | Specifica | Tema | Decisioni dell'utente che contiene |
 | --- | --- | --- |

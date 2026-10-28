@@ -68,6 +68,14 @@ attuale (`synth-NNNNNNN`, famiglie a rotazione come in `scripts/synth_render.py`
 standard e non legge gli shard. Gli istogrammi per famiglia, tipo e risposta coincidono esattamente con quelli del
 manifest del job 29756: il codice attuale riproduce le domande di v3.
 
+**Implementazione** (C1-C2, 2026-10-28, da collaudare in allocazione):
+- `synth.py`: `version=4` è il default e `version=3` riproduce v3; sono nuovi `visible_bound`, `intersection_points`
+  (conteggio geometrico), `_near_miss`, le domande di classificazione con le opzioni, `_shapes_overlap` e
+  `render(spec, layout=True)`;
+- `synth_check.py`: la verifica indipendente;
+- `scripts/synth_semantics_check.py`: il controllo sugli shard;
+- `tests/test_synth.py`: i collaudi della §5.
+
 ### 2.1 Errore confermato: `intersections`
 
 - **Codice.** `_intersections` conta le radici con |x|, |y| ≤ R = 6 e scarta quelle a meno di 0.4 da R
@@ -75,7 +83,8 @@ manifest del job 29756: il codice attuale riproduce le domande di v3.
   il tratto fra 6 e 7 è visibile ma non contato.
 - **Controesempio** (verificato eseguendo `make_spec("audit-68", "function")`): f = −0.5x − 4, g = −2x + 4,
   intersezione in (16/3, −20/3). È nel tratto disegnato, ma il target di "How many times do the graphs of f and g
-  intersect in the figure?" è `0`.
+  intersect in the figure?" è `0`. Con la correzione il conteggio geometrico è 1. L'intersezione però dista 1/3 dal
+  bordo V = 7 (|y| = 20/3), dentro il margine di 0.4: la domanda non si pone.
 - **Estensione in v3**:
   - 7.460 scene con due grafici e 6.307 domande `intersections`;
   - 37 target errati: il conteggio nel dominio disegnato è diverso;
@@ -89,6 +98,11 @@ manifest del job 29756: il codice attuale riproduce le domande di v3.
   (discriminante < 0.5), le radici a meno di 0.6 fra loro e le rette parallele. Le immagini non cambiano, cambiano
   solo le domande: serve una nuova versione degli shard, v4, con un job CPU da approvare (v3 ha richiesto circa 12
   minuti). In v3 il tipo `intersections` è **`escluso`**.
+- **Grafici che si sfiorano.** La verifica indipendente segnala anche le domande con risposta `0` in cui i due grafici,
+  senza intersezioni reali, si avvicinano nel tratto disegnato fin quasi a toccarsi: il discriminante non tiene conto
+  della distanza visibile. In v3 sono 17 domande su 1.842 senza intersezioni reali sotto 0.3, e 9 sotto 0.25. v4
+  non pone la domanda sotto 0.3 (`synth._near_miss`); la verifica segnala sotto 0.25, così le due regole non
+  divergono sul confine.
 
 ### 2.2 Ambiguità di classificazione
 
@@ -175,10 +189,16 @@ dei token LaTeX a meno degli spazi (`latex.same_latex`), non l'equivalenza matem
 
 ## 5. Collaudi (CPU, `tests_cpu`)
 
-- **Intersezioni.**
-  - `audit-68`: con la correzione, il target è `1`.
-  - Intersezione con x ∈ (6.4, 6.6) e \|y\| < 6: contata, mentre oggi non lo è.
+- **Intersezioni.** Conteggio geometrico e ammissibilità si collaudano separatamente.
+  - `audit-68`: conteggio geometrico nel dominio disegnato 1; ammissibilità no, perché è a 1/3 dal bordo, dentro il
+    margine di 0.4, quindi nessuna domanda. Con `version=3` la domanda esiste con target `0`, come negli shard v3.
+  - Domanda ammessa con target 1, lontana dal bordo, su una scena reale: `synth-0049798`, due parabole con
+    intersezione in (4.17, 6.51), a 0.49 dal bordo. Target `0` in v3, `1` in v4.
+  - Caso costruito: y = x − 6 e y = −x + 7 si incontrano in (6.5, 0.5). Il conteggio di v3 dà `0` (|x| > R), quello di
+    v4 dà `1`, ammesso perché a 0.5 dal bordo.
   - Intersezione con \|y\| ∈ (7.4, 7.5): non disegnata, quindi non contata.
+  - y = x² + 0.2 e y = 0: nessuna intersezione, minimo 0.2 nel tratto disegnato. v3 pone la domanda (target `0`),
+    v4 no, e la verifica la segnala.
   - Intersezioni a meno di 0.4 da \|x\| = 7 o \|y\| = 7: niente domanda.
   - Tangenza, due radici vicine, rette parallele: niente domanda.
   - Su 10.000 scene il conteggio analitico coincide con quello numerico sulle spezzate.

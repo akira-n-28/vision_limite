@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Diagrammi sintetici di F1c (scripts/synth_render.py): train, test e coppie controfattuali. Job solo CPU.
-# Uso: sbatch slurm/synth_render.sbatch [VERSIONE] [opzioni di synth_render.py]   (default v1 -> data/shards/synth/v1)
+# Uso: sbatch slurm/synth_render.sbatch [VERSIONE] --generator-version 3|4 [opzioni di synth_render.py]
+#      (cartella data/shards/synth/VERSIONE, default v1; --generator-version è obbligatorio: 3 riproduce v3, 4 è la
+#      versione corretta di docs/specs/S2 §2 e salva anche il layout. Non rigenerare v4 prima del collaudo di C1-C2.)
 #SBATCH --job-name=lvl-synth
 #SBATCH --partition=mat
 #SBATCH --nodes=1

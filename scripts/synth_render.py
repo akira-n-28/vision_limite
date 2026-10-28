@@ -11,7 +11,12 @@ Uscite in --out:
 Ogni campione: <chiave>.png alla dimensione esatta (lati multipli di 32) e <chiave>.json con id, famiglia,
 dimensioni, max_patches, domande (qa) e specifica della scena.
 
-    srun $RUN_PYTHON -u -B scripts/synth_render.py --out DIR [--train 60000] [--test 300] [--pairs 300]
+--generator-version (obbligatorio) sceglie la versione di limite_vl.synth: 3 riproduce gli shard data/shards/synth/v3
+(job 29756), JSON compresi; 4 è la versione corretta (docs/specs/S2_AMMISSIONE_PRIME_FAMIGLIE.md §2) e salva nel JSON
+anche `layout`, gli oggetti disegnati con i riquadri in pixel, per la verifica di scripts/synth_semantics_check.py. Il
+manifest registra la versione e l'identità del codice.
+
+    srun $RUN_PYTHON -u -B scripts/synth_render.py --out DIR --generator-version 4 [--train 60000] [--test 300] [--pairs 300]
 """
 from __future__ import annotations
 
@@ -31,16 +36,26 @@ from shard_llava_pretrain import HashingWriter, add_member  # noqa: E402  (stess
 from shard_mavis_geometry import check_shard  # noqa: E402
 
 from limite_vl import synth  # noqa: E402
+from limite_vl.provenance import code_identity  # noqa: E402
 
 
-def scene(task: tuple[str, str]) -> list[tuple[str, bytes, dict]]:
+def _draw(spec: dict) -> tuple[bytes, dict | None]:
+    """PNG e, da v4, layout degli oggetti disegnati (v3: senza, come negli shard originali)."""
+    if synth.spec_version(spec) < 4:
+        return synth.png_bytes(synth.render(spec)), None
+    image, layout = synth.render(spec, layout=True)
+    return synth.png_bytes(image), layout
+
+
+def scene(task: tuple[str, str, int]) -> list[tuple[str, bytes, dict]]:
     """Una scena (o una coppia controfattuale) -> [(chiave, png, meta)]. Gira nei processi del pool."""
-    key, family = task
+    key, family, version = task
     if not key.startswith("synth-pair-"):
-        spec = synth.make_spec(key, family)
-        return [(key, synth.png_bytes(synth.render(spec)), _meta(key, spec, synth.questions(spec)))]
+        spec = synth.make_spec(key, family, version)
+        png, layout = _draw(spec)
+        return [(key, png, _meta(key, spec, synth.questions(spec), layout=layout))]
     for attempt in range(20):
-        spec = synth.make_spec(f"{key}/{attempt}", family)
+        spec = synth.make_spec(f"{key}/{attempt}", family, version)
         cf = synth.counterfactual(spec)
         if cf is None or cf[3] == cf[4]:
             continue
@@ -51,16 +66,19 @@ def scene(task: tuple[str, str]) -> list[tuple[str, bytes, dict]]:
             pair = {"id": key, "variant": variant, "q": q["q"], "type": q["type"], "options": q["options"], "answer": ans}
             if ans not in q["options"]:
                 raise ValueError(f"{k}: risposta {ans!r} fuori dalle opzioni")
-            out.append((k, synth.png_bytes(synth.render(s)), _meta(k, s, [], pair)))
+            png, layout = _draw(s)
+            out.append((k, png, _meta(k, s, [], pair, layout)))
         return out
     raise RuntimeError(f"{key}: nessuna coppia controfattuale in 20 tentativi")
 
 
-def _meta(key: str, spec: dict, qa: list[dict], pair: dict | None = None) -> dict:
+def _meta(key: str, spec: dict, qa: list[dict], pair: dict | None = None, layout: dict | None = None) -> dict:
     meta = {"id": key, "family": spec["family"], "width": spec["width"], "height": spec["height"],
             "max_patches": (spec["width"] // 16) * (spec["height"] // 16), "qa": qa, "spec": spec}
     if pair:
         meta["pair"] = pair
+    if layout is not None:
+        meta["layout"] = layout
     return meta
 
 
@@ -100,19 +118,22 @@ def main() -> None:
     ap.add_argument("--pairs", type=int, default=300)
     ap.add_argument("--per-shard", type=int, default=10000)
     ap.add_argument("--workers", type=int, default=int(os.environ.get("SLURM_CPUS_PER_TASK", "1")))
+    ap.add_argument("--generator-version", type=int, required=True, choices=synth.VERSIONS,
+                    help="3 riproduce gli shard v3; 4 è la versione corretta")
     args = ap.parse_args()
     if not os.environ.get("SLURM_JOB_ID"):
         sys.exit("synth_render.py va eseguito in un job SLURM")
     if (args.out / "manifest.json").exists():
         sys.exit(f"{args.out} contiene già un manifest: scegliere un'altra cartella")
     fam = synth.FAMILIES
+    version = args.generator_version
     sets = {
-        "train": [(f"synth-{i:07d}", fam[i % len(fam)]) for i in range(args.train)],
-        "test": [(f"synth-test-{i:05d}", fam[i % len(fam)]) for i in range(args.test)],
-        "pairs": [(f"synth-pair-{i:05d}", fam[i % len(fam)]) for i in range(args.pairs)],
+        "train": [(f"synth-{i:07d}", fam[i % len(fam)], version) for i in range(args.train)],
+        "test": [(f"synth-test-{i:05d}", fam[i % len(fam)], version) for i in range(args.test)],
+        "pairs": [(f"synth-pair-{i:05d}", fam[i % len(fam)], version) for i in range(args.pairs)],
     }
     manifest = {"job_id": os.environ.get("SLURM_JOB_ID"), "args": {k: str(v) for k, v in vars(args).items()},
-                "sets": {}, "counts": {}}
+                "generator_version": version, "code": code_identity(), "sets": {}, "counts": {}}
     t0 = time.time()
     with Pool(args.workers) as pool:
         for name, tasks in sets.items():

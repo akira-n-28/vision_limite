@@ -79,6 +79,10 @@ Si legge dai metadati, mai dal testo.
 modello. `think_aperto` con `troncata` vuol dire che il budget è finito mentre ragionava: il formato non è valutabile,
 come `format_not_evaluable` del valutatore ufficiale.
 
+La completezza non decide la correttezza del contenuto. Una generazione troncata può contenere un `<think>` chiuso e
+una risposta finale completa, e poi continuare fino al limite dei token: quel finale si valuta come gli altri. Solo il
+`<think>` aperto non ha finale (§3.1).
+
 ### 3.3 Risposte candidate nel finale
 
 | Modalità | Candidati |
@@ -114,7 +118,7 @@ Le divergenze sui casi della tassonomia si contano (§6).
 
 Ogni esito porta nome e versione del verificatore.
 
-## 5. Tre esiti separati e politica per uso
+## 5. Esiti separati, punteggio e politica per uso
 
 - **Formato:** `conforme` (forma prevista dal contratto, per esempio `think_completo` in `math` e in `auto`),
   `answer_only`, `think_aperto`, `malformato`.
@@ -124,12 +128,18 @@ Ogni esito porta nome e versione del verificatore.
   - `non_determinato`: parsing fallito, timeout, forma non supportata, candidati incompatibili;
   - `assente`: nessun finale, cioè `think_aperto` o `malformato`, oppure finale senza candidati;
   - `errore_tecnico`: eccezione del codice o dell'infrastruttura.
+- **Punteggio**, per politica di troncamento, come nel valutatore ufficiale:
+  - `score`: 1 se la correttezza è `corretto`, qualunque sia la completezza;
+  - `fail`: 1 solo se `corretto` e `completa`.
+
+  Il punteggio non cambia la correttezza. Una risposta corretta ma troncata resta `corretto`: vale 0 solo nel punteggio
+  `fail`, non diventa `errato`.
 
 | Uso | Regola |
 | --- | --- |
 | **SFT** (selezione di testi generati come target) | solo `corretto` + `conforme` + `completa`, e le proprietà di S2. Tutto il resto non si seleziona e si conta per motivo. I target costruiti da noi non passano per la selezione, ma devono superare il giro di prova: `extract(target)` restituisce il gold |
-| **Valutazione** | denominatore pieno, nessun completamento escluso. Metrica principale: `corretto` sul totale; `errato`, `assente` e `non_determinato` contano come non corretti (limite inferiore, come i timeout del valutatore ufficiale). Si riportano sempre a parte: quote di formato, troncamento, `non_determinato` e `sconosciuta`. La politica di troncamento (`fail` qui, perché un troncato non ha finale) è dichiarata e non si mescola. Con completezza `sconosciuta` il risultato è condizionato e non decide confronti fra checkpoint |
-| **RL** (futuro) | premio di correttezza 1 solo con `corretto` + `conforme` + `completa`; 0 con `errato` o `assente`. `answer_only` dove il contratto chiede `<think>` è una violazione di formato con regola deterministica, senza premio di correttezza (pipeline §11). `troncata`: premio 0 e politica di troncamento come parametro dichiarato da calibrare, nessuna penalità di lunghezza generale. `non_determinato`: nessun segnale di premio, campione mascherato e monitorato; se la quota dipende dalle risposte del modello si corregge il verificatore o si sospende la famiglia. `errore_tecnico`: al più 2 tentativi, poi esclusione contata; lotto sospeso se persiste. `sconosciuta` non è ammessa: i rollout hanno sempre i metadati |
+| **Valutazione** | denominatore pieno, nessun completamento escluso. Metrica principale: il punteggio medio con la politica dichiarata, `fail` o `score`; le due politiche non si mescolano. `errato`, `assente` e `non_determinato` valgono 0 (limite inferiore, come i timeout del valutatore ufficiale). Si riportano sempre a parte: quote di formato, troncamento (e i troncati corretti), `non_determinato` e `sconosciuta`. Con completezza `sconosciuta` il risultato è condizionato e non decide confronti fra checkpoint |
+| **RL** (futuro) | politica `fail`: premio di correttezza 1 solo con `corretto` + `conforme` + `completa`; 0 con `errato` o `assente`. Un troncato corretto vale 0 ma resta registrato come `corretto`. `answer_only` dove il contratto chiede `<think>` è una violazione di formato con regola deterministica, senza premio di correttezza (pipeline §11). `troncata`: premio 0 e politica di troncamento come parametro dichiarato da calibrare, nessuna penalità di lunghezza generale. `non_determinato`: nessun segnale di premio, campione mascherato e monitorato; se la quota dipende dalle risposte del modello si corregge il verificatore o si sospende la famiglia. `errore_tecnico`: al più 2 tentativi, poi esclusione contata; lotto sospeso se persiste. `sconosciuta` non è ammessa: i rollout hanno sempre i metadati |
 
 Una risposta corretta non certifica la spiegazione: `corretto` riguarda solo il finale.
 
@@ -144,6 +154,9 @@ Una risposta corretta non certifica la spiegazione: `corretto` riguarda solo il 
   - Lo stesso testo con `eos = true` e con `eos = false, new_tokens = max_new_tokens` dà `completa` e `troncata`.
   - Senza metadati dà `sconosciuta`.
   - Un testo che finisce con `<|im_end|>` senza EOS si classifica dai metadati, non dalla stringa.
+- **Troncato con finale completo.** `<think>…</think>\boxed{5}` corretto, poi testo fino al limite dei token
+  (`eos = false`, `new_tokens = max_new_tokens`): correttezza `corretto`, completezza `troncata`, punteggio `fail` 0,
+  punteggio `score` 1. La stessa risposta con `eos = true` vale 1 con entrambe le politiche.
 - **Candidati.**
   - Finale con `x = 3, so \boxed{3}`: un solo candidato, `corretto`.
   - Finale con `\boxed{3}` e `\boxed{5}`: `non_determinato`.

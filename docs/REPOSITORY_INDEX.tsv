@@ -166,7 +166,8 @@ scripts/split_duplicates.py	script	da adeguare	duplicati per sorgente con target
 scripts/stem_audit_export.py	script	storico-congelato	audit e gate F2 congelati (CLAUDE.md, Strumenti congelati)	importato da tests/test_stem_audit
 scripts/stem_audit_round.py	script	storico-congelato	audit e gate F2 congelati (CLAUDE.md, Strumenti congelati)	importato da f2_certify, tests/test_stem_audit
 scripts/stream_stats.py	script	da adeguare	statistiche del flusso con lo schema storico; servono contatori del consumato (§5.8.6)	-
-scripts/synth_render.py	script	da adeguare	render dei sintetici; generatore con domande ambigue da correggere (§5.7)	-
+scripts/synth_render.py	script	corrente	render degli shard sintetici con --generator-version obbligatorio (3 riproduce v3, 4 corretto); C1, da collaudare	-
+scripts/synth_semantics_check.py	script	corrente	verifica semantica e del renderer dei sintetici in un job (C2), da collaudare	-
 scripts/train_f1.py	script	da adeguare	trainer F1 storico (ViT congelato); helper importati da molti strumenti; base del nuovo trainer (§17.4)	importato da check_train_config, check_vision_padding, check_vision_precision, eval_f1_formulas, eval_f1_val, f1_error_gen, f1c_*, f2_generate, replay_generate, stream_stats, train_f2
 scripts/train_f2.py	script	storico	trainer F2 storico: gate f2-cert, conteggi di parametri fissi, ViT congelato; riusabili MasterWeights e gruppi	importato da tests/test_f2_train
 scripts/unimer_check.py	script	riutilizzabile	controllo deterministico dei dati (pipeline §5.3); esiti come evidenze, non ammissione	-
@@ -220,7 +221,8 @@ slurm/shard_parquet.sbatch	launcher	riutilizzabile	launcher di ispezione, shard,
 slurm/shard_unimer.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
 slurm/split_duplicates.sbatch	launcher	da adeguare	launcher di uno strumento da adeguare (vedi lo script)	-
 slurm/stream_stats.sbatch	launcher	da adeguare	launcher di uno strumento da adeguare (vedi lo script)	-
-slurm/synth_render.sbatch	launcher	da adeguare	launcher di uno strumento da adeguare (vedi lo script)	-
+slurm/synth_render.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
+slurm/synth_semantics_check.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
 slurm/tests_cpu.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
 slurm/unimer_check.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
 slurm/unimer_survey.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
@@ -256,7 +258,8 @@ src/limite_vl/provenance.py	modulo	corrente	hash, identità del codice, scrittur
 src/limite_vl/replay.py	modulo	da adeguare	replay testuale	prompt con ragionamento e \boxed{} obbligatori
 src/limite_vl/stem_audit.py	modulo	storico-congelato	regole dello screening STEM	sha256 congelato in outputs/f2_pilot/*
 src/limite_vl/stream.py	modulo	da adeguare	flusso misto riprendibile, esclusioni e rietichettature	validazione = primi val_count dell'ultimo shard; esclusioni per chiave immagine
-src/limite_vl/synth.py	modulo	da adeguare	generatore dei sintetici	shape_type ambiguo (quadrato/rettangolo/parallelogramma; isoscele/equilatero)
+src/limite_vl/synth.py	modulo	corrente	generatore dei sintetici: v4 corretta (C1), v3 riproducibile con version=3	da collaudare in allocazione
+src/limite_vl/synth_check.py	modulo	corrente	verifica indipendente delle domande sintetiche contro il disegno (C2)	da collaudare in allocazione
 src/limite_vl/train_utils.py	modulo	riutilizzabile	loss a blocchi, checkpointing per layer, ricompilazioni di flex	-
 src/limite_vl/transcripts.py	modulo	riutilizzabile	PixMo: descrizioni contro trascrizioni degli annotatori	-
 tests/data/violetto_params_b1f3d572.json	test	riutilizzabile	dati dei test	-
@@ -280,6 +283,7 @@ tests/test_mavis_geometry.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatc
 tests/test_normuon.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
 tests/test_replay.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
 tests/test_stem_audit.py	test	storico-congelato	test di codice storico mantenuto importabile	-
+tests/test_synth.py	test	corrente	test CPU (slurm/tests_cpu.sbatch)	-
 tests/test_transcripts.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
 tests/test_vl_data.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
 third_party/.gitkeep	documento	corrente	cartella dei repository esterni	-

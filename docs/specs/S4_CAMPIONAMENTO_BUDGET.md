@@ -30,10 +30,21 @@ Ogni affermazione dichiara: proprietà (correttezza, osservabilità o spiegazion
 
 | Quantità | Estrazione | Limite superiore unilaterale al 95% |
 | --- | --- | --- |
-| quota di QA errate | QA (`uid`) estratte senza reinserimento con probabilità uguali n/N | esatto ipergeometrico: D/N, con D il più piccolo numero di QA errate per cui P(X ≤ k \| N, D, n) ≤ 0.05 |
+| quota di QA errate | QA (`uid`) estratte senza reinserimento con probabilità uguali n/N | esatto ipergeometrico: D_U/N (definizione e casi limite sotto) |
 | quota di gruppi con almeno un errore | gruppi senza reinserimento con probabilità uguali; ogni gruppo estratto si controlla per intero | ipergeometrico sui gruppi |
 | quota dei target-token errati | QA con probabilità proporzionale ai target-token, con reinserimento | Clopper-Pearson binomiale esatto: ogni estrazione è errata con probabilità pari alla quota pesata |
 
+- **Limite ipergeometrico.** Con N unità nella popolazione, n estratte e k errate:
+  - D_U = max{D intero con k ≤ D ≤ N − n + k : P(X ≤ k | N, D, n) > α}, con α = 0.05; il limite è D_U/N. È il più
+    grande numero di errori nella popolazione non escluso dal campione. P(X ≤ k) non cresce con D, quindi basta una
+    ricerca monotona.
+  - k = n (tutti gli estratti errati): P(X ≤ n) = 1 per ogni D, quindi la ricerca non ha un primo D escluso. Il limite
+    si definisce esplicitamente uguale a 1 (D_U = N), senza ricerca.
+  - k = 0: stessa definizione, con P(X = 0) = C(N − D, n)/C(N, n).
+  - n = N (censimento): X = D, quindi D_U = k e il limite è esatto, k/N; con k = n = N vale 1.
+  - Input non validi (N, n, k non interi, n < 1, n > N, k < 0, k > n, α fuori da (0, 1)) danno errore, mai un
+    valore corretto in silenzio.
+  - Clopper-Pearson binomiale con le stesse regole: k = n dà 1; k = 0 dà 1 − α^(1/n); n ≥ 1 e 0 ≤ k ≤ n.
 - **Copertura.** Il numero di errori nel campione ha una distribuzione nota, ipergeometrica o binomiale, qualunque sia
   la correlazione fra le QA dello stesso gruppo. Per questo il limite ha copertura garantita per la sua quantità, e non
   si usano dimensioni efficaci stimate.
@@ -119,8 +130,12 @@ I numeri della tabella sono proposte di lavoro, non soglie approvate.
 - **Copertura esatta sul controesempio.** Il campione di gruppi con `clustered_rate` copre nel 30% dei casi. Il
   disegno a QA uniformi con limite ipergeometrico copre almeno al 95%: calcolo esatto con la distribuzione
   ipergeometrica, senza simulazione.
-- **Limite ipergeometrico.** Su popolazioni piccole coincide con l'enumerazione completa, e per N → ∞ tende a
-  Clopper-Pearson.
+- **Limite ipergeometrico.**
+  - Su popolazioni piccole coincide con l'enumerazione completa di tutti i D.
+  - Per N → ∞ tende a Clopper-Pearson.
+  - k = n dà 1 senza ricerca; k = 0 con n = N dà 0; n = N dà k/N.
+  - N = n = 1 e k ∈ {0, 1} danno 0 e 1.
+  - Gli input non validi sollevano un errore.
 - **Estrazione.** Le probabilità d'inclusione dichiarate (uniforme, proporzionale ai token) coincidono con le frequenze
   su molte estrazioni con seme.
 - **Affermazioni non ammesse.** Una richiesta di limite sulla quota di QA a partire da un campione di gruppi viene

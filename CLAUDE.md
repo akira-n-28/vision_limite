@@ -333,6 +333,9 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
   conta entro ±R mentre il disegno arriva a ±(R+1), con 37 target errati e 364 domande al bordo disegnato;
   `shape_type` e `label_type` sono domande aperte con più risposte vere (`docs/specs/S2_AMMISSIONE_PRIME_FAMIGLIE.md`
   §2). Una risposta calcolata dalla specifica del generatore non è corretta finché non è verificata contro il disegno.
+  La versione 4 di `synth.py` corregge questi punti, e `version=3` riproduce v3. La verifica indipendente è in
+  `src/limite_vl/synth_check.py` e `scripts/synth_semantics_check.py`. Il codice è da collaudare in allocazione e gli
+  shard v4 non sono ancora generati.
 - MMFineReason @ 7c93f724: le descrizioni di Qwen3-VL-235B sono testo di un modello, non fatti (circa 10% di
   affermazioni false nel campione del 2026-10-19, che non conta come audit); contiene Geo3K e la famiglia WeMath.
   Caption, risposta e CoT sono oggetti distinti (pipeline §5.7).
@@ -382,7 +385,8 @@ parametri in `groups.py` sono ipotesi da verificare con `f0_checks.py` (sezione 
   - `stream.py`: flusso misto e riprendibile di micro-batch, esclusioni e rietichettature;
   - `data_lists.py`: liste obbligatorie e loro provenienza;
   - `latex.py`, `latex_render.py`: formule e confronto fra trascrizioni;
-  - `synth.py`, `mavis_gen.py`, `f1_schema.py`, `f1_mavis.py`, `mavis.py`: sintetici e MAVIS;
+  - `synth.py`, `synth_check.py`, `mavis_gen.py`, `f1_schema.py`, `f1_mavis.py`, `mavis.py`: sintetici, la loro verifica
+    indipendente, MAVIS;
   - `decontam.py`, `transcripts.py`, `mmfine.py`, `replay.py`: decontaminazione, PixMo, MMFineReason, replay testuale;
   - `train_utils.py`: loss a blocchi e checkpointing per layer; `generation.py`: generazione;
   - `limite_code.py`: import verificato del codice di Limite; `optim/`: NorMuon e gruppi;
