@@ -1,9 +1,13 @@
 # Piano di implementazione F0
 
 Stato al 2026-10-28, dopo la migrazione alla [pipeline v1.4](../PIPELINE_ADDESTRAMENTO_LIMITE_VL.md) (§§3, 5, 6, 17).
-Il confronto è fra il codice del repository sul cluster (identico a `9d977b6` per codice e test: la migrazione ha
-spostato solo config, launcher e documenti) e i requisiti della pipeline. **Nessun intervento di questo piano è stato
-eseguito e nessun test è stato lanciato durante la migrazione.**
+Aggiornato lo stesso giorno dopo la revisione esterna dei push fino a `e81f884`. Il confronto è fra il codice del
+repository sul cluster e i requisiti della pipeline. La migrazione ha spostato solo config, launcher e documenti: per
+codice e test il repository è identico a `9d977b6`.
+
+**Nessun intervento di questo piano è stato eseguito.** Dopo la migrazione è girato un solo collaudo,
+`slurm/tests_cpu.sbatch` (job 30255: 22 file, 775 controlli, nessun fallimento). Riguarda il codice esistente, non i
+requisiti nuovi (§4).
 
 Stati: **verificato** = presente e verificato da un job citato, per la proprietà indicata; **da collaudare** = presente,
 ma senza collaudo rispetto al requisito nuovo; **mancante**; **decisione aperta** = serve una scelta dell'utente o del
@@ -25,14 +29,15 @@ nelle specifiche del passo 1 e si mostrano all'utente prima di scrivere codice.
 
 ## 1. Quattro specifiche brevi, prima del codice (pipeline §5.10, ultimo paragrafo)
 
-Bozze del 2026-10-28 in [`docs/specs/`](specs/README.md), da approvare. Non serve progettare subito gli adattatori di tutte le sorgenti.
+Seconde bozze del 2026-10-28, rivedute dopo la revisione esterna, in [`docs/specs/`](specs/README.md); da approvare.
+Non serve progettare subito gli adattatori di tutte le sorgenti.
 
 | Specifica | Contenuto minimo | Riusa |
 | --- | --- | --- |
-| S1 Record e manifest | Chiave sorgente/revisione/record/compito/variante; gruppo globale (problema, immagine, documento, istanza del generatore); split; hash di domanda, target e immagini ordinate; versione di trasformazione e preprocessing; stato e motivo; derivati e loro genitori | `provenance.py`, `data_lists.py`, chiavi degli shard |
-| S2 Regole di ammissione delle prime famiglie | Sintetici, MAVIS (descrizione canonica e QA), UniMER (trascrizione): proprietà necessarie, livello di evidenza (record, invariante della famiglia, campione), valore esatto/visualizzato/richiesto | `f1_mavis.py`, `f1_schema.py`, `synth.py`, `latex.py`, esiti di `unimer_check` |
-| S3 Contratto di risposta, estrazione e verificatori | Modalità diretta/ragionata, template, label, stop; estrazione per compito; esiti `corretto`/`errato`/`non determinato`/errore tecnico; answer-only; risposte finali incompatibili; tentativi abbandonati | `processing.py`, `f2.py` (`last_boxed`, `answers_match`), `latex.py` |
-| S4 Campionamento e budget | Proprietà e quantità da stimare, popolazione e denominatore, incerti, campione diagnostico separato da quello di stima, tetto di chiamate e token per sorgente | regole di `config/audit/` solo come esperienza, non come istruzioni |
+| S1 Record e manifest | Identificatori sha256 completi con controllo delle collisioni (i prefissi solo per la lettura); variante con contratto, modalità e prefill; gruppo globale e split; hash dei token di input e target e delle immagini ordinate; esclusioni storiche risolte su un solo record; derivati e loro genitori | `provenance.py`, `data_lists.py`, chiavi degli shard |
+| S2 Regole di ammissione delle prime famiglie | Correttezza rispetto all'immagine; per ogni tipo di domanda semantica scritta, verifica indipendente, collaudi, invarianti del renderer e unicità; stati `escluso` e `quarantena` per tipo; errore confermato di `intersections` e ambiguità di classificazione dei sintetici; MAVIS e UniMER | `f1_mavis.py`, `f1_schema.py`, `synth.py`, `latex.py`, esiti di `unimer_check` |
+| S3 Contratto di risposta, estrazione e verificatori | Contratto `vl-contract/1` (D3); quattro forme (answer-only, `<think>` completo, `<think>` aperto, malformato); completezza dai metadati di terminazione; formato, completezza e correttezza separati; politica per SFT, valutazione e RL; allineamento col valutatore ufficiale | `processing.py`, `generation.py`, `f2.py`, `latex.py`, `limite-evals` (tassonomia) |
+| S4 Campionamento e budget | Unità di campionamento uguale all'unità della quantità, limite esatto (ipergeometrico o binomiale); `clustered_rate` e `corrected_upper` non adottati; risultati esplorativi o condizionati dove manca la garanzia; budget degli audit | `stem_audit.clopper_pearson` (solo lettura); le regole di `config/audit/` solo come esperienza |
 
 ## 2. Interventi F0 in ordine
 
@@ -65,16 +70,21 @@ Violetto su un piccolo pannello senza prefill nascosti (1 GPU, 8 CPU, 48G, circa
 | MAVIS: fedeltà ai pixel e leggibilità alla risoluzione scelta | da collaudare | solo 40 immagini guardate (`outputs/f1_mavis/contact_run1`); nessuna invariante del renderer dimostrata |
 | Valore esatto, visualizzato e richiesto separati | mancante | job 30049: i razionali (denominatori 2 e 3) sono disegnati come decimali a due cifre; oggi un solo valore per campo |
 | UniMER: trascrizione distinta dall'equivalenza matematica | da collaudare | `latex.py` (`despace`, `effective_label`); `outputs/unimer_check/run4`: 51 errori certi, 1119 incerti, rietichettature |
-| Ambiguità dei sintetici e di MAVIS | mancante | `synth.py:294-296`: `shape_type` dei quadrilateri senza opzioni nel prompt e con risposta solo `spec["kind"]` (un quadrato è anche rettangolo e parallelogramma); `f1_mavis.py:83`: stessa domanda su square/rectangle/rhombus/parallelogram/kite. I triangoli dei sintetici hanno una sola classe vera per costruzione (`synth.py:191-205`), da confermare con un test |
+| Semantica delle domande dei sintetici rispetto all'immagine | **errore confermato** | `intersections` conta entro ±R (`synth.py:404-411`), il disegno arriva a ±(R+1) (`synth.py:462, 466`). Controesempio `audit-68`: target `0` con un'intersezione disegnata. In v3: 37 target errati e 364 domande al bordo disegnato, cioè 401 scene; in 146 esempi di training la domanda è fra quelle scelte (S2 §2.1). Gli altri tipi non hanno una verifica indipendente (S2 §2.3) |
+| Ambiguità di classificazione | mancante | domande aperte, senza opzioni nel prompt: tutti i 2.128 triangoli rettangoli sono anche scaleni; un quadrato soddisfa 4 classi; 9.465 risposte `label_type` = square sono vere anche come rectangle. Con le opzioni nel prompt, o la classe più specifica di una catena, la risposta è unica in tutti i casi di v3 (S2 §2.2). MAVIS `shape_type` (`f1_mavis.py:83`): classi non in catena |
 | Estrazione answer-only e risposte finali incompatibili | mancante | `f2.py:109-135, 183`: l'estrazione richiede `</think>` e prende l'ultimo `\boxed{}`; `grade` non ha un esito `non determinato` |
 | Evidenza salvata con la trasformazione, non solo `passed` | mancante | gli esiti dei controlli sono liste di esclusione e JSON per run, non campi del record |
 
 **Intervento minimo.** Record di gold tipizzato (S1/S2) con riferimento originale e ammesso, forma canonica, regola delle
 alternative, evidenza (programma o controllo, versione, esito), esiti separati di correttezza, osservabilità e
-spiegazione. Costruttori per le tre prime famiglie: sintetici (stato della scena; domande `shape_type` riformulate come
-"classe più specifica fra quelle date" o con insieme di risposte ammesse), MAVIS (dalla specifica già parsata, con
-valore visualizzato), UniMER (etichetta originale, rietichettatura tracciata, incerti in quarantena). Estrattore e
-verificatori per compito secondo S3, con i quattro esiti.
+spiegazione. Costruttori per le tre prime famiglie:
+- sintetici: correzione di `intersections`, domande di classificazione con opzioni, verifica semantica indipendente,
+  nuova versione v4 degli shard;
+- MAVIS: dalla specifica già parsata, con valore visualizzato ed esatto, `shape_type` con opzioni costruite dalle
+  misure;
+- UniMER: etichetta originale, rietichettatura tracciata, incerti in quarantena.
+
+Estrattore e verificatori per compito secondo S3.
 **Collaudo.** CPU, in `tests_cpu`: i casi di §5.10.5 (risposta diretta corretta, finali incompatibili, tentativo
 abbandonato lecito, `1.5` contro `3/2` in risposta numerica e in trascrizione, classificazione geometrica ambigua) e test
 di mutazione per famiglia. Poi un job CPU che costruisce i record su tutti gli shard delle tre famiglie (0 GPU, 4 CPU,
@@ -177,10 +187,12 @@ continua. CPU: partizione dei gruppi senza sovrapposizioni.
 | Requisito | Stato | Evidenza |
 | --- | --- | --- |
 | Testo puro col valutatore ufficiale | verificato | `eval_text_baseline`, `eval_text_local` (job 29391-29398, 29682-29686) |
-| Trascrizione di formule (UniMER-Test spe/cpe) | da collaudare | `scripts/eval_f1_formulas.py`; esiti storici in `outputs/eval_f1_formulas` |
+| Trascrizione di formule su UniMER-Test | dati presenti; valutatore da collaudare | shard spe, cpe, sce e hwe (hwe = manoscritto) in `data/shards/unimer/2343ddd9/test/`; `scripts/eval_f1_formulas.py` usa spe e cpe di default, gli altri con `--subsets`; esiti storici in `outputs/eval_f1_formulas` |
 | Immagine vera, bianca, assente | presente | `data.build_example(image_mode=…)` (`data.py:343-361`), `scripts/eval_f1_val.py` |
-| Benchmark visivi (MathVista, MathVerse, MathVision, We-Math, DynaMath, Geoperception, VisOnlyQA) | mancante | dati e indici di decontaminazione presenti (`hf/hub`, `data/decontam/p6`, `data/decontam/f1eval`); nessun valutatore del modello VL |
-| Pannelli di documenti, pagine multiple, grafici e tabelle, manoscritto, scene reali | mancante | nessuna sorgente scaricata per documenti, grafici, tabelle o manoscritto (`downloads/catalog_status.tsv`) |
+| Benchmark visivi (MathVista, MathVerse, MathVision, We-Math, DynaMath, Geoperception, VisOnlyQA) | dati presenti; valutatore mancante | dati e indici di decontaminazione in `hf/hub`, `data/decontam/p6`, `data/decontam/f1eval`; nessun valutatore del modello VL |
+| Dati presenti per i pannelli percettivi | presenti, da selezionare | scene reali: PixMo-Cap (25 parquet su 75) e LLaVA-Pretrain; manoscritto: UniMER-Test hwe (solo valutazione) e le formule CROHME nel training di UniMER (meno dell'1%, non separabili per indice); grafici e tabelle: solo dentro alcuni benchmark visivi riservati, da individuare per ID |
+| Dati mancanti | mancante | documenti a più pagine, struttura di tabelle e pagine, OCR generale, manoscritto per il training (MathWriting), coppie di immagini: nessuna sorgente scaricata (`downloads/catalog_status.tsv`) |
+| Valutatori mancanti | mancante | nessun valutatore del modello VL per i benchmark visivi, per più immagini o per i documenti; per le formule c'è solo `eval_f1_formulas.py` |
 | Controfattuali e varianti raggruppate | mancante | coppie controfattuali dei sintetici in `data/shards/synth/v3/pairs`; varianti di MathVerse e DynaMath non raggruppate |
 | Profilo dei costi | parziale | 15.4 mila token/s con decoder addestrabile a 32k, 12.9 mila a 4k (job 29402, ViT congelato); ViT addestrabile ed encoder B non misurati |
 
@@ -195,22 +207,54 @@ prova del valutatore visivo su Violetto con proiettore casuale e con un adapter 
 (1 GPU, 8 CPU, 48G, ≤ 2 ore).
 **Dipende da:** D2, D4, D6; punto 2 (estrattori).
 
-## 3. Collaudi in allocazione da pianificare
+## 3. Prossimi interventi al codice, in ordine (elenco minimo)
 
-Nessuno è stato eseguito in questa migrazione e nessuno è dichiarato superato.
+Ognuno è piccolo, ha i suoi collaudi CPU in `slurm/tests_cpu.sbatch` e non tocca dataset o checkpoint esistenti. I job
+segnati vanno approvati uno per uno. Gli interventi dei punti 4-7 (più immagini, encoder, trainer, valutatore) vengono
+dopo questi.
+
+| # | Intervento | File | Collaudi | Job necessario | Dipende da |
+| --- | --- | --- | --- | --- | --- |
+| C1 | Sintetici: un solo dominio visibile per `intersections`; domande di classificazione con opzioni (triangoli) o classe più specifica (quadrilateri, `label_type`); vincolo di non sovrapposizione nelle shapes, con nuova estrazione solo per le scene che lo violano; riquadri dei testi e dei marcatori nel JSON | `src/limite_vl/synth.py`, `scripts/synth_render.py` | S2 §5: `audit-68`, bordi, unicità, regressione v3 → v4 | render di v4 (CPU, 4 CPU, 16G, circa 12 minuti) | S2 |
+| C2 | Verifica semantica indipendente dei sintetici: ricalcolo per tipo dalle primitive disegnate e dai riquadri; invarianti del renderer | `scripts/synth_semantics_check.py` (nuovo) | mutazioni: una risposta alterata per tipo viene trovata | controllo di v4 (CPU, durata da misurare) | C1 |
+| C3 | Contratto `vl-contract/1`: oggetto versionato, template `limite-vl/1`, processor che lo riceve e lo registra | `src/limite_vl/contract.py` (nuovo), `processing.py` | S3 §6 (tokenizzazione delle due modalità, system prompt canonico identico ai token di Violetto) | — | D3 |
+| C4 | Estrattore e verificatori: forma, completezza dai metadati, candidati, tre esiti separati; `generate_batch` restituisce anche `max_new_tokens` e il motivo d'arresto | `src/limite_vl/answers.py` (nuovo), `generation.py` | S3 §6, compresi i casi A-T della tassonomia ufficiale | — | C3 |
+| C5 | Identità e manifest: JSON canonico, digest completi, mappa delle collisioni, record, scrittura immutabile; i loader restituiscono la costruzione canonica | `src/limite_vl/manifest.py` (nuovo), `data.py` | S1 §8 (collisione forzata, canonicalizzazione, prefissi, contratto) | — | C3 |
+| C6 | Indice globale e import delle esclusioni storiche | `scripts/build_index.py` (nuovo) | S1 §8 (gruppi, chiavi storiche) | costruzione dell'indice (CPU, 4 CPU, 24G, durata da misurare su uno shard per sorgente) | C5, D6 |
+| C7 | Reader col manifest, validazione dal manifest, contatori per sorgente e compito (`too_long` compreso) | `stream.py`, `collator.py` | S1 §8 (reader) | — | C5 |
+| C8 | Stime: limite ipergeometrico e binomiale, estrazione con probabilità registrate, Bonferroni, rifiuto se unità e quantità non coincidono | `src/limite_vl/estimate.py` (nuovo) | S4 §8 (copertura esatta sul controesempio) | — | S4 |
+| C9 | MAVIS: `shape_type` con opzioni dalle misure note; valore visualizzato ed esatto nel record | `src/limite_vl/f1_mavis.py` | S2 §5 (MAVIS) | controllo su tutti gli shard (CPU, come il job 30052) | C5 |
+
+## 4. Collaudi
+
+### Già eseguiti
+
+| Job | Collaudo | Esito | Che cosa dimostra |
+| --- | --- | --- | --- |
+| 30255 (2026-10-28) | `slurm/tests_cpu.sbatch`, suite CPU completa dopo la migrazione | 22 file, 775 controlli, nessun fallimento, stderr vuoto, come il job 30050 prima della migrazione | che nessun test dipendeva dai file archiviati; nulla sui requisiti nuovi |
+
+Calcoli di sola libreria standard sul frontend, il 2026-10-28, a supporto delle specifiche (non sono collaudi):
+- riproduzione delle domande di synth v3 dalle chiavi, con istogrammi identici al manifest del job 29756;
+- conteggio delle intersezioni nel dominio disegnato e controllo delle classificazioni (S2 §2);
+- controesempio di `clustered_rate` (S4 §4).
+
+### Da pianificare
+
+Nessuno è stato eseguito e nessuno è dichiarato superato.
 
 | Collaudo | Scopo | Risorse | Quando |
 | --- | --- | --- | --- |
-| `slurm/tests_cpu.sbatch` | Suite CPU completa dopo la migrazione: conferma che nessun test dipendeva dai file spostati (la ricerca statica non ha trovato riferimenti) | 0 GPU, 4 CPU, 8G, 20 min | subito, con l'ok dell'utente |
-| Contratto (punto 1) | Tokenizzazione, label e stop per modalità; risposta diretta di Violetto | CPU 20 min; GPU 1 ora | dopo D3 e S3 |
-| Record di gold (punto 2) | Test di contratto e di mutazione; costruzione dei record delle prime famiglie | CPU 20 min; CPU 4 CPU 16G ≤ 2 ore | dopo S2, S3 |
-| Indice globale e manifest (punto 3) | Collisioni, split ereditati, filtro dei reader, contatori | CPU 4 CPU 24G, durata da misurare su uno shard | dopo S1, D6 |
-| Più immagini (punto 4) | Ordine, budget, parità con cache | CPU 20 min; GPU 1 ora | dopo punti 1, 3 |
-| Encoder (punto 5) | Refactoring SigLIP2 identico; parità dell'encoder B col percorso nativo; rami disattivati uguali al riferimento | GPU 1 ora ciascuno | (a) subito dopo l'ok; (b) dopo D1 |
-| ViT addestrabile (punto 6) | Gradienti, variazione dei pesi, salvataggio, ripresa | GPU 64G 1 ora | dopo punto 5 (a) |
-| Valutatore visivo (punto 7) | Correttezza del codice di valutazione | GPU ≤ 2 ore | dopo punto 2 |
+| Sintetici (C1, C2) | Dominio visibile, unicità, regressione v3 → v4, verifica semantica e invarianti su v4 | CPU 20 min; render CPU circa 12 min; controllo CPU | dopo l'approvazione di S2 |
+| Contratto ed estrattore (C3, C4; punto 1) | Tokenizzazione e label per modalità; quattro forme e terminazione; tassonomia ufficiale; risposta diretta di Violetto | CPU 20 min; GPU 1 ora | dopo D3 e S3 |
+| Manifest, indice e reader (C5-C7; punto 3) | Collisioni, split ereditati, chiavi storiche, filtro dei reader, contatori | CPU 20 min; indice CPU 4 CPU 24G, durata da misurare | dopo S1, D6 |
+| Stime (C8) | Copertura esatta, limite ipergeometrico, estrazioni | CPU 20 min | dopo S4 |
+| MAVIS (C9; punto 2) | `shape_type` con opzioni; valori visualizzati ed esatti | CPU 20 min; controllo CPU su tutti gli shard | dopo C5 |
+| Più immagini (punto 4) | Ordine, budget, parità con cache | CPU 20 min; GPU 1 ora | dopo i punti 1, 3 |
+| Encoder (punto 5) | Refactoring SigLIP2 identico; parità dell'encoder B col percorso nativo; rami disattivati uguali al riferimento | GPU 1 ora ciascuno | (a) dopo l'ok; (b) dopo D1 |
+| ViT addestrabile (punto 6) | Gradienti, variazione dei pesi, salvataggio, ripresa | GPU 64G 1 ora | dopo il punto 5 (a) |
+| Valutatore visivo (punto 7) | Correttezza del codice di valutazione | GPU ≤ 2 ore | dopo C4 |
 
-## 4. Fuori dal primo perimetro
+## 5. Fuori dal primo perimetro
 
 F4 (trainer RL, rollout, log-probabilità, GRPO), interpolazioni F3-M/F4-M, certificazione statistica generale e nuove
 generazioni di target non sono prerequisiti di F0 (pipeline §5.10, incarico §5). Le implementazioni di DeepStack, MUDD e

@@ -329,6 +329,10 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
   varianti `2343ddd9-x4` e `2343ddd9-dense` (con `lines/`). Formula senza gli spazi del formato im2latex
   (`latex.despace`), immagine al più 2x e 1024 patch (`processing.capped_size`). Controlli e rietichettature in
   `outputs/unimer_check/run4`, sovrapposizioni col test in `outputs/unimer_overlap/run2`.
+- Sintetici v3 (`data/shards/synth/v3`, job 29756; il codice attuale ne riproduce esattamente le domande): `intersections`
+  conta entro ±R mentre il disegno arriva a ±(R+1), con 37 target errati e 364 domande al bordo disegnato;
+  `shape_type` e `label_type` sono domande aperte con più risposte vere (`docs/specs/S2_AMMISSIONE_PRIME_FAMIGLIE.md`
+  §2). Una risposta calcolata dalla specifica del generatore non è corretta finché non è verificata contro il disegno.
 - MMFineReason @ 7c93f724: le descrizioni di Qwen3-VL-235B sono testo di un modello, non fatti (circa 10% di
   affermazioni false nel campione del 2026-10-19, che non conta come audit); contiene Geo3K e la famiglia WeMath.
   Caption, risposta e CoT sono oggetti distinti (pipeline §5.7).

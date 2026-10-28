@@ -13,7 +13,7 @@ Eseguita il 2026-10-28 da Claude Code sul frontend `lagrangectl` (utente `prigna
 | Modo | `git merge --ff-only origin/main` |
 | Albero prima del recupero | pulito: nessuna modifica non committata e nessun file non tracciato fuori da `.gitignore` |
 | Base della migrazione | tag annotato locale `pre-migrazione-v1.4` su `6e888d5` |
-| Commit della migrazione | locali, `git log pre-migrazione-v1.4..main`; non pubblicati |
+| Commit della migrazione | `git log pre-migrazione-v1.4..main`; pubblicati su `origin/main` il 2026-10-28 su richiesta dell'utente (`cb26e3a`, poi `61c12b4` e `e81f884`); il tag `pre-migrazione-v1.4` resta locale |
 | Job e processi | nessuno ([elenco](ACTIVE_WORK_AND_UNTOUCHED_PATHS.md)) |
 | Spazio | `/home` GlusterFS 14T, 12T liberi (19% usato), inode all'1%; progetto circa 537 GiB, sotto la soglia di 1 TB |
 

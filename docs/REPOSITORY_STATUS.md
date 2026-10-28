@@ -22,10 +22,10 @@ restano riferiti alle versioni esaminate; nessuno di questi documenti prova che 
 | Formato delle risposte | Template Violetto, `F1_PREFILL`, estrattore storico (`f2.grade`) | Formato generato verificato; contratto diretto/ragionato mancante | [F0 punto 1](F0_IMPLEMENTATION_PLAN.md) |
 | Encoder e collegamento | SigLIP2, pixel shuffle 2x2 + MLP, hook su embedding e value embeddings | Baseline verificata; encoder Qwen, proiettori alternativi, layer intermedi, DeepStack, rami MUDD/value mancanti | punto 5 |
 | ViT addestrabile | Ramo autograd presente; `set_trainable` congela sempre l'encoder; conteggi di parametri fissi; checkpoint senza ViT | Mancante | punto 6 |
-| Dati e gold | Parser, generatori, controlli deterministici, rietichettature, provenienza delle liste | Gold tipizzato, valore esatto/visualizzato, ambiguità dei sintetici, answer-only mancanti | punto 2 |
+| Dati e gold | Parser, generatori, controlli deterministici, rietichettature, provenienza delle liste | Errore confermato nei sintetici v3 (`intersections`) e domande di classificazione ambigue; gold tipizzato, valore esatto/visualizzato, answer-only mancanti | punto 2, [S2](specs/S2_AMMISSIONE_PRIME_FAMIGLIE.md) |
 | Split e manifest | Reader con esclusioni per chiave, validazione dal prefisso dell'ultimo shard, liste storiche | Manifest per compito/variante, gruppi globali e contabilità del consumato mancanti | punto 3 |
 | Replay e più immagini | Loader testuale; processor con liste di immagini; `Sample` con una sola immagine | Caricatori multi-immagine e mix del replay mancanti | punti 3, 4 |
-| Valutazione | Valutatore testuale ufficiale, trascrizione UniMER-Test, immagine vera/bianca/assente | Valutatore dei benchmark visivi e pannelli di documenti e pagine mancanti | punto 7 |
+| Valutazione | Valutatore testuale ufficiale, trascrizione UniMER-Test (spe, cpe, sce, hwe), immagine vera/bianca/assente | Dati dei benchmark visivi presenti ma valutatore VL mancante; dati di documenti, pagine multiple e tabelle mancanti | punto 7 |
 | F3 | Componenti SFT riutilizzabili | Fuori dal primo perimetro | — |
 | F4 | Helper e verificatori parziali | Fuori dal primo perimetro | — |
 | Interpolazioni | `export_decoder.py` (round trip di Violetto) | Fuori dal primo perimetro | — |

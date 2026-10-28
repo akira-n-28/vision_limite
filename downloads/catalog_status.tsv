@@ -41,7 +41,7 @@ p8-f1clean	euclid-multimodal/Geoperception	c34c595649b36c51789f1fab94b2bccd71cb8
 p8-f1clean	ryokamoi/VisOnlyQA_Eval_Real_v1.1	3747d1370919a6ed0b7ee09896ef6dbffc8aa6d9	scaricato (data, README, LICENSE)	30022	data/decontam/f1eval	valutazione e decontaminazione (§15)	riservata	-
 p8-f1clean	ryokamoi/VisOnlyQA_Eval_Synthetic	ef0b5fbcc40a35fdd2947f9b65bed8a8ee99e86d	scaricato (data, README, LICENSE)	30022	data/decontam/f1eval	valutazione e decontaminazione (§15)	riservata	-
 p8-f1clean	Tomie0506/GeoSym127K	4c2fe67fae6252a12275b1d1a3686523582d1fbf	scaricato (solo jsonl, README, upload.py)	30022	-	esplorativa, non ammessa (§4)	-	scartata come target il 2026-10-26: didascalie in prosa di un modello
--	sintetici del progetto (src/limite_vl/synth.py)	data/shards/synth/v2, v3	generato (scripts/synth_render.py)	-	data/decontam/f1eval/synth	F1-F4 secondo il compito (§13)	candidata	ambiguità di shape_type da risolvere (§5.7)
+-	sintetici del progetto (src/limite_vl/synth.py)	data/shards/synth/v2, v3	generato (scripts/synth_render.py)	-	data/decontam/f1eval/synth	F1-F4 secondo il compito (§13)	candidata	v3: errore confermato in intersections, shape_type e label_type ambigui (docs/specs/S2 §2); v4 da generare dopo la correzione
 -	MathWriting	-	non nel catalogo	-	-	manoscritto in F1-F2	-	candidata della pipeline, da integrare
 -	HierText	-	non nel catalogo	-	-	OCR e localizzazione in F1-F2	-	candidata della pipeline, da integrare
 -	PixMo-Points / PixMo-AskModelAnything	-	non nel catalogo	-	-	grounding e domande varie in F2-F3	-	candidata della pipeline, da integrare
