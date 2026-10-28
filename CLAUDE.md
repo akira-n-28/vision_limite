@@ -205,9 +205,9 @@ training o audit è approvato. Il primo perimetro di lavoro è in `docs/F0_IMPLE
   consumo va nel ledger a ogni giro; al tetto ci si ferma e si riferisce. Il consenso fra agenti non è verità. Gli
   audit precedenti non contano come audit (decisione del 2026-10-26): orientano i controlli nuovi, non giustificano
   decisioni.
-- Le soglie numeriche della strategia precedente (≤ 1% sulle risposte e ≤ 2% sui fatti della regola del
-  2026-10-19, 300M token di F1-clean, picchi NorMuon al 15%) non valgono per la nuova pipeline: soglie, volumi e
-  iperparametri si fissano prima dei piloti, con l'utente.
+- Le soglie numeriche e le ricette della strategia precedente (≤ 1% sulle risposte e ≤ 2% sui fatti della regola del
+  2026-10-19, 300M token di F1-clean, picchi NorMuon al 15%) non valgono più (confermato dall'utente il 2026-10-28):
+  soglie, volumi e iperparametri si fissano prima dei piloti, con l'utente.
 
 ## Fatti verificati sul codice di Limite (`modeling_limite.py` @ b1f3d572)
 

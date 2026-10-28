@@ -117,8 +117,9 @@ provenienza, non la qualità.
 | Colonne dei TSV nuovi | uniformi (catalogo 9, inventario 10, indice 5, `MOVES.tsv` 7) |
 | Link relativi dei documenti nuovi e aggiornati | risolti |
 
-Non eseguiti, perché richiedono un'allocazione o non sono di questa fase: test CPU (`slurm/tests_cpu.sbatch`), import
-dei moduli, hash completi degli shard, controlli della qualità dei dati, valutazioni. Nessuno è dichiarato superato.
+Dopo l'approvazione dell'utente, `slurm/tests_cpu.sbatch` (job 30255, 2026-10-28, 7 min 38 s): 22 file, 775 controlli,
+nessun fallimento, stderr vuoto, come il job 30050 prima della migrazione. Non eseguiti, perché non sono di questa fase:
+hash completi degli shard, controlli della qualità dei dati, collaudi GPU, valutazioni.
 Elenco con scopo e risorse in `docs/F0_IMPLEMENTATION_PLAN.md`, §3.
 
 ## 8. Limiti
@@ -132,12 +133,13 @@ Elenco con scopo e risorse in `docs/F0_IMPLEMENTATION_PLAN.md`, §3.
 ## 9. Decisioni aperte
 
 Le sei decisioni D1-D6 di `docs/F0_IMPLEMENTATION_PLAN.md` (checkpoint Qwen, metodo del budget, contratto di risposta,
-metriche e margini, budget degli audit, ruoli del pannello). In più, per questa migrazione:
+metriche e margini, budget degli audit, ruoli del pannello). Per questa migrazione:
 
-1. Conferma che le soglie della regola del 2026-10-19 (≤ 1% sulle risposte, ≤ 2% sui fatti), i 300M token di
-   F1-clean e la ricetta NorMuon di F2 sono superati, come indicano la pipeline (§§5.9, 16) e l'incarico.
-2. Ok per lanciare `slurm/tests_cpu.sbatch` (0 GPU, 4 CPU, 8G, 20 minuti) come primo collaudo dopo la migrazione.
-3. Ok per scrivere le quattro specifiche S1-S4 (`docs/specs/`) prima di toccare il codice.
+1. **Chiusa il 2026-10-28:** l'utente conferma che le soglie della regola del 2026-10-19 (≤ 1% sulle risposte, ≤ 2% sui
+   fatti), i 300M token di F1-clean e la ricetta NorMuon di F2 non valgono più.
+2. **Approvato e fatto il 2026-10-28:** `slurm/tests_cpu.sbatch` (job 30255): 22 file, 775 controlli, nessun fallimento.
+3. **Approvato il 2026-10-28:** push dei tre commit della migrazione su `origin/main`.
+4. Aperta: ok per scrivere le quattro specifiche S1-S4 (`docs/specs/`) prima di toccare il codice.
 
 ## 10. Cosa è pronto
 
