@@ -1,0 +1,58 @@
+# Stato delle sorgenti rispetto alla pipeline v1.4 (2026-10-28). Separato da sources.tsv, che resta l'identità letta da build_manifests.sh.
+# disponibilita: scaricato = tutti i file del manifest presenti nella cache HF; non scaricato = nessun file locale.
+# verifica_hash: job di slurm/verify_hashes.sbatch (report in outputs/verify/report-<job>.tsv, tutti ok).
+# ammissione: nessuna sorgente è ammessa alla nuova pipeline. "candidata" = da controllare in F0 (pipeline §§4, 5);
+#   "riservata" = valutazione e decontaminazione, mai nel training; "modello" = pesi di partenza o candidati.
+# ruolo_pipeline: impiego proposto dalla pipeline §4 (o motivo per cui non è previsto).
+gruppo	repo	revisione_locale	disponibilita	verifica_hash	derivati_locali	ruolo_pipeline	ammissione	nota
+p1	paradigma-inc/limite-1b-violetto	b1f3d572ccacb6919f4d64c321b70ba034ddaef2	scaricato (senza assets/)	29348	outputs/export/roundtrip-violetto	decoder di partenza (§3.1)	modello	revisione fissata dal valutatore
+p1	google/siglip2-so400m-patch16-naflex	cc24074f717b612951c2dead130904ab9b65a81e	scaricato	29348	-	Encoder A (§3.1)	modello	main risolto il 2026-10-07
+p1	google/siglip2-base-patch16-naflex	b53b807d3a2d5e2b3911292f2d69e5341cdc064c	scaricato	29348	-	non previsto dalla v1.4 (era per le ablation)	modello	conservato, 1.4 GiB
+p1	MathArena/aime_2026	10b4e45b7a503075d4da8a0d57916a4f06ce6bd2	scaricato	29348	data/eval-datasets/MathArena/aime_2026	testo puro: valutazione (§15)	riservata	suite del valutatore ufficiale
+p1	opencompass/AIME2025	a6ad95f611d72cf628a80b58bd0432ef6638f958	scaricato	29348	data/eval-datasets/opencompass/AIME2025	testo puro: valutazione (§15)	riservata	-
+p1	MathArena/hmmt_feb_2026	02fba4f74d8e68e73e66a02d540fd979c05c274c	scaricato	29348	data/eval-datasets/MathArena/hmmt_feb_2026	testo puro: valutazione (§15)	riservata	-
+p1	MathArena/hmmt_feb_2025	6fdc4277120810ff75aa22d2d5489b91f7a262a1	scaricato	29348	-	testo puro: valutazione (§15)	riservata	suite math-extended
+p1	ByteDance-Seed/BeyondAIME	c705198ae1043810b1e1693bd879250b51a7a523	scaricato	29348	-	testo puro: valutazione (§15)	riservata	suite math-extended
+p1	MathArena/apex-shortlist	f3efdf224ef665f129ddaae37699f6098c65781b	scaricato	29348	-	testo puro: valutazione (§15)	riservata	suite math-extended
+p1	HuggingFaceH4/aime_2024	2fe88a2f1091d5048c0f36abc874fb997b3dd99a	scaricato	29348	-	testo puro: valutazione (§15)	riservata	suite math-extended
+p1	HuggingFaceH4/MATH-500	6e4ed1a2a79af7d8630a6b768ec859cb5af4d3be	scaricato	29348	-	testo puro: valutazione (§15)	riservata	suite math-extended
+p1	Hothan/OlympiadBench	91184b52131e7fc9455fef848035173aea8cc01a	scaricato	29348	-	testo puro: valutazione (§15)	riservata	suite math-extended
+p3	liuhaotian/LLaVA-Pretrain	70f9d1e5e1a697fe35830875cfc7de1dd590d727	scaricato (json e images.zip)	29387, 29554	data/shards/llava-pretrain/70f9d1e5 (29 shard)	complemento eventuale di F1, non obbligatorio	candidata	-
+p3	CaraJ/MAVIS-Geometry	9c80fff300f4f2cb3a76f71e03428eebdd571907	scaricato (RuleBaseGeo.zip, README, parquet di esempio)	29413, 29554	data/shards/mavis-geometry/9c80fff3-caption (11 tar); outputs/f1_mavis/run2	F1-F2; problemi selezionati in F3/F4	candidata	target canonici costruiti da diagram_generation (job 30052), non ammessi; coerenza ≠ fedeltà ai pixel
+p3	wanderkid/UniMER_Dataset	2343ddd963290469da36ca83e3a56c66e068add9	scaricato (UniMER-1M.zip, UniMER-Test.zip, README)	29429, 29554	data/shards/unimer/2343ddd9, -x4, -dense; outputs/unimer_check/run4; outputs/unimer_overlap/run2	F1-F2; mantenimento in F3; UniMER-Test per la valutazione	candidata (train); riservata (test)	rietichettature e incerti da importare come evidenze (§5.8)
+p3	OpenDataArena/MMFineReason-1.8M	7c93f724791d01246f5425e1182b14ec8d013847	scaricato (200 file)	29513, 29554	data/shards/mmfinereason/7c93f724-sft, -rl; data/shards/f2-mmfinereason/f2-sft120k-v4; data/lang/mmfinereason	problemi selezionati in F2-F3; F4 dove ammissibile	candidata	caption, risposta e CoT distinti; contiene Geo3K e WeMath (decontaminare)
+p3	anthracite-org/pixmo-cap-images	3e42775eea79dd4874c41379230c7f871b10218e	scaricato parziale per filtro (25 parquet su 75)	29554	data/shards/pixmo-cap/3e42775e; outputs/pixmo_check/run4	scene reali in F1-F2; mantenimento in F3	candidata	fuori dalla bozza F1-clean; controllo visivo campionario necessario
+p4	Qwen/Qwen3-VL-8B-Instruct	-	non scaricato	-	-	teacher non previsto come dipendenza (§9: generazioni solo mirate)	-	VERIFICARE id e licenza prima di qualsiasi uso
+p4	Qwen/Qwen3-VL-2B-Instruct	-	non scaricato	-	-	possibile origine dell'Encoder B (§3.5); checkpoint Qwen da scegliere (§18, domanda 1)	modello candidato	download solo dopo la scelta dell'utente
+p5-rl	skylenage/DeepVision-103K	d90619a39b1d2db7815ec958f2d728c78daa80cb	scaricato	29571	-	RL visuale verificabile in F4	candidata	correttori da validare
+p5-rl	TIGER-Lab/ViRL39K	812ec617dea4bc8a4e751663b88e4ebb7de4d00e	scaricato	29571	-	RL visuale verificabile in F4	candidata	correttori da validare
+p5	Zhiqiang007/MathV360K	-	non scaricato	-	-	candidato storico da verificare (§4)	-	VERIFICARE id
+p5	Luckyjhg/Geo170K	-	non scaricato	-	-	candidato storico da verificare (§4)	-	VERIFICARE id
+p5-func	CaraJ/MAVIS-Function	a78fd6d04e5f8edf5f5cc8bf733ad37703ece21d	scaricato (6 zip)	29804	-	funzioni in F2-F3; F4 dove verificabile	candidata	non è un dataset di caption
+p6	AI4Math/MathVista	2b6ad69445fbb5695c9b165475e8decdbeb97747	scaricato	29555	data/decontam/p6	valutazione e decontaminazione (§15)	riservata	consultato ripetutamente = sviluppo, non test indipendente (§5.5)
+p6	AI4Math/MathVerse	3bc86196678bad115a923d2851c6821dbe235939	scaricato	29555	data/decontam/p6	valutazione e decontaminazione (§15)	riservata	varianti dello stesso problema raggruppate (§6.1)
+p6	MathLLMs/MathVision	2837ddb3f13abaf6b3997c12d80753e5470bd46a	scaricato	29555	data/decontam/p6	valutazione e decontaminazione (§15)	riservata	-
+p6	We-Math/We-Math	527c44d4d94c4e3c7c98157460146a8b18c8420a	scaricato	29555	data/decontam/p6	valutazione e decontaminazione (§15)	riservata	-
+p6	DynaMath/DynaMath_Sample	bc7fcd1ae58caa445d61f6dc0c241b0bb8a7f4c6	scaricato	29555	data/decontam/p6	valutazione e decontaminazione (§15)	riservata	varianti dello stesso problema raggruppate (§6.1)
+p7	HuggingFaceM4/FineVision	-	non scaricato	-	-	sottoinsiemi solo per lacune documentate (§4)	-	include da scegliere (VERIFICARE)
+p5-replay	agentica-org/DeepScaleR-Preview-Dataset	b6ae8c60f5c1f2b594e2140b91c49c9ad0949e29	scaricato	29698	data/shards/replay/replay-slice1-p0 (tracce di Violetto, storiche); data/decontam/text/replay	testo matematico in F2-F4	candidata	riferimenti originali da usare; tracce generate solo storiche
+p5-replay	zwhe99/DeepMath-103K	5cf055d1fe3d7a2eb19719ac020211469736ae44	scaricato	29698	data/decontam/text/replay	testo matematico in F2-F4	candidata	qualità delle soluzioni distinta dalla correttezza del risultato
+p8-f1clean	euclid-multimodal/Geoperception	c34c595649b36c51789f1fab94b2bccd71cb8d80	scaricato	30022	data/decontam/f1eval	valutazione e decontaminazione (§15)	riservata	domande da Geometry-3K: sovrapposizioni con PGPS9K e MMFineReason
+p8-f1clean	ryokamoi/VisOnlyQA_Eval_Real_v1.1	3747d1370919a6ed0b7ee09896ef6dbffc8aa6d9	scaricato (data, README, LICENSE)	30022	data/decontam/f1eval	valutazione e decontaminazione (§15)	riservata	-
+p8-f1clean	ryokamoi/VisOnlyQA_Eval_Synthetic	ef0b5fbcc40a35fdd2947f9b65bed8a8ee99e86d	scaricato (data, README, LICENSE)	30022	data/decontam/f1eval	valutazione e decontaminazione (§15)	riservata	-
+p8-f1clean	Tomie0506/GeoSym127K	4c2fe67fae6252a12275b1d1a3686523582d1fbf	scaricato (solo jsonl, README, upload.py)	30022	-	esplorativa, non ammessa (§4)	-	scartata come target il 2026-10-26: didascalie in prosa di un modello
+-	sintetici del progetto (src/limite_vl/synth.py)	data/shards/synth/v2, v3	generato (scripts/synth_render.py)	-	data/decontam/f1eval/synth	F1-F4 secondo il compito (§13)	candidata	ambiguità di shape_type da risolvere (§5.7)
+-	MathWriting	-	non nel catalogo	-	-	manoscritto in F1-F2	-	candidata della pipeline, da integrare
+-	HierText	-	non nel catalogo	-	-	OCR e localizzazione in F1-F2	-	candidata della pipeline, da integrare
+-	PixMo-Points / PixMo-AskModelAnything	-	non nel catalogo	-	-	grounding e domande varie in F2-F3	-	candidata della pipeline, da integrare
+-	ChartQA, PlotQA	-	non nel catalogo	-	-	grafici in F1-F3; F4 selezionato	-	candidata della pipeline, da integrare
+-	TabMWP	-	non nel catalogo	-	-	tabelle e matematica in F2-F4	-	candidata della pipeline, da integrare
+-	PubTabNet, DocLayNet	-	non nel catalogo	-	-	struttura di tabelle e pagine in F1-F2	-	candidata della pipeline, da integrare
+-	Docmatix	-	non nel catalogo	-	-	QA documentale e più pagine in F2-F3	-	candidata della pipeline, da integrare
+-	M4-Instruct	-	non nel catalogo	-	-	confronto fra immagini in F2-F3 (senza video)	-	candidata della pipeline, da integrare
+-	PGPS9K, FormalGeo	-	non nel catalogo	-	-	geometria strutturata in F2-F4	-	candidata da verificare
+-	AI2D, ScienceQA, VisualWebInstruct	-	non nel catalogo	-	-	copertura scientifica in F2-F3	-	in parte già dentro MMFineReason: inventario prima di aggiungerli
+-	VizWiz	-	non nel catalogo	-	-	immagini difficili e risposta impossibile in F2-F3	-	candidata della pipeline, da integrare
+-	SmolTalk	-	non nel catalogo	-	-	istruzioni e dialogo in F2-F3	-	candidata della pipeline, da integrare
+-	OpenMathInstruct-2	-	non nel catalogo	-	-	complemento eventuale al testo matematico	-	-
+-	Nemotron-VLM-Dataset-v2	-	non nel catalogo	-	-	sottoinsiemi solo per lacune documentate	-	-

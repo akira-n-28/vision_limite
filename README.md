@@ -1,68 +1,63 @@
-# vision_limite — kit di avvio per Lagrange
+# vision_limite — Limite-VL su Lagrange
 
-Repository di partenza per aggiungere la visione a Limite 1B - Violetto sul cluster Lagrange,
-lavorando con Claude Code sul frontend. Le regole operative per Claude Code sono in
-`CLAUDE.md`; la guida del cluster è `LAGRANGE.md`.
+Aggiungere la visione a Limite 1B - Violetto (`paradigma-inc/limite-1b-violetto` @ b1f3d572): leggere immagini,
+documenti e formule, collegare più immagini e risolvere problemi di matematica e scienze. Il lavoro gira sul cluster
+Lagrange (frontend `lagrangectl`, nodo `lagrange0` con H100 NVL) con Claude Code sul frontend.
 
-## Primi passi (sul frontend `lagrangectl`, una volta sola)
+## Documenti di riferimento
 
-```bash
-# 1. Un'unica cartella di progetto: codice (in git) e cartelle pesanti (escluse da .gitignore)
-mkdir -p /home/prignano/vision_limite
-#    copiare qui il contenuto del kit (scp dal portatile), poi:
-cd /home/prignano/vision_limite
-mkdir -p data/logs hf wheels tools venvs cache outputs/logs secrets third_party
-chmod 700 secrets
-git init && git add -A && git status --short   # controllare: solo codice, niente data/ hf/ ecc.
-git commit -m "Kit di avvio vision_limite"
+| Documento | Ruolo |
+| --- | --- |
+| [`PIPELINE_ADDESTRAMENTO_LIMITE_VL.md`](PIPELINE_ADDESTRAMENTO_LIMITE_VL.md) | **Riferimento corrente** (v1.4, 2026-10-28): fasi F0-F4, protocollo dei dati, decisioni aperte. Progetto, non ricetta eseguibile |
+| [`CLAUDE.md`](CLAUDE.md) | Regole operative per Claude Code sul cluster |
+| [`LAGRANGE.md`](LAGRANGE.md) | Guida del cluster (frontend, storage, SLURM, download) |
+| [`docs/F0_IMPLEMENTATION_PLAN.md`](docs/F0_IMPLEMENTATION_PLAN.md) | Stato reale del codice rispetto alla pipeline e interventi F0 in ordine |
+| [`docs/REPOSITORY_STATUS.md`](docs/REPOSITORY_STATUS.md), [`docs/REVIEW_ACTIONS.md`](docs/REVIEW_ACTIONS.md) | Stato e tracciabilità dei rilievi delle revisioni indipendenti (`docs/reviews/`, immutati) |
+| [`docs/MIGRATION_REPORT.md`](docs/MIGRATION_REPORT.md) | Migrazione del 2026-10-28: base git, spostamenti, controlli e limiti |
+| [`docs/ARTIFACT_INVENTORY.tsv`](docs/ARTIFACT_INVENTORY.tsv), [`docs/REPOSITORY_INDEX.tsv`](docs/REPOSITORY_INDEX.tsv) | Artefatti fuori da git e stato di ogni file versionato |
+| [`archive/pipeline-precedente/`](archive/pipeline-precedente/README.md) | Ricette, launcher e istruzioni della strategia precedente: storia, non comandi |
 
-# 2. Codice ufficiale di Limite (plugin vLLM e valutatore), repository piccolo
-git clone https://github.com/paradigma-inc/limite-violetto.git third_party/limite-violetto
-git -C third_party/limite-violetto checkout 7ddad34f5e3d25ddea68c6745fc00373b82bca21   # commit verificato il 2026-10-07
-#    verifiers al commit fissato dal valutatore (limite-evals), per il client in env-evals/:
-#    git init + remote, poi scripts/guarded_run.sh verifiers-fetch -- git -C third_party/verifiers \
-#      fetch --depth 1 origin d30a3f48e5f14b06b3081b2102ec32cc3149b849 && checkout FETCH_HEAD
+## Dove si lavora
 
-# 3. Token Hugging Face (solo per repository con accesso riservato), mai nel repository
-#    scrivere il token in secrets/hf_token con un editor, poi:
-chmod 600 secrets/hf_token
+- **Portatile dell'utente:** pipeline e revisioni, consegnate tramite GitHub; eventuale `uv lock`.
+- **Frontend `lagrangectl`:** editing, git, invio e controllo dei job, download con `scripts/fetch.sh`. Niente calcolo,
+  test, import di torch o parsing di dati grandi (3.8 GiB di RAM condivisi).
+- **Job SLURM:** tutto il calcolo, offline, con le risorse della QoS `castelnuovo_qos` (1 GPU, 12 CPU, 150 GB in totale).
 
-# 4. Claude Code in una sessione che sopravvive alla disconnessione (se tmux c'è)
-command -v tmux && tmux new -s vision_limite
-cd /home/prignano/vision_limite && claude
-```
+## Stato (2026-10-28)
 
-Prima richiesta suggerita a Claude Code: *"Leggi LAGRANGE.md e CLAUDE.md, poi esegui il
-giorno 1 del piano: sonda GPU, manifest p1 e avvio dei download. Poi prepara il venv con
-`scripts/setup_env.sh`, fermandoti a chiedermi conferma prima di scegliere il pyproject."*
+- **Fase:** F0 preparatorio. Nessun training, pilota GPU, audit con agenti o download è approvato.
+- **Codice presente:** modello VL baseline (SigLIP2 so400m NaFlex, pixel shuffle 2x2 + MLP verso i 1280 canali di
+  Limite, hook sugli embedding), processor con liste di immagini, packing, flusso dati riprendibile con esclusioni e
+  rietichettature, controlli deterministici di MAVIS, UniMER, PixMo e sintetici, decontaminazione, valutatore testuale
+  ufficiale, NorMuon. I trainer (`scripts/train_f1.py`, `scripts/train_f2.py`) sono della strategia precedente: encoder
+  sempre congelato, adapter salvato senza ViT, conteggi di parametri fissi.
+- **Manca rispetto alla pipeline:** contratto di risposta versionato, manifest per compito/variante con split
+  globali, caricatori con più immagini, encoder Qwen, gruppi e checkpoint per il ViT addestrabile, pannelli di
+  valutazione visivi. Dettagli e ordine in `docs/F0_IMPLEMENTATION_PLAN.md`.
+- **Dati:** tutti i download verificati per hash (`outputs/verify/`), circa 540 GiB in tutto (cache HF 274 GiB, `data/` 172 GiB, `outputs/` 68 GiB, ambienti e cache 24 GiB).
+  Nessuna sorgente è ammessa alla nuova pipeline: `downloads/catalog_status.tsv`.
 
-## Cosa contiene
+## Contenuto
 
 | Percorso | A cosa serve |
 | --- | --- |
-| `scripts/setup_env.sh` | Crea il venv in `venvs/` per fasi (`status`, `uv`, `lock`, `wheels`, `install`) senza lavoro pesante sul frontend |
-| `scripts/guarded_run.sh` | Esegue `uv lock` sul frontend con le soglie della guida applicate a tutto l'albero di processi (e tetto cgroup se disponibile) |
-| `scripts/fetch.sh` | Scarica un file rispettando le soglie della guida (1 GiB per partire, stop sotto 768 MiB o sopra 128 MiB di RSS, 10 MiB/s, un trasferimento alla volta) |
-| `scripts/fetch_manifest.sh` | Scarica in sequenza i file di un manifest; si ferma al primo errore |
-| `scripts/hf_manifest.py` | Manifest di un repository Hugging Face a una revisione fissata, nel layout della cache HF |
-| `scripts/link_hf_snapshot.py` | Crea gli snapshot della cache HF dopo il download (uso offline) |
-| `scripts/uvlock_manifest.py` | Elenco delle wheel per Python 3.12 / Linux x86_64 da un `uv.lock` |
-| `scripts/verify_manifest.py` | Verifica SHA-256 e hash git in un job CPU |
-| `scripts/f0_checks.py` | Verifiche F0 su GPU: `inputs_embeds`, gradient checkpointing, loss a blocchi, throughput, nomi dei parametri e gruppi dell'ottimizzatore |
-| `src/limite_vl/optim/` | NorMuon (Algoritmo 1 del report) e gruppi della Tabella 1; test in `tests/test_normuon.py` |
-| `slurm/*.sbatch` | Sonda GPU, verifiche F0, verifica hash, estrazione di uv, installazione offline dell'ambiente |
-| `downloads/sources.tsv` | Modelli e dataset per priorità, con le revisioni del valutatore ufficiale |
-| `env/` | Come costruire l'ambiente in base al driver (CUDA 13 oppure 12) |
+| `scripts/setup_env.sh`, `scripts/guarded_run.sh` | Ambiente in `venvs/` per fasi senza lavoro pesante sul frontend; `uv lock` con le soglie della guida |
+| `scripts/fetch.sh`, `scripts/fetch_manifest.sh`, `scripts/hf_manifest.py`, `scripts/link_hf_snapshot.py` | Download controllati (1 GiB per partire, stop sotto 768 MiB o sopra 128 MiB di RSS, 10 MiB/s) e cache HF offline |
+| `scripts/verify_manifest.py`, `slurm/verify_hashes.sbatch` | Verifica SHA-256 e hash git in un job CPU |
+| `scripts/f0_checks.py`, `scripts/f0_vl_checks.py` | Verifiche F0 di Violetto e del modello VL baseline |
+| `scripts/*_check.py`, `scripts/decontam*.py`, `scripts/split_duplicates.py` | Controlli dei dati senza LLM e decontaminazione |
+| `scripts/shard_*.py` | Conversione delle sorgenti in shard tar da circa 1 GB |
+| `src/limite_vl/` | Modello, processor, dati, flusso, controlli, ottimizzatori |
+| `slurm/*.sbatch` | Launcher correnti; `slurm/prologue.sh` per la provenienza |
+| `downloads/` | Catalogo delle sorgenti con revisioni fissate e stato |
+| `env/`, `env-evals/` | pyproject e lock dell'ambiente (torch 2.11.0+cu129, transformers 5.6.2, vLLM 0.26.0) e del client del valutatore |
+| `runs/ledger.tsv` | Registro dei job |
 
-Test eseguiti prima della consegna: sintassi e `shellcheck` di tutti gli script bash,
-compilazione degli script Python, download reale da un server HTTPS locale (limite di
-banda, stop per memoria con `.part` conservato, ripresa con Range, lock, segnale TERM,
-dimensione errata), manifest da un'API Hugging Face simulata, link degli snapshot e
-verifica degli hash, invio del token Hugging Face solo all'host di Hugging Face.
-`uvlock_manifest.py` è stato provato sul `uv.lock` ufficiale (202 wheel, circa 4 GB con
-torch). `uv lock` sotto `guarded_run.sh` su un progetto con vLLM e transformers: 226
-pacchetti, circa 45 MB, RSS massima 116-127 MiB. Catena completa di `setup_env.sh` con
-`sbatch`/`srun` simulati: uv scaricato e verificato, lock, wheel, venv offline con hash
-verificati e plugin Limite compilato offline. NorMuon: direzione di aggiornamento identica a modded-nanogpt (diff. relativa 5·10⁻⁸),
-update sui pesi entro l'arrotondamento fp32, convergenza su un problema lineare.
-`f0_checks.py` e i job GPU non sono stati eseguiti: richiedono il cluster.
+## Ricostruire la cartella da zero
+
+La cartella del cluster esiste già. Per ricrearla: clonare il repository in `/home/prignano/vision_limite`, creare
+`data/logs hf wheels tools venvs cache outputs/logs secrets third_party` (con `secrets/` a 700 e il token in
+`secrets/hf_token` a 600), clonare `paradigma-inc/limite-violetto` @ 7ddad34f e `verifiers` @ d30a3f48 in
+`third_party/`, poi seguire `CLAUDE.md` (Ambiente, Download). I passi originali del kit sono in
+`archive/pipeline-precedente/README.pre-migrazione.md`.

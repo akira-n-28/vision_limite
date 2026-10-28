@@ -3,6 +3,8 @@
 # Le revisioni a 40 caratteri sono quelle fissate dal valutatore ufficiale (limite-evals).
 # "main" viene risolto in un commit da hf_manifest.py e scritto nella specifica: annotarlo nel ledger.
 # VERIFICARE = id del repository da controllare sulla pagina Hugging Face prima di generare il manifest.
+# Stato locale, ruolo nella pipeline v1.4 e ammissione: downloads/catalog_status.tsv. Una riga qui non rende una sorgente ammessa;
+# le note "F1/F2" delle righe descrivono il ruolo nella strategia precedente.
 p1	model	paradigma-inc/limite-1b-violetto	b1f3d572ccacb6919f4d64c321b70ba034ddaef2	-	assets/*	checkpoint di partenza, 2.07 GB
 p1	model	google/siglip2-so400m-patch16-naflex	main	-	-	encoder principale
 p1	model	google/siglip2-base-patch16-naflex	main	-	-	encoder per le ablation
