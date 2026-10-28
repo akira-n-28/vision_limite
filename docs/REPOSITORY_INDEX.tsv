@@ -80,6 +80,11 @@ docs/reviews/PIPELINE_ADDESTRAMENTO_LIMITE_VL.md	documento	corrente	navigazione 
 docs/reviews/README.md	documento	corrente	navigazione dei rapporti	-
 docs/reviews/REVISIONE_INDIPENDENTE_GOLD_E_DECONTAMINAZIONE.md	documento	storico	rapporto indipendente immutato (versione e hash propri)	-
 docs/reviews/REVISIONE_INDIPENDENTE_PIPELINE_LIMITE_VL.md	documento	storico	rapporto indipendente immutato (versione e hash propri)	-
+docs/specs/README.md	specifica	irrisolto	specifica F0 in bozza, da approvare	nessun codice la implementa
+docs/specs/S1_RECORD_MANIFEST.md	specifica	irrisolto	specifica F0 in bozza, da approvare	nessun codice la implementa
+docs/specs/S2_AMMISSIONE_PRIME_FAMIGLIE.md	specifica	irrisolto	specifica F0 in bozza, da approvare	nessun codice la implementa
+docs/specs/S3_CONTRATTO_ESTRAZIONE.md	specifica	irrisolto	specifica F0 in bozza, da approvare	nessun codice la implementa
+docs/specs/S4_CAMPIONAMENTO_BUDGET.md	specifica	irrisolto	specifica F0 in bozza, da approvare	nessun codice la implementa
 downloads/build_manifests.sh	catalogo	corrente	catalogo e manifest dei download	-
 downloads/catalog_status.tsv	catalogo	corrente	catalogo e manifest dei download	-
 downloads/manifests/.gitkeep	catalogo	corrente	catalogo e manifest dei download	-

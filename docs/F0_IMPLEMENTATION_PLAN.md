@@ -25,7 +25,7 @@ nelle specifiche del passo 1 e si mostrano all'utente prima di scrivere codice.
 
 ## 1. Quattro specifiche brevi, prima del codice (pipeline §5.10, ultimo paragrafo)
 
-Documenti in `docs/specs/`, uno per tema, da approvare. Non serve progettare subito gli adattatori di tutte le sorgenti.
+Bozze del 2026-10-28 in [`docs/specs/`](specs/README.md), da approvare. Non serve progettare subito gli adattatori di tutte le sorgenti.
 
 | Specifica | Contenuto minimo | Riusa |
 | --- | --- | --- |
@@ -65,7 +65,7 @@ Violetto su un piccolo pannello senza prefill nascosti (1 GPU, 8 CPU, 48G, circa
 | MAVIS: fedeltà ai pixel e leggibilità alla risoluzione scelta | da collaudare | solo 40 immagini guardate (`outputs/f1_mavis/contact_run1`); nessuna invariante del renderer dimostrata |
 | Valore esatto, visualizzato e richiesto separati | mancante | job 30049: i razionali (denominatori 2 e 3) sono disegnati come decimali a due cifre; oggi un solo valore per campo |
 | UniMER: trascrizione distinta dall'equivalenza matematica | da collaudare | `latex.py` (`despace`, `effective_label`); `outputs/unimer_check/run4`: 51 errori certi, 1119 incerti, rietichettature |
-| Ambiguità dei sintetici | mancante | `synth.py:290-297`: `shape_type` dei quadrilateri ha come risposta solo `spec["kind"]` fra square/rectangle/parallelogram/trapezoid (un quadrato è anche rettangolo e parallelogramma); per i triangoli right/isosceles/equilateral non si esclude che più classi siano vere |
+| Ambiguità dei sintetici e di MAVIS | mancante | `synth.py:294-296`: `shape_type` dei quadrilateri senza opzioni nel prompt e con risposta solo `spec["kind"]` (un quadrato è anche rettangolo e parallelogramma); `f1_mavis.py:83`: stessa domanda su square/rectangle/rhombus/parallelogram/kite. I triangoli dei sintetici hanno una sola classe vera per costruzione (`synth.py:191-205`), da confermare con un test |
 | Estrazione answer-only e risposte finali incompatibili | mancante | `f2.py:109-135, 183`: l'estrazione richiede `</think>` e prende l'ultimo `\boxed{}`; `grade` non ha un esito `non determinato` |
 | Evidenza salvata con la trasformazione, non solo `passed` | mancante | gli esiti dei controlli sono liste di esclusione e JSON per run, non campi del record |
 

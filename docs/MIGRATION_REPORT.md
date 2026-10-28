@@ -139,7 +139,7 @@ metriche e margini, budget degli audit, ruoli del pannello). Per questa migrazio
    fatti), i 300M token di F1-clean e la ricetta NorMuon di F2 non valgono più.
 2. **Approvato e fatto il 2026-10-28:** `slurm/tests_cpu.sbatch` (job 30255): 22 file, 775 controlli, nessun fallimento.
 3. **Approvato il 2026-10-28:** push dei tre commit della migrazione su `origin/main`.
-4. Aperta: ok per scrivere le quattro specifiche S1-S4 (`docs/specs/`) prima di toccare il codice.
+4. **Approvato il 2026-10-28:** scrittura delle quattro specifiche S1-S4. Bozze in `docs/specs/`, da approvare.
 
 ## 10. Cosa è pronto
 
