@@ -6,6 +6,8 @@ Modi, anche insieme:
 - --shards GLOB: record di shard esistenti, in sola lettura; ogni shard letto è registrato con il suo sha256.
 - --generate N --generator-version V: N scene generate e disegnate in memoria (chiavi synth-check-NNNNNNN, famiglie a
   rotazione), senza salvare immagini.
+- --pairs N --generator-version V: le prime N coppie controfattuali come le scriverebbe scripts/synth_render.py
+  (chiavi synth-pair-NNNNN-a e -b, famiglie a rotazione), disegnate in memoria; esito di scena, come --generate.
 - --cases CHIAVE:FAMIGLIA:VERSIONE ...: casi singoli disegnati e salvati in OUT/cases/ (PNG, layout ed esiti), per
   esempio la scena tagliata synth-0000043 in v3 e la stessa chiave in v4.
 
@@ -43,7 +45,7 @@ Uscite nella cartella nuova --out:
   esito); i conteggi del report sono sempre completi.
 
     srun $RUN_PYTHON -u -B scripts/synth_semantics_check.py --out DIR [--shards GLOB ...] \\
-        [--generate N --generator-version 4] [--cases KEY:FAMILY:VERSION ...] [--workers W]
+        [--generate N --generator-version 4] [--pairs N] [--cases KEY:FAMILY:VERSION ...] [--workers W]
 """
 from __future__ import annotations
 
@@ -64,6 +66,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from limite_vl import synth, synth_check  # noqa: E402
 from limite_vl.data import iter_shard  # noqa: E402
 from limite_vl.provenance import HashingTextWriter, code_identity, sha256_file, write_new_json  # noqa: E402
+from synth_render import scene as render_scene  # noqa: E402  (stessa cartella scripts/: le coppie come nel render)
 
 PROBLEM_CAP = 200
 IMAGE_OK = ("digest_corrispondente", "byte_identici", "pixel_identici")  # corrispondenza col PNG dello shard dimostrata
@@ -238,6 +241,20 @@ def generate_task(task: tuple[int, int, int]) -> dict:
     return {"input": {"generate": [start, stop], "generator_version": version}, "counts": counts, "problems": problems}
 
 
+def pairs_task(task: tuple[int, int, int]) -> dict:
+    """Coppie controfattuali start..stop disegnate in memoria con scripts/synth_render.py (stesse chiavi e famiglie del
+    render), controllate come scene generate: la domanda della coppia è nel record."""
+    start, stop, version = task
+    counts, problems, kept = Counter(), [], Counter()
+    for i in range(start, stop):
+        for key, _, meta in render_scene((f"synth-pair-{i:05d}", synth.FAMILIES[i % len(synth.FAMILIES)], version)):
+            layout = meta.pop("layout", None) or synth.render(meta["spec"], layout=True)[1]  # v3: senza layout
+            c, p, _ = _check(key, meta, "generato", layout=layout)
+            counts.update(c)
+            _keep(problems, kept, p)
+    return {"input": {"pairs": [start, stop], "generator_version": version}, "counts": counts, "problems": problems}
+
+
 def save_cases(cases: list[str], out: Path) -> list[dict]:
     """Disegna i casi CHIAVE:FAMIGLIA:VERSIONE e salva PNG, layout (con lo sha256 del PNG) ed esiti in out/, come file
     nuovi. Sono scene disegnate in memoria: il loro esito è di scena."""
@@ -269,20 +286,21 @@ def main() -> None:
     ap.add_argument("--out", required=True, type=Path)
     ap.add_argument("--shards", nargs="*", default=[], help="glob di shard tar da controllare (sola lettura)")
     ap.add_argument("--generate", type=int, default=0, help="scene da generare e controllare in memoria")
-    ap.add_argument("--generator-version", type=int, choices=synth.VERSIONS, help="versione per --generate")
+    ap.add_argument("--generator-version", type=int, choices=synth.VERSIONS, help="versione per --generate e --pairs")
+    ap.add_argument("--pairs", type=int, default=0, help="coppie controfattuali da disegnare e controllare in memoria")
     ap.add_argument("--cases", nargs="*", default=[], help="casi CHIAVE:FAMIGLIA:VERSIONE da disegnare e salvare")
     ap.add_argument("--chunk", type=int, default=1000)
     ap.add_argument("--workers", type=int, default=int(os.environ.get("SLURM_CPUS_PER_TASK", "1")))
     args = ap.parse_args()
     if not os.environ.get("SLURM_JOB_ID"):
         sys.exit("synth_semantics_check.py va eseguito in un job SLURM")
-    if args.generate and args.generator_version is None:
-        sys.exit("--generate richiede --generator-version")
+    if (args.generate or args.pairs) and args.generator_version is None:
+        sys.exit("--generate e --pairs richiedono --generator-version")
     paths = sorted({p for g in args.shards for p in glob.glob(g)})
     if args.shards and not paths:
         sys.exit(f"nessuno shard per {args.shards}")
-    if not paths and not args.generate and not args.cases:
-        sys.exit("niente da controllare: --shards, --generate o --cases")
+    if not paths and not args.generate and not args.pairs and not args.cases:
+        sys.exit("niente da controllare: --shards, --generate, --pairs o --cases")
     for case in args.cases:
         parts = case.rsplit(":", 2)
         if len(parts) != 3 or parts[1] not in synth.FAMILIES or not parts[2].isdigit() or int(parts[2]) not in synth.VERSIONS:
@@ -301,6 +319,10 @@ def main() -> None:
             chunks = [(i, min(i + args.chunk, args.generate), args.generator_version)
                       for i in range(0, args.generate, args.chunk)]
             jobs.append(pool.imap_unordered(generate_task, chunks))
+        if args.pairs:
+            step = max(1, args.chunk // 20)  # una coppia vale due record: blocchi piccoli per tenere occupato il pool
+            jobs.append(pool.imap_unordered(pairs_task, [(i, min(i + step, args.pairs), args.generator_version)
+                                                         for i in range(0, args.pairs, step)]))
         for it in jobs:
             for res in it:
                 counts.update(res["counts"])

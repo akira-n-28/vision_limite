@@ -162,7 +162,9 @@ def _draw_axes(ax, R: float, spec: dict, ticks: bool, step: int, labels: bool) -
                 continue
             ax.plot([t, t], [-0.12, 0.12], color="black", lw=lw * 0.6, gid="tick")
             ax.plot([-0.12, 0.12], [t, t], color="black", lw=lw * 0.6, gid="tick")
-            if labels and t % step == 0:
+            # da v4 le tacche -1 restano senza numero: accanto a O i riquadri si sovrapponevano e nessuna domanda li
+            # legge, perché i punti hanno coordinate di valore assoluto almeno 2 (S2 §2.5)
+            if labels and t % step == 0 and not (t == -1 and spec_version(spec) >= 4):
                 ax.text(t, -0.55, str(t), fontsize=fs - 4, ha="center", va="top", family=spec["font_family"],
                         gid=f"tick_label:x:{t}")
                 ax.text(-0.3, t, str(t), fontsize=fs - 4, ha="right", va="center", family=spec["font_family"],
@@ -648,10 +650,24 @@ QAS = {"coord": _coord_qa, "polygon": _polygon_qa, "function": _function_qa, "sh
 DRAW = {"coord": _draw_coord, "polygon": _draw_polygon, "function": _draw_function, "shapes": _draw_shapes}
 
 
+def _place_mark(spec: dict, rng: random.Random) -> None:
+    """Da v4 il punto segnato di un polygon sta su un lato senza misura scritta: su un lato con la misura la sua
+    etichetta cadeva sopra il numero (S2 §2.5). Il lato nuovo si sceglie con un generatore a parte, così il resto della
+    scena resta quello di v3; se tutti i lati hanno la misura il punto si toglie, e con lui la domanda m_side."""
+    m = spec["m"]
+    if m is None or m["side"] not in spec["shown"]:
+        return
+    free = [i for i in range(len(spec["points"])) if i not in spec["shown"]]
+    if free:
+        m["side"] = rng.choice(free)
+    else:
+        spec["m"] = None
+
+
 def make_spec(key: str, family: str | None = None, version: int = GENERATOR_VERSION) -> dict:
-    """Specifica della scena. Con version=3 è quella degli shard v3; da v4 le shapes con due figure troppo vicine o con
-    una figura che esce dagli assi si estraggono di nuovo dallo stesso generatore, quindi le altre scene restano
-    identiche a v3."""
+    """Specifica della scena. Con version=3 è quella degli shard v3. Da v4 le shapes con due figure troppo vicine o con
+    una figura che esce dagli assi si estraggono di nuovo dallo stesso generatore, e nei polygon il punto segnato
+    lascia i lati con la misura scritta (_place_mark): le altre scene, e il resto di queste, restano quelle di v3."""
     if version not in VERSIONS:
         raise ValueError(f"versione del generatore {version!r}: attesa una di {VERSIONS}")
     rng = rng_for(key)
@@ -660,6 +676,8 @@ def make_spec(key: str, family: str | None = None, version: int = GENERATOR_VERS
     if version >= 4 and family == "shapes":
         while _shapes_overlap(spec["shapes"]) or not _shapes_fit(spec):
             spec = SPECS[family](rng)
+    if version >= 4 and family == "polygon":
+        _place_mark(spec, rng_for(key + "/m"))
     spec["key"] = key
     if version >= 4:
         spec["generator_version"] = version
@@ -702,8 +720,9 @@ def render(spec: dict, layout: bool = False):
 
 def _layout(fig, ax, size: tuple[int, int]) -> dict:
     """Oggetti con un gid, come sono stati disegnati: riquadri in pixel dell'immagine (origine in alto a sinistra) e dati
-    nelle unità del disegno. Testi: testo e riquadro; marcatori: centro; spezzate: vertici, oppure per i grafici gli
-    intervalli di x in cui la curva è disegnata; figure: geometria. `transform` porta (x, y) del disegno in pixel.
+    nelle unità del disegno. Testi: testo e riquadro; marcatori: centro; tacche degli assi: solo il riquadro, senza
+    valore; spezzate: vertici, oppure per i grafici gli intervalli di x in cui la curva è disegnata; figure:
+    geometria. `transform` porta (x, y) del disegno in pixel.
     `axes_px` è l'area effettiva degli assi in pixel: figure e marcatori con clip_on vengono tagliati lì. Figure e
     marcatori portano lo spessore del tratto in pixel (`lw_px`); i grafici il numero di campioni (`samples`)."""
     renderer = fig.canvas.get_renderer()
@@ -727,7 +746,10 @@ def _layout(fig, ax, size: tuple[int, int]) -> dict:
             items.append({"gid": gid, "kind": "text", "text": t.get_text(), "bbox": box(t)})
     for line in ax.lines:
         gid = line.get_gid()
-        if not gid or gid == "tick":
+        if not gid:
+            continue
+        if gid == "tick":  # solo dove è disegnata: il valore di una tacca si ricava dalla posizione e dalle etichette
+            items.append({"gid": gid, "kind": "tick", "bbox": box(line)})
             continue
         xs, ys = [float(v) for v in line.get_xdata()], [float(v) for v in line.get_ydata()]
         if gid.startswith("curve:"):
@@ -782,7 +804,9 @@ def png_bytes(image) -> bytes:
 def counterfactual(spec: dict) -> tuple[dict, dict, dict, str, str] | None:
     """(scena originale, scena modificata, domanda, risposta sull'originale, risposta sulla modificata), oppure
     None. Si cambia un solo dettaglio decisivo e si sceglie una domanda la cui risposta cambia. L'originale
-    restituito può differire da `spec` (nel piano cartesiano si toglie la retta), `spec` non si tocca."""
+    restituito può differire da `spec` (nel piano cartesiano si toglie la retta; nei polygon da v4 resta scritta solo
+    la misura della domanda), `spec` non si tocca. Polygon: in v3 cambia il numero scritto e il disegno resta; da v4 la
+    variante è la figura riscalata in modo uniforme, quindi misura scritta e disegno coincidono (S2 §2.5)."""
     rng = rng_for(spec["key"] + "/cf")
     spec = deepcopy(spec)
     fam = spec["family"]
@@ -818,7 +842,17 @@ def counterfactual(spec: dict) -> tuple[dict, dict, dict, str, str] | None:
         i = rng.choice(spec["shown"])
         v = float(spec["lengths"][i])
         alt = _fmt_len(v + rng.choice([2, 3, 4]))
-        new["lengths"][i] = alt
+        if spec_version(spec) < 4:  # v3: cambia solo il numero scritto, il disegno resta (S2 §2.5)
+            new["lengths"][i] = alt
+        else:  # da v4: una sola misura scritta, quella della domanda, e la variante è la figura riscalata
+            spec["shown"] = [i]
+            pts = [tuple(p) for p in spec["points"]]
+            n = len(pts)
+            k = float(alt) / math.dist(pts[i], pts[(i + 1) % n])  # dalla lunghezza esatta, non dal numero arrotondato
+            new = deepcopy(spec)
+            new["points"] = [[x * k, y * k] for x, y in pts]
+            new["lengths"] = [_fmt_len(math.dist(new["points"][j], new["points"][(j + 1) % n])) for j in range(n)]
+            alt = new["lengths"][i]
         opts = [spec["lengths"][i], alt]
         q = _qa("side_len", f"What is the length of side {spec['sides'][i]}?", opts, spec["lengths"][i])
         return spec, new, q, spec["lengths"][i], alt

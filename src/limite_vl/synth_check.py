@@ -3,8 +3,9 @@
 
 Non usa le funzioni del generatore che calcolano le risposte (synth._*_qa, synth._intersections, synth.visible_bound).
 I fatti si ricavano dagli oggetti disegnati, come li registra synth.render(spec, layout=True): testi con i riquadri in
-pixel, marcatori, spezzate, figure, intervalli in cui un grafico è disegnato. Le risposte si ricalcolano con predicati
-geometrici scritti qui. Dalla specifica si prendono solo le formule dei grafici. Solo libreria standard.
+pixel, marcatori, tacche degli assi, spezzate, figure, intervalli in cui un grafico è disegnato. Le risposte si
+ricalcolano con predicati geometrici scritti qui. Dalla specifica si prendono solo le formule dei grafici. Solo
+libreria standard.
 
 Esito per domanda (`check_questions`):
 - ok: la risposta è quella che si vede;
@@ -36,7 +37,10 @@ EXTREME = 0.15     # il vertice estremo deve staccare il secondo di questa frazi
 MIN_TEXT_PX = 10.0
 OVERLAP_PX = 1.0   # due riquadri si sovrappongono se l'intersezione supera questo in entrambe le direzioni
 CLIP_PX = 1.0      # una figura che esce dall'area degli assi di più di così, tratto compreso, è tagliata in modo visibile
+TICK_PX = 2.0      # una tacca corrisponde a un punto o a un'etichetta se i centri distano al più questo lungo l'asse
+SCALE_TOL = 0.05   # unità: scarto massimo fra il valore scritto di un'etichetta e la scala lineare delle etichette
 BLOCKING = ("figura_tagliata", "layout_senza_assi", "testo_fuori", "figure_sovrapposte")
+INTEGER = re.compile(r"^-?\d+$")
 
 TRIANGLE_VOCAB = ("right triangle", "isosceles triangle", "equilateral triangle", "scalene triangle", "acute triangle",
                   "obtuse triangle")
@@ -175,8 +179,95 @@ def _exists(q: dict, layout: dict) -> tuple[str, str | None, str]:
 
 # ---------------------------------------------------------------- famiglie
 
+def _axis_ticks(layout: dict, axis: str) -> list[float]:
+    """Posizioni lungo l'asse, in pixel, delle tacche disegnate sull'asse x (segmenti verticali sulla riga dello zero)
+    o sull'asse y (orizzontali sulla colonna dello zero). Vengono dai riquadri disegnati: il gid non porta valori."""
+    t = layout["transform"]
+    out = []
+    for it in layout["items"]:
+        if it["kind"] != "tick":
+            continue
+        x0, y0, x1, y1 = it["bbox"]
+        cx, cy = _center(it["bbox"])
+        if axis == "x" and y1 - y0 > x1 - x0 and abs(cy - t["y0"]) <= TICK_PX:
+            out.append(cx)
+        elif axis == "y" and x1 - x0 > y1 - y0 and abs(cx - t["x0"]) <= TICK_PX:
+            out.append(cy)
+    return sorted(out)
+
+
+def _axis_labels(layout: dict, axis: str, ticks: list[float]) -> list[tuple[float, int]]:
+    """(tacca, valore) per ogni numero scritto centrato su una tacca dell'asse: sotto l'asse x, a meno di un'unità,
+    o subito a sinistra dell'asse y, a meno di 0.6 unità. Il valore è il testo disegnato; la tacca è quella su cui il
+    testo è centrato."""
+    t = layout["transform"]
+    out = []
+    for it in layout["items"]:
+        if it["kind"] != "text" or not INTEGER.match(it["text"]):
+            continue
+        x0, y0, x1, y1 = it["bbox"]
+        cx, cy = _center(it["bbox"])
+        if axis == "x" and 0 < y0 - t["y0"] < abs(t["uy"]):
+            along = cx
+        elif axis == "y" and 0 < t["x0"] - x1 < 0.6 * t["ux"]:
+            along = cy
+        else:
+            continue
+        near = [c for c in ticks if abs(c - along) <= TICK_PX]
+        if near:
+            out.append((near[0], int(it["text"])))
+    return out
+
+
+def axis_value(layout: dict, axis: str, pos: float) -> tuple[int | None, str]:
+    """Valore che si legge sull'asse alla posizione `pos` (pixel lungo l'asse), con il motivo se non si legge.
+
+    Serve una tacca disegnata lì. Se porta un numero, il valore è quello. Altrimenti lo determinano le tacche vicine,
+    solo se:
+    - entrambe hanno un numero;
+    - sono alla stessa distanza;
+    - tutti i numeri dell'asse stanno su una sola scala lineare.
+    È il caso di un'etichetta ogni due tacche (S2 §2.5)."""
+    ticks = _axis_ticks(layout, axis)
+    at = [c for c in ticks if abs(c - pos) <= TICK_PX]
+    if not at:
+        return None, "nessuna tacca disegnata all'altezza del punto"
+    c = at[0]
+    labels = _axis_labels(layout, axis, ticks)
+    direct = sorted({v for tc, v in labels if tc == c})
+    if len(direct) == 1:
+        return direct[0], ""
+    if direct:
+        return None, f"numeri diversi sulla stessa tacca: {direct}"
+    if len(labels) < 2:
+        return None, "scala insufficiente: meno di due numeri sull'asse"
+    n = len(labels)
+    mp, mv = sum(p for p, _ in labels) / n, sum(v for _, v in labels) / n
+    spp = sum((p - mp) ** 2 for p, _ in labels)
+    if spp == 0:
+        return None, "scala insufficiente: numeri su una sola tacca"
+    slope = sum((p - mp) * (v - mv) for p, v in labels) / spp
+    if max(abs(mv + slope * (p - mp) - v) for p, v in labels) > SCALE_TOL:
+        return None, "scala incoerente: i numeri dell'asse non stanno su una scala lineare"
+    i = ticks.index(c)
+    if i == 0 or i == len(ticks) - 1:
+        return None, "scala insufficiente: tacca all'estremo dell'asse"
+    left, right = ticks[i - 1], ticks[i + 1]
+    lv = sorted({v for tc, v in labels if tc == left})
+    rv = sorted({v for tc, v in labels if tc == right})
+    if len(lv) != 1 or len(rv) != 1:
+        return None, "scala insufficiente: le tacche vicine non hanno un numero"
+    if abs((c - left) - (right - c)) > TICK_PX:
+        return None, "scala incoerente: tacche vicine a distanze diverse"
+    value = (lv[0] + rv[0]) / 2
+    if abs(value - round(value)) > SCALE_TOL or abs(mv + slope * (c - mp) - value) > SCALE_TOL:
+        return None, "scala incoerente: la tacca non cade su un valore intero della scala"
+    return round(value), ""
+
+
 def _coord(q: dict, layout: dict) -> tuple[str, str | None, str]:
-    pts = {it["gid"].split(":", 1)[1]: it["xy"] for it in _by_prefix(layout, "point:")}
+    marks = {it["gid"].split(":", 1)[1]: it for it in _by_prefix(layout, "point:")}
+    pts = {name: it["xy"] for name, it in marks.items()}
     t, text = q["type"], q["q"]
     names = re.findall(r"point (\w+)", text)
     if t == "exists":
@@ -195,11 +286,15 @@ def _coord(q: dict, layout: dict) -> tuple[str, str | None, str]:
                     "side_x": "above" if y > 0 else "below", "side_y": "left" if x < 0 else "right"}[t]
         return _status(q["answer"], expected), expected, ""
     if t == "coords":
-        ticks = {(it["gid"].split(":")[1], it["text"]) for it in _by_prefix(layout, "tick_label:")}
         if abs(x - round(x)) > 1e-6 or abs(y - round(y)) > 1e-6:
             return "non_ammissibile", None, "coordinate non intere"
-        if ("x", str(round(x))) not in ticks or ("y", str(round(y))) not in ticks:
-            return "non_ammissibile", None, "manca l'etichetta di tacca per leggere le coordinate"
+        cx, cy = _center(marks[names[0]]["bbox"])  # il punto come è disegnato
+        for axis, v, pos in (("x", round(x), cx), ("y", round(y), cy)):
+            value, why = axis_value(layout, axis, pos)
+            if value is None:
+                return "non_ammissibile", None, f"coordinata {axis}: {why}"
+            if value != v:
+                return "non_ammissibile", None, f"coordinata {axis}: dal disegno si legge {value}, il punto è a {v}"
         expected = f"({round(x)}, {round(y)})"
         return _status(q["answer"], expected), expected, ""
     if t in ("pair_lr", "pair_ud"):

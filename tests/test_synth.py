@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Test del generatore sintetico v4, della sua verifica indipendente (limite_vl.synth, limite_vl.synth_check) e degli
 esiti per campione di scripts/synth_semantics_check.py, mirati ai difetti trovati in v3 e nelle revisioni
-(docs/specs/S2_AMMISSIONE_PRIME_FAMIGLIE.md §§2, 5).
+(docs/specs/S2_AMMISSIONE_PRIME_FAMIGLIE.md §§2, 5). Comprendono le correzioni dopo l'analisi degli scarti (§2.5):
+coppie polygon per riscalatura, punto segnato lontano dalle misure, tacche -1 senza numero, coordinate lette dalle
+tacche vicine, limiti esatti delle contraddizioni di scripts/synth_review.py.
 
 Le parti che disegnano usano matplotlib e leggono gli shard v3: si eseguono in un job (slurm/tests_cpu.sbatch,
 slurm/synth_semantics_check.sbatch), mai sul frontend."""
@@ -191,31 +193,50 @@ def test_classification():
                                 {"square", "rectangle"}, synth_check.SHAPE_VOCAB)[0] == "errata")
 
 
+def same_questions(s3: dict, s4: dict, skip: set[str] = frozenset()) -> bool:
+    """Le domande dei tipi non toccati da v4 sono identiche; quelle di classificazione hanno le stesse risposte."""
+    q3, q4 = synth.questions(s3), synth.questions(s4)
+    keep3 = [q for q in q3 if q["type"] not in CHANGED | skip]
+    keep4 = [q for q in q4 if q["type"] not in CHANGED | skip]
+    c3 = [(q["type"], q["answer"], q["options"]) for q in q3 if q["type"] in CHANGED - {"intersections"}]
+    c4 = [(q["type"], q["answer"], q["options"]) for q in q4 if q["type"] in CHANGED - {"intersections"}]
+    return keep3 == keep4 and c3 == c4
+
+
 def test_v3_v4_regression():
-    same_specs = differ_qa = resampled = 0
+    same_specs = differ_qa = resampled = moved = expected_moved = 0
     for i in range(8000):
         key, fam = f"synth-{i:07d}", synth.FAMILIES[i % len(synth.FAMILIES)]
         s3, s4 = synth.make_spec(key, fam, 3), synth.make_spec(key, fam, 4)
         base = {k: v for k, v in s4.items() if k != "generator_version"}
+        if fam == "polygon" and s3["m"] is not None and s3["m"]["side"] in s3["shown"]:
+            # da v4 il punto segnato lascia i lati con la misura scritta (S2 §2.5): cambia solo il suo lato, o si toglie
+            expected_moved += 1
+            moved += base != s3
+            free = [j for j in range(len(s3["points"])) if j not in s3["shown"]]
+            m3, m4 = s3["m"], s4["m"]
+            ok_m = (m4 is None and not free) or (m4 is not None and m4["side"] in free
+                                                  and {k: v for k, v in m4.items() if k != "side"}
+                                                  == {k: v for k, v in m3.items() if k != "side"})
+            rest_same = {k: v for k, v in base.items() if k != "m"} == {k: v for k, v in s3.items() if k != "m"}
+            if not (ok_m and rest_same and same_questions(s3, s4, {"m_side", "exists"})):
+                differ_qa += 1
+            continue
         if base != s3:
             resampled += 1
             if fam != "shapes" or not (synth._shapes_overlap(s3["shapes"]) or not synth._shapes_fit(s3)):
                 differ_qa += 1  # una scena cambiata senza motivo
             continue
         same_specs += 1
-        q3, q4 = synth.questions(s3), synth.questions(s4)
-        keep3 = [q for q in q3 if q["type"] not in CHANGED]
-        keep4 = [q for q in q4 if q["type"] not in CHANGED]
-        c3 = [(q["type"], q["answer"], q["options"]) for q in q3 if q["type"] in CHANGED - {"intersections"}]
-        c4 = [(q["type"], q["answer"], q["options"]) for q in q4 if q["type"] in CHANGED - {"intersections"}]
-        if keep3 != keep4 or c3 != c4:
+        if not same_questions(s3, s4):
             differ_qa += 1
     expected = sum(1 for i in range(3, 8000, 4) for s3 in [synth.make_spec(f"synth-{i:07d}", "shapes", 3)]
                    if synth._shapes_overlap(s3["shapes"]) or not synth._shapes_fit(s3))
-    check("v3 -> v4: cambiano solo le scene shapes con figure vicine o fuori dagli assi", differ_qa == 0,
-          (same_specs, resampled, differ_qa))
-    check("v3 -> v4: riestratte esattamente le scene shapes da correggere, le altre identiche",
-          resampled == expected and same_specs + resampled == 8000, (same_specs, resampled, expected))
+    check("v3 -> v4: cambiano solo le shapes con figure vicine o fuori dagli assi e il punto segnato dei polygon",
+          differ_qa == 0, (same_specs, resampled, moved, differ_qa))
+    check("v3 -> v4: riestratte esattamente le shapes da correggere, spostati solo i punti sui lati con la misura,"
+          " le altre scene identiche", resampled == expected and moved == expected_moved
+          and same_specs + resampled + moved == 8000, (same_specs, resampled, expected, moved, expected_moved))
     bad = Counter()
     for i in range(3, 60000, 4):
         s4 = synth.make_spec(f"synth-{i:07d}", "shapes", 4)
@@ -510,6 +531,267 @@ def test_sample_evidence():
           and case_rows[0]["outcome"] == "scena_verificata", case_rows)
 
 
+def test_pairs_v4():
+    """Coppie controfattuali polygon (S2 §2.5). Da v4 resta scritta una sola misura, quella della domanda, e la variante
+    è la figura riscalata: fattore dalla lunghezza esatta, misure ricalcolate dalla geometria. Fra a e b cambia solo il
+    numero scritto. In v3 lo shard delle coppie si riproduce."""
+    import io
+    import math
+
+    import numpy as np
+    from PIL import Image
+
+    sr, sc = load_script("synth_render"), load_script("synth_semantics_check")
+    bad, outside, stats = [], [], Counter()
+    for i in range(1, 4 * 60, 4):  # famiglie a rotazione come in synth_render: i % 4 == 1 è polygon
+        (ka, pa, ma), (kb, pb, mb) = sr.scene((f"synth-pair-{i:05d}", "polygon", 4))
+        sa, sb = ma["spec"], mb["spec"]
+        n, j = len(sa["points"]), sa["shown"][0]
+        k = float(mb["pair"]["answer"]) / math.dist(sa["points"][j], sa["points"][(j + 1) % n])
+        why = []
+        if not sa["shown"] == sb["shown"] == [j]:
+            why.append("misure scritte")
+        if any(abs(xb - k * xa) > 1e-9 or abs(yb - k * ya) > 1e-9 for (xa, ya), (xb, yb) in zip(sa["points"], sb["points"])):
+            why.append("riscalatura")
+        if sb["lengths"] != [synth._fmt_len(math.dist(sb["points"][t], sb["points"][(t + 1) % n])) for t in range(n)]:
+            why.append("misure dalla geometria")
+        if {x: v for x, v in sa.items() if x not in ("points", "lengths")} != {x: v for x, v in sb.items()
+                                                                               if x not in ("points", "lengths")}:
+            why.append("angolo, punto segnato o altri campi diversi")
+        if not ma["pair"]["answer"] == sa["lengths"][j] != sb["lengths"][j] == mb["pair"]["answer"]:
+            why.append("risposte")
+        printed = [{it["gid"]: it["text"] for it in m["layout"]["items"] if it["gid"].startswith("length:")} for m in (ma, mb)]
+        if printed != [{f"length:{sa['sides'][j]}": ma["pair"]["answer"]}, {f"length:{sb['sides'][j]}": mb["pair"]["answer"]}]:
+            why.append("misura disegnata")
+        for m in (ma, mb):
+            res = synth_check.check_sample(m, m["layout"])
+            wrong = [v["kind"] for v in res["violations"] if v["kind"] in ("lunghezza_incoerente", "angolo_incoerente")]
+            if wrong or [r["status"] for r in res["questions"]] != ["ok"]:
+                why.append(f"{m['id']}: {wrong}, {[r['status'] for r in res['questions']]}")
+            stats["altre violazioni"] += len(res["violations"]) - len(wrong)
+            if m["spec"]["m"]:
+                side = m["spec"]["sides"][m["spec"]["m"]["side"]]
+                q = {"type": "m_side", "q": f"On which side does point {m['spec']['m']['label']} lie?", "answer": side}
+                if synth_check.check_questions(m["spec"], [q], m["layout"])[0]["status"] != "ok":
+                    why.append(f"{m['id']}: punto segnato fuori dal suo lato")
+        ia, ib = (np.asarray(Image.open(io.BytesIO(p)).convert("RGB")).astype(int) for p in (pa, pb))
+        diff = np.abs(ia - ib).max(axis=2) > 0
+        mask = np.zeros_like(diff)
+        for m in (ma, mb):
+            x0, y0, x1, y1 = next(it["bbox"] for it in m["layout"]["items"] if it["gid"].startswith("length:"))
+            mask[max(0, int(y0) - 3): int(y1) + 4, max(0, int(x0) - 3): int(x1) + 4] = True
+        if np.count_nonzero(diff & ~mask):
+            outside.append((ka, int(np.count_nonzero(diff & ~mask)), int(np.abs(ia - ib)[~mask].max())))
+        stats["pixel diversi nel riquadro della misura"] += int(np.count_nonzero(diff & mask))
+        stats["coppie"] += 1
+        stats["con punto segnato"] += sa["m"] is not None
+        stats["con angolo scritto"] += sa["angle"] is not None
+        stats["con angolo retto"] += sa["right"] is not None
+        if why:
+            bad.append((ka, why))
+    check("coppie polygon v4: una misura scritta, b è a riscalata dal fattore sulla lunghezza esatta, misure ricalcolate,"
+          " angolo e punto segnato uguali, risposte e checker ok", not bad, (dict(stats), bad[:3]))
+    check("coppie polygon v4: fra a e b cambiano solo i pixel del numero scritto",
+          not outside and stats["pixel diversi nel riquadro della misura"] > 0, outside[:5])
+    summary = sc.summarize(sc.pairs_task((0, 4, 4))["counts"])
+    check("--pairs: 4 coppie, 8 record contati come generati, conteggi coerenti",
+          summary["total"] == {"shard": 0, "generato": 8} and not summary["incoherent"], summary["total"])
+    records = {}
+    for key, files in iter_shard(V3 / "pairs" / "synth-pairs.tar"):
+        records[key] = files
+        if len(records) == 8:
+            break
+    same = [key in records and records[key]["png"] == png and json.loads(records[key]["json"]) == meta
+            for i in range(4) for key, png, meta in sr.scene((f"synth-pair-{i:05d}", synth.FAMILIES[i % 4], 3))]
+    check("coppie v3: le prime quattro dello shard si riproducono identiche, PNG e JSON", len(same) == 8 and all(same), same)
+
+
+def test_marked_point_v4():
+    """Da v4 il punto segnato dei polygon sta su un lato senza misura scritta. Se non ce n'è si toglie, e con lui solo la
+    domanda m_side (S2 §2.5). Sul disegno non restano sovrapposizioni fra misure, punti segnati ed etichette."""
+    counts, bad = Counter(), []
+    for i in range(1, 4 * 2500, 4):
+        key = f"synth-{i:07d}"
+        s3, s4 = synth.make_spec(key, "polygon", 3), synth.make_spec(key, "polygon", 4)
+        m3, m4 = s3["m"], s4["m"]
+        free = [j for j in range(len(s4["points"])) if j not in s4["shown"]]
+        counts["scene"] += 1
+        counts["con punto in v3"] += m3 is not None
+        counts["con punto in v4"] += m4 is not None
+        counts["spostati"] += m3 is not None and m4 is not None and m4["side"] != m3["side"]
+        counts["tolti"] += m3 is not None and m4 is None
+        if m4 is not None and m4["side"] in s4["shown"]:
+            bad.append((key, "punto su un lato con la misura"))
+        if m3 is not None and m4 is None and free:
+            bad.append((key, "tolto con un lato libero"))
+        if m3 is not None and m3["side"] not in s3["shown"] and m4 != m3:
+            bad.append((key, "spostato senza motivo"))
+        if any(q["type"] == "m_side" for q in synth.questions(s4)) != (m4 is not None):
+            bad.append((key, "domanda m_side"))
+    check("punto segnato v4: mai su un lato con la misura, tolto solo senza lati liberi, domanda m_side solo col punto",
+          not bad, (dict(counts), bad[:3]))
+    check("punto segnato v4: scelta deterministica", synth.make_spec("synth-0000005", "polygon", 4)
+          == synth.make_spec("synth-0000005", "polygon", 4))
+    check("m_side v4: la domanda resta in più di un terzo delle scene polygon", counts["con punto in v4"] * 3 > counts["scene"],
+          dict(counts))
+    marked = ("length", "label", "point")
+    over, statuses = Counter(), Counter()
+    for i in range(1, 4 * 300, 4):
+        spec, _, layout = rendered(f"synth-{i:07d}", "polygon", 4)
+        for v in synth_check.renderer_violations(spec, layout):
+            if v["kind"] in ("testi_sovrapposti", "testo_su_marcatore") and all(g.split(":")[0] in marked for g in v["gids"]):
+                over["/".join(sorted(g.split(":")[0] for g in v["gids"]))] += 1
+        qs = [q for q in synth.questions(spec) if q["type"] in ("m_side", "side_len")]
+        for r in synth_check.check_questions(spec, qs, layout):
+            statuses[r["type"] + "/" + r["status"]] += 1
+    check("polygon v4 disegnati (300): nessuna sovrapposizione fra misure, punti segnati e loro etichette", not over, dict(over))
+    check("polygon v4 disegnati: domande m_side e side_len ok", statuses and all(k.endswith("/ok") for k in statuses),
+          dict(statuses))
+
+
+def test_origin_labels_v4():
+    """Da v4 le tacche -1 di coord e function restano senza numero (S2 §2.5): niente sovrapposizioni all'origine,
+    domande ancora risolvibili. In v3 i numeri restano."""
+    origin = {"axis_label:O", "tick_label:x:-1", "tick_label:y:-1"}
+    counts, statuses = Counter(), Counter()
+    for fam in ("coord", "function"):
+        for i in range(150):
+            spec, _, layout = rendered(f"t-origin-{fam}-{i}", fam, 4)
+            if not spec["ticks"]:
+                continue
+            t = layout["transform"]
+            counts["scene con tacche"] += 1
+            counts["numeri -1"] += sum(it["kind"] == "text" and it["text"] == "-1" for it in layout["items"])
+            counts["tacche -1 su entrambi gli assi"] += (
+                any(abs(c - (t["x0"] - t["ux"])) <= 2 for c in synth_check._axis_ticks(layout, "x"))
+                and any(abs(c - (t["y0"] - t["uy"])) <= 2 for c in synth_check._axis_ticks(layout, "y")))
+            counts["sovrapposizioni all'origine"] += sum(v["kind"] == "testi_sovrapposti" and set(v["gids"]) <= origin
+                                                        for v in synth_check.renderer_violations(spec, layout))
+            for r in synth_check.check_questions(spec, synth.questions(spec), layout):
+                statuses[f"{fam}/{r['status']}"] += 1
+    check("origine v4: nessun numero sulle tacche -1, che restano disegnate; nessuna sovrapposizione all'origine",
+          counts["numeri -1"] == 0 and counts["sovrapposizioni all'origine"] == 0
+          and counts["tacche -1 su entrambi gli assi"] == counts["scene con tacche"] > 0, dict(counts))
+    check("origine v4: domande coord e function risolvibili, nessuna errata o non verificabile",
+          not any(k.endswith(("/errata", "/non_verificabile")) for k in statuses), dict(statuses))
+    s3 = first((synth.make_spec(f"t-origin-v3-{i}", "coord", 3) for i in range(200)), lambda s: s["ticks"] and s["step"] == 1)
+    layout = synth.render(s3, layout=True)[1]
+    check("origine v3: i numeri delle tacche -1 restano su entrambi gli assi",
+          sum(it["kind"] == "text" and it["text"] == "-1" for it in layout["items"]) == 2)
+
+
+def test_coords_from_ticks():
+    """Coordinate senza numero sulla loro tacca (S2 §2.5). Il checker le accetta solo se la tacca è disegnata e le due
+    vicine hanno un numero, alla stessa distanza e su una scala lineare. Le posizioni vengono dai riquadri disegnati e
+    i valori dai testi, non dai gid."""
+    def find(both: bool):
+        for i in range(0, 4 * 5000, 4):
+            spec = synth.make_spec(f"synth-check-{i:07d}", "coord", 4)
+            if not spec["ticks"] or spec["step"] != 2 or not spec["line"]:
+                continue
+            p = next(p for p in spec["points"] if p["label"] == spec["line"]["test"])
+            odd = (p["x"] % 2 != 0, p["y"] % 2 != 0)
+            if (all(odd) if both else sum(odd) == 1):
+                q = next(q for q in synth.questions(spec) if q["type"] == "coords" and q["q"].endswith(f"point {p['label']}?"))
+                return spec, p, q
+        raise AssertionError("nessun caso")
+
+    spec, p, q = find(False)
+    _, layout = synth.render(spec, layout=True)
+
+    def status(lay, answer=None):
+        r = synth_check.check_questions(spec, [{**q, "answer": answer or q["answer"]}], lay)[0]
+        return r["status"], r["why"]
+
+    check(f"{spec['key']}: punto {p['label']} ({p['x']}, {p['y']}), una coordinata senza numero: ok dalle tacche vicine",
+          status(layout) == ("ok", ""), status(layout))
+    axis = "x" if p["x"] % 2 else "y"
+    a = 0 if axis == "x" else 1
+    t = layout["transform"]
+    pos = t["x0"] + t["ux"] * p["x"] if axis == "x" else t["y0"] + t["uy"] * p["y"]
+    step = abs(t["ux"] if axis == "x" else t["uy"])
+
+    def tick_at(it, at):
+        x0, y0, x1, y1 = it["bbox"]
+        return (it["kind"] == "tick" and abs(synth_check._center(it["bbox"])[a] - at) <= 2
+                and ((y1 - y0 > x1 - x0) if axis == "x" else (x1 - x0 > y1 - y0)))
+
+    def label_at(it, at):
+        return (it["kind"] == "text" and it["gid"].startswith(f"tick_label:{axis}:")
+                and abs(synth_check._center(it["bbox"])[a] - at) <= 2)
+
+    def shifted(it, d):
+        b = list(it["bbox"])
+        b[a] += d
+        b[a + 2] += d
+        return {**it, "bbox": b}
+
+    def mutate(fn):
+        lay = deepcopy(layout)
+        lay["items"] = [x for it in lay["items"] for x in fn(it)]
+        return lay
+
+    cases = {
+        "tacca mancante": mutate(lambda it: [] if tick_at(it, pos) else [it]),
+        "tacca spostata di 0.4 unità": mutate(lambda it: [shifted(it, 0.4 * step)] if tick_at(it, pos) else [it]),
+        "tacca vicina senza numero": mutate(lambda it: [] if label_at(it, pos + step) else [it]),
+        "un solo numero sull'asse": mutate(lambda it: [it] if it["kind"] != "text" or not it["gid"].startswith(
+            f"tick_label:{axis}:") or label_at(it, pos + step) else []),
+        "numero vicino sbagliato": mutate(lambda it: [{**it, "text": str(int(it["text"]) + 1)}] if label_at(it, pos + step)
+                                          else [it]),
+        "tacca vicina e suo numero spostati di 0.3 unità": mutate(
+            lambda it: [shifted(it, 0.3 * step)] if tick_at(it, pos + step) or label_at(it, pos + step) else [it]),
+    }
+    got = {name: status(lay) for name, lay in cases.items()}
+    check("coordinate da tacche: tacca mancante o spostata, scala insufficiente o incoerente danno non ammissibile",
+          all(s == "non_ammissibile" for s, _ in got.values()), got)
+    relabeled = mutate(lambda it: [{**it, "gid": f"tick_label:{axis}:99"}] if label_at(it, pos + step) else [it])
+    check("coordinate da tacche: il gid non conta, un gid sbagliato col numero giusto resta ok", status(relabeled)[0] == "ok",
+          status(relabeled))
+    wrong = f"({p['x'] + 2}, {p['y']})" if axis == "x" else f"({p['x']}, {p['y'] - 2})"
+    check("coordinate da tacche: una risposta alterata sulla coordinata senza numero è errata",
+          status(layout, wrong)[0] == "errata", status(layout, wrong))
+    spec, p, q = find(True)
+    _, layout = synth.render(spec, layout=True)
+    check(f"{spec['key']}: punto {p['label']} ({p['x']}, {p['y']}), nessuna delle due coordinate col numero: ok",
+          status(layout) == ("ok", ""), status(layout))
+    spec = synth.make_spec("synth-0010596", "coord", 3)
+    q = next(q for q in synth.questions(spec) if q["type"] == "coords" and q["q"].endswith("point W?"))
+    check("synth-0010596 v3: W (-3, 8), prima non ammissibile, ora ok dalle tacche vicine",
+          synth_check.check_questions(spec, [q], synth.render(spec, layout=True)[1])[0]["status"] == "ok")
+
+
+def test_review_bounds():
+    """scripts/synth_review.py: i limiti esatti del lato opposto (opposite_range) contengono ogni valore campionato e la
+    griglia li raggiunge; le contraddizioni delle coppie si dimostrano con un margine, non con la griglia."""
+    import math
+    import random
+
+    rv = load_script("synth_review")
+    rng, bad, worst = random.Random(0), [], 0.0
+    for _ in range(300):
+        p0, q0, t0 = rng.uniform(1, 15), rng.uniform(1, 15), rng.uniform(10, 168)
+        P, Q, T = (p0, p0 + rng.uniform(0, 1)), (q0, q0 + rng.uniform(0, 1)), (t0, t0 + rng.uniform(0, 2))
+        lo, hi = rv.opposite_range(P, Q, T)
+        vals = [math.sqrt(a * a + b * b - 2 * a * b * math.cos(math.radians(c))) for a in rv._grid(*P, 21)
+                for b in rv._grid(*Q, 21) for c in rv._grid(*T, 5)]
+        if min(vals) < lo or max(vals) > hi:
+            bad.append((P, Q, T, lo, hi, min(vals), max(vals)))
+        worst = max(worst, min(vals) - lo, hi - max(vals))
+    check("opposite_range: i valori campionati stanno nei limiti esatti, raggiunti dalla griglia a meno di 0.01",
+          not bad and worst < 0.01, (round(worst, 5), bad[:2]))
+    tri = {"points": [[0, 0]] * 3, "shown": [0, 1, 2], "labels": ["S", "T", "U"], "sides": ["ST", "TU", "US"],
+           "lengths": ["5.9", "11.7", "12.8"], "angle": {"vertex": 1, "value": 47}}
+    proof = rv.contradiction_proof(tri, (1, 46.5, 47.5), False)
+    check("coppia 00033: con 5.9, 11.7 e 47° in T, US sta sotto 9 ed è scritto 12.8: impossibile, margine oltre 3",
+          proof["proven"] and proof["margin"] > 3 and proof["opposite_range"][1] < 9, proof["constraint"])
+    tri = {"points": [[0, 0]] * 3, "shown": [0, 1, 2], "labels": ["G", "H", "K"], "sides": ["GH", "HK", "KG"],
+           "lengths": ["50", "17", "48"], "angle": None}
+    loose, strict = (rv.contradiction_proof(tri, (2, 90.0, 90.0), e) for e in (False, True))
+    check("coppia 00285: angolo retto in K, 17 e 48 danno 50.9: compatibile con interi arrotondati, impossibile se esatti",
+          not loose["proven"] and strict["proven"], (loose["margin"], strict["margin"]))
+
+
 if __name__ == "__main__":
     test_v3_reproduction()
     test_intersections()
@@ -520,5 +802,10 @@ if __name__ == "__main__":
     test_clipping_rendered()
     test_renderer_invariants()
     test_sample_evidence()
+    test_pairs_v4()
+    test_marked_point_v4()
+    test_origin_labels_v4()
+    test_coords_from_ticks()
+    test_review_bounds()
     print("\nfalliti:", FAILS or "nessuno")
     sys.exit(1 if FAILS else 0)

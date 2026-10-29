@@ -5,23 +5,27 @@ modifica né il generatore né il checker: legge problems.jsonl e report.json de
 ridisegna in memoria le scene indicate (le chiavi sono deterministiche) e salva tabelle e immagini nella cartella
 nuova --out.
 
-Tre analisi:
+Strumento di analisi, non un passaggio della pipeline. Tre analisi, più il confronto prima/dopo:
 - coppie controfattuali polygon di v3. Per ogni coppia: la risposta contro la misura stampata; la fattibilità di un
   triangolo con le misure stampate e i vincoli dichiarati nel disegno (angolo retto marcato, angolo scritto), con gli
   intervalli d'arrotondamento delle misure ("larga": intero ±0.5, decimale ±0.05, angolo ±0.5°; "stretta": intero
   esatto); la compatibilità con una riscalatura uniforme del disegno; le sovrapposizioni della misura cambiata. Le
-  proporzioni del disegno non contano come vincolo;
+  proporzioni del disegno non contano come vincolo. Con tre lati e un angolo dichiarato la contraddizione si
+  dimostra con i limiti esatti del lato opposto (opposite_range), con il margine; negli altri casi un punto della
+  griglia che soddisfa i vincoli prova che il triangolo esiste, e se non se ne trova il caso resta inconcludente;
 - riquadri di testo sovrapposti (testi_sovrapposti, testo_su_marcatore) nelle scene v4 non approvate dal checker.
   Per ogni violazione: categoria, intersezione dei riquadri, inchiostro dei due oggetti disegnati ciascuno da solo
   (pixel in comune, distanza fra i tratti pieni). Poi un campione stratificato per categoria e per sovrapposizione
   lieve o marcata dei riquadri, più scene approvate di controllo, con ritagli ingranditi e le domande che dipendono
   da quei testi;
-- domande coords non ammissibili: etichetta mancante, etichette vicine, tacca disegnata e sua sporgenza dall'asse.
+- domande coords non ammissibili: etichetta mancante, etichette vicine, tacca disegnata e sua sporgenza dall'asse;
+- con --before DIR (un'analisi precedente): le scene del suo campione ridisegnate col codice attuale accanto ai PNG di
+  allora, alcune coppie polygon v3 accanto alle v4 con la stessa chiave, le sue domande coords con l'esito di adesso.
 
-Uscite in --out: summary.json, pairs.jsonl, overlaps.jsonl, sample.jsonl, coords.jsonl, img/ (fogli PNG e scene del
-campione).
+Uscite in --out: summary.json, pairs.jsonl, overlaps.jsonl, sample.jsonl, coords.jsonl, before_after.jsonl (con
+--before), img/ (fogli PNG e scene del campione).
 
-    srun $RUN_PYTHON -u -B scripts/synth_review.py --out DIR [--check outputs/synth_check/c1c2-run1]
+    srun $RUN_PYTHON -u -B scripts/synth_review.py --out DIR [--check outputs/synth_check/c1c2-run1] [--before DIR]
 """
 from __future__ import annotations
 
@@ -44,6 +48,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from limite_vl import synth, synth_check  # noqa: E402
 from limite_vl.data import iter_shard  # noqa: E402
 from limite_vl.provenance import code_identity, sha256_file, write_new_json  # noqa: E402
+from synth_render import scene as render_scene  # noqa: E402  (stessa cartella scripts/)
 
 OVERLAP_KINDS = ("testi_sovrapposti", "testo_su_marcatore")
 ORIGIN = {"axis_label:O", "tick_label:x:-1", "tick_label:y:-1"}
@@ -438,6 +443,48 @@ def triangle_feasible(printed: dict[int, tuple[float, float]], angle: tuple[int,
     return False
 
 
+EPS = 1e-9  # i limiti calcolati in virgola mobile si allargano di tanto verso l'esterno
+
+
+def opposite_range(p: tuple[float, float], q: tuple[float, float], theta: tuple[float, float]) -> tuple[float, float]:
+    """Limiti esatti del lato opposto a un angolo theta (gradi, in (0, 180)) compreso fra due lati p e q, con p, q e
+    theta negli intervalli dati. o² = g(p, q, θ) = p² + q² − 2pq cos θ:
+    - cresce con θ, perché pq > 0: il massimo è a θ massimo e il minimo a θ minimo;
+    - a θ fisso g è convessa in (p, q): il massimo sta in un vertice del rettangolo degli intervalli;
+    - il minimo sta sul bordo, perché l'unico punto critico è l'origine. Su ogni lato del rettangolo g è una parabola
+      col vertice in q = p cos θ (o p = q cos θ), riportato dentro l'intervallo."""
+    def g(a: float, b: float, c: float) -> float:
+        return a * a + b * b - 2 * a * b * c
+
+    def clamp(v: float, lo: float, hi: float) -> float:
+        return min(max(v, lo), hi)
+
+    c_min, c_max = math.cos(math.radians(theta[1])), math.cos(math.radians(theta[0]))
+    g_max = max(g(a, b, c_min) for a in p for b in q)
+    g_min = min([g(a, clamp(a * c_max, *q), c_max) for a in p] + [g(clamp(b * c_max, *p), b, c_max) for b in q])
+    return math.sqrt(max(g_min, 0.0)) - EPS, math.sqrt(g_max) + EPS
+
+
+def contradiction_proof(spec: dict, angle: tuple[int, float, float] | None, integers_exact: bool) -> dict | None:
+    """Tre lati stampati e un angolo dichiarato: il lato opposto all'angolo, dati gli altri due, sta fra i limiti
+    esatti di opposite_range; `margin` > 0 è la distanza dal suo intervallo stampato e dimostra che il triangolo non
+    esiste. None se il triangolo non ha tre lati stampati e un angolo dichiarato."""
+    if len(spec["points"]) != 3 or len(spec["shown"]) != 3 or angle is None:
+        return None
+    k, lo, hi = angle
+    p, q, o = (k - 1) % 3, k, (k + 1) % 3
+    P, Q, O = (_interval(spec["lengths"][j], integers_exact) for j in (p, q, o))
+    f_min, f_max = opposite_range(P, Q, (lo, hi))
+    margin = max(f_min - O[1], O[0] - f_max)
+    sides, labels = spec["sides"], spec["labels"]
+    what = "angolo retto" if lo == hi == 90.0 else f"angolo {spec['angle']['value']}° (±0.5°)"
+    return {"vertex": labels[k], "angle": [lo, hi], "sides": [sides[p], sides[q], sides[o]],
+            "intervals": [list(P), list(Q), list(O)], "opposite_range": [round(f_min, 4), round(f_max, 4)],
+            "margin": round(margin, 4), "proven": margin > 0,
+            "constraint": f"{what} in {labels[k]} fra {sides[p]} e {sides[q]}: {sides[o]} deve stare fra {f_min:.3f} e "
+                          f"{f_max:.3f}, è scritto {spec['lengths'][o]} ({O[0]:g}-{O[1]:g})"}
+
+
 def uniform_scale_ok(printed: dict[int, tuple[float, float]], drawn: list[float]) -> bool:
     """Le misure stampate sono quelle disegnate per un solo fattore di scala, entro gli intervalli?"""
     lo = max(printed[i][0] / drawn[i] for i in printed)
@@ -464,7 +511,7 @@ def _png(data: bytes):
 
 
 SHORT = {"contraddizione_dimostrabile": "contraddizione", "contraddizione_con_interi_esatti": "interi esatti",
-         "riscalatura_uniforme": "riscalatura", "solo_scala_non_simile": "non simile"}
+         "riscalatura_uniforme": "riscalatura", "solo_scala_non_simile": "non simile", "inconcludente": "inconcludente"}
 
 
 def analyze_pairs(path: Path) -> tuple[list[dict], list, dict]:
@@ -499,14 +546,19 @@ def analyze_pairs(path: Path) -> tuple[list[dict], list, dict]:
         pts = [tuple(p) for p in sb["points"]]
         drawn = [math.dist(pts[j], pts[(j + 1) % n]) for j in range(n)]
         uniform = uniform_scale_ok({j: _interval(sb["lengths"][j], False) for j in sb["shown"]}, drawn)
-        if not feasible["b_larga"]:
-            cls = "contraddizione_dimostrabile"
-        elif not feasible["b_stretta"]:
-            cls = "contraddizione_con_interi_esatti"
-        elif uniform:
-            cls = "riscalatura_uniforme"
-        else:
-            cls = "solo_scala_non_simile"
+        proof = {mode: contradiction_proof(sb, angle, exact) for mode, exact in (("larga", False), ("stretta", True))}
+        proof_a = {mode: contradiction_proof(sa, angle, exact) for mode, exact in (("larga", False), ("stretta", True))}
+        if proof["larga"] is not None:  # tre lati e un angolo dichiarato: limiti esatti, non la griglia
+            if proof["larga"]["proven"]:
+                cls = "contraddizione_dimostrabile"
+            elif proof["stretta"]["proven"]:
+                cls = "contraddizione_con_interi_esatti"
+            else:
+                cls = "riscalatura_uniforme" if uniform else "solo_scala_non_simile"
+        elif feasible["b_larga"] and feasible["b_stretta"]:  # un punto della griglia è un triangolo che esiste
+            cls = "riscalatura_uniforme" if uniform else "solo_scala_non_simile"
+        else:  # nessun triangolo trovato sulla griglia, ma nemmeno una prova che non esista: quarantena
+            cls = "inconcludente"
         viols = synth_check.renderer_violations(sb, layout_b)
         gid = f"length:{side}"
         row = {"pair": pid, "keys": [ka, kb], "kind": sa["kind"], "n": n, "changed": changed, "side": side,
@@ -518,7 +570,8 @@ def analyze_pairs(path: Path) -> tuple[list[dict], list, dict]:
                "right_vertex": None if sb["right"] is None else sb["labels"][sb["right"]],
                "angle": None if not sb["angle"] else {"vertex": sb["labels"][sb["angle"]["vertex"]],
                                                       "value": sb["angle"]["value"]},
-               "feasible": feasible, "uniform_scale": uniform, "class": cls,
+               "feasible": feasible, "uniform_scale": uniform, "class": cls, "proof": proof,
+               "proof_a_margins": {m: None if v is None else v["margin"] for m, v in proof_a.items()},
                "only_lengths_differ": {k: v for k, v in sa.items() if k != "lengths"}
                == {k: v for k, v in sb.items() if k != "lengths"},
                "png_identical": synth.png_bytes(ia) == data_a and synth.png_bytes(ib) == data_b,
@@ -532,7 +585,7 @@ def analyze_pairs(path: Path) -> tuple[list[dict], list, dict]:
         y0 = max(0, int(min(b[1] for b in boxes)) - 6)
         x1 = min(img_b.width, int(max(b[2] for b in boxes)) + 7)
         y1 = min(img_b.height, int(max(b[3] for b in boxes)) + 7)
-        crops =[im.crop((x0, y0, x1, y1)).resize(((x1 - x0) * 3, (y1 - y0) * 3), Image.NEAREST) for im in (img_a, img_b)]
+        crops = [im.crop((x0, y0, x1, y1)).resize(((x1 - x0) * 3, (y1 - y0) * 3), Image.NEAREST) for im in (img_a, img_b)]
         flag = " *" if row["changed_label_overlaps"] else ""
         label_cells.append((crops, f"{pid[-5:]} {side} {row['value_a']}->{row['value_b']} {SHORT[cls]}{flag}"))
         if len(examples[cls]) < 3:
@@ -637,6 +690,94 @@ def analyze_coords(questions: list[dict], shown: int = 4) -> tuple[list[dict], l
     return rows, cells
 
 
+# ---------------------------------------------------------------- prima e dopo
+
+BEFORE_STRATA = {"origine/coord": "origine", "origine/function": "origine", "etichetta_misura/polygon": "polygon",
+                 "misura_su_punto/polygon": "polygon"}
+PAIR_IDS = ("synth-pair-00001", "synth-pair-00009", "synth-pair-00033", "synth-pair-00209")
+
+
+def _region(boxes, size, margin: int = 12) -> tuple[int, int, int, int]:
+    W, H = size
+    return (max(0, int(math.floor(min(b[0] for b in boxes))) - margin),
+            max(0, int(math.floor(min(b[1] for b in boxes))) - margin),
+            min(W, int(math.ceil(max(b[2] for b in boxes))) + margin),
+            min(H, int(math.ceil(max(b[3] for b in boxes))) + margin))
+
+
+def _zoom(image, box, zoom: int = 3):
+    from PIL import Image
+
+    return image.crop(box).resize(((box[2] - box[0]) * zoom, (box[3] - box[1]) * zoom), Image.NEAREST)
+
+
+def before_after(prev: Path, img: Path, pairs_shard: Path, pair_classes: dict) -> list[dict]:
+    """Prima e dopo le correzioni di v4.
+    - Scene del campione del job precedente: il PNG salvato allora, col codice di allora, accanto alla stessa chiave
+      ridisegnata adesso; i ritagli sono della stessa zona.
+    - Alcune coppie polygon di v3 accanto alle coppie v4 con la stessa chiave.
+    - Domande coords non ammissibili allora, con l'esito di adesso."""
+    out, sheets = [], defaultdict(list)
+    with open(prev / "sample.jsonl", encoding="utf-8") as f:
+        sample = [json.loads(line) for line in f]
+    for r in sample:
+        group = BEFORE_STRATA.get(r["stratum"])
+        if group is None:
+            continue
+        before = _png((prev / r["png"]).read_bytes())
+        spec = synth.make_spec(r["key"], r["family"], 4)
+        after, layout = synth.render(spec, layout=True)
+        over = [[v["kind"], v["gids"]] for v in synth_check.renderer_violations(spec, layout) if v["kind"] in OVERLAP_KINDS]
+        note = ""
+        if spec["family"] == "polygon":
+            m = spec["m"]
+            note = ("; punto segnato tolto (misura su tutti i lati)" if m is None else
+                    f"; punto {m['label']} sul lato {spec['sides'][m['side']]}, misure su "
+                    f"{', '.join(spec['sides'][i] for i in spec['shown'])}")
+        out.append({"key": r["key"], "family": r["family"], "stratum": r["stratum"], "before": [r["gids"], r["ink"]],
+                    "after_overlaps": over, "after_m": spec.get("m")})
+        box = _region(r["bbox"], before.size)
+        sheets[group].append(([_zoom(before, box), _zoom(after, box), _scaled(before, 0.45), _scaled(after, 0.45)],
+                              f"{r['key']} {r['family']}: prima {r['gids'][0]} x {r['gids'][1]} ({r['ink']});"
+                              f" dopo {len(over)} sovrapposizioni{note}\n"
+                              f"   ritaglio prima | ritaglio dopo (stessa zona) | scena prima | scena dopo"))
+    for group, rows in sorted(sheets.items()):
+        _sheet(rows, img / f"prima-dopo-{group}.png")
+    wanted, v3 = set(PAIR_IDS), defaultdict(dict)
+    for _, files in iter_shard(pairs_shard):
+        meta = json.loads(files["json"])
+        if meta.get("pair", {}).get("id") in wanted:
+            v3[meta["pair"]["id"]][meta["pair"]["variant"]] = (meta, _png(files["png"]))
+    rows = []
+    for pid in PAIR_IDS:
+        (ma, ia), (mb, ib) = v3[pid]["a"], v3[pid]["b"]
+        (_, pa4, ma4), (_, pb4, mb4) = render_scene((pid, ma["family"], 4))
+        viol = sorted({v["kind"] for m in (ma4, mb4) for v in synth_check.renderer_violations(m["spec"], m["layout"])})
+        out.append({"pair": pid, "v3_class": pair_classes.get(pid), "v3": [ma["pair"]["answer"], mb["pair"]["answer"]],
+                    "v4": [ma4["pair"]["answer"], mb4["pair"]["answer"]], "v4_shown": mb4["spec"]["shown"],
+                    "v4_violations": viol})
+        rows.append(([_scaled(ia, 0.5), _scaled(ib, 0.5), _scaled(_png(pa4), 0.5), _scaled(_png(pb4), 0.5)],
+                     f"{pid}: v3 a | v3 b | v4 a | v4 b. v3 ({pair_classes.get(pid)}): {_constraints(mb['spec'])};"
+                     f" v4: {_constraints(mb4['spec'])}\n   risposte v3 {ma['pair']['answer']} -> {mb['pair']['answer']},"
+                     f" v4 {ma4['pair']['answer']} -> {mb4['pair']['answer']}; violazioni v4: {viol or 'nessuna'}"))
+    _sheet(rows, img / "prima-dopo-coppie.png")
+    with open(prev / "coords.jsonl", encoding="utf-8") as f:
+        coords = [json.loads(line) for line in f]
+    rows = []
+    for r in [c for c in coords if c["version"] == 4][:3] + [c for c in coords if c["version"] == 3][:1]:
+        spec = synth.make_spec(r["key"], "coord", r["version"])
+        image, layout = synth.render(spec, layout=True)
+        res = synth_check.check_questions(spec, [{"type": "coords", "q": r["q"], "answer": r["answer"]}], layout)[0]
+        a = r["missing"][0]
+        out.append({"key": r["key"], "version": r["version"], "q": r["q"], "before": ["non_ammissibile", r["why"]],
+                    "after": [res["status"], res["why"]]})
+        rows.append(([_band(image, layout["transform"], a, r["axes"][a]["value"]), _scaled(image, 0.45)],
+                     f"{r['key']} (v{r['version']}): {r['q']} {r['answer']}\n   prima: non ammissibile ({r['why']});"
+                     f" dopo: {res['status']} {res['why']}"))
+    _sheet(rows, img / "prima-dopo-coords.png")
+    return out
+
+
 # ---------------------------------------------------------------- main
 
 def _write_jsonl(path: Path, rows: list[dict]) -> None:
@@ -656,6 +797,7 @@ def main() -> None:
     ap.add_argument("--pairs-shard", type=Path, default=ROOT / "data/shards/synth/v3/pairs/synth-pairs.tar")
     ap.add_argument("--per-cell", type=int, default=2, help="violazioni per strato e gravità nel campione")
     ap.add_argument("--controls-scan", type=int, default=300, help="chiavi v4 per famiglia scandite per i controlli")
+    ap.add_argument("--before", type=Path, help="uscita di un'analisi precedente: immagini prima/dopo dei suoi casi")
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--workers", type=int, default=int(os.environ.get("SLURM_CPUS_PER_TASK", "1")))
     args = ap.parse_args()
@@ -665,6 +807,8 @@ def main() -> None:
     for p in (problems_path, report_path, args.pairs_shard):
         if not p.is_file():
             sys.exit(f"manca {p}")
+    if args.before and not (args.before / "sample.jsonl").is_file():
+        sys.exit(f"manca {args.before / 'sample.jsonl'}")
     if args.out.exists() and any(args.out.iterdir()):
         sys.exit(f"{args.out} non è vuota: scegliere un'altra cartella")
     img = args.out / "img"
@@ -732,6 +876,10 @@ def main() -> None:
     if coord_cells:
         _sheet(coord_cells, img / "coords.png")
     print(f"coordinate: {len(coords)} domande ({time.time() - t0:.0f} s)", flush=True)
+    before = before_after(args.before, img, args.pairs_shard, {r["pair"]: r["class"] for r in pairs}) if args.before else []
+    if before:
+        _write_jsonl(args.out / "before_after.jsonl", before)
+        print(f"prima e dopo: {len(before)} casi ({time.time() - t0:.0f} s)", flush=True)
 
     _write_jsonl(args.out / "overlaps.jsonl", census)
     _write_jsonl(args.out / "sample.jsonl", sample_rows)
@@ -756,14 +904,26 @@ def main() -> None:
                   "only_lengths_differ": sum(r["only_lengths_differ"] for r in pairs),
                   "png_identical": sum(r["png_identical"] for r in pairs),
                   "a_feasible": sum(r["feasible"]["a_larga"] and r["feasible"]["a_stretta"] for r in pairs),
+                  "a_not_contradicted": sum(all(v is None or v <= 0 for v in r["proof_a_margins"].values())
+                                            for r in pairs),
+                  "proofs": [{"pair": r["pair"], "class": r["class"], "constraint": r["proof"]["larga"]["constraint"],
+                              "margin_larga": r["proof"]["larga"]["margin"],
+                              "margin_stretta": r["proof"]["stretta"]["margin"]}
+                             for r in pairs if r["proof"]["larga"] is not None],
                   "length_incoherent": sum(bool(r["length_incoherent"]) for r in pairs),
                   "changed_label_overlaps": sum(bool(r["changed_label_overlaps"]) for r in pairs)},
         "coords": {"by_version_class": _flat(Counter((r["version"], r["class"]) for r in coords)),
                    "line_test": _flat(Counter((r["version"], r["line_test"]) for r in coords)),
                    "by_version_R_step": _flat(Counter((r["version"], r["R"], r["step"]) for r in coords))},
+        "before_after": {
+            "scenes": sum("stratum" in r for r in before),
+            "scenes_without_overlaps": sum("stratum" in r and not r["after_overlaps"] for r in before),
+            "pairs": [r for r in before if "pair" in r],
+            "coords": [r for r in before if "after" in r]},
         "seconds": round(time.time() - t0, 1)}
     write_new_json(args.out / "summary.json", summary)
-    print(json.dumps({k: summary[k] for k in ("census", "sample", "pairs", "coords")}, ensure_ascii=False, indent=1))
+    print(json.dumps({k: summary[k] for k in ("census", "sample", "pairs", "coords", "before_after")}, ensure_ascii=False,
+                     indent=1))
 
 
 if __name__ == "__main__":
