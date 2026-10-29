@@ -82,14 +82,20 @@ Il controllo sugli shard (job 30393, conteggi nel piano F0 §4) ha dato tre risu
 - il controllo ritrova i difetti noti di v3;
 - sulle 20.000 scene v4 in memoria il checker non segnala nessuna risposta errata.
 
-Le segnalazioni nuove, presenti anche nel codice v4, sono state analizzate nel job 30400 (§2.5). Si separano in tre
-gruppi:
-- errori reali: 9 coppie polygon contraddittorie e le collisioni fra misure ed etichette dei punti nei polygon;
+Le segnalazioni nuove, presenti anche nel codice v4, sono state analizzate nei job 30400 e 30420 (§2.5). Si separano
+in tre gruppi:
+- errori reali: 9 coppie polygon contraddittorie, provate con limiti esatti, e le collisioni fra misure ed etichette
+  dei punti nei polygon;
 - riquadri sovrapposti senza contatto dei caratteri, all'origine degli assi;
 - un controllo più severo del necessario, sulle coordinate.
 
-Vanno decise prima del render di v4. I test e il controllo collaudano il codice, non i dati: nessun dato è
-certificato.
+Le correzioni minime sono in `b0b90c5` (§2.5). Dopo di esse:
+- su 20.000 scene v4 il checker approva 19.976 scene, e restano 25 sovrapposizioni in coord;
+- le 300 coppie v4 sono tutte approvate;
+- v3 resta identica.
+
+I test e il controllo collaudano il codice, non i dati: nessun dato è certificato. Il render degli shard v4 richiede
+un'approvazione a parte.
 - `synth.py`: `version=4` è il default e `version=3` riproduce v3; sono nuovi `visible_bound`, `intersection_points`
   (conteggio geometrico), `_near_miss`, le domande di classificazione con le opzioni, `_shapes_overlap`,
   `_shapes_fit` e `render(spec, layout=True)`;
@@ -238,16 +244,21 @@ v3 su 15.000 (6.5%); le altre restano identiche. Schema del caso prima e dopo, r
 [v3](../img/synth-0000043-v3.svg), [v4](../img/synth-0000043-v4.svg). I PNG del renderer si ottengono nel job con
 `--cases`.
 
-### 2.5 Scarti del controllo sugli shard (job 30393), analizzati nel job 30400
+### 2.5 Scarti del controllo sugli shard (job 30393): analisi e correzioni di v4
 
-L'analisi è in `outputs/synth_review/scarti-run1`, prodotta da `scripts/synth_review.py` (codice `8cd2c22`):
-- legge il controllo e lo shard delle coppie v3 in sola lettura;
-- ridisegna in memoria;
-- non modifica né il generatore né il checker.
+Due analisi con `scripts/synth_review.py`, uno strumento di analisi e non un passaggio della pipeline:
+- job 30400, codice `8cd2c22`, uscite in `outputs/synth_review/scarti-run1`: prima delle correzioni;
+- job 30420, codice `b0b90c5`, uscite in `outputs/synth_review/scarti-run2`: dopo le correzioni, con le prove esatte
+  delle contraddizioni e le immagini prima/dopo.
 
-I fogli di immagini sono in [`docs/img/synth-review/`](../img/synth-review/). Le 25 scene del campione ridisegnate oggetto
-per oggetto coincidono pixel per pixel con `synth.render`. Restano distinti *approvato dal checker*, *correttezza
-dimostrata* e *qualità certificata* (§2.4).
+Entrambe leggono controllo e shard delle coppie v3 in sola lettura e ridisegnano in memoria. Le scene del campione
+ridisegnate oggetto per oggetto coincidono pixel per pixel con `synth.render`. I fogli di immagini sono in
+[`docs/img/synth-review/`](../img/synth-review/).
+
+Restano distinti tre livelli (§2.4):
+- *approvato dal checker*: l'esito `verificato` del report;
+- *correttezza dimostrata*: qui le 9 contraddizioni, dimostrate impossibili;
+- *certificazione statistica* (S4): non fatta, nessun dato è certificato.
 
 **Coppie controfattuali polygon (75 in v3).** La variante `-b` cambia la misura stampata di un lato, aggiungendo 2, 3
 o 4, e lascia invariato il disegno. Viola quindi l'invariante di scala del generatore (`lunghezza_incoerente` in
@@ -260,36 +271,72 @@ per errori confermati: era sbagliato.
 | Esito | Coppie | Stato proposto (v3) |
 | --- | --- | --- |
 | risposta uguale alla misura stampata, in `a` e in `b` | 75 su 75 | vale per tutte |
-| contraddizione dimostrabile: tre lati stampati e un angolo dichiarato incompatibili anche con l'arrotondamento | 9: 00033, 00037, 00113, 00125, 00137, 00153, 00221, 00265, 00273 | `escluso` |
+| contraddizione dimostrabile: tre lati stampati e un angolo dichiarato incompatibili anche con l'arrotondamento, con limiti esatti (tabella sotto) | 9: 00033, 00037, 00113, 00125, 00137, 00153, 00221, 00265, 00273 | `escluso` |
 | contraddizione solo con gli interi esatti: 00285, angolo retto in K, 17² + 48² ≠ 50² | 1 | `quarantena` |
 | compatibile con una riscalatura uniforme: una sola misura stampata | 26 | `quarantena` fino alla scelta del contratto |
 | nessun vincolo dichiarato violato, ma la figura non è più simile al disegno: due o tre misure, per esempio 00009 con i lati opposti di un parallelogramma apparente a 7.6 e 11.6 | 39 | `quarantena` |
 | misura cambiata coperta dall'etichetta del punto sul lato: 00209 illeggibile ("9" sotto "K"), 00169 e 00269 coperte in parte, 00017 e 00205 attaccate ma leggibili | 5, già contate sopra | `quarantena` |
 
-Esempio di contraddizione, 00033: con ST = 5.9, TU = 11.7 e 47° in T il teorema del coseno dà US ≈ 8.8, il valore di
-`a`, non 12.8. Nessuna coppia si riammette in automatico.
+**Prova delle contraddizioni (job 30420).** Nel job 30400 l'impossibilità veniva dal non aver trovato soluzioni su una
+griglia di valori: non bastava a dimostrarla. Ora si prova con limiti esatti.
+- Con tre lati stampati e un angolo dichiarato, il lato opposto all'angolo è funzione degli altri due lati e
+  dell'angolo (teorema del coseno).
+- I suoi limiti sugli intervalli d'arrotondamento sono esatti (`opposite_range`):
+  - cresce con l'angolo;
+  - a angolo fisso il suo quadrato è convesso nei due lati, quindi il massimo è in un vertice dei loro intervalli e il
+    minimo sul bordo, dove ogni tratto è una parabola;
+  - i limiti si allargano di 10⁻⁹ per la virgola mobile.
+- Il margine è la distanza fra l'intervallo possibile del lato e quello stampato: se è positivo, il triangolo non
+  esiste.
+
+| Coppia | Vincolo dichiarato | Lato opposto possibile (interi ±0.5) | Scritto | Margine, interi ±0.5 | Margine, interi esatti |
+| --- | --- | --- | --- | --- | --- |
+| 00033 | 47° in T fra ST = 5.9 e TU = 11.7 | US fra 8.700 e 8.911 | 12.8 | 3.84 | 3.84 |
+| 00037 | 68° in H fra LH = 10.8 e HK = 11 | KL fra 11.808 e 12.590 | 10.8 | 0.96 | 1.24 |
+| 00113 | 66° in B fra DB = 12.1 e BC = 13 | CD fra 13.286 e 14.109 | 12.1 | 1.14 | 1.42 |
+| 00125 | angolo retto in T fra ST = 8 e TR = 15 | RS fra 16.325 e 17.678 | 21 | 2.82 | 4.00 |
+| 00137 | 61° in K fra MK = 10.6 e KL = 11 | LM fra 10.605 e 11.349 | 9.4 | 1.15 | 1.41 |
+| 00153 | angolo retto in U fra WU = 11 e UV = 6 | VW fra 11.853 e 13.210 | 10 | 1.35 | 2.53 |
+| 00221 | 41° in T fra ST = 8.5 e TR = 11.5 | RS fra 7.438 e 7.656 | 6 | 0.94 | 1.44 |
+| 00265 | 54° in S fra US = 8.6 e ST = 14 | TU fra 10.865 e 11.807 | 8.6 | 2.21 | 2.61 |
+| 00273 | 76° in B fra AB = 6 e BC = 15.4 | CA fra 14.953 e 15.299 | 12.4 | 2.50 | 2.57 |
+| 00285 | angolo retto in K fra HK = 17 e KG = 48 | GH fra 50.284 e 51.561 | 50 | −0.22: compatibile | 0.92 |
+
+Tutte e 9 sono confermate, con margini fra 0.94 e 3.84 unità. Nessun caso resta inconcludente e il conteggio non
+cambia. 00285 resta in `quarantena`: è contraddittoria solo leggendo gli interi come esatti.
+
+Per le altre 65 coppie la fattibilità è dimostrata:
+- nei triangoli, da un punto della griglia che soddisfa tutti i vincoli dichiarati (un testimone);
+- nei quadrilateri perché, senza angoli dichiarati, tre lati stampati al più si completano sempre in un quadrilatero.
+
+Nessuna coppia si riammette in automatico.
 
 Controlli dell'analisi stessa:
-- le 75 varianti `a` risultano fattibili in entrambe le letture;
+- le 75 varianti `a` risultano fattibili in entrambe le letture, e nessuna è contraddetta dai limiti esatti;
 - `a` e `b` differiscono solo nelle misure;
-- i PNG ridisegnati sono identici a quelli dello shard.
+- i PNG ridisegnati sono identici a quelli dello shard;
+- `opposite_range` contiene ogni valore campionato su 300 scatole a caso, e la griglia arriva a meno di 4·10⁻⁵ dai
+  suoi limiti (`test_review_bounds`).
 
 Immagini: [esempi 1](../img/synth-review/coppie-esempi-1.png), [esempi 2](../img/synth-review/coppie-esempi-2.png), le
 misure cambiate di tutte le coppie [1](../img/synth-review/coppie-misure-1.png),
 [2](../img/synth-review/coppie-misure-2.png) e [3](../img/synth-review/coppie-misure-3.png).
 
-**Contratto proposto per v4: geometria coerente in scala.**
+**Contratto di v4: geometria coerente in scala** (adottato, `b0b90c5`).
 - Ogni misura stampata è quella disegnata, entro l'arrotondamento mostrato; il checker lo richiede già
   (`lunghezza_incoerente`, `angolo_incoerente`). `side_len` legge un numero che coincide col disegno.
-- La coppia polygon tiene stampata una sola misura, quella della domanda. La variante `-b` si ottiene riscalando tutto il
-  poligono del rapporto fra la misura nuova e quella vecchia. Angoli, angolo retto e punto sul lato restano uguali.
-  Gli assi sono adattati alla figura, quindi `b` differisce da `a` solo per il numero.
+- La coppia polygon tiene stampata una sola misura, quella della domanda. La variante `-b` è il poligono riscalato:
+  - fattore = valore nuovo desiderato / lunghezza esatta del lato, non il numero arrotondato;
+  - le misure si ricalcolano dalla geometria nuova e si formattano come sempre;
+  - angoli, angolo retto e punto sul lato restano uguali;
+  - gli assi si adattano alla figura, quindi `b` differisce da `a` solo per il numero.
 - È la classe "riscalatura uniforme", l'unica senza contraddizioni.
 
 L'alternativa, "lettura della misura scritta" con la figura dichiarata non in scala, avrebbe due costi: verificare caso
 per caso i vincoli dichiarati, come fatto qui, e lasciare figure incoerenti a vista come 00009.
 
-**Riquadri di testo sovrapposti (v4, 20.000 scene).** Si sono censite tutte le 2.702 violazioni, in 1.797 scene; i
+**Riquadri di testo sovrapposti (v4 prima delle correzioni, 20.000 scene, job 30400).** Si sono censite tutte le
+2.702 violazioni, in 1.797 scene; i
 conteggi coincidono col report. Per ciascuna i due oggetti sono stati disegnati da soli, misurando i pixel di
 inchiostro in comune e la distanza fra i tratti pieni.
 
@@ -333,34 +380,86 @@ in quelle scene la risposta è "ok" anche quando il numero è coperto.
   severo del necessario.
 - Nessun caso ha l'informazione mancante. [Foglio](../img/synth-review/coords.png).
 
-**Proposta minima per v4.** Non è implementata; le regressioni previste andrebbero in `tests/test_synth.py`.
+Regola nuova del checker (`synth_check.axis_value`). Il layout registra le tacche disegnate, solo come riquadri: il
+gid non porta valori. La coordinata si legge alla tacca che sta sulla proiezione del punto:
+- se la tacca ha un numero centrato sopra, vale quello;
+- altrimenti la coordinata si accetta solo se valgono tutte queste condizioni:
+  - le due tacche vicine hanno un numero;
+  - sono alla stessa distanza;
+  - tutti i numeri dell'asse stanno su una scala lineare (scarto ≤ 0.05 unità);
+  - il valore che ne risulta è intero e coincide col punto.
 
-1. **Generatore, coppie polygon:** una sola misura stampata, e `-b` per riscalatura uniforme.
-   - Regressioni su 300 coppie v4: `shown` è il solo lato della domanda in `a` e `b`; i punti di `b` sono quelli di
-     `a` moltiplicati per il fattore.
-   - Nessuna `lunghezza_incoerente` né `angolo_incoerente`; la risposta è la misura stampata.
-   - I pixel di `a` e `b` differiscono solo nel riquadro della misura.
-   - Con `version=3` lo shard delle coppie si riproduce identico.
-2. **Generatore, polygon:** da v4 il punto segnato non sta su un lato con la misura stampata. Si sceglie un altro lato
-   con un generatore separato, perché il resto della scena resti come in v3; se non ce ne sono, il punto si toglie.
-   - Regressioni su 5.000 scene v4: nessuna sovrapposizione fra misure ed etichette o punti segnati.
-   - Le domande `m_side` restano; v3 è invariata.
-3. **Generatore, coord e function:** da v4 niente etichette sulle tacche `-1`; le tacche restano. Nessuna domanda le
-   usa, perché i punti hanno coordinate di valore assoluto almeno 2.
-   - Regressioni su 5.000 scene per famiglia: nessuna sovrapposizione all'origine.
-   - Le domande `coords` non cambiano; v3 è invariata.
-4. **Checker, coordinate:** una coordinata senza etichetta si accetta se la sua tacca è disegnata e le due tacche vicine
-   sono numerate. Le tacche vanno registrate nel layout, con asse e valore nel gid: cambiano i metadati, non i pixel.
-   - Regressioni: i 58 casi v4 diventano ok.
-   - Senza la tacca, o senza un'etichetta vicina, tornano non ammissibili.
-   - Una risposta alterata risulta errata.
+Le posizioni vengono dai riquadri disegnati e i valori dal testo scritto. In ogni altro caso la domanda resta non
+ammissibile, col motivo: tacca mancante, scala insufficiente o scala incoerente.
 
-Cosa resta com'è:
-- la soglia delle sovrapposizioni (`OVERLAP_PX`) non cambia;
-- le 25 sovrapposizioni fra etichette di punti e tacche in coord restano segnalate.
+**Correzioni di v4** (`b0b90c5`). Valgono solo da v4: v3 resta identica. Le regressioni sono in `tests/test_synth.py`.
 
-Dopo le correzioni 1-3, prima del render di v4, un nuovo controllo su 20.000 scene v4 deve dare zero sovrapposizioni
-nelle categorie corrette; quelle residue vanno guardate.
+1. **Coppie polygon** (`synth.counterfactual`): una sola misura stampata e la variante per riscalatura uniforme, come
+   nel contratto. Regressioni (`test_pairs_v4`):
+   - su 60 coppie, `shown` è il solo lato della domanda in `a` e `b`, e i punti di `b` sono quelli di `a` per il
+     fattore;
+   - le misure sono ricalcolate dalla geometria; angolo, angolo retto e punto segnato sono uguali;
+   - la risposta è la misura disegnata; nessuna `lunghezza_incoerente` né `angolo_incoerente`; il punto segnato sta
+     sul suo lato;
+   - fra `a` e `b` cambiano solo i pixel nel riquadro della misura;
+   - le prime quattro coppie v3 dello shard si riproducono identiche, PNG e JSON.
+2. **Punto segnato dei polygon** (`synth._place_mark`): mai su un lato con la misura stampata.
+   - Il lato nuovo si sceglie con un generatore a parte, così il resto della scena resta quello di v3.
+   - Se tutti i lati hanno la misura (triangoli con tre lati scritti) il punto si toglie, e con lui la sola domanda
+     `m_side`.
+   - Regressioni (`test_marked_point_v4`, `test_v3_v4_regression`): su 2.500 scene v4 il punto non sta mai su un lato
+     con la misura e si toglie solo senza lati liberi; scelta deterministica. Su 300 scene disegnate nessuna
+     sovrapposizione fra misure, punti segnati e loro etichette, e `m_side` e `side_len` sono ok. Da v3 a v4
+     cambiano solo le shapes da riestrarre e il lato del punto segnato.
+3. **Tacche -1 in coord e function** (`synth._draw_axes`): senza numero, e le tacche restano.
+   - Regressioni (`test_origin_labels_v4`): su 166 scene con tacche, nessun numero -1, tacche -1 disegnate su
+     entrambi gli assi e nessuna sovrapposizione all'origine; domande coord e function tutte ok.
+   - In v3 i numeri -1 restano.
+4. **Coordinate da tacche vicine** (`synth_check.axis_value`): regola sopra. Il layout registra le tacche: cambiano i
+   metadati, non i pixel.
+   - Regressioni (`test_coords_from_ticks`): positivi con una coordinata e con entrambe senza numero, e il caso v3
+     `synth-0010596`.
+   - Negativi con tacca mancante o spostata, tacca vicina senza numero, un solo numero sull'asse, numero vicino
+     sbagliato, tacca vicina spostata: tutti non ammissibili. Una risposta alterata è errata.
+   - Un gid sbagliato col testo giusto resta ok: il gid non conta.
+
+`OVERLAP_PX` non cambia. `scripts/synth_semantics_check.py --pairs N` controlla in memoria le coppie come le
+scriverebbe il render.
+
+**Dopo le correzioni (job 30417-30420, codice `b0b90c5`).**
+- **Suite CPU (30417).** 23 file, 892 controlli, nessun fallimento; `tests/test_synth.py` ne ha 117 (21 nuovi).
+- **Controllo (30418, `outputs/synth_check/c1c2-run2`).** Conteggi coerenti.
+  - v3: i 60.900 PNG hanno ancora byte identici agli shard. 38.325 campioni sono approvati dal checker: 164 in più,
+    perché le 169 domande `coords` si leggono ora dalle tacche. Il resto è identico: 37 errate, stesse violazioni.
+  - v4: 19.976 scene approvate su 20.000. Le 24 non approvate sono coord con 25 sovrapposizioni fra etichetta di un
+    punto e numero di tacca, la categoria non toccata. Nessuna domanda non ammissibile, nessuna segnalata errata.
+- **Coppie (30419, `outputs/synth_check/c1c2-pairs-run1`).** 300 coppie v4, 600 record tutti approvati dal checker,
+  600 domande ok, nessuna violazione.
+- **Analisi (30420).** Restano 25 violazioni in 24 scene: 1 con inchiostro in comune, 24 separate. Le prove esatte
+  sono nella tabella sopra. Le 16 scene del campione corrette non hanno più sovrapposizioni.
+- **Copertura delle domande** sulle stesse 20.000 scene v4, prima e dopo:
+  - i conteggi di tutti i tipi restano uguali, tranne `m_side`: da 2.471 a 2.110 (−361, −14.6%), per il punto tolto
+    nei triangoli con tutti e tre i lati misurati;
+  - `coords` passa da 10.579 ok e 58 non ammissibili a 10.637 ok.
+
+  Nessun altro compito è stato tolto.
+- **Immagini prima/dopo:** [polygon](../img/synth-review/prima-dopo-polygon.png),
+  [origine](../img/synth-review/prima-dopo-origine.png), [coppie](../img/synth-review/prima-dopo-coppie.png),
+  [coordinate](../img/synth-review/prima-dopo-coords.png). Le scene residue sono nel
+  [foglio](../img/synth-review/campione-altro.png) della prima analisi, con la stessa diagnosi: riquadri sovrapposti,
+  caratteri leggibili, una possibile associazione ambigua ("R8").
+
+Livelli:
+- l'approvazione del checker riguarda 19.976 scene e 600 record di coppie;
+- la coerenza fra misura stampata e disegno nelle coppie v4 vale per costruzione, ed è controllata dai test su 60
+  coppie e dal checker su 300; non è una certificazione statistica, che resta da fare (S4).
+
+Restano da decidere:
+- le 25 sovrapposizioni residue;
+- la perdita di copertura di `m_side`;
+- 4.000 o 10.000 scene nei collaudi (§5).
+
+Il render degli shard v4 richiede un'approvazione a parte.
 
 ## 3. MAVIS-Geometry (`f1_mavis.py`, `f1_schema.py`, shard `9c80fff3-caption`)
 
@@ -448,7 +547,14 @@ dei token LaTeX a meno degli spazi (`latex.same_latex`), non l'equivalenza matem
 - **Regressione v3 → v4.** I vincoli delle shapes riestraggono solo le scene che li violano, e le altre specifiche
   restano identiche: su 8.000 chiavi sono riestratte esattamente le 122 scene shapes da correggere. Le domande dei tipi
   non toccati restano identiche, per tipo e per chiave. Cambiano solo le risposte di `intersections` e i testi di
-  `shape_type` e `label_type`.
+  `shape_type` e `label_type`. Da `b0b90c5` nei polygon cambia anche il lato del punto segnato, in 591 scene su 2.000:
+  il punto si sposta, o si toglie se tutti i lati hanno la misura. Il resto della scena resta uguale.
+- **Correzioni dopo l'analisi degli scarti** (§2.5):
+  - coppie polygon per riscalatura uniforme (`test_pairs_v4`);
+  - punto segnato lontano dalle misure (`test_marked_point_v4`);
+  - tacche -1 senza numero (`test_origin_labels_v4`);
+  - coordinate dalle tacche vicine, con casi positivi e negativi (`test_coords_from_ticks`);
+  - limiti esatti delle contraddizioni dell'analisi (`test_review_bounds`).
 - **Valori.** `3/2` disegnato come `1.5`: in lettura la risposta è `1.5`, in calcolo entrambe le forme sono
   equivalenti.
 - **UniMER.** Una rietichettatura non coerente con l'etichetta attesa dà errore (`stream.apply_relabel`, già presente).

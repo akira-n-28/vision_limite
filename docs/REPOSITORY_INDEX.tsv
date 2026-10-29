@@ -90,6 +90,10 @@ docs/img/synth-review/coppie-esempi-2.png	immagine	corrente	analisi degli scarti
 docs/img/synth-review/coppie-misure-1.png	immagine	corrente	analisi degli scarti (job 30400, S2 §2.5): coppie controfattuali polygon v3, misura cambiata in a e b	ritagli dei PNG del renderer (scripts/synth_review.py)
 docs/img/synth-review/coppie-misure-2.png	immagine	corrente	analisi degli scarti (job 30400, S2 §2.5): coppie controfattuali polygon v3, misura cambiata in a e b	ritagli dei PNG del renderer (scripts/synth_review.py)
 docs/img/synth-review/coppie-misure-3.png	immagine	corrente	analisi degli scarti (job 30400, S2 §2.5): coppie controfattuali polygon v3, misura cambiata in a e b	ritagli dei PNG del renderer (scripts/synth_review.py)
+docs/img/synth-review/prima-dopo-coords.png	immagine	corrente	correzioni di v4 (job 30420, S2 §2.5): coordinate prima non ammissibili, ora lette dalle tacche vicine	ritagli dei PNG del renderer (scripts/synth_review.py)
+docs/img/synth-review/prima-dopo-coppie.png	immagine	corrente	correzioni di v4 (job 30420, S2 §2.5): coppie polygon v3 accanto alle v4 con la stessa chiave	ritagli dei PNG del renderer (scripts/synth_review.py)
+docs/img/synth-review/prima-dopo-origine.png	immagine	corrente	correzioni di v4 (job 30420, S2 §2.5): O e tacche -1 all'origine, prima e dopo	ritagli dei PNG del renderer (scripts/synth_review.py)
+docs/img/synth-review/prima-dopo-polygon.png	immagine	corrente	correzioni di v4 (job 30420, S2 §2.5): misure e punto segnato dei polygon, prima e dopo	ritagli dei PNG del renderer (scripts/synth_review.py)
 docs/reviews/PIPELINE_ADDESTRAMENTO_LIMITE_VL.md	documento	corrente	navigazione dei rapporti	-
 docs/reviews/README.md	documento	corrente	navigazione dei rapporti	-
 docs/reviews/REVISIONE_INDIPENDENTE_GOLD_E_DECONTAMINAZIONE.md	documento	storico	rapporto indipendente immutato (versione e hash propri)	-
@@ -181,9 +185,9 @@ scripts/stem_audit_export.py	script	storico-congelato	audit e gate F2 congelati 
 scripts/stem_audit_round.py	script	storico-congelato	audit e gate F2 congelati (CLAUDE.md, Strumenti congelati)	importato da f2_certify, tests/test_stem_audit
 scripts/stream_stats.py	script	da adeguare	statistiche del flusso con lo schema storico; servono contatori del consumato (§5.8.6)	-
 scripts/synth_case_svg.py	script	corrente	schema SVG di un caso shapes dalla specifica, senza matplotlib (documentazione dei casi)	-
-scripts/synth_render.py	script	corrente	render degli shard sintetici con --generator-version obbligatorio (3 riproduce v3, 4 corretto, layout con png_sha256); C1, test passati (job 30392), controllo sugli shard eseguito (job 30393)	-
-scripts/synth_review.py	script	corrente	analisi degli scarti del controllo dei sintetici in un job (coppie polygon, riquadri di testo sovrapposti, coordinate); sola lettura, job 30400	-
-scripts/synth_semantics_check.py	script	corrente	verifica semantica e del renderer dei sintetici in un job (C2), esiti separati di semantica, immagine e campione; test passati (job 30392), controllo sugli shard eseguito (job 30393)	-
+scripts/synth_render.py	script	corrente	render degli shard sintetici con --generator-version obbligatorio (3 riproduce v3, 4 corretto, layout con png_sha256); C1, test e controlli passati (job 30392-30393, 30417-30420)	-
+scripts/synth_review.py	script	corrente	analisi degli scarti del controllo dei sintetici in un job (coppie polygon, riquadri di testo sovrapposti, coordinate; prove esatte delle contraddizioni, immagini prima e dopo con --before); strumento di analisi, non passaggio della pipeline; job 30400, 30420	-
+scripts/synth_semantics_check.py	script	corrente	verifica semantica e del renderer dei sintetici in un job (C2), esiti separati di semantica, immagine e campione; --pairs per le coppie in memoria; test e controlli passati (job 30392-30393, 30417-30420)	-
 scripts/train_f1.py	script	da adeguare	trainer F1 storico (ViT congelato); helper importati da molti strumenti; base del nuovo trainer (§17.4)	importato da check_train_config, check_vision_padding, check_vision_precision, eval_f1_formulas, eval_f1_val, f1_error_gen, f1c_*, f2_generate, replay_generate, stream_stats, train_f2
 scripts/train_f2.py	script	storico	trainer F2 storico: gate f2-cert, conteggi di parametri fissi, ViT congelato; riusabili MasterWeights e gruppi	importato da tests/test_f2_train
 scripts/unimer_check.py	script	riutilizzabile	controllo deterministico dei dati (pipeline §5.3); esiti come evidenze, non ammissione	-
@@ -275,8 +279,8 @@ src/limite_vl/provenance.py	modulo	corrente	hash, identità del codice, scrittur
 src/limite_vl/replay.py	modulo	da adeguare	replay testuale	prompt con ragionamento e \boxed{} obbligatori
 src/limite_vl/stem_audit.py	modulo	storico-congelato	regole dello screening STEM	sha256 congelato in outputs/f2_pilot/*
 src/limite_vl/stream.py	modulo	da adeguare	flusso misto riprendibile, esclusioni e rietichettature	validazione = primi val_count dell'ultimo shard; esclusioni per chiave immagine
-src/limite_vl/synth.py	modulo	corrente	generatore dei sintetici: v4 corretta (C1), v3 riproducibile con version=3	test passati (job 30392), controllo sugli shard (job 30393): coppie polygon da correggere, testi sovrapposti da verificare (S2 par. 2.5)
-src/limite_vl/synth_check.py	modulo	corrente	verifica indipendente delle domande sintetiche contro il disegno (C2)	test passati (job 30392), controllo sugli shard eseguito (job 30393)
+src/limite_vl/synth.py	modulo	corrente	generatore dei sintetici: v4 corretta (C1), v3 riproducibile con version=3	correzioni minime di v4 in b0b90c5 (coppie per riscalatura, punto segnato lontano dalle misure, tacche -1 senza numero; S2 §2.5); test e controlli passati (job 30417-30420)
+src/limite_vl/synth_check.py	modulo	corrente	verifica indipendente delle domande sintetiche contro il disegno (C2)	coordinate anche dalle tacche vicine, con le tacche nel layout (b0b90c5); test e controlli passati (job 30417-30420)
 src/limite_vl/train_utils.py	modulo	riutilizzabile	loss a blocchi, checkpointing per layer, ricompilazioni di flex	-
 src/limite_vl/transcripts.py	modulo	riutilizzabile	PixMo: descrizioni contro trascrizioni degli annotatori	-
 tests/data/violetto_params_b1f3d572.json	test	riutilizzabile	dati dei test	-

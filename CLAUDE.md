@@ -350,16 +350,31 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
   `outputs/synth_check/c1c2-run1`) ha dato questi risultati:
   - ridisegna tutti i 60.900 PNG di v3 con byte identici e ritrova i difetti noti;
   - sulle 20.000 scene v4 in memoria il checker non segnala nessuna risposta errata;
-  - fa segnalazioni nuove, presenti anche in v4, analizzate nel job 30400 (S2 §2.5):
-    - delle 75 coppie controfattuali polygon con una misura cambiata, 9 contraddicono un angolo dichiarato;
+  - fa segnalazioni nuove, presenti anche in v4, analizzate nei job 30400 e 30420 (S2 §2.5):
+    - delle 75 coppie controfattuali polygon con una misura cambiata, 9 contraddicono un angolo dichiarato,
+      provato con limiti esatti;
     - nei polygon la misura di un lato collide con l'etichetta del punto segnato sullo stesso lato;
     - all'origine degli assi si sovrappongono quasi solo i riquadri dei testi;
     - le coordinate senza etichetta si leggono contando le tacche.
 
+  Correzioni di v4 (`b0b90c5`, solo da v4):
+  - le coppie polygon hanno una sola misura scritta e la variante è la figura riscalata;
+  - il punto segnato non sta su un lato con la misura, e si toglie se non ci sono lati liberi;
+  - le tacche -1 restano senza numero;
+  - il checker legge una coordinata anche dalle tacche vicine, solo se la scala è univoca. Il layout registra le
+    tacche senza valori nel gid.
+
+  Esito dei job 30417-30420:
+  - v3 resta identica;
+  - su 20.000 scene v4 il checker approva 19.976 scene, e restano 25 sovrapposizioni fra etichette di punti e tacche
+    in coord;
+  - le 300 coppie v4 sono tutte approvate;
+  - `m_side` scende da 2.471 a 2.110 domande.
+
   "Verificato" nel report vuol dire approvato dal checker, che legge il layout e non i pixel: non è correttezza
   dimostrata né qualità certificata.
 
-  Gli shard v4 non sono generati e nessun dato è certificato. Per controllare la compilazione usare `compile()` in un
+  Gli shard v4 non sono generati (render da approvare) e nessun dato è certificato. Per controllare la compilazione usare `compile()` in un
   job, non `ast.parse`, che non vede gli errori della tabella dei simboli.
 - MMFineReason @ 7c93f724: le descrizioni di Qwen3-VL-235B sono testo di un modello, non fatti (circa 10% di
   affermazioni false nel campione del 2026-10-19, che non conta come audit); contiene Geo3K e la famiglia WeMath.
