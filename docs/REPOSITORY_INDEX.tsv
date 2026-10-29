@@ -169,8 +169,8 @@ scripts/stem_audit_export.py	script	storico-congelato	audit e gate F2 congelati 
 scripts/stem_audit_round.py	script	storico-congelato	audit e gate F2 congelati (CLAUDE.md, Strumenti congelati)	importato da f2_certify, tests/test_stem_audit
 scripts/stream_stats.py	script	da adeguare	statistiche del flusso con lo schema storico; servono contatori del consumato (§5.8.6)	-
 scripts/synth_case_svg.py	script	corrente	schema SVG di un caso shapes dalla specifica, senza matplotlib (documentazione dei casi)	-
-scripts/synth_render.py	script	corrente	render degli shard sintetici con --generator-version obbligatorio (3 riproduce v3, 4 corretto); C1, da collaudare	-
-scripts/synth_semantics_check.py	script	corrente	verifica semantica e del renderer dei sintetici in un job (C2), da collaudare	-
+scripts/synth_render.py	script	corrente	render degli shard sintetici con --generator-version obbligatorio (3 riproduce v3, 4 corretto, layout con png_sha256); C1, da collaudare	-
+scripts/synth_semantics_check.py	script	corrente	verifica semantica e del renderer dei sintetici in un job (C2), esiti separati di semantica, immagine e campione; da collaudare	-
 scripts/train_f1.py	script	da adeguare	trainer F1 storico (ViT congelato); helper importati da molti strumenti; base del nuovo trainer (§17.4)	importato da check_train_config, check_vision_padding, check_vision_precision, eval_f1_formulas, eval_f1_val, f1_error_gen, f1c_*, f2_generate, replay_generate, stream_stats, train_f2
 scripts/train_f2.py	script	storico	trainer F2 storico: gate f2-cert, conteggi di parametri fissi, ViT congelato; riusabili MasterWeights e gruppi	importato da tests/test_f2_train
 scripts/unimer_check.py	script	riutilizzabile	controllo deterministico dei dati (pipeline §5.3); esiti come evidenze, non ammissione	-

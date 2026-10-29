@@ -20,6 +20,9 @@ test -x "$RUN_PYTHON"
 source slurm/prologue.sh
 lagrange_prologue cpu
 export OMP_NUM_THREADS="${SLURM_CPUS_PER_TASK:-1}"
+# test_synth.py e test_latex_render.py disegnano con matplotlib: configurazione e cache dentro il progetto
+export MPLBACKEND=Agg MPLCONFIGDIR="$CACHE_ROOT/matplotlib"
+mkdir -p "$MPLCONFIGDIR"
 failed=()
 for t in tests/test_*.py; do
   echo "=== $t"

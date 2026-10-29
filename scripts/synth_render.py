@@ -13,14 +13,15 @@ dimensioni, max_patches, domande (qa) e specifica della scena.
 
 --generator-version (obbligatorio) sceglie la versione di limite_vl.synth: 3 riproduce gli shard data/shards/synth/v3
 (job 29756), JSON compresi; 4 è la versione corretta (docs/specs/S2_AMMISSIONE_PRIME_FAMIGLIE.md §2) e salva nel JSON
-anche `layout`, gli oggetti disegnati con i riquadri in pixel, per la verifica di scripts/synth_semantics_check.py. Il
-manifest registra la versione e l'identità del codice.
+anche `layout`, gli oggetti disegnati con i riquadri in pixel e lo sha256 del PNG del campione (`png_sha256`), per la
+verifica di scripts/synth_semantics_check.py. Il manifest registra la versione e l'identità del codice.
 
     srun $RUN_PYTHON -u -B scripts/synth_render.py --out DIR --generator-version 4 [--train 60000] [--test 300] [--pairs 300]
 """
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import sys
@@ -40,11 +41,14 @@ from limite_vl.provenance import code_identity  # noqa: E402
 
 
 def _draw(spec: dict) -> tuple[bytes, dict | None]:
-    """PNG e, da v4, layout degli oggetti disegnati (v3: senza, come negli shard originali)."""
+    """PNG e, da v4, layout degli oggetti disegnati con `png_sha256`, lo sha256 dei byte del PNG scritto nello shard:
+    lega il layout a quell'immagine (v3: senza layout, come negli shard originali)."""
     if synth.spec_version(spec) < 4:
         return synth.png_bytes(synth.render(spec)), None
     image, layout = synth.render(spec, layout=True)
-    return synth.png_bytes(image), layout
+    png = synth.png_bytes(image)
+    layout["png_sha256"] = hashlib.sha256(png).hexdigest()
+    return png, layout
 
 
 def scene(task: tuple[str, str, int]) -> list[tuple[str, bytes, dict]]:

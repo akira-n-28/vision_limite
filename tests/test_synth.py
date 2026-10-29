@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""Test del generatore sintetico v4 e della sua verifica indipendente (limite_vl.synth, limite_vl.synth_check), mirati
-ai difetti trovati in v3 (docs/specs/S2_AMMISSIONE_PRIME_FAMIGLIE.md §§2, 5).
+"""Test del generatore sintetico v4, della sua verifica indipendente (limite_vl.synth, limite_vl.synth_check) e degli
+esiti per campione di scripts/synth_semantics_check.py, mirati ai difetti trovati in v3 e nelle revisioni
+(docs/specs/S2_AMMISSIONE_PRIME_FAMIGLIE.md §§2, 5).
 
 Le parti che disegnano usano matplotlib e leggono gli shard v3: si eseguono in un job (slurm/tests_cpu.sbatch,
 slurm/synth_semantics_check.sbatch), mai sul frontend."""
@@ -332,6 +333,183 @@ def test_renderer_invariants():
               any(v["kind"] == "lunghezza_incoerente" for v in synth_check.renderer_violations(spec, lay)))
 
 
+def load_script(name: str):
+    """scripts/<name>.py come modulo, senza eseguirne main (scripts/ in coda al percorso per i moduli fratelli)."""
+    import importlib.util
+
+    if str(ROOT / "scripts") not in sys.path:
+        sys.path.append(str(ROOT / "scripts"))
+    found = importlib.util.spec_from_file_location(name, ROOT / "scripts" / f"{name}.py")
+    mod = importlib.util.module_from_spec(found)
+    found.loader.exec_module(mod)
+    return mod
+
+
+def raises(fn, exc=ValueError) -> bool:
+    try:
+        fn()
+    except exc:
+        return True
+    return False
+
+
+def test_sample_evidence():
+    """scripts/synth_semantics_check.py (revisione di f7d32d3): per un record di shard la semantica della scena, la
+    corrispondenza fra il rendering e il PNG dello shard e l'esito del campione restano distinti; il layout salvato
+    conta solo col digest del PNG; una scena generata in memoria ha un'altra origine."""
+    import hashlib
+    import io
+    import tarfile
+    import tempfile
+
+    sc, sr = load_script("synth_semantics_check"), load_script("synth_render")
+
+    def scene(i):
+        spec, image, layout = rendered(f"synth-{i:07d}", "shapes", 4)
+        return spec, image, layout, {"id": spec["key"], "family": "shapes", "qa": synth.questions(spec), "spec": spec}
+
+    # record come quelli di v3: id, famiglia, domande e specifica, senza layout
+    spec, image, layout, meta = first((scene(i) for i in range(43, 400, 4)),
+                                      lambda c: synth_check.check_sample(c[3], c[2])["verified"])
+    key, png = spec["key"], synth.png_bytes(image)
+    other = synth.png_bytes(synth.render(synth.make_spec(key + "-altra", "shapes", 4)))
+    linked = {**deepcopy(layout), "png_sha256": hashlib.sha256(png).hexdigest()}
+
+    def state(m, data):
+        return sc._check(key, m, "shard", png=data)[2]
+
+    def parts(s, *names):
+        return tuple(s[n] for n in names)
+
+    # PNG corrispondente
+    c, p, s = sc._check(key, meta, "shard", png=png)
+    check(f"{key}: record senza layout, PNG corrispondente: byte identici, semantica e campione verificati",
+          parts(s, "image", "layout", "semantic", "outcome", "reasons") ==
+          ("byte_identici", "ridisegnato_layout_assente", "verificata", "verificato", [])
+          and not [x for x in p if x["what"] == "sample"], s)
+    # PNG mancante
+    _, p, s = sc._check(key, meta, "shard", png=None)
+    rows = [x for x in p if x["what"] == "sample"]
+    check("PNG mancante: semantica verificata ma campione non verificato, motivo nella riga del campione",
+          parts(s, "image", "semantic", "outcome") == ("png_mancante", "verificata", "non_verificato")
+          and len(rows) == 1 and rows[0]["reasons"] == ["immagine: png_mancante"], (s, rows))
+    s = state({**meta, "layout": linked}, None)
+    check("PNG mancante con layout e digest nel record: campione non verificato",
+          parts(s, "image", "layout", "outcome") == ("png_mancante", "salvato_png_mancante", "non_verificato"), s)
+    # PNG sostituito con un'altra immagine, o con un pixel cambiato
+    s = state(meta, other)
+    check("PNG di un'altra scena: immagine da verificare, campione non verificato con semantica verificata",
+          other != png and parts(s, "image", "semantic", "outcome", "reasons") ==
+          ("diversa_da_verificare", "verificata", "non_verificato", ["immagine: diversa_da_verificare"]), s)
+    s = state({**meta, "layout": linked}, other)
+    check("PNG sostituito, layout col digest dell'originale: digest diverso, ridisegno, campione non verificato",
+          parts(s, "image", "layout", "outcome") == ("diversa_da_verificare", "ridisegnato_digest_diverso",
+                                                     "non_verificato"), s)
+    touched = image.copy()
+    r, g, b = touched.getpixel((0, 0))
+    touched.putpixel((0, 0), (255 - r, g, b))
+    s = state(meta, synth.png_bytes(touched))
+    check("PNG con un pixel cambiato: pixel diversi, campione non verificato",
+          parts(s, "image", "outcome") == ("diversa_da_verificare", "non_verificato"), s)
+    s = state(meta, b"non un PNG")
+    check("file che non si decodifica come PNG: da verificare, campione non verificato",
+          parts(s, "image", "outcome") == ("diversa_da_verificare", "non_verificato"), s)
+    # layout nel record senza digest (record precedenti al digest): non prova il legame col PNG
+    s = state({**meta, "layout": deepcopy(layout)}, png)
+    check("layout senza digest, PNG corrispondente: si ridisegna, byte identici, campione verificato",
+          parts(s, "image", "layout", "outcome") == ("byte_identici", "ridisegnato_senza_digest", "verificato"), s)
+    s = state({**meta, "layout": deepcopy(layout)}, other)
+    check("layout senza digest, PNG sostituito: il layout salvato da solo non promuove, campione non verificato",
+          parts(s, "image", "layout", "outcome") == ("diversa_da_verificare", "ridisegnato_senza_digest",
+                                                     "non_verificato"), s)
+    s = state({**meta, "layout": {**deepcopy(layout), "items": []}}, png)
+    check("layout senza digest e svuotato: non si usa, la semantica viene dal ridisegno",
+          parts(s, "semantic", "outcome") == ("verificata", "verificato"), s)
+    # layout con digest uguale al PNG: si usa quello del record
+    s = state({**meta, "layout": linked}, png)
+    check("layout con digest corrispondente: campione verificato col layout salvato",
+          parts(s, "image", "layout", "outcome") == ("digest_corrispondente", "salvato_con_digest", "verificato"), s)
+    s = state({**meta, "layout": {k: v for k, v in deepcopy(linked).items() if k != "axes_px"}}, png)
+    check("digest corrispondente ma layout senza area degli assi: semantica sul layout salvato, non verificato",
+          parts(s, "image", "semantic", "outcome") == ("digest_corrispondente", "non_verificata", "non_verificato")
+          and any(x.startswith("violazioni bloccanti:") and "layout_senza_assi" in x for x in s["reasons"]), s)
+    # byte diversi, pixel identici: confronto dei pixel decodificati, distinto da quello dei byte
+    buf = io.BytesIO()
+    image.save(buf, format="PNG", compress_level=1)
+    recoded = buf.getvalue()
+    s = state(meta, recoded)
+    check("PNG ricodificato (byte diversi, pixel identici): pixel identici, campione verificato",
+          recoded != png and parts(s, "image", "outcome") == ("pixel_identici", "verificato"), s)
+    rgba, buf = image.convert("RGBA"), io.BytesIO()
+    rgba.putpixel((0, 0), rgba.getpixel((0, 0))[:3] + (0,))
+    rgba.save(buf, format="PNG")
+    s = state(meta, buf.getvalue())
+    check("stessi valori RGB ma un pixel trasparente: pixel diversi, campione non verificato",
+          parts(s, "image", "outcome") == ("diversa_da_verificare", "non_verificato"), s)
+    # scena generata in memoria: un'altra origine, nessun esito di campione degli shard
+    c, p, s = sc._check(key, meta, "generato", layout=layout)
+    check("scena in memoria: immagine in_memoria, esito di scena, nessun conteggio degli shard",
+          parts(s, "image", "layout", "outcome") == ("in_memoria", "generato", "scena_verificata")
+          and all(k.split("/")[1] == "generato" for k in c), s)
+    check("scena in memoria senza layout o con un PNG, record di shard con un layout dato dal chiamante: rifiutati",
+          raises(lambda: sc._check(key, meta, "generato")) and raises(lambda: sc._check(key, meta, "generato", png=png,
+                                                                                        layout=layout))
+          and raises(lambda: sc._check(key, meta, "shard", png=png, layout=layout)))
+    summary = sc.summarize(sc.generate_task((0, 8, 4))["counts"])
+    check("--generate: 8 scene contate solo come generate, conteggi coerenti",
+          summary["total"] == {"shard": 0, "generato": 8} and not summary["incoherent"] and "shard" not in summary["image"],
+          (summary["total"], summary["incoherent"]))
+    # record scritti con le funzioni di scripts/synth_render.py, letti da shard_task
+    [(_, png_r, meta_r)] = sr.scene((key, "shapes", 4))
+    check("synth_render v4: layout con lo sha256 dei byte del PNG scritto, stesso PNG del rendering",
+          meta_r["layout"]["png_sha256"] == hashlib.sha256(png_r).hexdigest() and png_r == png)
+    check("synth_render v3: nessun layout nel JSON, come negli shard v3", sr._draw(synth.make_spec(key, "shapes", 3))[1] is None)
+    records = [("caso-a", png, meta),       # senza layout, PNG corrispondente: verificato
+               ("caso-b", None, meta),      # PNG mancante: non verificato
+               ("caso-c", other, meta_r),   # PNG sostituito, digest diverso: non verificato
+               ("caso-d", recoded, meta_r),  # digest diverso, pixel identici: verificato
+               ("caso-e", png_r, meta_r)]   # come scritto da synth_render: digest corrispondente, verificato
+    with tempfile.TemporaryDirectory(prefix="test_synth_") as d:
+        path = Path(d) / "evidence.tar"
+        with tarfile.open(path, "w", format=tarfile.USTAR_FORMAT) as tar:
+            for name, data, m in records:
+                if data is not None:
+                    sr.add_member(tar, f"{name}.png", data)
+                sr.add_member(tar, f"{name}.json", json.dumps(m, ensure_ascii=False).encode())
+        res = sc.shard_task(str(path))
+        tar_sha = hashlib.sha256(path.read_bytes()).hexdigest()
+        case_rows = sc.save_cases([f"{key}:shapes:4"], Path(d) / "cases")
+        saved = json.loads((Path(d) / "cases" / f"{key}-v4.json").read_text())
+        saved_png = (Path(d) / "cases" / f"{key}-v4.png").read_bytes()
+    summary = sc.summarize(res["counts"])
+    rows = sorted((x["key"], x["reasons"]) for x in res["problems"] if x["what"] == "sample")
+    check("shard: semantica verificata in 5 campioni su 5, campioni verificati 3",
+          summary["semantic"]["shard"] == {"verificata": 5}
+          and summary["sample"]["shard"] == {"verificato": 3, "non_verificato": 2}, summary["sample"])
+    check("shard: stato dell'immagine e provenienza del layout per campione",
+          summary["image"]["shard"] == {"byte_identici": 1, "png_mancante": 1, "diversa_da_verificare": 1,
+                                        "pixel_identici": 1, "digest_corrispondente": 1}
+          and summary["layout"]["shard"] == {"ridisegnato_layout_assente": 2, "ridisegnato_digest_diverso": 2,
+                                             "salvato_con_digest": 1}, (summary["image"], summary["layout"]))
+    check("shard: conteggi coerenti, una riga sample col motivo per ogni campione non verificato",
+          not summary["incoherent"] and summary["total"] == {"shard": 5, "generato": 0}
+          and rows == [("caso-b", ["immagine: png_mancante"]), ("caso-c", ["immagine: diversa_da_verificare"])],
+          (summary["incoherent"], rows))
+    check("shard: ingresso registrato con lo sha256 del file", res["input"]["sha256"] == tar_sha)
+    bad = Counter(res["counts"])
+    bad["sample/shard/verificato"] += 1
+    bad["sample/shard/non_verificato"] -= 1
+    check("coerenza: un verificato senza semantica verificata e immagine corrispondente viene segnalato",
+          any(x.startswith("shard: verificati") for x in sc.summarize(bad)["incoherent"]))
+    bad = Counter(res["counts"])
+    bad["image/shard/byte_identici"] += 1
+    check("coerenza: totali diversi fra i gruppi vengono segnalati",
+          any("totali diversi" in x for x in sc.summarize(bad)["incoherent"]))
+    check("--cases: il layout salvato porta lo sha256 del PNG salvato, esito di scena",
+          saved["layout"]["png_sha256"] == hashlib.sha256(saved_png).hexdigest() == case_rows[0]["png_sha256"]
+          and case_rows[0]["outcome"] == "scena_verificata", case_rows)
+
+
 if __name__ == "__main__":
     test_v3_reproduction()
     test_intersections()
@@ -341,5 +519,6 @@ if __name__ == "__main__":
     test_rendered_checks()
     test_clipping_rendered()
     test_renderer_invariants()
+    test_sample_evidence()
     print("\nfalliti:", FAILS or "nessuno")
     sys.exit(1 if FAILS else 0)

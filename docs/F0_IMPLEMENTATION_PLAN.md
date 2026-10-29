@@ -215,8 +215,8 @@ dopo questi.
 
 | # | Intervento | File | Collaudi | Job necessario | Dipende da |
 | --- | --- | --- | --- | --- | --- |
-| C1 | Sintetici: un solo dominio visibile per `intersections` (conteggio geometrico e ammissibilità separati); niente domanda per grafici che si sfiorano senza incrociarsi; domande di classificazione con opzioni (triangoli) o classe più specifica (quadrilateri, `label_type`); shapes senza figure vicine né fuori dagli assi (col tratto), con nuova estrazione solo per le scene che violano i vincoli; layout degli oggetti disegnati nel JSON da v4; `version=3` riproduce v3. **Implementato il 2026-10-28 (`38af82a`), corretto il 2026-10-29 (figure tagliate); verificato solo sul frontend, da collaudare** | `src/limite_vl/synth.py`, `scripts/synth_render.py` (`--generator-version` obbligatorio), `slurm/synth_render.sbatch` | `tests/test_synth.py` (S2 §5) | collaudo: C1-C2 sotto; render di v4 (CPU, 4 CPU, 16G, circa 12 minuti) solo dopo il collaudo | S2 |
-| C2 | Verifica semantica indipendente dei sintetici: ricalcolo per tipo dagli oggetti disegnati (layout) con predicati propri, intersezioni solo nei tratti disegnati; invarianti del renderer, compreso il taglio sull'area effettiva degli assi; violazioni bloccanti che impediscono la verifica del campione. **Implementato il 2026-10-28 (`38af82a`), corretto il 2026-10-29; verificato solo sul frontend, da collaudare** | `src/limite_vl/synth_check.py`, `scripts/synth_semantics_check.py` (anche `--cases`), `slurm/synth_semantics_check.sbatch`, `scripts/synth_case_svg.py` (schemi dei casi) | mutazioni in `tests/test_synth.py`; su v3 deve ritrovare i difetti noti | controllo di v3 e di scene v4 in memoria (CPU, 8 CPU, 16G, ≤ 1 h 30) | C1 |
+| C1 | Sintetici: un solo dominio visibile per `intersections` (conteggio geometrico e ammissibilità separati); niente domanda per grafici che si sfiorano senza incrociarsi; domande di classificazione con opzioni (triangoli) o classe più specifica (quadrilateri, `label_type`); shapes senza figure vicine né fuori dagli assi (col tratto), con nuova estrazione solo per le scene che violano i vincoli; layout degli oggetti disegnati nel JSON da v4, con lo sha256 del PNG del campione (`png_sha256`); `version=3` riproduce v3. **Implementato il 2026-10-28 (`38af82a`), corretto il 2026-10-29 (figure tagliate; digest del PNG dopo la revisione di `f7d32d3`, non compilato né eseguito); verificato solo sul frontend, da collaudare** | `src/limite_vl/synth.py`, `scripts/synth_render.py` (`--generator-version` obbligatorio), `slurm/synth_render.sbatch` | `tests/test_synth.py` (S2 §5) | collaudo: C1-C2 sotto; render di v4 (CPU, 4 CPU, 16G, circa 12 minuti) solo dopo il collaudo | S2 |
+| C2 | Verifica semantica indipendente dei sintetici: ricalcolo per tipo dagli oggetti disegnati (layout) con predicati propri, intersezioni solo nei tratti disegnati; invarianti del renderer, compreso il taglio sull'area effettiva degli assi; violazioni bloccanti che impediscono la verifica del campione; nel report esiti separati per semantica della scena, corrispondenza col PNG dello shard e campione (S2 §2.4). **Implementato il 2026-10-28 (`38af82a`), corretto il 2026-10-29; verificato solo sul frontend, da collaudare. Esiti per campione corretti dopo la revisione di `f7d32d3`: non compilati né eseguiti** | `src/limite_vl/synth_check.py`, `scripts/synth_semantics_check.py` (anche `--cases`), `slurm/synth_semantics_check.sbatch`, `scripts/synth_case_svg.py` (schemi dei casi) | mutazioni ed esiti per campione (`test_sample_evidence`) in `tests/test_synth.py`; su v3 deve ritrovare i difetti noti | controllo di v3 e di scene v4 in memoria (CPU, 8 CPU, 16G, ≤ 1 h 30) | C1 |
 | C3 | Contratto `vl-contract/1`: oggetto versionato, template `limite-vl/1`, processor che lo riceve e lo registra | `src/limite_vl/contract.py` (nuovo), `processing.py` | S3 §6 (tokenizzazione delle due modalità, system prompt canonico identico ai token di Violetto) | — | D3 |
 | C4 | Estrattore e verificatori: forma, completezza dai metadati, candidati, tre esiti separati; `generate_batch` restituisce anche `max_new_tokens` e il motivo d'arresto | `src/limite_vl/answers.py` (nuovo), `generation.py` | S3 §6, compresi i casi A-T della tassonomia ufficiale | — | C3 |
 | C5 | Identità e manifest: JSON canonico, digest completi, mappa delle collisioni, record, scrittura immutabile; i loader restituiscono la costruzione canonica | `src/limite_vl/manifest.py` (nuovo), `data.py` | S1 §8 (collisione forzata, canonicalizzazione, prefissi, contratto) | — | C3 |
@@ -286,6 +286,24 @@ Stato delle correzioni, tenendo distinti i tre livelli:
 
   Il comando è nella tabella sotto. Nessun dato è certificato da questi controlli.
 
+Revisione di `f7d32d3` (2026-10-29): il report di `scripts/synth_semantics_check.py` contava come verificato un campione
+di uno shard guardando solo la semantica della scena ricostruita, anche con il PNG diverso o mancante. Inoltre, con il
+layout già nel record, il PNG non si confrontava affatto. Stato della correzione:
+- **Implementazione.**
+  - Esiti separati per semantica della scena, immagine e campione, più la provenienza del layout; il significato degli
+    stati è in S2 §2.4.
+  - Il layout di `synth_render.py` v4 e di `--cases` porta `png_sha256`. I record senza digest si ridisegnano e si
+    confrontano: prima i byte, poi i pixel decodificati.
+  - Le scene di `--generate` hanno un'origine propria.
+  - In `problems.jsonl` una riga per ogni campione non verificato, coi motivi. Il report (schema `synth-check/3`)
+    controlla la coerenza dei conteggi.
+  - `tests_cpu.sbatch` tiene configurazione e cache di matplotlib dentro il progetto.
+  - Regressioni: `test_sample_evidence` in `tests/test_synth.py`.
+- **Verifica locale: nessuna.** Dal 2026-10-29 anche `compile()` va in un job, quindi il codice nuovo non è stato né
+  compilato né eseguito. `tests_cpu` compila ed esegue tutti i file toccati: `test_synth.py` carica
+  `synth_semantics_check.py` e `synth_render.py`.
+- **Collaudo: non eseguito.** Comando nella tabella sotto.
+
 ### Da pianificare
 
 Nessuno è stato eseguito e nessuno è dichiarato superato. Dal 2026-10-29 anche le verifiche leggere, che finora sono
@@ -293,7 +311,7 @@ state eseguite sul frontend, vanno in un job CPU (CLAUDE.md).
 
 | Collaudo | Scopo | Risorse | Quando |
 | --- | --- | --- | --- |
-| Sintetici (C1, C2) | `tests/test_synth.py` (riproduzione di v3 con PNG e JSON identici, dominio visibile, tratti visibili, figure tagliate, unicità, regressione v3 → v4, verifica su layout veri, mutazioni, invarianti); poi `scripts/synth_semantics_check.py` su tutti gli shard v3, su 20.000 scene v4 in memoria e sui casi `synth-0000043` v3 e v4 (PNG) | `slurm/tests_cpu.sbatch` (0 GPU, 4 CPU, 8G, 20 min); `slurm/synth_semantics_check.sbatch` (0 GPU, 8 CPU, 16G, 1 h 30), dopo il primo con `--dependency=afterok` | con l'ok dell'utente; il render di v4 dopo |
+| Sintetici (C1, C2) | `tests/test_synth.py` (riproduzione di v3 con PNG e JSON identici, dominio visibile, tratti visibili, figure tagliate, unicità, regressione v3 → v4, verifica su layout veri, mutazioni, invarianti, esiti per campione: PNG corrispondente, mancante o sostituito, layout senza digest, pixel identici con byte diversi, scena in memoria); poi `scripts/synth_semantics_check.py` su tutti gli shard v3, su 20.000 scene v4 in memoria e sui casi `synth-0000043` v3 e v4 (PNG). Comando: `jobid=$(sbatch --parsable slurm/tests_cpu.sbatch)`, poi `sbatch --parsable --dependency=afterok:$jobid slurm/synth_semantics_check.sbatch c1c2-run1 --shards '/home/prignano/vision_limite/data/shards/synth/v3/*/*.tar' --generate 20000 --generator-version 4 --cases synth-0000043:shapes:3 synth-0000043:shapes:4` | `slurm/tests_cpu.sbatch` (0 GPU, 4 CPU, 8G, 20 min); `slurm/synth_semantics_check.sbatch` (0 GPU, 8 CPU, 16G, 1 h 30), dopo il primo con `--dependency=afterok` | con l'ok dell'utente; il render di v4 dopo |
 | Contratto ed estrattore (C3, C4; punto 1) | Tokenizzazione e label per modalità; quattro forme e terminazione; tassonomia ufficiale; risposta diretta di Violetto | CPU 20 min; GPU 1 ora | dopo D3 e S3 |
 | Manifest, indice e reader (C5-C7; punto 3) | Collisioni, split ereditati, chiavi storiche, filtro dei reader, contatori | CPU 20 min; indice CPU 4 CPU 24G, durata da misurare | dopo S1, D6 |
 | Stime (C8) | Copertura esatta, limite ipergeometrico, estrazioni | CPU 20 min | dopo S4 |

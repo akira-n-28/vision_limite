@@ -69,9 +69,12 @@ standard e non legge gli shard. Gli istogrammi per famiglia, tipo e risposta coi
 manifest del job 29756: il codice attuale riproduce le domande di v3.
 
 **Stato** (C1-C2): implementati il 2026-10-28 (`38af82a`) e corretti il 2026-10-29 dopo la revisione di quel commit,
-che ha trovato figure tagliate, intersezioni contate nei buchi del disegno e un errore di sintassi nei test. Verificati
-solo con calcoli leggeri di sola libreria standard sul frontend; i test e il controllo sugli shard non sono ancora
-eseguiti, quindi niente qui è collaudato e nessun dato è certificato.
+che ha trovato figure tagliate, intersezioni contate nei buchi del disegno e un errore di sintassi nei test. Lo stesso
+giorno la revisione di `f7d32d3` ha trovato che il report contava come verificato un campione senza aver dimostrato la
+corrispondenza col PNG dello shard; ora gli esiti sono separati (§2.4). Le correzioni di `38af82a` sono state
+verificate solo con calcoli leggeri di sola libreria standard sul frontend; quelle del report non sono state né
+compilate né eseguite (dal 2026-10-29 ogni programma gira in un job). I test e il controllo sugli shard non sono
+ancora eseguiti, quindi niente qui è collaudato e nessun dato è certificato.
 - `synth.py`: `version=4` è il default e `version=3` riproduce v3; sono nuovi `visible_bound`, `intersection_points`
   (conteggio geometrico), `_near_miss`, le domande di classificazione con le opzioni, `_shapes_overlap`,
   `_shapes_fit` e `render(spec, layout=True)`;
@@ -160,8 +163,9 @@ verifica indipendente e le invarianti del renderer.
 ### 2.4 Invarianti del renderer
 
 Si calcolano durante il render dagli oggetti di matplotlib (`get_window_extent` di testi, marcatori e figure; area
-degli assi `axes_px`; spessore del tratto `lw_px`) e si salvano nel JSON di v4, così si possono ricontrollare senza
-ridisegnare:
+degli assi `axes_px`; spessore del tratto `lw_px`) e si salvano nel JSON di v4. Il layout porta anche `png_sha256`,
+lo sha256 dei byte del PNG scritto nello stesso campione: se in lettura coincide con il PNG dello shard, il layout si
+ricontrolla senza ridisegnare. Le invarianti:
 
 - figure e marcatori, col loro tratto, dentro l'area effettiva degli assi, dove matplotlib li taglia: è il controllo
   che mancava in `38af82a`, che guardava solo i bordi dell'immagine. Uscire di più di 1 px è una figura tagliata;
@@ -174,6 +178,40 @@ ridisegnare:
 assi. Una scena che ne ha una non è verificata e le sue domande "ok" diventano `non_ammissibili`. Una scena è
 verificata solo senza violazioni e con tutte le domande ok. Superare la verifica non certifica la scena: la
 certificazione segue S4.
+
+**Esiti per campione** (`scripts/synth_semantics_check.py`, revisione di `f7d32d3`). Per un record letto da uno shard
+si tengono separati tre esiti; il report li conta per origine, e per famiglia, e registra semantica e immagine
+insieme:
+
+- **semantica della scena**: `verificata` se `synth_check.check_sample` sul layout usato non trova violazioni e tutte
+  le domande sono ok, altrimenti `non_verificata`;
+- **immagine**, cioè la corrispondenza fra il rendering descritto da quel layout e il PNG presente nello shard:
+  - `digest_corrispondente`: il layout del record porta `png_sha256` uguale allo sha256 del PNG dello shard;
+  - `byte_identici`: senza questa prova la scena si ridisegna dalla specifica, e il ridisegno ha gli stessi byte del
+    PNG;
+  - `pixel_identici`: byte diversi, ma il PNG decodificato da Pillow ha dimensioni e valori RGBA uguali al ridisegno;
+    è un confronto deterministico, distinto da quello dei byte, e non guarda i metadati del PNG (gamma, profili);
+  - `diversa_da_verificare`: pixel diversi, oppure il file non si decodifica come PNG. Non prova un'immagine diversa
+    a vista né una risposta sbagliata: il campione va guardato;
+  - `png_mancante`;
+- **campione**: `verificato` solo se la semantica è verificata e l'immagine è `digest_corrispondente`,
+  `byte_identici` o `pixel_identici`; altrimenti `non_verificato`, con i motivi in una riga di `problems.jsonl`.
+  Una scena semanticamente valida con il PNG mancante o diverso non è un campione verificato.
+
+Si registra anche da dove viene il layout usato:
+
+- `salvato_con_digest`;
+- `ridisegnato_layout_assente`: record di v3;
+- `ridisegnato_senza_digest`: record con un layout ma senza digest, come quelli che `synth_render.py` avrebbe scritto
+  fra `38af82a` e questa correzione (nessuno shard v4 è stato generato). Il layout salvato non prova il legame col PNG
+  e non si usa;
+- `ridisegnato_digest_diverso`: il PNG non è quello per cui il layout era stato calcolato;
+- `salvato_png_mancante`.
+
+Una scena generata in memoria (`--generate`) è un'altra origine. Ha immagine `in_memoria` ed esito `scena_verificata`
+o `scena_non_verificata`: collauda generatore e renderer, non è un campione di dati. Il report verifica che i
+conteggi tornino: ogni campione compare una volta in ogni gruppo, e i verificati sono esattamente quelli con
+semantica verificata e immagine corrispondente. Se non tornano, il report riporta le incoerenze e il job fallisce.
 
 Generatore v4: le shapes con due figure a meno di `SHAPE_GAP` o con una figura che, col tratto e 1 px, esce dagli assi
 si estraggono di nuovo dallo stesso generatore (`_shapes_overlap`, `_shapes_fit`). Si riestraggono 969 scene shapes di
@@ -249,6 +287,21 @@ dei token LaTeX a meno degli spazi (`latex.same_latex`), non l'equivalenza matem
   - Su 15.000 scene v4 nessuna figura vicina a un'altra o fuori dagli assi.
 - **Mutazioni.** Una risposta alterata per ogni tipo viene trovata dalla verifica indipendente. Una scena costruita con
   un'etichetta fuori dall'immagine, due testi sovrapposti o due figure sovrapposte viene rifiutata dalle invarianti.
+- **Esiti per campione** (§2.4; `test_sample_evidence`), su una scena shapes v4 semanticamente verificata:
+  - PNG corrispondente: `byte_identici`, campione verificato;
+  - PNG mancante: campione non verificato, con semantica verificata;
+  - PNG di un'altra scena, con o senza layout nel record, oppure un pixel cambiato, o un file che non è un PNG:
+    `diversa_da_verificare`, campione non verificato;
+  - layout senza digest: si ridisegna. Col PNG giusto il campione è verificato, con un PNG sostituito no; un layout
+    salvato svuotato non cambia la semantica;
+  - layout con digest corrispondente: si usa quello salvato, e se gli manca l'area degli assi il campione non è
+    verificato;
+  - PNG ricodificato (byte diversi, pixel identici): `pixel_identici`, verificato; un pixel reso trasparente non lo è;
+  - scena in memoria: `in_memoria`, nessun conteggio degli shard; senza layout, o con un PNG, la chiamata è rifiutata;
+  - shard di cinque record, scritti con le funzioni di `synth_render.py` e letti da `shard_task`: tre verificati su
+    cinque semanticamente validi, una riga col motivo per ciascuno dei due non verificati, conteggi coerenti. Un
+    conteggio alterato viene segnalato;
+  - `--cases` e `synth_render.py` v4 salvano lo sha256 del PNG scritto; v3 resta senza layout.
 - **Regressione v3 → v4.** I vincoli delle shapes riestraggono solo le scene che li violano, e le altre specifiche
   restano identiche: su 8.000 chiavi sono riestratte esattamente le 122 scene shapes da correggere. Le domande dei tipi
   non toccati restano identiche, per tipo e per chiave. Cambiano solo le risposte di `intersections` e i testi di
