@@ -215,8 +215,8 @@ dopo questi.
 
 | # | Intervento | File | Collaudi | Job necessario | Dipende da |
 | --- | --- | --- | --- | --- | --- |
-| C1 | Sintetici: un solo dominio visibile per `intersections` (conteggio geometrico e ammissibilità separati); niente domanda per grafici che si sfiorano senza incrociarsi; domande di classificazione con opzioni (triangoli) o classe più specifica (quadrilateri, `label_type`); shapes senza figure vicine né fuori dagli assi (col tratto), con nuova estrazione solo per le scene che violano i vincoli; layout degli oggetti disegnati nel JSON da v4, con lo sha256 del PNG del campione (`png_sha256`); `version=3` riproduce v3. **Implementato il 2026-10-28 (`38af82a`), corretto il 2026-10-29 (figure tagliate; digest del PNG dopo la revisione di `f7d32d3`); suite CPU passata (job 30392), controllo sugli shard da eseguire** | `src/limite_vl/synth.py`, `scripts/synth_render.py` (`--generator-version` obbligatorio), `slurm/synth_render.sbatch` | `tests/test_synth.py` (S2 §5) | collaudo: C1-C2 sotto; render di v4 (CPU, 4 CPU, 16G, circa 12 minuti) solo dopo il collaudo | S2 |
-| C2 | Verifica semantica indipendente dei sintetici: ricalcolo per tipo dagli oggetti disegnati (layout) con predicati propri, intersezioni solo nei tratti disegnati; invarianti del renderer, compreso il taglio sull'area effettiva degli assi; violazioni bloccanti che impediscono la verifica del campione; nel report esiti separati per semantica della scena, corrispondenza col PNG dello shard e campione (S2 §2.4). **Implementato il 2026-10-28 (`38af82a`), corretto il 2026-10-29, esiti per campione dopo la revisione di `f7d32d3`; suite CPU passata (job 30392), controllo sugli shard da eseguire** | `src/limite_vl/synth_check.py`, `scripts/synth_semantics_check.py` (anche `--cases`), `slurm/synth_semantics_check.sbatch`, `scripts/synth_case_svg.py` (schemi dei casi) | mutazioni ed esiti per campione (`test_sample_evidence`) in `tests/test_synth.py`; su v3 deve ritrovare i difetti noti | controllo di v3 e di scene v4 in memoria (CPU, 8 CPU, 16G, ≤ 1 h 30) | C1 |
+| C1 | Sintetici: un solo dominio visibile per `intersections` (conteggio geometrico e ammissibilità separati); niente domanda per grafici che si sfiorano senza incrociarsi; domande di classificazione con opzioni (triangoli) o classe più specifica (quadrilateri, `label_type`); shapes senza figure vicine né fuori dagli assi (col tratto), con nuova estrazione solo per le scene che violano i vincoli; layout degli oggetti disegnati nel JSON da v4, con lo sha256 del PNG del campione (`png_sha256`); `version=3` riproduce v3. **Implementato il 2026-10-28 (`38af82a`), corretto il 2026-10-29 (figure tagliate; digest del PNG dopo la revisione di `f7d32d3`); suite CPU passata (job 30392), controllo sugli shard eseguito (job 30393, §4): due difetti nuovi da correggere prima del render di v4** | `src/limite_vl/synth.py`, `scripts/synth_render.py` (`--generator-version` obbligatorio), `slurm/synth_render.sbatch` | `tests/test_synth.py` (S2 §5) | collaudo: C1-C2 sotto; render di v4 (CPU, 4 CPU, 16G, circa 12 minuti) solo dopo il collaudo | S2 |
+| C2 | Verifica semantica indipendente dei sintetici: ricalcolo per tipo dagli oggetti disegnati (layout) con predicati propri, intersezioni solo nei tratti disegnati; invarianti del renderer, compreso il taglio sull'area effettiva degli assi; violazioni bloccanti che impediscono la verifica del campione; nel report esiti separati per semantica della scena, corrispondenza col PNG dello shard e campione (S2 §2.4). **Implementato il 2026-10-28 (`38af82a`), corretto il 2026-10-29, esiti per campione dopo la revisione di `f7d32d3`; suite CPU passata (job 30392), controllo sugli shard eseguito (job 30393, §4)** | `src/limite_vl/synth_check.py`, `scripts/synth_semantics_check.py` (anche `--cases`), `slurm/synth_semantics_check.sbatch`, `scripts/synth_case_svg.py` (schemi dei casi) | mutazioni ed esiti per campione (`test_sample_evidence`) in `tests/test_synth.py`; su v3 deve ritrovare i difetti noti | controllo di v3 e di scene v4 in memoria (CPU, 8 CPU, 16G, ≤ 1 h 30) | C1 |
 | C3 | Contratto `vl-contract/1`: oggetto versionato, template `limite-vl/1`, processor che lo riceve e lo registra | `src/limite_vl/contract.py` (nuovo), `processing.py` | S3 §6 (tokenizzazione delle due modalità, system prompt canonico identico ai token di Violetto) | — | D3 |
 | C4 | Estrattore e verificatori: forma, completezza dai metadati, candidati, tre esiti separati; `generate_batch` restituisce anche `max_new_tokens` e il motivo d'arresto | `src/limite_vl/answers.py` (nuovo), `generation.py` | S3 §6, compresi i casi A-T della tassonomia ufficiale | — | C3 |
 | C5 | Identità e manifest: JSON canonico, digest completi, mappa delle collisioni, record, scrittura immutabile; i loader restituiscono la costruzione canonica | `src/limite_vl/manifest.py` (nuovo), `data.py` | S1 §8 (collisione forzata, canonicalizzazione, prefissi, contratto) | — | C3 |
@@ -233,6 +233,7 @@ dopo questi.
 | --- | --- | --- | --- |
 | 30255 (2026-10-28) | `slurm/tests_cpu.sbatch`, suite CPU completa dopo la migrazione | 22 file, 775 controlli, nessun fallimento, stderr vuoto, come il job 30050 prima della migrazione | che nessun test dipendeva dai file archiviati; nulla sui requisiti nuovi |
 | 30392 (2026-10-29) | `slurm/tests_cpu.sbatch` su `b544b97`, prima esecuzione di `tests/test_synth.py` | 23 file, 871 controlli, nessun fallimento, stderr vuoto, 7 min 42 s. I 22 file del job 30255 sono invariati e danno gli stessi 775 controlli; `test_synth.py` ne aggiunge 96 | che il codice di C1-C2 compila e supera le regressioni scritte, col disegno vero. Coperti: PNG, specifica e domande di 8 scene v3 identici allo shard; taglio di `synth-0000043` (v3 fuori dagli assi di 7.3 px, v4 dentro); tratti visibili; mutazioni; esiti per campione su uno shard di prova. Nulla sugli shard interi né sui dati |
+| 30393 (2026-10-29) | `slurm/synth_semantics_check.sbatch c1c2-run1` su `253d505`: gli 8 shard v3 in sola lettura, 20.000 scene v4 in memoria, casi `synth-0000043` v3 e v4 | 8 min 8 s, conteggi coerenti (`incoherent` vuoto). v3: 60.900 PNG ridisegnati con byte identici, 38.161 campioni verificati. v4: 18.146 scene verificate su 20.000, nessuna risposta errata. Dettagli sotto | che v3 si riproduce byte per byte e che il controllo ritrova i difetti noti di v3; due difetti nuovi, presenti anche in v4. Non certifica dati |
 
 Calcoli di sola libreria standard sul frontend, il 2026-10-28, a supporto delle specifiche (non sono collaudi):
 - riproduzione delle domande di synth v3 dalle chiavi, con istogrammi identici al manifest del job 29756;
@@ -283,12 +284,7 @@ Stato delle correzioni, tenendo distinti i tre livelli:
 - **Suite CPU in allocazione: eseguita il 2026-10-29** (job 30392, tabella sopra), col disegno vero. Coperti: layout
   e invarianti del renderer, taglio di `synth-0000043`, PNG, specifica e domande di 8 scene v3 identici allo shard,
   script del controllo su uno shard di prova.
-- **Controllo sugli shard: non eseguito.** Restano da verificare:
-  - l'identità di tutti i PNG di v3 ridisegnati;
-  - le 20.000 scene v4 in memoria;
-  - i PNG dei casi.
-
-  Il comando è nella tabella sotto. Nessun dato è certificato da questi controlli.
+- **Controllo sugli shard: eseguito il 2026-10-29** (job 30393, sotto). Nessun dato è certificato da questi controlli.
 
 Revisione di `f7d32d3` (2026-10-29): il report di `scripts/synth_semantics_check.py` contava come verificato un campione
 di uno shard guardando solo la semantica della scena ricostruita, anche con il PNG diverso o mancante. Inoltre, con il
@@ -306,7 +302,43 @@ layout già nel record, il PNG non si confrontava affatto. Stato della correzion
 - **Verifica locale: nessuna.** Dal 2026-10-29 anche `compile()` va in un job.
 - **Suite CPU: passata il 2026-10-29** (job 30392, tabella sopra), compreso `test_sample_evidence`. `test_synth.py`
   carica `synth_semantics_check.py` e `synth_render.py`, quindi tutti i file toccati sono stati compilati ed eseguiti.
-- **Controllo sugli shard: non eseguito.** Comando nella tabella sotto.
+- **Controllo sugli shard: eseguito il 2026-10-29** (job 30393, sotto).
+
+Controllo sugli shard (job 30393, 2026-10-29, codice `253d505`, uscite in `outputs/synth_check/c1c2-run1`):
+- **Coerenza.** `incoherent` vuoto. Il report risulta `dirty` solo per la riga del ledger scritta all'invio.
+- **v3: 60.900 campioni** (60.000 di training, 300 di test e 600 delle coppie).
+  - Immagini: tutte `byte_identici`. Nessun campione ha il layout, quindi la provenienza è `ridisegnato_layout_assente`.
+  - Campioni: 38.161 verificati e 22.739 no. Verificati per famiglia: coord 14.101, function 13.083, polygon 3.557,
+    shapes 7.420 su 15.225 ciascuna.
+  - Domande: 819.701 ok, 26.041 non ammissibili e 37 errate.
+  - Difetti noti ritrovati:
+    - `intersections`: 37 errate, 374 non ammissibili e 5.920 ok. Il totale è coerente col calcolo sul frontend per il
+      solo training (5.897, 37 e 373) più le 24 domande dello shard di test; il report però non separa gli shard;
+    - `shape_type`: 10.758 non ammissibili (le aperte; ok 2.153);
+    - `label_type`: 11.050 non ammissibili;
+    - 625 scene shapes bloccate, con 623 violazioni `figura_tagliata` e 15 `figure_sovrapposte`; fra queste
+      `synth-0000043`.
+- **v4 in memoria: 20.000 scene.**
+  - Esiti: 18.146 verificate. Per famiglia: coord 4.628, function 4.358, polygon 4.160, shapes 5.000 su 5.000.
+  - Domande: 281.164 ok e 58 non ammissibili, tutte `coords` senza l'etichetta di tacca che serve a leggere la
+    coordinata (169 anche in v3). Nessuna errata. `intersections` (2.155), `shape_type` (4.301) e `label_type`
+    (12.345) sono tutte ok.
+  - 1.796 scene non sono verificate soltanto per violazioni non bloccanti.
+- **Casi.** `synth-0000043` v3 è bloccata da `figura_tagliata`: le 8 domande sono non ammissibili e il PNG mostra il
+  rettangolo L senza il lato sinistro. In v4 la scena ha un solo quadrato dentro gli assi e 7 domande ok. Il PNG v4
+  ha lo stesso sha256 del job 30392: il disegno è deterministico fra job.
+- **Difetti nuovi**, presenti in v3 e nel codice v4 attuale:
+  1. *Coppie controfattuali polygon*: `synth.counterfactual` cambia la lunghezza scritta di un lato senza cambiare
+     il disegno. Tutte le 75 varianti `-b` polygon hanno `lunghezza_incoerente`, per esempio "scritto 10, disegnato
+     7.00".
+  2. *Testi sovrapposti* (riquadri che si sovrappongono di più di 1 px): violazioni in v3 coord 1.808, function 3.396,
+     polygon 2.636; in v4 591, 1.232 e 840, con frequenze simili.
+     - Nelle righe conservate in `problems.jsonl`, in coord (96%) e function (100%) si tratta dell'etichetta `O`
+       dell'origine e delle etichette di tacca `-1`, che si toccano vicino all'origine. In polygon (100%) è
+       l'etichetta di una lunghezza sopra quella di un vertice.
+     - In polygon anche `testo_su_marcatore`, un'etichetta di lunghezza sul punto di un vertice: 120 casi in v3, 39
+       in v4.
+     - Il confronto è fra riquadri, non fra glifi: prima di decidere va guardato qualche PNG.
 
 ### Da pianificare
 
@@ -316,7 +348,7 @@ un job CPU (CLAUDE.md).
 
 | Collaudo | Scopo | Risorse | Quando |
 | --- | --- | --- | --- |
-| Sintetici (C1, C2) | `tests/test_synth.py` è già passato (job 30392). Resta `scripts/synth_semantics_check.py` su tutti gli shard v3 (attesi `byte_identici` o `pixel_identici` ovunque, conteggi coerenti, difetti noti ritrovati), su 20.000 scene v4 in memoria e sui casi `synth-0000043` v3 e v4 (PNG). Comando: `sbatch --parsable slurm/synth_semantics_check.sbatch c1c2-run1 --shards '/home/prignano/vision_limite/data/shards/synth/v3/*/*.tar' --generate 20000 --generator-version 4 --cases synth-0000043:shapes:3 synth-0000043:shapes:4` | 0 GPU, 8 CPU, 16G, 1 h 30 | con l'ok dell'utente; il render di v4 dopo |
+| Sintetici (C1, C2) | Test (job 30392) e controllo sugli shard (job 30393) eseguiti. Da decidere i due difetti nuovi (sopra): coppie polygon e testi sovrapposti. Poi correzione, test, nuovo controllo su scene v4 in memoria e render di v4. PNG di qualche scena con testi sovrapposti: `--cases` in un job CPU | controllo: 0 GPU, 8 CPU, 16G, circa 10 min (job 30393: 8 min); render: 4 CPU, 16G | con l'ok dell'utente |
 | Contratto ed estrattore (C3, C4; punto 1) | Tokenizzazione e label per modalità; quattro forme e terminazione; tassonomia ufficiale; risposta diretta di Violetto | CPU 20 min; GPU 1 ora | dopo D3 e S3 |
 | Manifest, indice e reader (C5-C7; punto 3) | Collisioni, split ereditati, chiavi storiche, filtro dei reader, contatori | CPU 20 min; indice CPU 4 CPU 24G, durata da misurare | dopo S1, D6 |
 | Stime (C8) | Copertura esatta, limite ipergeometrico, estrazioni | CPU 20 min | dopo S4 |

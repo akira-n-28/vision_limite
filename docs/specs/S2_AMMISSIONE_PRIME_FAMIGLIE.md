@@ -77,8 +77,13 @@ alla §5:
 - intersezioni e `shape_type` si collaudano su 4.000 scene e `label_type` su 400, invece delle 10.000 indicate;
 - i collaudi MAVIS appartengono a C9 e non sono implementati.
 
-Il controllo sugli shard (`synth_semantics_check.py` su v3 e su scene v4 in memoria) non è ancora eseguito. I test
-collaudano il codice, non i dati: nessun dato è certificato.
+Il controllo sugli shard (job 30393, conteggi nel piano F0 §4) ha dato tre risultati:
+- i 60.900 PNG di v3, ridisegnati, hanno byte identici;
+- il controllo ritrova i difetti noti di v3;
+- sulle 20.000 scene v4 in memoria nessuna risposta è errata.
+
+Ha trovato anche due difetti nuovi, presenti nel codice v4 (§2.5), da decidere prima del render di v4. I test e il
+controllo collaudano il codice, non i dati: nessun dato è certificato.
 - `synth.py`: `version=4` è il default e `version=3` riproduce v3; sono nuovi `visible_bound`, `intersection_points`
   (conteggio geometrico), `_near_miss`, le domande di classificazione con le opzioni, `_shapes_overlap`,
   `_shapes_fit` e `render(spec, layout=True)`;
@@ -222,6 +227,31 @@ si estraggono di nuovo dallo stesso generatore (`_shapes_overlap`, `_shapes_fit`
 v3 su 15.000 (6.5%); le altre restano identiche. Schema del caso prima e dopo, ricostruito dalla specifica:
 [v3](../img/synth-0000043-v3.svg), [v4](../img/synth-0000043-v4.svg). I PNG del renderer si ottengono nel job con
 `--cases`.
+
+### 2.5 Difetti trovati dal controllo sugli shard (job 30393)
+
+Si trovano sia in v3 sia nel codice v4 attuale. Nessuno shard v4 è stato generato.
+
+- **Coppie controfattuali polygon.** Per la famiglia polygon, `synth.counterfactual` cambia la lunghezza *scritta* di
+  un lato, aggiungendo 2, 3 o 4, e lascia il disegno invariato. La variante `-b` mostra quindi un lato etichettato,
+  per esempio, 10 ma disegnato lungo 7, mentre gli altri lati sono in scala.
+  - Il controllo lo trova in tutte le 75 varianti `-b` polygon di v3 (`lunghezza_incoerente`), che restano non
+    verificate.
+  - È un errore confermato per costruzione, quindi per la tabella degli stati (§1) quelle coppie di v3 sono
+    `escluso`.
+  - Correzioni possibili: cambiare la geometria insieme all'etichetta, oppure scegliere un altro dettaglio decisivo.
+- **Testi sovrapposti.** Due riquadri di testo che si sovrappongono di più di 1 px in entrambe le direzioni sono una
+  violazione non bloccante, che basta a lasciare il campione non verificato.
+  - Frequenze simili in v3 e v4: in v4 sono 591 violazioni coord, 1.232 function e 840 polygon su 5.000 scene per
+    famiglia. Sono 1.796 scene v4 non verificate solo per questo motivo o per `testo_su_marcatore`.
+  - Nelle righe conservate, in coord e function quasi sempre si toccano l'etichetta `O` dell'origine e quelle di
+    tacca `-1`. In polygon un'etichetta di lunghezza si sovrappone a quella di un vertice; in 39 scene v4 è sopra il
+    punto di un vertice (`testo_su_marcatore`).
+  - Il confronto è fra riquadri, non fra glifi. Prima di correggere il renderer o rivedere l'invariante vanno
+    guardati alcuni PNG (`--cases`).
+- **Coordinate senza etichetta di tacca.** 58 domande `coords` in v4 e 169 in v3 sono non ammissibili perché la
+  tacca che serve a leggere la coordinata non ha etichetta. Il verificatore si comporta come previsto; resta da
+  decidere se il generatore debba evitare queste domande.
 
 ## 3. MAVIS-Geometry (`f1_mavis.py`, `f1_schema.py`, shard `9c80fff3-caption`)
 

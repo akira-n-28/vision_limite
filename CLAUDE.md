@@ -346,9 +346,16 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
   `scripts/synth_semantics_check.py`. Il report tiene separati semantica della scena, corrispondenza col PNG dello
   shard (digest `png_sha256` nel layout v4, altrimenti ridisegno con confronto di byte e pixel) ed esito del campione
   (S2 §2.4). La suite CPU è passata il 2026-10-29 (job 30392, `b544b97`): `tests/test_synth.py`, con il disegno vero,
-  conta 96 controlli, compresi gli esiti per campione. Il controllo di `synth_semantics_check.py` su tutti gli shard v3 e
-  su scene v4 in memoria non è ancora eseguito. Gli shard v4 non sono generati e nessun dato è certificato. Per controllare
-  la compilazione usare `compile()` in un job, non `ast.parse`, che non vede gli errori della tabella dei simboli.
+  conta 96 controlli, compresi gli esiti per campione. Il controllo sugli shard (job 30393,
+  `outputs/synth_check/c1c2-run1`) ha dato questi risultati:
+  - ridisegna tutti i 60.900 PNG di v3 con byte identici e ritrova i difetti noti;
+  - sulle 20.000 scene v4 in memoria nessuna risposta è errata;
+  - trova due difetti nuovi, presenti anche in v4 (S2 §2.5): le varianti `-b` delle coppie controfattuali polygon
+    hanno una lunghezza scritta diversa dal disegno, e il 9% delle scene v4 ha testi sovrapposti fra loro o a un
+    marcatore.
+
+  Gli shard v4 non sono generati e nessun dato è certificato. Per controllare la compilazione usare `compile()` in un
+  job, non `ast.parse`, che non vede gli errori della tabella dei simboli.
 - MMFineReason @ 7c93f724: le descrizioni di Qwen3-VL-235B sono testo di un modello, non fatti (circa 10% di
   affermazioni false nel campione del 2026-10-19, che non conta come audit); contiene Geo3K e la famiglia WeMath.
   Caption, risposta e CoT sono oggetti distinti (pipeline §5.7).
