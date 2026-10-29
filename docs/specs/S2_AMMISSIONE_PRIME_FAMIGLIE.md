@@ -71,10 +71,14 @@ manifest del job 29756: il codice attuale riproduce le domande di v3.
 **Stato** (C1-C2): implementati il 2026-10-28 (`38af82a`) e corretti il 2026-10-29 dopo la revisione di quel commit,
 che ha trovato figure tagliate, intersezioni contate nei buchi del disegno e un errore di sintassi nei test. Lo stesso
 giorno la revisione di `f7d32d3` ha trovato che il report contava come verificato un campione senza aver dimostrato la
-corrispondenza col PNG dello shard; ora gli esiti sono separati (§2.4). Le correzioni di `38af82a` sono state
-verificate solo con calcoli leggeri di sola libreria standard sul frontend; quelle del report non sono state né
-compilate né eseguite (dal 2026-10-29 ogni programma gira in un job). I test e il controllo sugli shard non sono
-ancora eseguiti, quindi niente qui è collaudato e nessun dato è certificato.
+corrispondenza col PNG dello shard; ora gli esiti sono separati (§2.4). La suite CPU è passata il 2026-10-29 (job
+30392, `b544b97`): `tests/test_synth.py` esegue 96 controlli col disegno vero, nessun fallimento. Due scarti rispetto
+alla §5:
+- intersezioni e `shape_type` si collaudano su 4.000 scene e `label_type` su 400, invece delle 10.000 indicate;
+- i collaudi MAVIS appartengono a C9 e non sono implementati.
+
+Il controllo sugli shard (`synth_semantics_check.py` su v3 e su scene v4 in memoria) non è ancora eseguito. I test
+collaudano il codice, non i dati: nessun dato è certificato.
 - `synth.py`: `version=4` è il default e `version=3` riproduce v3; sono nuovi `visible_bound`, `intersection_points`
   (conteggio geometrico), `_near_miss`, le domande di classificazione con le opzioni, `_shapes_overlap`,
   `_shapes_fit` e `render(spec, layout=True)`;

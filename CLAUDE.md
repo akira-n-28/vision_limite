@@ -345,10 +345,10 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
   `src/limite_vl/synth_check.py` (taglio sull'area degli assi, tratti disegnati, violazioni bloccanti) e
   `scripts/synth_semantics_check.py`. Il report tiene separati semantica della scena, corrispondenza col PNG dello
   shard (digest `png_sha256` nel layout v4, altrimenti ridisegno con confronto di byte e pixel) ed esito del campione
-  (S2 §2.4). Il codice è verificato solo sul frontend, con sola libreria standard, e questi esiti per campione
-  (revisione di `f7d32d3`) non sono stati né compilati né eseguiti: va collaudato in allocazione, e gli shard v4 non
-  sono ancora generati. Per controllare la compilazione usare `compile()` in un job, non `ast.parse`, che non vede gli
-  errori della tabella dei simboli.
+  (S2 §2.4). La suite CPU è passata il 2026-10-29 (job 30392, `b544b97`): `tests/test_synth.py`, con il disegno vero,
+  conta 96 controlli, compresi gli esiti per campione. Il controllo di `synth_semantics_check.py` su tutti gli shard v3 e
+  su scene v4 in memoria non è ancora eseguito. Gli shard v4 non sono generati e nessun dato è certificato. Per controllare
+  la compilazione usare `compile()` in un job, non `ast.parse`, che non vede gli errori della tabella dei simboli.
 - MMFineReason @ 7c93f724: le descrizioni di Qwen3-VL-235B sono testo di un modello, non fatti (circa 10% di
   affermazioni false nel campione del 2026-10-19, che non conta come audit); contiene Geo3K e la famiglia WeMath.
   Caption, risposta e CoT sono oggetti distinti (pipeline §5.7).
