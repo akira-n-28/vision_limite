@@ -27,7 +27,7 @@ rimozione. Se l'utente parla di pubblicare i pesi o di uso commerciale, riaprire
 | Luogo | Cosa si fa |
 | --- | --- |
 | Portatile dell'utente | Stesura di pipeline e revisioni, consegnate tramite GitHub; `uv lock` se il frontend lo ferma |
-| Frontend `lagrangectl` (Claude Code) | Editing, git, `sbatch`/`squeue`/`sacct`/`scancel` sui propri job, download con gli script del kit, script di sola libreria standard che non caricano dati |
+| Frontend `lagrangectl` (Claude Code) | Editing, git, `sbatch`/`squeue`/`sacct`/`scancel` sui propri job, lettura di log, download e lock con gli script del kit. Nessun altro programma, nemmeno di sola libreria standard |
 | Job SLURM su `lagrange0` | Tutto il calcolo: test, import di torch, tokenizzazione, hash, estrazione, shard, training, valutazione |
 
 Il pacchetto del portatile contiene documenti, non codice da sovrapporre in blocco alla cartella del cluster.
@@ -45,9 +45,16 @@ Il pacchetto del portatile contiene documenti, non codice da sovrapporre in bloc
 
 ## Regole che non si negoziano
 
-- Il frontend ha 3.8 GiB di RAM condivisi da tutti. Lì si fanno solo editing, git,
-  `sbatch`/`squeue`/`sacct`/`scancel` sui propri job, lettura di log con `tail`/`grep`
-  limitati, script di sola libreria standard che non caricano dati (manifest, link).
+- Il frontend ha 3.8 GiB di RAM condivisi da tutti. Lì si fanno solo:
+  - editing e git;
+  - `sbatch`/`squeue`/`sacct`/`scancel` sui propri job;
+  - lettura di log e di piccoli file con `tail`, `grep`, `ls`, `stat`, `df`;
+  - i passi del kit per download e lock, che sui nodi offline non si possono fare: `fetch.sh`, `fetch_manifest.sh`,
+    `build_manifests.sh` (con `hf_manifest.py`), `uvlock_manifest.py`, `link_hf_snapshot.py`, `setup_env.sh lock`.
+- **Ogni altro programma va in un job CPU** (decisione dell'utente del 2026-10-29), anche uno script di sola libreria
+  standard piccolo e veloce: verifiche e calcoli di controllo, `compile()` dei sorgenti, generatori di figure, indici
+  o inventari. Gli script stanno nel repository, non in `/tmp`, che i nodi di calcolo non vedono, e si lanciano con un
+  launcher in `slurm/`.
 - **Mai sul frontend:** `import torch`, test, tokenizzazione, parsing di Parquet/JSON grandi,
   hash completi, estrazione di archivi, installazioni, compilazioni, caricamento di pesi.
   Tutto questo va in un job SLURM, anche "solo per provare".

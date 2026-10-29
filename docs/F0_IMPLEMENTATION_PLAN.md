@@ -288,7 +288,8 @@ Stato delle correzioni, tenendo distinti i tre livelli:
 
 ### Da pianificare
 
-Nessuno è stato eseguito e nessuno è dichiarato superato.
+Nessuno è stato eseguito e nessuno è dichiarato superato. Dal 2026-10-29 anche le verifiche leggere, che finora sono
+state eseguite sul frontend, vanno in un job CPU (CLAUDE.md).
 
 | Collaudo | Scopo | Risorse | Quando |
 | --- | --- | --- | --- |

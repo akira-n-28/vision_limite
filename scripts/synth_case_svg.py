@@ -8,7 +8,10 @@ di lato min(larghezza, altezza) al centro (set_aspect equal, anchor C) che mostr
 dpi. Il disegno è tagliato dall'area degli assi come in matplotlib. Il contorno completo delle figure che escono è
 ripassato in rosso tratteggiato, e il bordo dell'area degli assi in grigio, che nell'immagine vera non compare.
 
-    python3 -I -S scripts/synth_case_svg.py CHIAVE VERSIONE OUT.svg
+    srun $RUN_PYTHON -I -S scripts/synth_case_svg.py CHIAVE VERSIONE OUT.svg     # in un job CPU
+
+Come ogni programma, si esegue in un job CPU, non sul frontend (CLAUDE.md, regola del 2026-10-29). I due schemi in
+docs/img sono stati generati sul frontend il 2026-10-29, prima di questa regola.
 """
 from __future__ import annotations
 
