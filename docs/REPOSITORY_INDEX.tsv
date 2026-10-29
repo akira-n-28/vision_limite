@@ -78,6 +78,18 @@ docs/REPOSITORY_STATUS.md	documento	corrente	stato, piano o inventario della mig
 docs/REVIEW_ACTIONS.md	documento	corrente	stato, piano o inventario della migrazione	-
 docs/img/synth-0000043-v3.svg	immagine	corrente	schema di un caso documentato (scripts/synth_case_svg.py)	non è il PNG del renderer
 docs/img/synth-0000043-v4.svg	immagine	corrente	schema di un caso documentato (scripts/synth_case_svg.py)	non è il PNG del renderer
+docs/img/synth-review/campione-altro.png	immagine	corrente	analisi degli scarti (job 30400, S2 §2.5): campione, etichette di punti e tacche (coord)	ritagli dei PNG del renderer (scripts/synth_review.py)
+docs/img/synth-review/campione-controllo.png	immagine	corrente	analisi degli scarti (job 30400, S2 §2.5): campione, scene approvate di controllo	ritagli dei PNG del renderer (scripts/synth_review.py)
+docs/img/synth-review/campione-etichetta_misura-polygon.png	immagine	corrente	analisi degli scarti (job 30400, S2 §2.5): campione, misure ed etichette del punto su un lato (polygon)	ritagli dei PNG del renderer (scripts/synth_review.py)
+docs/img/synth-review/campione-misura_su_punto-polygon.png	immagine	corrente	analisi degli scarti (job 30400, S2 §2.5): campione, misure sul punto segnato su un lato (polygon)	ritagli dei PNG del renderer (scripts/synth_review.py)
+docs/img/synth-review/campione-origine-coord.png	immagine	corrente	analisi degli scarti (job 30400, S2 §2.5): campione, O e tacche -1 all'origine (coord)	ritagli dei PNG del renderer (scripts/synth_review.py)
+docs/img/synth-review/campione-origine-function.png	immagine	corrente	analisi degli scarti (job 30400, S2 §2.5): campione, O e tacche -1 all'origine (function)	ritagli dei PNG del renderer (scripts/synth_review.py)
+docs/img/synth-review/coords.png	immagine	corrente	analisi degli scarti (job 30400, S2 §2.5): coordinate senza etichetta di tacca (v4)	ritagli dei PNG del renderer (scripts/synth_review.py)
+docs/img/synth-review/coppie-esempi-1.png	immagine	corrente	analisi degli scarti (job 30400, S2 §2.5): coppie controfattuali polygon v3, esempi per classe	ritagli dei PNG del renderer (scripts/synth_review.py)
+docs/img/synth-review/coppie-esempi-2.png	immagine	corrente	analisi degli scarti (job 30400, S2 §2.5): coppie controfattuali polygon v3, esempi per classe	ritagli dei PNG del renderer (scripts/synth_review.py)
+docs/img/synth-review/coppie-misure-1.png	immagine	corrente	analisi degli scarti (job 30400, S2 §2.5): coppie controfattuali polygon v3, misura cambiata in a e b	ritagli dei PNG del renderer (scripts/synth_review.py)
+docs/img/synth-review/coppie-misure-2.png	immagine	corrente	analisi degli scarti (job 30400, S2 §2.5): coppie controfattuali polygon v3, misura cambiata in a e b	ritagli dei PNG del renderer (scripts/synth_review.py)
+docs/img/synth-review/coppie-misure-3.png	immagine	corrente	analisi degli scarti (job 30400, S2 §2.5): coppie controfattuali polygon v3, misura cambiata in a e b	ritagli dei PNG del renderer (scripts/synth_review.py)
 docs/reviews/PIPELINE_ADDESTRAMENTO_LIMITE_VL.md	documento	corrente	navigazione dei rapporti	-
 docs/reviews/README.md	documento	corrente	navigazione dei rapporti	-
 docs/reviews/REVISIONE_INDIPENDENTE_GOLD_E_DECONTAMINAZIONE.md	documento	storico	rapporto indipendente immutato (versione e hash propri)	-
@@ -170,6 +182,7 @@ scripts/stem_audit_round.py	script	storico-congelato	audit e gate F2 congelati (
 scripts/stream_stats.py	script	da adeguare	statistiche del flusso con lo schema storico; servono contatori del consumato (§5.8.6)	-
 scripts/synth_case_svg.py	script	corrente	schema SVG di un caso shapes dalla specifica, senza matplotlib (documentazione dei casi)	-
 scripts/synth_render.py	script	corrente	render degli shard sintetici con --generator-version obbligatorio (3 riproduce v3, 4 corretto, layout con png_sha256); C1, test passati (job 30392), controllo sugli shard eseguito (job 30393)	-
+scripts/synth_review.py	script	corrente	analisi degli scarti del controllo dei sintetici in un job (coppie polygon, riquadri di testo sovrapposti, coordinate); sola lettura, job 30400	-
 scripts/synth_semantics_check.py	script	corrente	verifica semantica e del renderer dei sintetici in un job (C2), esiti separati di semantica, immagine e campione; test passati (job 30392), controllo sugli shard eseguito (job 30393)	-
 scripts/train_f1.py	script	da adeguare	trainer F1 storico (ViT congelato); helper importati da molti strumenti; base del nuovo trainer (§17.4)	importato da check_train_config, check_vision_padding, check_vision_precision, eval_f1_formulas, eval_f1_val, f1_error_gen, f1c_*, f2_generate, replay_generate, stream_stats, train_f2
 scripts/train_f2.py	script	storico	trainer F2 storico: gate f2-cert, conteggi di parametri fissi, ViT congelato; riusabili MasterWeights e gruppi	importato da tests/test_f2_train
@@ -225,6 +238,7 @@ slurm/shard_unimer.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, 
 slurm/split_duplicates.sbatch	launcher	da adeguare	launcher di uno strumento da adeguare (vedi lo script)	-
 slurm/stream_stats.sbatch	launcher	da adeguare	launcher di uno strumento da adeguare (vedi lo script)	-
 slurm/synth_render.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
+slurm/synth_review.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
 slurm/synth_semantics_check.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
 slurm/tests_cpu.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
 slurm/unimer_check.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-

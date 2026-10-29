@@ -215,7 +215,7 @@ dopo questi.
 
 | # | Intervento | File | Collaudi | Job necessario | Dipende da |
 | --- | --- | --- | --- | --- | --- |
-| C1 | Sintetici: un solo dominio visibile per `intersections` (conteggio geometrico e ammissibilità separati); niente domanda per grafici che si sfiorano senza incrociarsi; domande di classificazione con opzioni (triangoli) o classe più specifica (quadrilateri, `label_type`); shapes senza figure vicine né fuori dagli assi (col tratto), con nuova estrazione solo per le scene che violano i vincoli; layout degli oggetti disegnati nel JSON da v4, con lo sha256 del PNG del campione (`png_sha256`); `version=3` riproduce v3. **Implementato il 2026-10-28 (`38af82a`), corretto il 2026-10-29 (figure tagliate; digest del PNG dopo la revisione di `f7d32d3`); suite CPU passata (job 30392), controllo sugli shard eseguito (job 30393, §4): due difetti nuovi da correggere prima del render di v4** | `src/limite_vl/synth.py`, `scripts/synth_render.py` (`--generator-version` obbligatorio), `slurm/synth_render.sbatch` | `tests/test_synth.py` (S2 §5) | collaudo: C1-C2 sotto; render di v4 (CPU, 4 CPU, 16G, circa 12 minuti) solo dopo il collaudo | S2 |
+| C1 | Sintetici: un solo dominio visibile per `intersections` (conteggio geometrico e ammissibilità separati); niente domanda per grafici che si sfiorano senza incrociarsi; domande di classificazione con opzioni (triangoli) o classe più specifica (quadrilateri, `label_type`); shapes senza figure vicine né fuori dagli assi (col tratto), con nuova estrazione solo per le scene che violano i vincoli; layout degli oggetti disegnati nel JSON da v4, con lo sha256 del PNG del campione (`png_sha256`); `version=3` riproduce v3. **Implementato il 2026-10-28 (`38af82a`), corretto il 2026-10-29 (figure tagliate; digest del PNG dopo la revisione di `f7d32d3`); suite CPU passata (job 30392), controllo sugli shard eseguito (job 30393, §4), scarti analizzati (job 30400, S2 §2.5): proposta minima da approvare prima del render di v4** | `src/limite_vl/synth.py`, `scripts/synth_render.py` (`--generator-version` obbligatorio), `slurm/synth_render.sbatch` | `tests/test_synth.py` (S2 §5) | collaudo: C1-C2 sotto; render di v4 (CPU, 4 CPU, 16G, circa 12 minuti) solo dopo il collaudo | S2 |
 | C2 | Verifica semantica indipendente dei sintetici: ricalcolo per tipo dagli oggetti disegnati (layout) con predicati propri, intersezioni solo nei tratti disegnati; invarianti del renderer, compreso il taglio sull'area effettiva degli assi; violazioni bloccanti che impediscono la verifica del campione; nel report esiti separati per semantica della scena, corrispondenza col PNG dello shard e campione (S2 §2.4). **Implementato il 2026-10-28 (`38af82a`), corretto il 2026-10-29, esiti per campione dopo la revisione di `f7d32d3`; suite CPU passata (job 30392), controllo sugli shard eseguito (job 30393, §4)** | `src/limite_vl/synth_check.py`, `scripts/synth_semantics_check.py` (anche `--cases`), `slurm/synth_semantics_check.sbatch`, `scripts/synth_case_svg.py` (schemi dei casi) | mutazioni ed esiti per campione (`test_sample_evidence`) in `tests/test_synth.py`; su v3 deve ritrovare i difetti noti | controllo di v3 e di scene v4 in memoria (CPU, 8 CPU, 16G, ≤ 1 h 30) | C1 |
 | C3 | Contratto `vl-contract/1`: oggetto versionato, template `limite-vl/1`, processor che lo riceve e lo registra | `src/limite_vl/contract.py` (nuovo), `processing.py` | S3 §6 (tokenizzazione delle due modalità, system prompt canonico identico ai token di Violetto) | — | D3 |
 | C4 | Estrattore e verificatori: forma, completezza dai metadati, candidati, tre esiti separati; `generate_batch` restituisce anche `max_new_tokens` e il motivo d'arresto | `src/limite_vl/answers.py` (nuovo), `generation.py` | S3 §6, compresi i casi A-T della tassonomia ufficiale | — | C3 |
@@ -233,7 +233,8 @@ dopo questi.
 | --- | --- | --- | --- |
 | 30255 (2026-10-28) | `slurm/tests_cpu.sbatch`, suite CPU completa dopo la migrazione | 22 file, 775 controlli, nessun fallimento, stderr vuoto, come il job 30050 prima della migrazione | che nessun test dipendeva dai file archiviati; nulla sui requisiti nuovi |
 | 30392 (2026-10-29) | `slurm/tests_cpu.sbatch` su `b544b97`, prima esecuzione di `tests/test_synth.py` | 23 file, 871 controlli, nessun fallimento, stderr vuoto, 7 min 42 s. I 22 file del job 30255 sono invariati e danno gli stessi 775 controlli; `test_synth.py` ne aggiunge 96 | che il codice di C1-C2 compila e supera le regressioni scritte, col disegno vero. Coperti: PNG, specifica e domande di 8 scene v3 identici allo shard; taglio di `synth-0000043` (v3 fuori dagli assi di 7.3 px, v4 dentro); tratti visibili; mutazioni; esiti per campione su uno shard di prova. Nulla sugli shard interi né sui dati |
-| 30393 (2026-10-29) | `slurm/synth_semantics_check.sbatch c1c2-run1` su `253d505`: gli 8 shard v3 in sola lettura, 20.000 scene v4 in memoria, casi `synth-0000043` v3 e v4 | 8 min 8 s, conteggi coerenti (`incoherent` vuoto). v3: 60.900 PNG ridisegnati con byte identici, 38.161 campioni verificati. v4: 18.146 scene verificate su 20.000, nessuna risposta errata. Dettagli sotto | che v3 si riproduce byte per byte e che il controllo ritrova i difetti noti di v3; due difetti nuovi, presenti anche in v4. Non certifica dati |
+| 30393 (2026-10-29) | `slurm/synth_semantics_check.sbatch c1c2-run1` su `253d505`: gli 8 shard v3 in sola lettura, 20.000 scene v4 in memoria, casi `synth-0000043` v3 e v4 | 8 min 8 s, conteggi coerenti (`incoherent` vuoto). v3: 60.900 PNG ridisegnati con byte identici, 38.161 campioni verificati. v4: 18.146 scene approvate dal checker su 20.000, nessuna risposta segnalata errata. Dettagli sotto | che v3 si riproduce byte per byte e che il controllo ritrova i difetti noti di v3; segnalazioni nuove, presenti anche in v4, analizzate nel job 30400. Non certifica dati |
+| 30400 (2026-10-29) | `slurm/synth_review.sbatch scarti-run1` su `8cd2c22`: analisi degli scarti del job 30393 (coppie polygon v3, riquadri di testo sovrapposti v4, coordinate) | 1 min 11 s. Censimento uguale al report (2.702 violazioni). Coppie: 9 contraddizioni dimostrabili su 75. Riquadri: collisioni reali fra misure ed etichette dei punti nei polygon (692 su 840), all'origine quasi solo riquadri. Coordinate: 227 su 227 leggibili da scala. S2 §2.5 | quali segnalazioni sono errori, quali ambiguità e quali controlli troppo severi; base della proposta minima. Non modifica generatore né checker, non certifica dati |
 
 Calcoli di sola libreria standard sul frontend, il 2026-10-28, a supporto delle specifiche (non sono collaudi):
 - riproduzione delle domande di synth v3 dalle chiavi, con istogrammi identici al manifest del job 29756;
@@ -321,24 +322,52 @@ Controllo sugli shard (job 30393, 2026-10-29, codice `253d505`, uscite in `outpu
 - **v4 in memoria: 20.000 scene.**
   - Esiti: 18.146 verificate. Per famiglia: coord 4.628, function 4.358, polygon 4.160, shapes 5.000 su 5.000.
   - Domande: 281.164 ok e 58 non ammissibili, tutte `coords` senza l'etichetta di tacca che serve a leggere la
-    coordinata (169 anche in v3). Nessuna errata. `intersections` (2.155), `shape_type` (4.301) e `label_type`
-    (12.345) sono tutte ok.
-  - 1.796 scene non sono verificate soltanto per violazioni non bloccanti.
+    coordinata (169 anche in v3). Il checker non segnala nessuna risposta errata. `intersections` (2.155),
+    `shape_type` (4.301) e `label_type` (12.345) sono tutte ok.
+  - 1.796 scene non sono approvate dal checker soltanto per violazioni non bloccanti.
+  - "Verificata" qui vuol dire approvata dal checker: non è correttezza dimostrata né qualità certificata (S2 §2.4).
 - **Casi.** `synth-0000043` v3 è bloccata da `figura_tagliata`: le 8 domande sono non ammissibili e il PNG mostra il
   rettangolo L senza il lato sinistro. In v4 la scena ha un solo quadrato dentro gli assi e 7 domande ok. Il PNG v4
   ha lo stesso sha256 del job 30392: il disegno è deterministico fra job.
-- **Difetti nuovi**, presenti in v3 e nel codice v4 attuale:
+- **Segnalazioni nuove**, presenti in v3 e nel codice v4 attuale. Sono analizzate nel job 30400 (sotto e S2 §2.5),
+  che corregge la prima lettura data qui:
   1. *Coppie controfattuali polygon*: `synth.counterfactual` cambia la lunghezza scritta di un lato senza cambiare
-     il disegno. Tutte le 75 varianti `-b` polygon hanno `lunghezza_incoerente`, per esempio "scritto 10, disegnato
-     7.00".
-  2. *Testi sovrapposti* (riquadri che si sovrappongono di più di 1 px): violazioni in v3 coord 1.808, function 3.396,
-     polygon 2.636; in v4 591, 1.232 e 840, con frequenze simili.
-     - Nelle righe conservate in `problems.jsonl`, in coord (96%) e function (100%) si tratta dell'etichetta `O`
-       dell'origine e delle etichette di tacca `-1`, che si toccano vicino all'origine. In polygon (100%) è
-       l'etichetta di una lunghezza sopra quella di un vertice.
-     - In polygon anche `testo_su_marcatore`, un'etichetta di lunghezza sul punto di un vertice: 120 casi in v3, 39
-       in v4.
-     - Il confronto è fra riquadri, non fra glifi: prima di decidere va guardato qualche PNG.
+     il disegno, e tutte le 75 varianti `-b` hanno `lunghezza_incoerente`. Questo viola l'invariante di scala, ma non
+     basta a rendere errata la risposta: le contraddizioni dimostrabili coi vincoli dichiarati sono 9.
+  2. *Riquadri di testo sovrapposti* (più di 1 px): violazioni in v3 coord 1.808, function 3.396, polygon 2.636; in
+     v4 591, 1.232 e 840.
+     - Le percentuali date qui in un primo momento venivano dalle righe conservate in `problems.jsonl`, che non sono
+       un campione rappresentativo. Valgono i conteggi del censimento del job 30400.
+     - In polygon l'etichetta coinvolta è quella del punto segnato su un lato, non quella di un vertice.
+
+Analisi degli scarti (job 30400, 2026-10-29, codice `8cd2c22`, `scripts/synth_review.py`, uscite in
+`outputs/synth_review/scarti-run1`). Il job legge il controllo e lo shard delle coppie in sola lettura e ridisegna in
+memoria; generatore e checker non cambiano. Dettagli, tabelle e immagini in S2 §2.5.
+- **Coppie polygon v3 (75).**
+  - Tutte e 75 hanno la risposta uguale alla misura stampata.
+  - 9 contraddicono un angolo dichiarato (scritto o retto) con tre lati stampati: `escluso`.
+  - 1 è contraddittoria solo leggendo gli interi come esatti.
+  - 26 sono compatibili con una riscalatura uniforme, cioè hanno una sola misura.
+  - 39 non violano vincoli dichiarati ma cambiano la forma.
+  - In 5 la misura cambiata è coperta dall'etichetta del punto sul lato.
+  - Tutte tranne le 9 restano in `quarantena`.
+  - Contratto proposto per v4: geometria coerente in scala, con la coppia ottenuta per riscalatura uniforme.
+- **Riquadri sovrapposti v4.** Il censimento copre tutte le 2.702 violazioni e torna col report.
+  - All'origine (1.798 violazioni) i tratti si toccano o condividono inchiostro in 198 casi; negli altri resta
+    spazio fra i caratteri. Nessuna domanda usa quelle etichette, salvo `O` nel conteggio.
+  - Nei polygon la misura e l'etichetta del punto sul lato condividono inchiostro in 692 casi su 840: sono collisioni
+    reali, che possono cambiare la lettura di una misura.
+  - Il campione di 20 casi più 5 controlli approvati lo conferma. Un controllo approvato, con riquadri sovrapposti di
+    1.0 px, è uguale a vista a un caso segnalato con 1.2 px.
+- **Coordinate.** Tutte le 227 domande non ammissibili (58 v4, 169 v3) si leggono contando una tacca. La tacca è
+  disegnata fra due tacche numerate e sporge di 2.5-4.0 px: il checker è più severo del necessario.
+- **Proposta minima, da approvare** (S2 §2.5):
+  1. coppie polygon con una sola misura e riscalatura uniforme;
+  2. punto segnato mai su un lato con la misura;
+  3. niente etichette sulle tacche `-1`;
+  4. nel checker, coordinata leggibile da una tacca disegnata fra due tacche numerate, con le tacche nel layout.
+
+  La soglia delle sovrapposizioni non cambia. Sono previste regressioni per ciascun punto.
 
 ### Da pianificare
 
@@ -348,7 +377,7 @@ un job CPU (CLAUDE.md).
 
 | Collaudo | Scopo | Risorse | Quando |
 | --- | --- | --- | --- |
-| Sintetici (C1, C2) | Test (job 30392) e controllo sugli shard (job 30393) eseguiti. Da decidere i due difetti nuovi (sopra): coppie polygon e testi sovrapposti. Poi correzione, test, nuovo controllo su scene v4 in memoria e render di v4. PNG di qualche scena con testi sovrapposti: `--cases` in un job CPU | controllo: 0 GPU, 8 CPU, 16G, circa 10 min (job 30393: 8 min); render: 4 CPU, 16G | con l'ok dell'utente |
+| Sintetici (C1, C2) | Eseguiti: test (job 30392), controllo sugli shard (job 30393), analisi degli scarti (job 30400). Da decidere: contratto di v4 e proposta minima (S2 §2.5). Poi correzione, regressioni, nuovo controllo su 20.000 scene v4 in memoria e render di v4 | controllo: 0 GPU, 8 CPU, 16G, circa 10 min (job 30393: 8 min); render: 4 CPU, 16G | con l'ok dell'utente |
 | Contratto ed estrattore (C3, C4; punto 1) | Tokenizzazione e label per modalità; quattro forme e terminazione; tassonomia ufficiale; risposta diretta di Violetto | CPU 20 min; GPU 1 ora | dopo D3 e S3 |
 | Manifest, indice e reader (C5-C7; punto 3) | Collisioni, split ereditati, chiavi storiche, filtro dei reader, contatori | CPU 20 min; indice CPU 4 CPU 24G, durata da misurare | dopo S1, D6 |
 | Stime (C8) | Copertura esatta, limite ipergeometrico, estrazioni | CPU 20 min | dopo S4 |

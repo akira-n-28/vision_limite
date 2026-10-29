@@ -80,10 +80,16 @@ alla §5:
 Il controllo sugli shard (job 30393, conteggi nel piano F0 §4) ha dato tre risultati:
 - i 60.900 PNG di v3, ridisegnati, hanno byte identici;
 - il controllo ritrova i difetti noti di v3;
-- sulle 20.000 scene v4 in memoria nessuna risposta è errata.
+- sulle 20.000 scene v4 in memoria il checker non segnala nessuna risposta errata.
 
-Ha trovato anche due difetti nuovi, presenti nel codice v4 (§2.5), da decidere prima del render di v4. I test e il
-controllo collaudano il codice, non i dati: nessun dato è certificato.
+Le segnalazioni nuove, presenti anche nel codice v4, sono state analizzate nel job 30400 (§2.5). Si separano in tre
+gruppi:
+- errori reali: 9 coppie polygon contraddittorie e le collisioni fra misure ed etichette dei punti nei polygon;
+- riquadri sovrapposti senza contatto dei caratteri, all'origine degli assi;
+- un controllo più severo del necessario, sulle coordinate.
+
+Vanno decise prima del render di v4. I test e il controllo collaudano il codice, non i dati: nessun dato è
+certificato.
 - `synth.py`: `version=4` è il default e `version=3` riproduce v3; sono nuovi `visible_bound`, `intersection_points`
   (conteggio geometrico), `_near_miss`, le domande di classificazione con le opzioni, `_shapes_overlap`,
   `_shapes_fit` e `render(spec, layout=True)`;
@@ -207,6 +213,10 @@ insieme:
   `byte_identici` o `pixel_identici`; altrimenti `non_verificato`, con i motivi in una riga di `problems.jsonl`.
   Una scena semanticamente valida con il PNG mancante o diverso non è un campione verificato.
 
+`verificato` vuol dire *approvato dal checker*: i predicati sul layout non trovano violazioni né risposte diverse. Non
+è *correttezza dimostrata* e non è *qualità certificata* (S4). Il checker legge il layout, non i pixel: una domanda
+può risultare ok anche se il suo testo è coperto nell'immagine (§2.5).
+
 Si registra anche da dove viene il layout usato:
 
 - `salvato_con_digest`;
@@ -228,30 +238,129 @@ v3 su 15.000 (6.5%); le altre restano identiche. Schema del caso prima e dopo, r
 [v3](../img/synth-0000043-v3.svg), [v4](../img/synth-0000043-v4.svg). I PNG del renderer si ottengono nel job con
 `--cases`.
 
-### 2.5 Difetti trovati dal controllo sugli shard (job 30393)
+### 2.5 Scarti del controllo sugli shard (job 30393), analizzati nel job 30400
 
-Si trovano sia in v3 sia nel codice v4 attuale. Nessuno shard v4 è stato generato.
+L'analisi è in `outputs/synth_review/scarti-run1`, prodotta da `scripts/synth_review.py` (codice `8cd2c22`):
+- legge il controllo e lo shard delle coppie v3 in sola lettura;
+- ridisegna in memoria;
+- non modifica né il generatore né il checker.
 
-- **Coppie controfattuali polygon.** Per la famiglia polygon, `synth.counterfactual` cambia la lunghezza *scritta* di
-  un lato, aggiungendo 2, 3 o 4, e lascia il disegno invariato. La variante `-b` mostra quindi un lato etichettato,
-  per esempio, 10 ma disegnato lungo 7, mentre gli altri lati sono in scala.
-  - Il controllo lo trova in tutte le 75 varianti `-b` polygon di v3 (`lunghezza_incoerente`), che restano non
-    verificate.
-  - È un errore confermato per costruzione, quindi per la tabella degli stati (§1) quelle coppie di v3 sono
-    `escluso`.
-  - Correzioni possibili: cambiare la geometria insieme all'etichetta, oppure scegliere un altro dettaglio decisivo.
-- **Testi sovrapposti.** Due riquadri di testo che si sovrappongono di più di 1 px in entrambe le direzioni sono una
-  violazione non bloccante, che basta a lasciare il campione non verificato.
-  - Frequenze simili in v3 e v4: in v4 sono 591 violazioni coord, 1.232 function e 840 polygon su 5.000 scene per
-    famiglia. Sono 1.796 scene v4 non verificate solo per questo motivo o per `testo_su_marcatore`.
-  - Nelle righe conservate, in coord e function quasi sempre si toccano l'etichetta `O` dell'origine e quelle di
-    tacca `-1`. In polygon un'etichetta di lunghezza si sovrappone a quella di un vertice; in 39 scene v4 è sopra il
-    punto di un vertice (`testo_su_marcatore`).
-  - Il confronto è fra riquadri, non fra glifi. Prima di correggere il renderer o rivedere l'invariante vanno
-    guardati alcuni PNG (`--cases`).
-- **Coordinate senza etichetta di tacca.** 58 domande `coords` in v4 e 169 in v3 sono non ammissibili perché la
-  tacca che serve a leggere la coordinata non ha etichetta. Il verificatore si comporta come previsto; resta da
-  decidere se il generatore debba evitare queste domande.
+I fogli di immagini sono in [`docs/img/synth-review/`](../img/synth-review/). Le 25 scene del campione ridisegnate oggetto
+per oggetto coincidono pixel per pixel con `synth.render`. Restano distinti *approvato dal checker*, *correttezza
+dimostrata* e *qualità certificata* (§2.4).
+
+**Coppie controfattuali polygon (75 in v3).** La variante `-b` cambia la misura stampata di un lato, aggiungendo 2, 3
+o 4, e lascia invariato il disegno. Viola quindi l'invariante di scala del generatore (`lunghezza_incoerente` in
+tutte le 75), ma questo da solo non rende errata la risposta. La versione precedente di questa sezione le dava tutte
+per errori confermati: era sbagliato.
+- Si sono usati solo i vincoli dichiarati nel disegno: misure stampate, angolo scritto, angolo retto marcato.
+- Non si sono usate le proporzioni, come i lati paralleli o uguali a vista.
+- Arrotondamento: intero ±0.5, decimale ±0.05, angolo ±0.5°. "Interi esatti" legge gli interi come valori esatti.
+
+| Esito | Coppie | Stato proposto (v3) |
+| --- | --- | --- |
+| risposta uguale alla misura stampata, in `a` e in `b` | 75 su 75 | vale per tutte |
+| contraddizione dimostrabile: tre lati stampati e un angolo dichiarato incompatibili anche con l'arrotondamento | 9: 00033, 00037, 00113, 00125, 00137, 00153, 00221, 00265, 00273 | `escluso` |
+| contraddizione solo con gli interi esatti: 00285, angolo retto in K, 17² + 48² ≠ 50² | 1 | `quarantena` |
+| compatibile con una riscalatura uniforme: una sola misura stampata | 26 | `quarantena` fino alla scelta del contratto |
+| nessun vincolo dichiarato violato, ma la figura non è più simile al disegno: due o tre misure, per esempio 00009 con i lati opposti di un parallelogramma apparente a 7.6 e 11.6 | 39 | `quarantena` |
+| misura cambiata coperta dall'etichetta del punto sul lato: 00209 illeggibile ("9" sotto "K"), 00169 e 00269 coperte in parte, 00017 e 00205 attaccate ma leggibili | 5, già contate sopra | `quarantena` |
+
+Esempio di contraddizione, 00033: con ST = 5.9, TU = 11.7 e 47° in T il teorema del coseno dà US ≈ 8.8, il valore di
+`a`, non 12.8. Nessuna coppia si riammette in automatico.
+
+Controlli dell'analisi stessa:
+- le 75 varianti `a` risultano fattibili in entrambe le letture;
+- `a` e `b` differiscono solo nelle misure;
+- i PNG ridisegnati sono identici a quelli dello shard.
+
+Immagini: [esempi 1](../img/synth-review/coppie-esempi-1.png), [esempi 2](../img/synth-review/coppie-esempi-2.png), le
+misure cambiate di tutte le coppie [1](../img/synth-review/coppie-misure-1.png),
+[2](../img/synth-review/coppie-misure-2.png) e [3](../img/synth-review/coppie-misure-3.png).
+
+**Contratto proposto per v4: geometria coerente in scala.**
+- Ogni misura stampata è quella disegnata, entro l'arrotondamento mostrato; il checker lo richiede già
+  (`lunghezza_incoerente`, `angolo_incoerente`). `side_len` legge un numero che coincide col disegno.
+- La coppia polygon tiene stampata una sola misura, quella della domanda. La variante `-b` si ottiene riscalando tutto il
+  poligono del rapporto fra la misura nuova e quella vecchia. Angoli, angolo retto e punto sul lato restano uguali.
+  Gli assi sono adattati alla figura, quindi `b` differisce da `a` solo per il numero.
+- È la classe "riscalatura uniforme", l'unica senza contraddizioni.
+
+L'alternativa, "lettura della misura scritta" con la figura dichiarata non in scala, avrebbe due costi: verificare caso
+per caso i vincoli dichiarati, come fatto qui, e lasciare figure incoerenti a vista come 00009.
+
+**Riquadri di testo sovrapposti (v4, 20.000 scene).** Si sono censite tutte le 2.702 violazioni, in 1.797 scene; i
+conteggi coincidono col report. Per ciascuna i due oggetti sono stati disegnati da soli, misurando i pixel di
+inchiostro in comune e la distanza fra i tratti pieni.
+
+Questi conteggi descrivono le segnalazioni del checker in queste scene, non altro. Sostituiscono le percentuali date
+prima a partire dalle righe conservate in `problems.jsonl`, che non sono un campione rappresentativo.
+
+| Categoria (famiglia) | Violazioni | Inchiostro in comune | A contatto (≤ 1.5 px) | Separati |
+| --- | --- | --- | --- | --- |
+| `O` e tacche `-1` all'origine (coord) | 566 | 23 | 27 | 516 |
+| `O` e tacche `-1` all'origine (function) | 1.232 | 84 | 64 | 1.084 |
+| etichetta di un punto e tacca (coord) | 25 | 1 | 0 | 24 |
+| misura di un lato ed etichetta del punto segnato su un lato (polygon) | 840 | 692 | 37 | 111 |
+| misura sul punto segnato su un lato (polygon, `testo_su_marcatore`) | 39 | 12 | 3 | 24 |
+
+Correzione: in polygon l'etichetta coinvolta non è quella di un vertice, come scritto prima, ma quella del punto
+segnato su un lato (`spec["m"]`). Quell'etichetta sta a 0.07 della figura in direzione opposta al centro; la misura
+sta a 0.06 dal punto medio del lato. Se il punto è sul lato con la misura, i due testi cadono quasi nello stesso posto.
+
+Campione stratificato: 20 casi, 2 lievi e 2 marcati per strato, estratti in modo deterministico; lieve vuol dire che
+il lato minore dell'intersezione dei riquadri è al più 3 px. In più 5 scene approvate di controllo.
+
+| Casi (`synth-check-…`) | Immagine | Diagnosi | Evidenza |
+| --- | --- | --- | --- |
+| origine, coord: 0007872, 0014476 lievi; 0008048, 0005100 marcati | [foglio](../img/synth-review/campione-origine-coord.png) | solo riquadri: caratteri separati e leggibili. Nessuna domanda usa le tacche `-1`; `O` compare solo nella domanda di conteggio | tratti a 2.0-7.2 px, nessun pixel in comune |
+| origine, function: 0012430, 0010810 lievi; 0001146, 0006562 marcati | [foglio](../img/synth-review/campione-origine-function.png) | solo riquadri; nessuna domanda function usa le etichette di tacca. In 0012430 e 0006562 un grafico attraversa un'etichetta di tacca: il checker non lo controlla | 2.8-4.0 px |
+| misura ed etichetta del punto, polygon: 0006537, 0019365 lievi; 0011165, 0003037 marcati | [foglio](../img/synth-review/campione-etichetta_misura-polygon.png) | lievi: separati ma attaccati ("25H"). Marcati: collisione reale, la misura è coperta in parte ("7.8" con "K", "12.1" con "E") | 0 e 11 px in comune |
+| misura sul punto, polygon: 0000489, 0006757 lievi; 0005853, 0016169 marcati | [foglio](../img/synth-review/campione-misura_su_punto-polygon.png) | il punto tocca la misura. In tre casi su quattro copre la misura anche l'etichetta del punto: "7.8" si legge "7W8", e su "10.0" la "E" copre lo zero | 0-13 px in comune |
+| etichetta di punto e tacca, coord: 0009020, 0005328, 0009800, 0006912 | [foglio](../img/synth-review/campione-altro.png) | solo riquadri. In 0005328 la tacca "8" accanto a "R" si legge "R8": associazione ambigua | 4.0-8.1 px |
+| controlli approvati: 0000356, 0000106, 0000677 (testi più vicini), 0000336, 0000073 (a caso) | [foglio](../img/synth-review/campione-controllo.png) | i tre più vicini hanno riquadri sovrapposti di 1.0 px e sono approvati. 0000356 è uguale a vista al caso segnalato 0007872: 1.2 px, stessi 6.0 px fra i tratti | 6.0-6.3 px |
+
+All'origine la regola sui riquadri segnala soprattutto lo spazio vuoto sopra e sotto i caratteri. Nei polygon invece
+segnala collisioni reali, che possono cambiare la lettura di una misura. Il checker verifica `side_len` sul layout:
+in quelle scene la risposta è "ok" anche quando il numero è coperto.
+
+**Coordinate (58 domande v4, 169 v3).** In tutte le 227 il punto è quello di prova della retta (`line.test`).
+- Il punto viene spostato su un punto della retta. Quando le etichette vanno di 2 in 2 (R = 8), una sua coordinata
+  può risultare dispari.
+- La tacca senza numero è disegnata, sporge dall'asse di 2.5-4.0 px per lato e sta fra due tacche numerate. In 77
+  domande mancano le etichette di entrambe le coordinate.
+- La coordinata si legge contando una tacca: l'informazione c'è e il checker, che chiede l'etichetta esatta, è più
+  severo del necessario.
+- Nessun caso ha l'informazione mancante. [Foglio](../img/synth-review/coords.png).
+
+**Proposta minima per v4.** Non è implementata; le regressioni previste andrebbero in `tests/test_synth.py`.
+
+1. **Generatore, coppie polygon:** una sola misura stampata, e `-b` per riscalatura uniforme.
+   - Regressioni su 300 coppie v4: `shown` è il solo lato della domanda in `a` e `b`; i punti di `b` sono quelli di
+     `a` moltiplicati per il fattore.
+   - Nessuna `lunghezza_incoerente` né `angolo_incoerente`; la risposta è la misura stampata.
+   - I pixel di `a` e `b` differiscono solo nel riquadro della misura.
+   - Con `version=3` lo shard delle coppie si riproduce identico.
+2. **Generatore, polygon:** da v4 il punto segnato non sta su un lato con la misura stampata. Si sceglie un altro lato
+   con un generatore separato, perché il resto della scena resti come in v3; se non ce ne sono, il punto si toglie.
+   - Regressioni su 5.000 scene v4: nessuna sovrapposizione fra misure ed etichette o punti segnati.
+   - Le domande `m_side` restano; v3 è invariata.
+3. **Generatore, coord e function:** da v4 niente etichette sulle tacche `-1`; le tacche restano. Nessuna domanda le
+   usa, perché i punti hanno coordinate di valore assoluto almeno 2.
+   - Regressioni su 5.000 scene per famiglia: nessuna sovrapposizione all'origine.
+   - Le domande `coords` non cambiano; v3 è invariata.
+4. **Checker, coordinate:** una coordinata senza etichetta si accetta se la sua tacca è disegnata e le due tacche vicine
+   sono numerate. Le tacche vanno registrate nel layout, con asse e valore nel gid: cambiano i metadati, non i pixel.
+   - Regressioni: i 58 casi v4 diventano ok.
+   - Senza la tacca, o senza un'etichetta vicina, tornano non ammissibili.
+   - Una risposta alterata risulta errata.
+
+Cosa resta com'è:
+- la soglia delle sovrapposizioni (`OVERLAP_PX`) non cambia;
+- le 25 sovrapposizioni fra etichette di punti e tacche in coord restano segnalate.
+
+Dopo le correzioni 1-3, prima del render di v4, un nuovo controllo su 20.000 scene v4 deve dare zero sovrapposizioni
+nelle categorie corrette; quelle residue vanno guardate.
 
 ## 3. MAVIS-Geometry (`f1_mavis.py`, `f1_schema.py`, shard `9c80fff3-caption`)
 

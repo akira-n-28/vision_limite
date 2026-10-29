@@ -349,10 +349,15 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
   conta 96 controlli, compresi gli esiti per campione. Il controllo sugli shard (job 30393,
   `outputs/synth_check/c1c2-run1`) ha dato questi risultati:
   - ridisegna tutti i 60.900 PNG di v3 con byte identici e ritrova i difetti noti;
-  - sulle 20.000 scene v4 in memoria nessuna risposta è errata;
-  - trova due difetti nuovi, presenti anche in v4 (S2 §2.5): le varianti `-b` delle coppie controfattuali polygon
-    hanno una lunghezza scritta diversa dal disegno, e il 9% delle scene v4 ha testi sovrapposti fra loro o a un
-    marcatore.
+  - sulle 20.000 scene v4 in memoria il checker non segnala nessuna risposta errata;
+  - fa segnalazioni nuove, presenti anche in v4, analizzate nel job 30400 (S2 §2.5):
+    - delle 75 coppie controfattuali polygon con una misura cambiata, 9 contraddicono un angolo dichiarato;
+    - nei polygon la misura di un lato collide con l'etichetta del punto segnato sullo stesso lato;
+    - all'origine degli assi si sovrappongono quasi solo i riquadri dei testi;
+    - le coordinate senza etichetta si leggono contando le tacche.
+
+  "Verificato" nel report vuol dire approvato dal checker, che legge il layout e non i pixel: non è correttezza
+  dimostrata né qualità certificata.
 
   Gli shard v4 non sono generati e nessun dato è certificato. Per controllare la compilazione usare `compile()` in un
   job, non `ast.parse`, che non vede gli errori della tabella dei simboli.
