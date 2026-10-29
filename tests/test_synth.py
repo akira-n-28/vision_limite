@@ -48,8 +48,16 @@ def fake_items(spec: dict) -> dict:
                 cur = None
         if cur is not None:
             runs.append(cur)
-        items[c["name"]] = {"visible": runs, "x_range": [-V, V], "clip_y": float(V)}
+        items[c["name"]] = {"visible": runs, "x_range": [-V, V], "clip_y": float(V), "samples": len(xs)}
     return items
+
+
+def first(keys, predicate):
+    """Il primo valore che soddisfa predicate (ciclo esplicito: niente := negli iterabili delle comprehension)."""
+    for value in keys:
+        if predicate(value):
+            return value
+    raise AssertionError("nessun valore trovato")
 
 
 def test_v3_reproduction():
@@ -111,6 +119,24 @@ def test_intersections():
           synth._near_miss(*near, 7) and synth._intersections(*near, 6) == 0 and not synth._near_miss(*far, 7))
     check("grafici a 0.2 senza incrociarsi: la verifica li segnala", bool(synth_check.visible_intersections(
         *near, fake_items({"R": 6, "curves": list(near)}))[1]))
+    # tratti visibili (revisione di 38af82a): l'incrocio in un buco del disegno non si conta
+    f, g = curve("line", "f", a=1, b=1), curve("line", "g", a=-1, b=1)  # incrocio in (0, 1)
+    gap = {"x_range": [-7, 7], "clip_y": 7, "visible": [[-7, -2], [2, 7]]}
+    check("incrocio in x = 0 dentro un buco dei tratti visibili: conteggio 0, ammissibile (prima 1)",
+          synth_check.visible_intersections(f, g, {"f": dict(gap), "g": dict(gap)}) == (0, []))
+    small = {"x_range": [-7, 7], "clip_y": 7, "visible": [[-7, -0.2], [0.2, 7]]}
+    count, why = synth_check.visible_intersections(f, g, {"f": dict(small), "g": dict(small)})
+    check("incrocio a 0.2 da un buco del disegno: conteggio 0, non ammissibile", count == 0 and bool(why), why)
+    whole = {"x_range": [-7, 7], "clip_y": 7, "visible": [[-7, 7]]}
+    check("stessi grafici disegnati per intero: conteggio 1, ammissibile",
+          synth_check.visible_intersections(f, g, {"f": dict(whole), "g": dict(whole)}) == (1, []))
+    edge = {"x_range": [-7, 7], "clip_y": 7, "samples": 600, "visible": [[-7, 0.01], [0.6, 7]]}
+    count, why = synth_check.visible_intersections(f, g, {"f": dict(edge), "g": dict(edge)})
+    check("incrocio a 0.01 da un buco del disegno: conteggio 1 ma non ammissibile", count == 1 and bool(why), why)
+    steep = (curve("line", "f", a=100, b=1), curve("line", "g", a=0, b=6.5))  # incrocio (0.055, 6.5); f esce a x = 0.06
+    count, why = synth_check.visible_intersections(*steep, fake_items({"R": 6, "curves": list(steep)}))
+    check("incrocio entro un passo di campionamento dal taglio di un grafico ripido: non ammissibile",
+          count == 1 and any("campionamento" in w for w in why), why)
     # su 4.000 scene v4 la verifica indipendente conferma ogni domanda posta
     bad, asked = [], 0
     for i in range(4000):
@@ -172,7 +198,7 @@ def test_v3_v4_regression():
         base = {k: v for k, v in s4.items() if k != "generator_version"}
         if base != s3:
             resampled += 1
-            if fam != "shapes" or not synth._shapes_overlap(s3["shapes"]):
+            if fam != "shapes" or not (synth._shapes_overlap(s3["shapes"]) or not synth._shapes_fit(s3)):
                 differ_qa += 1  # una scena cambiata senza motivo
             continue
         same_specs += 1
@@ -183,11 +209,33 @@ def test_v3_v4_regression():
         c4 = [(q["type"], q["answer"], q["options"]) for q in q4 if q["type"] in CHANGED - {"intersections"}]
         if keep3 != keep4 or c3 != c4:
             differ_qa += 1
-    check("v3 -> v4: cambiano solo le scene shapes con figure vicine", differ_qa == 0, (same_specs, resampled, differ_qa))
-    check("v3 -> v4: specifiche identiche per le altre scene", same_specs + resampled == 8000 and same_specs > 7900,
-          (same_specs, resampled))
-    overlap = sum(synth._shapes_overlap(synth.make_spec(f"synth-{i:07d}", "shapes", 4)["shapes"]) for i in range(3, 60000, 4))
-    check("shapes v4: nessuna coppia di figure a meno di SHAPE_GAP nelle 15.000 scene", overlap == 0, overlap)
+    expected = sum(1 for i in range(3, 8000, 4) for s3 in [synth.make_spec(f"synth-{i:07d}", "shapes", 3)]
+                   if synth._shapes_overlap(s3["shapes"]) or not synth._shapes_fit(s3))
+    check("v3 -> v4: cambiano solo le scene shapes con figure vicine o fuori dagli assi", differ_qa == 0,
+          (same_specs, resampled, differ_qa))
+    check("v3 -> v4: riestratte esattamente le scene shapes da correggere, le altre identiche",
+          resampled == expected and same_specs + resampled == 8000, (same_specs, resampled, expected))
+    bad = Counter()
+    for i in range(3, 60000, 4):
+        s4 = synth.make_spec(f"synth-{i:07d}", "shapes", 4)
+        bad["vicine"] += synth._shapes_overlap(s4["shapes"])
+        bad["fuori"] += not synth._shapes_fit(s4)
+    check("shapes v4: nessuna figura vicina a un'altra o fuori dagli assi nelle 15.000 scene", not +bad, dict(bad))
+
+
+def test_clipping_generator():
+    """synth-0000043: in v3 (e in v4 prima della correzione) il rettangolo L esce a sinistra dagli assi [0, 9]."""
+    s3 = synth.make_spec("synth-0000043", "shapes", 3)
+    rect = next(x for x in s3["shapes"] if x["label"] == "L")
+    x0 = synth._shape_box(rect)[0]
+    check("synth-0000043 v3: rettangolo L con x minimo -0.119, fuori dagli assi", abs(x0 + 0.118847) < 1e-5
+          and not synth._shapes_fit(s3), round(x0, 6))
+    s4 = synth.make_spec("synth-0000043", "shapes", 4)
+    check("synth-0000043 v4: scena riestratta, tutte le figure dentro gli assi col tratto",
+          {k: v for k, v in s4.items() if k != "generator_version"} != s3 and synth._shapes_fit(s4)
+          and not synth._shapes_overlap(s4["shapes"]))
+    m = synth._stroke_margin(s3)
+    check("margine del tratto: mezzo tratto più 1 px in unità del disegno", abs(m - (1.4 * 100 / 72 / 2 + 1) * 9 / 480) < 1e-12, m)
 
 
 def rendered(key: str, family: str, version: int):
@@ -219,10 +267,33 @@ def test_rendered_checks():
     r = synth_check.check_questions(spec, [q for q in synth.questions(spec) if q["type"] == "intersections"], layout)
     check("synth-0049798 v3 disegnato: target 0 errato, si vede 1", [(x["status"], x["expected"]) for x in r]
           == [("errata", "1")], r)
-    sq = next(s for i in range(200) if any(x["type"] == "square" for x in (s := synth.make_spec(f"t-sql-{i}", "shapes", 3))["shapes"]))
+    sq = first((synth.make_spec(f"t-sql-{i}", "shapes", 3) for i in range(200)),
+               lambda s: any(x["type"] == "square" for x in s["shapes"]))
     _, layout = synth.render(sq, layout=True)
     r = [x for x in synth_check.check_questions(sq, synth.questions(sq), layout) if x["type"] == "label_type" and x["answer"] == "square"]
     check("label_type v3 su un quadrato: domanda aperta non ammissibile", r and all(x["status"] == "non_ammissibile" for x in r), r[:1])
+
+
+def test_clipping_rendered():
+    """Il verificatore trova il taglio rispetto all'area effettiva degli assi e non promuove la scena; la scena v4 dopo
+    la correzione è pulita."""
+    s3 = synth.make_spec("synth-0000043", "shapes", 3)
+    _, layout = synth.render(s3, layout=True)
+    cut = [v for v in synth_check.renderer_violations(s3, layout) if v["kind"] == "figura_tagliata"]
+    check("synth-0000043 v3 disegnato: rettangolo L tagliato di più di 1 px dagli assi",
+          [v["gids"] for v in cut] == [["shape:L"]] and cut[0]["detail"] > 5, cut)
+    meta = {"spec": s3, "qa": synth.questions(s3)}
+    res = synth_check.check_sample(meta, layout)
+    check("synth-0000043 v3: campione non verificato, nessuna domanda ok", not res["verified"]
+          and res["blocking"] == ["figura_tagliata"] and all(r["status"] != "ok" for r in res["questions"]),
+          (res["blocking"], Counter(r["status"] for r in res["questions"])))
+    s4 = synth.make_spec("synth-0000043", "shapes", 4)
+    _, layout = synth.render(s4, layout=True)
+    res = synth_check.check_sample({"spec": s4, "qa": synth.questions(s4)}, layout)
+    check("synth-0000043 v4 disegnato: nessuna figura tagliata, domande ok", not [
+        v for v in res["violations"] if v["kind"] == "figura_tagliata"] and not res["blocking"]
+        and all(r["status"] == "ok" for r in res["questions"]), (res["violations"], res["questions"][:2]))
+    check("area degli assi registrata nel layout", len(layout.get("axes_px", [])) == 4, layout.get("axes_px"))
 
 
 def test_renderer_invariants():
@@ -266,7 +337,9 @@ if __name__ == "__main__":
     test_intersections()
     test_classification()
     test_v3_v4_regression()
+    test_clipping_generator()
     test_rendered_checks()
+    test_clipping_rendered()
     test_renderer_invariants()
     print("\nfalliti:", FAILS or "nessuno")
     sys.exit(1 if FAILS else 0)

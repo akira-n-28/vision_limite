@@ -9,15 +9,20 @@ Due modi, anche insieme:
   - Ogni shard letto è registrato con il suo sha256.
 - --generate N --generator-version V: N scene generate in memoria (chiavi synth-check-NNNNNNN, famiglie a rotazione),
   disegnate e controllate, senza salvare immagini.
+- --cases CHIAVE:FAMIGLIA:VERSIONE ...: casi singoli disegnati e salvati in OUT/cases/ (PNG, layout ed esiti), per
+  esempio la scena tagliata synth-0000043 in v3 e la stessa chiave in v4.
+
+Un campione è verificato solo senza violazioni del renderer e con tutte le domande ok; con una violazione bloccante
+(synth_check.BLOCKING, per esempio una figura tagliata dagli assi) le domande ok diventano non ammissibili.
 
 Uscite nella cartella nuova --out:
-- report.json: esiti per famiglia, tipo di domanda e stato; violazioni del renderer per tipo; PNG identici; ingressi;
-  identità del codice;
+- report.json: esiti per famiglia, tipo di domanda e stato; campioni verificati e bloccati; violazioni del renderer per
+  tipo; PNG identici; ingressi; identità del codice;
 - problems.jsonl: una riga per domanda non ok o violazione, al più PROBLEM_CAP esempi per shard (o blocco generato) e per
   famiglia, tipo ed esito; i conteggi del report sono sempre completi.
 
     srun $RUN_PYTHON -u -B scripts/synth_semantics_check.py --out DIR [--shards GLOB ...] \\
-        [--generate N --generator-version 4] [--workers W]
+        [--generate N --generator-version 4] [--cases KEY:FAMILY:VERSION ...] [--workers W]
 """
 from __future__ import annotations
 
@@ -67,6 +72,9 @@ def _check(key: str, meta: dict, png: bytes | None) -> tuple[Counter, list[dict]
         counts[f"violations/{fam}/{v['kind']}"] += 1
         problems.append({"key": key, "family": fam, "what": "violation", **v})
     counts["samples"] += 1
+    counts[f"verified/{fam}/{'verificati' if result['verified'] else 'non_verificati'}"] += 1
+    if result["blocking"]:
+        counts[f"verified/{fam}/con_violazioni_bloccanti"] += 1
     return counts, problems, identical
 
 
@@ -97,12 +105,34 @@ def generate_task(task: tuple[int, int, int]) -> dict:
             "png": Counter()}
 
 
+def save_cases(cases: list[str], out: Path) -> list[dict]:
+    """Disegna i casi CHIAVE:FAMIGLIA:VERSIONE e salva PNG, layout ed esiti in out/ (file nuovi)."""
+    out.mkdir(parents=True, exist_ok=True)
+    rows = []
+    for case in cases:
+        key, family, version = case.rsplit(":", 2)
+        spec = synth.make_spec(key, family, int(version))
+        image, layout = synth.render(spec, layout=True)
+        meta = {"id": key, "family": family, "qa": synth.questions(spec), "spec": spec}
+        result = synth_check.check_sample(meta, layout)
+        stem = f"{key}-v{version}"
+        png = out / f"{stem}.png"
+        if png.exists():
+            sys.exit(f"{png} esiste già")
+        png.write_bytes(synth.png_bytes(image))
+        write_new_json(out / f"{stem}.json", {"case": case, "spec": spec, "layout": layout, "result": result})
+        rows.append({"case": case, "png": png.name, "verified": result["verified"], "blocking": result["blocking"],
+                     "questions": dict(Counter(r["status"] for r in result["questions"]))})
+    return rows
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--out", required=True, type=Path)
     ap.add_argument("--shards", nargs="*", default=[], help="glob di shard tar da controllare (sola lettura)")
     ap.add_argument("--generate", type=int, default=0, help="scene da generare e controllare in memoria")
     ap.add_argument("--generator-version", type=int, choices=synth.VERSIONS, help="versione per --generate")
+    ap.add_argument("--cases", nargs="*", default=[], help="casi CHIAVE:FAMIGLIA:VERSIONE da disegnare e salvare")
     ap.add_argument("--chunk", type=int, default=1000)
     ap.add_argument("--workers", type=int, default=int(os.environ.get("SLURM_CPUS_PER_TASK", "1")))
     args = ap.parse_args()
@@ -113,13 +143,18 @@ def main() -> None:
     paths = sorted({p for g in args.shards for p in glob.glob(g)})
     if args.shards and not paths:
         sys.exit(f"nessuno shard per {args.shards}")
-    if not paths and not args.generate:
-        sys.exit("niente da controllare: --shards o --generate")
+    if not paths and not args.generate and not args.cases:
+        sys.exit("niente da controllare: --shards, --generate o --cases")
+    for case in args.cases:
+        parts = case.rsplit(":", 2)
+        if len(parts) != 3 or parts[1] not in synth.FAMILIES or not parts[2].isdigit() or int(parts[2]) not in synth.VERSIONS:
+            sys.exit(f"caso non valido: {case} (atteso CHIAVE:FAMIGLIA:VERSIONE)")
     if args.out.exists() and any(args.out.iterdir()):
         sys.exit(f"{args.out} non è vuota: scegliere un'altra cartella")
     args.out.mkdir(parents=True, exist_ok=True)
 
     t0 = time.time()
+    case_rows = save_cases(args.cases, args.out / "cases") if args.cases else []
     counts, png, inputs = Counter(), Counter(), []
     writer = HashingTextWriter(args.out / "problems.jsonl")
     with Pool(args.workers) as pool:
@@ -150,21 +185,30 @@ def main() -> None:
                 node[parts[-1]] = v
         return out
 
-    statuses = Counter()
+    statuses, verified = Counter(), Counter()
+    for k, v in counts.items():
+        if k.startswith("verified/"):
+            verified[k.rsplit("/", 1)[1]] += v
     for k, v in counts.items():
         if k.startswith("questions/"):
             statuses[k.rsplit("/", 1)[1]] += v
-    report = {"schema": "synth-check/1", "job_id": os.environ.get("SLURM_JOB_ID"), "code": code_identity(),
+    report = {"schema": "synth-check/2", "job_id": os.environ.get("SLURM_JOB_ID"), "code": code_identity(),
               "args": {k: str(v) for k, v in vars(args).items()},
               "thresholds": {k: getattr(synth_check, k) for k in ("EDGE", "CLOSE_ROOTS", "TANGENT", "SIDE", "ON_LINE",
                                                                    "OFF_LINE", "ANGLE_TOL", "LENGTH_TOL", "EXTREME",
-                                                                   "MIN_TEXT_PX", "OVERLAP_PX")},
+                                                                   "MIN_TEXT_PX", "OVERLAP_PX", "CLIP_PX")},
+              "blocking_kinds": list(synth_check.BLOCKING),
               "inputs": sorted(inputs, key=json.dumps), "samples": counts["samples"],
+              "samples_verified": dict(verified), "verified_by_family": group("verified/"),
               "questions": dict(statuses), "by_type": group("questions/"), "violations": group("violations/"),
+              "cases": case_rows,
               "png_redrawn": dict(png), "problems": problems_file, "problem_cap": PROBLEM_CAP,
               "seconds": round(time.time() - t0, 1)}
     write_new_json(args.out / "report.json", report)
-    print(json.dumps({k: report[k] for k in ("samples", "questions", "png_redrawn", "seconds")}, ensure_ascii=False))
+    print(json.dumps({k: report[k] for k in ("samples", "samples_verified", "questions", "png_redrawn", "seconds")},
+                     ensure_ascii=False))
+    for row in case_rows:
+        print("caso", json.dumps(row, ensure_ascii=False))
     print(json.dumps(report["violations"], ensure_ascii=False))
 
 

@@ -2,8 +2,10 @@
 
 Le quattro specifiche brevi della pipeline v1.4 §5.10, da approvare prima di scrivere codice
 (`docs/F0_IMPLEMENTATION_PLAN.md`, §1). Seconde bozze del 2026-10-28, rivedute dopo la revisione esterna dei push
-fino a `e81f884`, con le correzioni chieste sul commit `1c1e852`. Nessuna è approvata. Implementato solo C1-C2
-(S2 §2, sintetici), non ancora collaudato in allocazione.
+fino a `e81f884`, con le correzioni chieste sul commit `1c1e852`. Nessuna è approvata. È implementato solo C1-C2
+(S2 §2, sintetici): `38af82a`, poi corretto il 2026-10-29 dopo la revisione di quel commit (figure tagliate, intersezioni
+nei buchi del disegno, test che non compilava). È verificato solo con calcoli leggeri sul frontend: test e controllo
+sugli shard non sono eseguiti e nessun dato è certificato.
 
 | Specifica | Tema | Decisioni dell'utente che contiene |
 | --- | --- | --- |

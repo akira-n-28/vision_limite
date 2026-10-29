@@ -12,10 +12,13 @@ Esito per domanda (`check_questions`):
 - non_ammissibile: il disegno non determina una sola risposta (vicino a un bordo, sotto un margine, più risposte vere);
 - non_verificabile: manca un oggetto nel layout o la domanda non si riconosce.
 Invarianti del renderer (`renderer_violations`):
+- figure e marcatori, col loro tratto, dentro l'area effettiva degli assi (`axes_px`), dove matplotlib li taglia;
 - testi dentro l'immagine e alti almeno MIN_TEXT_PX;
 - testi non sovrapposti fra loro né ai marcatori di altri oggetti;
 - figure delle shapes non sovrapposte;
 - valori scritti coerenti con il disegno.
+Un campione con una violazione in BLOCKING non è verificato (`check_sample`): le sue domande "ok" diventano
+non_ammissibili. Un campione è verificato solo senza violazioni e con tutte le domande ok.
 """
 from __future__ import annotations
 
@@ -32,6 +35,8 @@ LENGTH_TOL = 0.02  # relativa: lunghezza scritta contro lunghezza disegnata
 EXTREME = 0.15     # il vertice estremo deve staccare il secondo di questa frazione del lato del riquadro
 MIN_TEXT_PX = 10.0
 OVERLAP_PX = 1.0   # due riquadri si sovrappongono se l'intersezione supera questo in entrambe le direzioni
+CLIP_PX = 1.0      # una figura che esce dall'area degli assi di più di così, tratto compreso, è tagliata in modo visibile
+BLOCKING = ("figura_tagliata", "layout_senza_assi", "testo_fuori", "figure_sovrapposte")
 
 TRIANGLE_VOCAB = ("right triangle", "isosceles triangle", "equilateral triangle", "scalene triangle", "acute triangle",
                   "obtuse triangle")
@@ -315,14 +320,41 @@ def _difference(f: dict, g: dict) -> tuple[float, float, float]:
     return p2 - q2, p1 - q1, p0 - q0
 
 
+def _run_ends(c: dict, item: dict) -> list[tuple[float, str]]:
+    """Estremità dei tratti disegnati (`visible` del layout) con la loro causa:
+    - "dominio": estremo del dominio x del disegno;
+    - "taglio": il campione successivo, fuori dal tratto, supera `clip_y` (il grafico esce dall'immagine);
+    - "buco": interruzione non spiegata dal dominio né dal taglio.
+    Senza `samples` nel layout il passo dei campioni non è noto: un'estremità interna vale come buco (prudente)."""
+    lo, hi = item["x_range"]
+    n, clip = item.get("samples"), item.get("clip_y")
+    step = (hi - lo) / (n - 1) if n and n > 1 else None
+    out = []
+    for a, b in item["visible"]:
+        for end, outward in ((a, -1.0), (b, 1.0)):
+            if end <= lo or end >= hi:
+                out.append((end, "dominio"))
+            elif step is not None and clip is not None and abs(_curve_value(c, end + outward * step)) > clip:
+                out.append((end, "taglio"))
+            else:
+                out.append((end, "buco"))
+    return out
+
+
 def visible_intersections(f: dict, g: dict, items: dict) -> tuple[int | None, list[str]]:
     """(conteggio geometrico delle intersezioni disegnate, motivi di non ammissibilità della domanda).
 
-    Un'intersezione è disegnata se cade dentro il dominio x del tratto disegnato e sotto il livello |y| oltre cui il
-    renderer toglie i grafici (`x_range`, `clip_y` del layout), cioè dove entrambi i grafici sono disegnati. Il conteggio
-    è None se f - g è costante (grafici paralleli o coincidenti). Motivi di non ammissibilità: intersezione a meno di
-    EDGE dal bordo del tratto disegnato, tangenza, due intersezioni a meno di CLOSE_ROOTS, grafici che si avvicinano
-    sotto TANGENT senza incrociarsi."""
+    Un'intersezione è disegnata se cade dentro un tratto disegnato di entrambi i grafici (`visible` del layout): la
+    spezzata di matplotlib si interrompe al primo campione tolto, quindi un incrocio in un buco del disegno non si vede
+    e non si conta, anche se le formule lo darebbero. Il conteggio è None se f - g è costante (grafici paralleli o
+    coincidenti).
+
+    Motivi di non ammissibilità:
+    - intersezione a meno di EDGE da un estremo del dominio (|x| = estremo di `x_range`), dal livello di taglio
+      (|y| = `clip_y`) o da un buco del disegno (distanza in x);
+    - intersezione a meno di un passo di campionamento da un'estremità di un tratto: lì disegnata o no non si decide;
+    - tangenza, due intersezioni a meno di CLOSE_ROOTS, grafici che nei tratti disegnati si avvicinano sotto TANGENT
+      senza incrociarsi."""
     a, b, c = _difference(f, g)
     fi, gi = items[f["name"]], items[g["name"]]
     lo, hi = max(fi["x_range"][0], gi["x_range"][0]), min(fi["x_range"][1], gi["x_range"][1])
@@ -338,23 +370,28 @@ def visible_intersections(f: dict, g: dict, items: dict) -> tuple[int | None, li
         d = b * b - 4 * a * c
         xs = [] if d < 0 else sorted({(-b - math.sqrt(d)) / (2 * a), (-b + math.sqrt(d)) / (2 * a)})
         tangent = d == 0
+    ends = _run_ends(f, fi) + _run_ends(g, gi)
+    steps = [(it["x_range"][1] - it["x_range"][0]) / (it["samples"] - 1) for it in (fi, gi) if (it.get("samples") or 0) > 1]
+    step = max(steps) if steps else None
     why, count = [], 0
     for x in xs:
         y = _curve_value(f, x)
-        count += lo <= x <= hi and abs(y) <= clip
-        edge = min(abs(x - lo), abs(x - hi), abs(abs(y) - clip))
+        count += _visible_at(fi, x) and _visible_at(gi, x)
+        gaps = [abs(x - e) for e, cause in ends if cause == "buco"]
+        edge = min([abs(x - lo), abs(x - hi), abs(abs(y) - clip)] + gaps)
         if edge < EDGE:
             why.append(f"intersezione ({x:.3f}, {y:.3f}) a {edge:.3f} dal bordo del tratto disegnato")
+        elif step is not None and min(abs(x - e) for e, _ in ends) <= step:
+            why.append(f"intersezione ({x:.3f}, {y:.3f}) entro un passo di campionamento da un'estremità del tratto")
     if tangent:
         why.append("tangenza")
     if len(xs) == 2 and xs[1] - xs[0] < CLOSE_ROOTS:
         why.append(f"due intersezioni a {xs[1] - xs[0]:.3f} in x")
-    if not xs:  # nessun incrocio: nel tratto disegnato i grafici non devono sembrare toccarsi
+    if not xs:  # nessun incrocio: dove entrambi sono disegnati, i grafici non devono sembrare toccarsi
         grid = [lo + (hi - lo) * i / 2000 for i in range(2001)]
-        gaps = [abs(_curve_value(f, x) - _curve_value(g, x)) for x in grid
-                if abs(_curve_value(f, x)) <= clip and abs(_curve_value(g, x)) <= clip]
-        if gaps and min(gaps) < TANGENT:
-            why.append(f"grafici a {min(gaps):.3f} senza incrociarsi")
+        near = [abs(_curve_value(f, x) - _curve_value(g, x)) for x in grid if _visible_at(fi, x) and _visible_at(gi, x)]
+        if near and min(near) < TANGENT:
+            why.append(f"grafici a {min(near):.3f} senza incrociarsi")
     return count, why
 
 
@@ -487,6 +524,16 @@ def renderer_violations(spec: dict, layout: dict) -> list[dict]:
     texts = [it for it in layout["items"] if it["kind"] == "text"]
     markers = [it for it in layout["items"] if it["kind"] == "marker"]
     out = []
+    axes = layout.get("axes_px")
+    clipped = [it for it in layout["items"] if it["kind"] in ("patch", "marker") and it.get("clip_on", True)]
+    if axes is None and clipped:
+        out.append({"kind": "layout_senza_assi", "gids": [], "detail": "manca axes_px: il taglio non si può verificare"})
+    for it in clipped if axes is not None else ():
+        half = it.get("lw_px", 0.0) / 2
+        x0, y0, x1, y1 = it["bbox"]
+        over = max(axes[0] - (x0 - half), (x1 + half) - axes[2], axes[1] - (y0 - half), (y1 + half) - axes[3])
+        if over > CLIP_PX:
+            out.append({"kind": "figura_tagliata", "gids": [it["gid"]], "detail": round(over, 1)})
     for it in texts:
         x0, y0, x1, y1 = it["bbox"]
         if x0 < -0.5 or y0 < -0.5 or x1 > W + 0.5 or y1 > H + 0.5:
@@ -533,8 +580,18 @@ def renderer_violations(spec: dict, layout: dict) -> list[dict]:
 
 
 def check_sample(meta: dict, layout: dict) -> dict:
-    """Esiti di un campione degli shard: domande (`qa`) e domanda della coppia controfattuale (`pair`)."""
+    """Esiti di un campione degli shard: domande (`qa`) e domanda della coppia controfattuale (`pair`), violazioni del
+    renderer, violazioni bloccanti e `verified` (nessuna violazione, tutte le domande ok). Con una violazione bloccante
+    le domande ok diventano non_ammissibili: una figura tagliata non si promuove a verificata."""
     qs = list(meta.get("qa", []))
     if "pair" in meta:
         qs.append({k: meta["pair"][k] for k in ("type", "q", "answer")})
-    return {"questions": check_questions(meta["spec"], qs, layout), "violations": renderer_violations(meta["spec"], layout)}
+    results = check_questions(meta["spec"], qs, layout)
+    violations = renderer_violations(meta["spec"], layout)
+    blocking = sorted({v["kind"] for v in violations if v["kind"] in BLOCKING})
+    if blocking:
+        for r in results:
+            if r["status"] == "ok":
+                r.update(status="non_ammissibile", why="scena con violazioni bloccanti: " + ", ".join(blocking))
+    return {"questions": results, "violations": violations, "blocking": blocking,
+            "verified": not violations and all(r["status"] == "ok" for r in results)}

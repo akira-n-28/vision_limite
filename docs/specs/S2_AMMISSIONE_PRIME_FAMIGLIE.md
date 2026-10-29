@@ -68,12 +68,16 @@ attuale (`synth-NNNNNNN`, famiglie a rotazione come in `scripts/synth_render.py`
 standard e non legge gli shard. Gli istogrammi per famiglia, tipo e risposta coincidono esattamente con quelli del
 manifest del job 29756: il codice attuale riproduce le domande di v3.
 
-**Implementazione** (C1-C2, 2026-10-28, da collaudare in allocazione):
+**Stato** (C1-C2): implementati il 2026-10-28 (`38af82a`) e corretti il 2026-10-29 dopo la revisione di quel commit,
+che ha trovato figure tagliate, intersezioni contate nei buchi del disegno e un errore di sintassi nei test. Verificati
+solo con calcoli leggeri di sola libreria standard sul frontend; i test e il controllo sugli shard non sono ancora
+eseguiti, quindi niente qui è collaudato e nessun dato è certificato.
 - `synth.py`: `version=4` è il default e `version=3` riproduce v3; sono nuovi `visible_bound`, `intersection_points`
-  (conteggio geometrico), `_near_miss`, le domande di classificazione con le opzioni, `_shapes_overlap` e
-  `render(spec, layout=True)`;
+  (conteggio geometrico), `_near_miss`, le domande di classificazione con le opzioni, `_shapes_overlap`,
+  `_shapes_fit` e `render(spec, layout=True)`;
 - `synth_check.py`: la verifica indipendente;
-- `scripts/synth_semantics_check.py`: il controllo sugli shard;
+- `scripts/synth_semantics_check.py`: il controllo sugli shard e i casi singoli (`--cases`);
+- `scripts/synth_case_svg.py`: schema SVG di un caso shapes, dalla specifica e senza matplotlib;
 - `tests/test_synth.py`: i collaudi della §5.
 
 ### 2.1 Errore confermato: `intersections`
@@ -103,6 +107,18 @@ manifest del job 29756: il codice attuale riproduce le domande di v3.
   della distanza visibile. In v3 sono 17 domande su 1.842 senza intersezioni reali sotto 0.3, e 9 sotto 0.25. v4
   non pone la domanda sotto 0.3 (`synth._near_miss`); la verifica segnala sotto 0.25, così le due regole non
   divergono sul confine.
+- **Tratti visibili** (revisione di `38af82a`). La verifica contava un'intersezione se cadeva nel dominio x e sotto il
+  livello di taglio, senza guardare i tratti effettivamente disegnati (`visible` del layout). Con f = x + 1,
+  g = −x + 1 e tratti [−7, −2] e [2, 7] l'incrocio in x = 0 non è disegnato, ma il conteggio era 1. Ora conta solo se
+  l'incrocio cade in un tratto disegnato di entrambi i grafici: la spezzata di matplotlib si interrompe al primo
+  campione tolto. Le estremità dei tratti si classificano:
+  - estremo del dominio;
+  - taglio a |y| = 7: il campione successivo è oltre il livello;
+  - buco non spiegato, con un margine di 0.4 in x.
+
+  Un incrocio entro un passo di campionamento da un'estremità non è ammissibile: lì disegnato o no non si decide. Sui
+  dati di v3 e v4 i tratti seguono il taglio, quindi gli esiti non cambiano (le stesse 5.897 ok, 37 errate e 373 non
+  ammissibili su v3).
 
 ### 2.2 Ambiguità di classificazione
 
@@ -138,18 +154,32 @@ verifica indipendente e le invarianti del renderer.
 | polygon | `count`, `exists` | numero di lunghezze scritte; etichette dei vertici e di M | testi del render |
 | function | `opens`, `vertex_ud`, `vertex_lr`, `slope`, `intercept` | segno di a, \|k\| ≥ 1, \|h\| ≥ 1, \|f(0)\| ∈ [1, R − 0.5] (righe 383-385, 433-445) | dalla spezzata disegnata (vertice e intercetta nel dominio V) |
 | function | `exists` | etichette f, g; assenti fra h, p, q | testi del render |
-| shapes | `count`, `has_type`, `count_type`, `exists` | celle 3x3 con spostamenti casuali (righe 478-485): 19 scene su 15.000 hanno riquadri sovrapposti (candidati) | sovrapposizione esatta dei contorni nel render; vincolo nel generatore |
+| shapes | `count`, `has_type`, `count_type`, `exists`, `label_type` | celle 3x3 con spostamenti casuali (`_shapes_spec`): 19 scene su 15.000 hanno riquadri sovrapposti; **589 hanno una figura che esce dagli assi [0, 9]², 880 contando mezzo tratto e 1 px** (revisione di `38af82a`: in `synth-0000043` il rettangolo L parte da x = −0.119 e il lato sinistro non si vede) | contorni non sovrapposti e dentro l'area effettiva degli assi nel render; vincoli nel generatore v4 (`_shapes_overlap`, `_shapes_fit`) |
 | pair | controfattuali (`counterfactual`) | un dettaglio cambia la risposta (righe 581-637) | come il tipo di domanda corrispondente, per entrambe le immagini |
 
 ### 2.4 Invarianti del renderer
 
-Si calcolano durante il render dagli oggetti di matplotlib (`get_window_extent` di testi e marcatori) e si salvano nel
-JSON di v4, così si possono ricontrollare senza ridisegnare:
+Si calcolano durante il render dagli oggetti di matplotlib (`get_window_extent` di testi, marcatori e figure; area
+degli assi `axes_px`; spessore del tratto `lw_px`) e si salvano nel JSON di v4, così si possono ricontrollare senza
+ridisegnare:
 
-- riquadri di testi e marcatori dentro l'immagine;
+- figure e marcatori, col loro tratto, dentro l'area effettiva degli assi, dove matplotlib li taglia: è il controllo
+  che mancava in `38af82a`, che guardava solo i bordi dell'immagine. Uscire di più di 1 px è una figura tagliata;
+- riquadri dei testi dentro l'immagine;
 - nessuna sovrapposizione fra testi, né fra un testo e il marcatore di un altro oggetto; nelle shapes, contorni senza
   sovrapposizioni;
 - altezza dei testi in pixel, alla risoluzione data al modello, non sotto una soglia (proposta: 10 px).
+
+**Violazioni bloccanti**: figura tagliata, testo fuori dall'immagine, figure sovrapposte, layout senza l'area degli
+assi. Una scena che ne ha una non è verificata e le sue domande "ok" diventano `non_ammissibili`. Una scena è
+verificata solo senza violazioni e con tutte le domande ok. Superare la verifica non certifica la scena: la
+certificazione segue S4.
+
+Generatore v4: le shapes con due figure a meno di `SHAPE_GAP` o con una figura che, col tratto e 1 px, esce dagli assi
+si estraggono di nuovo dallo stesso generatore (`_shapes_overlap`, `_shapes_fit`). Si riestraggono 969 scene shapes di
+v3 su 15.000 (6.5%); le altre restano identiche. Schema del caso prima e dopo, ricostruito dalla specifica:
+[v3](../img/synth-0000043-v3.svg), [v4](../img/synth-0000043-v4.svg). I PNG del renderer si ottengono nel job con
+`--cases`.
 
 ## 3. MAVIS-Geometry (`f1_mavis.py`, `f1_schema.py`, shard `9c80fff3-caption`)
 
@@ -208,11 +238,21 @@ dei token LaTeX a meno degli spazi (`latex.same_latex`), non l'equivalenza matem
 - **MAVIS.** Per un triangolo rettangolo con i cateti uguali, right e isosceles sono entrambe vere e non compaiono
   insieme fra le opzioni; se non si può costruire un insieme con una sola opzione vera, la domanda non si pone. Un rombo
   che dalle misure stampate è un quadrato dà `square`, oppure la domanda non si pone.
+- **Tratti visibili.**
+  - f = x + 1 e g = −x + 1 con tratti [−7, −2] e [2, 7]: conteggio 0, ammissibile. Il codice di `38af82a` dava 1.
+  - Gli stessi grafici con un buco [−0.2, 0.2]: conteggio 0, non ammissibile (a 0.2 dal buco).
+  - Grafico ripido che esce dal taglio a meno di un passo di campionamento dall'incrocio: non ammissibile.
+- **Figure tagliate.**
+  - `synth-0000043` in v3: il rettangolo L parte da x = −0.118847. Il verificatore sul disegno vero trova una figura
+    tagliata di più di 1 px, il campione non è verificato e nessuna domanda resta ok.
+  - La stessa chiave in v4: scena riestratta, tutte le figure dentro gli assi col tratto, domande ok.
+  - Su 15.000 scene v4 nessuna figura vicina a un'altra o fuori dagli assi.
 - **Mutazioni.** Una risposta alterata per ogni tipo viene trovata dalla verifica indipendente. Una scena costruita con
-  un'etichetta fuori dall'immagine o due testi sovrapposti viene rifiutata dalle invarianti.
-- **Regressione v3 → v4.** Il vincolo di non sovrapposizione riestrae solo le scene che lo violano, quindi le altre
-  specifiche restano identiche. Le domande dei tipi non toccati restano identiche, per tipo e per chiave. Cambiano solo
-  le risposte di `intersections` e i testi di `shape_type` e `label_type`.
+  un'etichetta fuori dall'immagine, due testi sovrapposti o due figure sovrapposte viene rifiutata dalle invarianti.
+- **Regressione v3 → v4.** I vincoli delle shapes riestraggono solo le scene che li violano, e le altre specifiche
+  restano identiche: su 8.000 chiavi sono riestratte esattamente le 122 scene shapes da correggere. Le domande dei tipi
+  non toccati restano identiche, per tipo e per chiave. Cambiano solo le risposte di `intersections` e i testi di
+  `shape_type` e `label_type`.
 - **Valori.** `3/2` disegnato come `1.5`: in lettura la risposta è `1.5`, in calcolo entrambe le forme sono
   equivalenti.
 - **UniMER.** Una rietichettatura non coerente con l'etichetta attesa dà errore (`stream.apply_relabel`, già presente).

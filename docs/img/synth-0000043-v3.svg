@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="608" height="524" viewBox="0 0 608 524">
+  <defs><clipPath id="axes"><rect x="64.00" y="0.00" width="480.00" height="480.00"/></clipPath></defs>
+  <rect x="0" y="0" width="608" height="480" fill="white" stroke="#bbbbbb"/>
+  <rect x="64.00" y="0.00" width="480.00" height="480.00" fill="none" stroke="#999999" stroke-dasharray="3 3"/>
+  <g fill="none" stroke="black" stroke-width="1.94" clip-path="url(#axes)">
+    <rect x="257.77" y="21.90" width="113.46" height="113.46"/>
+    <rect x="57.66" y="35.14" width="143.36" height="71.68"/>
+  </g>
+  <g fill="none">
+    <rect x="57.66" y="35.14" width="143.36" height="71.68" stroke="#d62728" stroke-dasharray="6 4" stroke-width="1.5"/>
+  </g>
+  <text x="314.50" y="84.30" text-anchor="middle" dominant-baseline="central" font-size="20.8" font-family="DejaVu Sans">H</text>
+  <text x="129.34" y="76.95" text-anchor="middle" dominant-baseline="central" font-size="20.8" font-family="DejaVu Sans">L</text>
+  <text x="6" y="498" font-size="13" font-family="DejaVu Sans" fill="#333333">synth-0000043, generatore v3: figura fuori dagli assi di 0.119 unità (margine del tratto 0.037)</text>
+  <text x="6" y="516" font-size="11" font-family="DejaVu Sans" fill="#777777">schema dalla specifica, non il PNG del renderer; grigio: area degli assi; rosso: contorno tagliato</text>
+</svg>

@@ -76,6 +76,8 @@ docs/MIGRATION_REPORT.md	documento	corrente	stato, piano o inventario della migr
 docs/REPOSITORY_INDEX.tsv	documento	corrente	stato, piano o inventario della migrazione	-
 docs/REPOSITORY_STATUS.md	documento	corrente	stato, piano o inventario della migrazione	-
 docs/REVIEW_ACTIONS.md	documento	corrente	stato, piano o inventario della migrazione	-
+docs/img/synth-0000043-v3.svg	immagine	corrente	schema di un caso documentato (scripts/synth_case_svg.py)	non è il PNG del renderer
+docs/img/synth-0000043-v4.svg	immagine	corrente	schema di un caso documentato (scripts/synth_case_svg.py)	non è il PNG del renderer
 docs/reviews/PIPELINE_ADDESTRAMENTO_LIMITE_VL.md	documento	corrente	navigazione dei rapporti	-
 docs/reviews/README.md	documento	corrente	navigazione dei rapporti	-
 docs/reviews/REVISIONE_INDIPENDENTE_GOLD_E_DECONTAMINAZIONE.md	documento	storico	rapporto indipendente immutato (versione e hash propri)	-
@@ -166,6 +168,7 @@ scripts/split_duplicates.py	script	da adeguare	duplicati per sorgente con target
 scripts/stem_audit_export.py	script	storico-congelato	audit e gate F2 congelati (CLAUDE.md, Strumenti congelati)	importato da tests/test_stem_audit
 scripts/stem_audit_round.py	script	storico-congelato	audit e gate F2 congelati (CLAUDE.md, Strumenti congelati)	importato da f2_certify, tests/test_stem_audit
 scripts/stream_stats.py	script	da adeguare	statistiche del flusso con lo schema storico; servono contatori del consumato (§5.8.6)	-
+scripts/synth_case_svg.py	script	corrente	schema SVG di un caso shapes dalla specifica, senza matplotlib (documentazione dei casi)	-
 scripts/synth_render.py	script	corrente	render degli shard sintetici con --generator-version obbligatorio (3 riproduce v3, 4 corretto); C1, da collaudare	-
 scripts/synth_semantics_check.py	script	corrente	verifica semantica e del renderer dei sintetici in un job (C2), da collaudare	-
 scripts/train_f1.py	script	da adeguare	trainer F1 storico (ViT congelato); helper importati da molti strumenti; base del nuovo trainer (§17.4)	importato da check_train_config, check_vision_padding, check_vision_precision, eval_f1_formulas, eval_f1_val, f1_error_gen, f1c_*, f2_generate, replay_generate, stream_stats, train_f2

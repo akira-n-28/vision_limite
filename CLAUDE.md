@@ -333,9 +333,12 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
   conta entro ±R mentre il disegno arriva a ±(R+1), con 37 target errati e 364 domande al bordo disegnato;
   `shape_type` e `label_type` sono domande aperte con più risposte vere (`docs/specs/S2_AMMISSIONE_PRIME_FAMIGLIE.md`
   §2). Una risposta calcolata dalla specifica del generatore non è corretta finché non è verificata contro il disegno.
-  La versione 4 di `synth.py` corregge questi punti, e `version=3` riproduce v3. La verifica indipendente è in
-  `src/limite_vl/synth_check.py` e `scripts/synth_semantics_check.py`. Il codice è da collaudare in allocazione e gli
-  shard v4 non sono ancora generati.
+  In v3 inoltre 589 scene shapes su 15.000 hanno una figura che esce dagli assi, per esempio `synth-0000043`. La
+  versione 4 di `synth.py` corregge questi punti, e `version=3` riproduce v3. La verifica indipendente è in
+  `src/limite_vl/synth_check.py` (taglio sull'area degli assi, tratti disegnati, violazioni bloccanti) e
+  `scripts/synth_semantics_check.py`. Il codice è verificato solo sul frontend, con sola libreria standard: va
+  collaudato in allocazione, e gli shard v4 non sono ancora generati. Per controllare la compilazione usare
+  `compile()`, non `ast.parse`, che non vede gli errori della tabella dei simboli.
 - MMFineReason @ 7c93f724: le descrizioni di Qwen3-VL-235B sono testo di un modello, non fatti (circa 10% di
   affermazioni false nel campione del 2026-10-19, che non conta come audit); contiene Geo3K e la famiglia WeMath.
   Caption, risposta e CoT sono oggetti distinti (pipeline §5.7).

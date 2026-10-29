@@ -35,6 +35,7 @@ YES_NO = ["yes", "no"]
 VERSIONS = (3, 4)
 GENERATOR_VERSION = 4
 SHAPE_GAP = 0.2  # da v4: distanza minima fra i riquadri di due figure delle shapes, in unità del disegno
+SHAPES_EXTENT = 9.0  # lato del quadrato di assi delle shapes, in unità del disegno (come in v3)
 
 
 def spec_version(spec: dict) -> int:
@@ -583,6 +584,20 @@ def _shapes_overlap(shapes: list[dict], gap: float = SHAPE_GAP) -> bool:
                for i, a in enumerate(boxes) for b in boxes[i + 1:])
 
 
+def _stroke_margin(spec: dict) -> float:
+    """Mezzo tratto più 1 px di antialiasing, nelle unità del disegno delle shapes: gli assi sono un quadrato di lato
+    min(larghezza, altezza) px che mostra SHAPES_EXTENT unità; lw è in punti a 100 dpi."""
+    return (spec["lw"] * 100 / 72 / 2 + 1.0) * SHAPES_EXTENT / min(spec["width"], spec["height"])
+
+
+def _shapes_fit(spec: dict) -> bool:
+    """Ogni figura, col suo tratto, sta tutta dentro gli assi [0, SHAPES_EXTENT]^2: oltre, matplotlib la taglia (v3:
+    589 scene su 15.000 con il contorno fuori, S2 §2.3)."""
+    m = _stroke_margin(spec)
+    return all(x0 >= m and x1 <= SHAPES_EXTENT - m and y0 >= m and y1 <= SHAPES_EXTENT - m
+               for x0, x1, y0, y1 in (_shape_box(s) for s in spec["shapes"]))
+
+
 def _shapes_qa(spec: dict, rng: random.Random, version: int) -> list[dict]:
     shapes = spec["shapes"]
     types = [s["type"] for s in shapes]
@@ -622,8 +637,8 @@ def _draw_shapes(ax, spec: dict) -> None:
         patch.set_gid(f"shape:{s['label']}")
         ax.add_patch(patch)
         ax.text(x, y - 0.1 * r, s["label"], fontsize=fs, family=fam, ha="center", va="center", gid=f"label:{s['label']}")
-    ax.set_xlim(0, 9)
-    ax.set_ylim(0, 9)
+    ax.set_xlim(0, SHAPES_EXTENT)
+    ax.set_ylim(0, SHAPES_EXTENT)
 
 
 # ---------------------------------------------------------------- interfaccia
@@ -634,15 +649,16 @@ DRAW = {"coord": _draw_coord, "polygon": _draw_polygon, "function": _draw_functi
 
 
 def make_spec(key: str, family: str | None = None, version: int = GENERATOR_VERSION) -> dict:
-    """Specifica della scena. Con version=3 è quella degli shard v3; da v4 le shapes con due figure troppo vicine si
-    estraggono di nuovo dallo stesso generatore, quindi le altre scene restano identiche a v3."""
+    """Specifica della scena. Con version=3 è quella degli shard v3; da v4 le shapes con due figure troppo vicine o con
+    una figura che esce dagli assi si estraggono di nuovo dallo stesso generatore, quindi le altre scene restano
+    identiche a v3."""
     if version not in VERSIONS:
         raise ValueError(f"versione del generatore {version!r}: attesa una di {VERSIONS}")
     rng = rng_for(key)
     family = family or FAMILIES[rng.randrange(len(FAMILIES))]
     spec = SPECS[family](rng)
     if version >= 4 and family == "shapes":
-        while _shapes_overlap(spec["shapes"]):
+        while _shapes_overlap(spec["shapes"]) or not _shapes_fit(spec):
             spec = SPECS[family](rng)
     spec["key"] = key
     if version >= 4:
@@ -687,7 +703,9 @@ def render(spec: dict, layout: bool = False):
 def _layout(fig, ax, size: tuple[int, int]) -> dict:
     """Oggetti con un gid, come sono stati disegnati: riquadri in pixel dell'immagine (origine in alto a sinistra) e dati
     nelle unità del disegno. Testi: testo e riquadro; marcatori: centro; spezzate: vertici, oppure per i grafici gli
-    intervalli di x in cui la curva è disegnata; figure: geometria. `transform` porta (x, y) del disegno in pixel."""
+    intervalli di x in cui la curva è disegnata; figure: geometria. `transform` porta (x, y) del disegno in pixel.
+    `axes_px` è l'area effettiva degli assi in pixel: figure e marcatori con clip_on vengono tagliati lì. Figure e
+    marcatori portano lo spessore del tratto in pixel (`lw_px`); i grafici il numero di campioni (`samples`)."""
     renderer = fig.canvas.get_renderer()
     cw, ch = fig.canvas.get_width_height()
     sx, sy = size[0] / cw, size[1] / ch  # 1 se il canvas ha già la dimensione dell'immagine
@@ -698,6 +716,9 @@ def _layout(fig, ax, size: tuple[int, int]) -> dict:
 
     def num(v) -> float:
         return round(float(v), 6)
+
+    def px(points: float) -> float:  # spessore in punti -> pixel dell'immagine
+        return round(float(points) * fig.dpi / 72 * sx, 2)
 
     items = []
     for t in ax.texts:
@@ -720,16 +741,19 @@ def _layout(fig, ax, size: tuple[int, int]) -> dict:
             if cur is not None:
                 runs.append(cur)
             items.append({"gid": gid, "kind": "curve", "visible": [[num(a), num(b)] for a, b in runs],
-                          "x_range": [num(min(xs)), num(max(xs))], "clip_y": getattr(line, "drawn_ylim", None)})
+                          "x_range": [num(min(xs)), num(max(xs))], "clip_y": getattr(line, "drawn_ylim", None),
+                          "samples": len(xs)})
         elif line.get_marker() not in (None, "None", "", " "):
-            items.append({"gid": gid, "kind": "marker", "xy": [num(xs[0]), num(ys[0])], "bbox": box(line)})
+            items.append({"gid": gid, "kind": "marker", "xy": [num(xs[0]), num(ys[0])], "bbox": box(line),
+                          "lw_px": px(line.get_markeredgewidth()), "clip_on": bool(line.get_clip_on())})
         else:
             items.append({"gid": gid, "kind": "line", "path": [[num(x), num(y)] for x, y in zip(xs, ys)], "bbox": box(line)})
     for p in ax.patches:
         gid = p.get_gid()
         if not gid:
             continue
-        item = {"gid": gid, "kind": "patch", "shape": type(p).__name__, "bbox": box(p)}
+        item = {"gid": gid, "kind": "patch", "shape": type(p).__name__, "bbox": box(p), "lw_px": px(p.get_linewidth()),
+                "clip_on": bool(p.get_clip_on())}
         if hasattr(p, "get_xy") and type(p).__name__ == "Polygon":
             item["path"] = [[num(x), num(y)] for x, y in p.get_xy()]
         elif type(p).__name__ == "Rectangle":
@@ -741,7 +765,10 @@ def _layout(fig, ax, size: tuple[int, int]) -> dict:
         items.append(item)
     ox, oy = ax.transData.transform((0.0, 0.0))
     ux, uy = ax.transData.transform((1.0, 1.0)) - (ox, oy)
+    a = ax.bbox  # area degli assi dopo set_aspect, in pixel del canvas
+    axes_px = [round(a.x0 * sx, 1), round((ch - a.y1) * sy, 1), round(a.x1 * sx, 1), round((ch - a.y0) * sy, 1)]
     return {"size": list(size), "xlim": [num(v) for v in ax.get_xlim()], "ylim": [num(v) for v in ax.get_ylim()],
+            "axes_px": axes_px,
             "transform": {"x0": num(ox * sx), "y0": num((ch - oy) * sy), "ux": num(ux * sx), "uy": num(-uy * sy)},
             "items": items}
 
