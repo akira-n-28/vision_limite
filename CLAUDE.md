@@ -374,8 +374,16 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
   "Verificato" nel report vuol dire approvato dal checker, che legge il layout e non i pixel: non è correttezza
   dimostrata né qualità certificata.
 
-  Gli shard v4 non sono generati (render da approvare) e nessun dato è certificato. Per controllare la compilazione usare `compile()` in un
-  job, non `ast.parse`, che non vede gli errori della tabella dei simboli.
+  Shard v4 in `data/shards/synth/v4` (job 30447, `284e8f1`): dimensioni, chiavi, semi e split di v3. Candidato
+  controllato dai job 30448-30449 (`scripts/synth_candidate.py`, `outputs/synth_candidate/v4-run1`, S2 §2.6):
+  - artefatti integri e riproducibili dalla chiave, nessun errore matematico;
+  - train 57.141 `candidato`, 67 in quarantena per testi sovrapposti, 2.792 `function` esclusi perché hanno lo
+    stesso stato di un record di test o delle coppie;
+  - lo stato di una scena è la specifica senza chiave, versione e stile. Le scene `function` ne hanno pochi;
+  - ancora incompleto per gli esperimenti: niente manifest nei loader, dev split o audit campionario.
+
+  Nessun dato è certificato. Per controllare la compilazione usare `compile()` in un job, non `ast.parse`, che non vede
+  gli errori della tabella dei simboli.
 - MMFineReason @ 7c93f724: le descrizioni di Qwen3-VL-235B sono testo di un modello, non fatti (circa 10% di
   affermazioni false nel campione del 2026-10-19, che non conta come audit); contiene Geo3K e la famiglia WeMath.
   Caption, risposta e CoT sono oggetti distinti (pipeline §5.7).

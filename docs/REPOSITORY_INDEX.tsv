@@ -184,10 +184,11 @@ scripts/split_duplicates.py	script	da adeguare	duplicati per sorgente con target
 scripts/stem_audit_export.py	script	storico-congelato	audit e gate F2 congelati (CLAUDE.md, Strumenti congelati)	importato da tests/test_stem_audit
 scripts/stem_audit_round.py	script	storico-congelato	audit e gate F2 congelati (CLAUDE.md, Strumenti congelati)	importato da f2_certify, tests/test_stem_audit
 scripts/stream_stats.py	script	da adeguare	statistiche del flusso con lo schema storico; servono contatori del consumato (§5.8.6)	-
+scripts/synth_candidate.py	script	corrente	candidato dei sintetici in un job (S2 §2.6): integrità e riproducibilità degli shard salvati, verifica indipendente confrontata con synth_semantics_check, contratto delle coppie, legami per pixel o stato e regola degli split, stato e motivi di ogni scena	legge gli shard in sola lettura; job 30449
 scripts/synth_case_svg.py	script	corrente	schema SVG di un caso shapes dalla specifica, senza matplotlib (documentazione dei casi)	-
-scripts/synth_render.py	script	corrente	render degli shard sintetici con --generator-version obbligatorio (3 riproduce v3, 4 corretto, layout con png_sha256); C1, test e controlli passati (job 30392-30393, 30417-30420)	-
+scripts/synth_render.py	script	corrente	render degli shard sintetici con --generator-version obbligatorio (3 riproduce v3, 4 corretto, layout con png_sha256); C1, test e controlli passati (job 30392-30393, 30417-30420); render del candidato v4 (job 30447)	-
 scripts/synth_review.py	script	corrente	analisi degli scarti del controllo dei sintetici in un job (coppie polygon, riquadri di testo sovrapposti, coordinate; prove esatte delle contraddizioni, immagini prima e dopo con --before); strumento di analisi, non passaggio della pipeline; job 30400, 30420	-
-scripts/synth_semantics_check.py	script	corrente	verifica semantica e del renderer dei sintetici in un job (C2), esiti separati di semantica, immagine e campione; --pairs per le coppie in memoria; test e controlli passati (job 30392-30393, 30417-30420)	-
+scripts/synth_semantics_check.py	script	corrente	verifica semantica e del renderer dei sintetici in un job (C2), esiti separati di semantica, immagine e campione; --pairs per le coppie in memoria; test e controlli passati (job 30392-30393, 30417-30420); shard v4 salvati (job 30448)	-
 scripts/train_f1.py	script	da adeguare	trainer F1 storico (ViT congelato); helper importati da molti strumenti; base del nuovo trainer (§17.4)	importato da check_train_config, check_vision_padding, check_vision_precision, eval_f1_formulas, eval_f1_val, f1_error_gen, f1c_*, f2_generate, replay_generate, stream_stats, train_f2
 scripts/train_f2.py	script	storico	trainer F2 storico: gate f2-cert, conteggi di parametri fissi, ViT congelato; riusabili MasterWeights e gruppi	importato da tests/test_f2_train
 scripts/unimer_check.py	script	riutilizzabile	controllo deterministico dei dati (pipeline §5.3); esiti come evidenze, non ammissione	-
@@ -241,6 +242,7 @@ slurm/shard_parquet.sbatch	launcher	riutilizzabile	launcher di ispezione, shard,
 slurm/shard_unimer.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
 slurm/split_duplicates.sbatch	launcher	da adeguare	launcher di uno strumento da adeguare (vedi lo script)	-
 slurm/stream_stats.sbatch	launcher	da adeguare	launcher di uno strumento da adeguare (vedi lo script)	-
+slurm/synth_candidate.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
 slurm/synth_render.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
 slurm/synth_review.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
 slurm/synth_semantics_check.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-

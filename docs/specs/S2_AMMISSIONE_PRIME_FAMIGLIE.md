@@ -61,7 +61,7 @@ ai compiti answer-only). Gli stati del gold (pipeline §5.6):
 
 Si registrano separatamente il valore **esatto**, quello **visualizzato** e la **risposta richiesta**.
 
-## 2. Sintetici (`src/limite_vl/synth.py`, shard `data/shards/synth/v3`)
+## 2. Sintetici (`src/limite_vl/synth.py`, shard `data/shards/synth/v3` e `v4`)
 
 Evidenza del 2026-10-28: le 60.000 scene di training di v3 sono state rigenerate dalle loro chiavi con il codice
 attuale (`synth-NNNNNNN`, famiglie a rotazione come in `scripts/synth_render.py`). Il calcolo usa solo la libreria
@@ -72,10 +72,13 @@ manifest del job 29756: il codice attuale riproduce le domande di v3.
 che ha trovato figure tagliate, intersezioni contate nei buchi del disegno e un errore di sintassi nei test. Lo stesso
 giorno la revisione di `f7d32d3` ha trovato che il report contava come verificato un campione senza aver dimostrato la
 corrispondenza col PNG dello shard; ora gli esiti sono separati (§2.4). La suite CPU è passata il 2026-10-29 (job
-30392, `b544b97`): `tests/test_synth.py` esegue 96 controlli col disegno vero, nessun fallimento. Due scarti rispetto
-alla §5:
-- intersezioni e `shape_type` si collaudano su 4.000 scene e `label_type` su 400, invece delle 10.000 indicate;
-- i collaudi MAVIS appartengono a C9 e non sono implementati.
+30392, `b544b97`): `tests/test_synth.py` esegue 96 controlli col disegno vero, nessun fallimento. Fino al 2026-10-29
+c'erano due scarti rispetto alla §5:
+- intersezioni e `shape_type` si collaudavano su 4.000 scene e `label_type` su 400, invece delle 10.000 indicate. Per
+  `label_type` il collaudo controllava solo il testo della domanda, non l'unicità con un predicato, e per le
+  intersezioni mancava il conteggio numerico sulle spezzate. Il requisito resta valido: dal 2026-10-30 (`284e8f1`,
+  job 30448) i tre collaudi girano su 10.000 scene ciascuno, con il conteggio numerico e il predicato (§5);
+- i collaudi MAVIS appartengono a C9 e non sono implementati. Questo scarto resta.
 
 Il controllo sugli shard (job 30393, conteggi nel piano F0 §4) ha dato tre risultati:
 - i 60.900 PNG di v3, ridisegnati, hanno byte identici;
@@ -94,15 +97,17 @@ Le correzioni minime sono in `b0b90c5` (§2.5). Dopo di esse:
 - le 300 coppie v4 sono tutte approvate;
 - v3 resta identica.
 
-I test e il controllo collaudano il codice, non i dati: nessun dato è certificato. Il render degli shard v4 richiede
-un'approvazione a parte.
+I test e il controllo collaudano il codice, non i dati: nessun dato è certificato. Il 2026-10-30 il render degli shard
+v4 è stato eseguito su incarico dell'utente (job 30447), con i controlli sugli artefatti salvati (job 30448-30449):
+esiti e stato del candidato nella §2.6.
 - `synth.py`: `version=4` è il default e `version=3` riproduce v3; sono nuovi `visible_bound`, `intersection_points`
   (conteggio geometrico), `_near_miss`, le domande di classificazione con le opzioni, `_shapes_overlap`,
   `_shapes_fit` e `render(spec, layout=True)`;
 - `synth_check.py`: la verifica indipendente;
 - `scripts/synth_semantics_check.py`: il controllo sugli shard e i casi singoli (`--cases`);
 - `scripts/synth_case_svg.py`: schema SVG di un caso shapes, dalla specifica e senza matplotlib;
-- `tests/test_synth.py`: i collaudi della §5.
+- `tests/test_synth.py`: i collaudi della §5;
+- `scripts/synth_candidate.py`: i controlli del candidato sugli shard salvati (§2.6).
 
 ### 2.1 Errore confermato: `intersections`
 
@@ -228,7 +233,8 @@ Si registra anche da dove viene il layout usato:
 - `salvato_con_digest`;
 - `ridisegnato_layout_assente`: record di v3;
 - `ridisegnato_senza_digest`: record con un layout ma senza digest, come quelli che `synth_render.py` avrebbe scritto
-  fra `38af82a` e questa correzione (nessuno shard v4 è stato generato). Il layout salvato non prova il legame col PNG
+  fra `38af82a` e questa correzione (allora nessuno shard v4 era stato generato; quelli del 2026-10-30 portano il
+  digest). Il layout salvato non prova il legame col PNG
   e non si usa;
 - `ridisegnato_digest_diverso`: il PNG non è quello per cui il layout era stato calcolato;
 - `salvato_png_mancante`.
@@ -454,12 +460,195 @@ Livelli:
 - la coerenza fra misura stampata e disegno nelle coppie v4 vale per costruzione, ed è controllata dai test su 60
   coppie e dal checker su 300; non è una certificazione statistica, che resta da fare (S4).
 
-Restano da decidere:
-- le 25 sovrapposizioni residue;
-- la perdita di copertura di `m_side`;
-- 4.000 o 10.000 scene nei collaudi (§5).
+Le tre questioni rimaste aperte (le 25 sovrapposizioni residue, la perdita di copertura di `m_side`, 4.000 o 10.000
+scene nei collaudi) sono chiuse dalle decisioni del 2026-10-30 (§2.6).
 
-Il render degli shard v4 richiede un'approvazione a parte.
+### 2.6 Candidato v4 (job 30447-30449, codice `284e8f1`, 2026-10-30)
+
+**Decisioni dell'utente (2026-10-30)** per il primo candidato:
+- la perdita di copertura di `m_side` è accettata, con i conteggi per compito visibili nel rapporto;
+- le scene con sovrapposizioni segnalate vanno in quarantena temporanea. Non sono contate come errori matematici: le
+  24 scene del campione non sono tutte errate;
+- nessuna soglia si allenta: `OVERLAP_PX`, `MIN_TEXT_PX` e le altre sono quelle del checker (`report.json`, campo
+  `thresholds`);
+- gli stessi criteri valgono per tutte le scene generate, non solo per gli ID già osservati;
+- il requisito delle 10.000 scene nei collaudi resta (§5).
+
+**Generazione** (job 30447, `slurm/synth_render.sbatch v4 --generator-version 4`). Si sono usati dimensioni, chiavi e
+split di v3, cioè il manifest del job 29756 e i default di `synth_render.py`; nessun parametro è stato aggiunto.
+- **Train:** 60.000 scene da `synth-0000000` a `synth-0059999`, con le famiglie a rotazione (`i % 4`). Sono 6 shard da
+  10.000.
+- **Test:** 300 scene `synth-test-NNNNN`.
+- **Coppie:** 300 coppie `synth-pair-NNNNN-a`/`-b`, cioè 600 record. Test e coppie sono gli insiemi di valutazione di
+  `scripts/f1c_eval.py`.
+- **Semi:** `synth.rng_for(chiave)` (sha256 della chiave). Le domande usano `chiave + "/qa"`, il punto segnato dei
+  polygon `chiave + "/m"`, le coppie `chiave + "/cf"`, con i tentativi da `chiave/0` a `chiave/19`.
+- **Uscita:** `data/shards/synth/v4`, 892 MiB fuori da git. Il manifest registra gli sha256 degli shard e l'identità del
+  codice. All'avvio del job era modificato solo `runs/ledger.tsv`, per le righe di invio. v3 non è stata toccata.
+- **Tempo:** 6 min 18 s.
+
+Il dev split non è definito. S1 lo sceglie dal manifest (C5-C7, non implementato); la validazione storica, i primi 512
+campioni dell'ultimo shard, non si usa per i run nuovi (S1 §3).
+
+**Controllo degli shard salvati** (job 30448, `outputs/synth_check/v4-run1`). Prima si esegue `tests/test_synth.py`:
+128 controlli, nessun fallimento (§5). Poi `synth_semantics_check.py` legge in sola lettura gli 8 shard di train, test
+e coppie:
+- 60.900 record, tutti con immagine `digest_corrispondente`: il layout salvato porta lo sha256 del PNG dello shard;
+- 60.833 sono approvati dal checker. Gli altri 67 hanno solo testi sovrapposti. Nessuna domanda risulta errata, non
+  ammissibile o non verificabile, e non ci sono violazioni bloccanti.
+
+**Candidato** (job 30449, `scripts/synth_candidate.py`, uscite in `outputs/synth_candidate/v4-run1`). I controlli
+riguardano ogni record degli shard salvati:
+
+| Controllo | Che cosa | Esito |
+| --- | --- | --- |
+| integrità degli shard | sha256 e dimensione uguali al manifest del render, nessun altro file nelle cartelle; nel tar un PNG e un JSON per chiave, nessun altro membro, le chiavi attese nell'ordine del render | 8 shard su 8, nessun problema |
+| integrità dei record | campi del JSON; risposta fra le opzioni, opzioni distinte; PNG che si decodifica, RGB, alle dimensioni del record; lati multipli di 32; `max_patches` uguale alle patch dell'immagine; layout con `png_sha256` uguale allo sha256 del PNG | 60.900 su 60.900 |
+| immagine vista dal modello | `processing.target_size` lascia invariata ognuna delle 49 dimensioni, tutte entro `DIAGRAM_MAX_PATCHES` | 49 su 49 |
+| riproducibilità | specifica e domande rigenerate dalla chiave; PNG ridisegnato con byte identici, layout identico; coppie rigenerate intere come in `synth_render.scene` | 60.900 su 60.900 |
+| verifica indipendente | `synth_check.check_sample` sul layout salvato; i non approvati devono coincidere con quelli del job 30448 | 67 non approvati, coincidenti |
+| coppie | stessa domanda e stesse opzioni in a e b, risposte diverse, immagini diverse; un solo dettaglio cambiato: un punto riflesso (coord), il segno di `a` di un grafico (function), la figura riscalata con una sola misura scritta (polygon), una figura in più o in meno (shapes) | 300 coppie su 300 |
+| formato | domande ripetute nella scena, spazi in testa, in coda o doppi | nessun problema |
+
+**Duplicati e split.** Si applicano le regole già previste:
+- pipeline §5.5: per i sintetici si separano stati e istanze, e le coppie restano nello stesso split;
+- pipeline §5.8.5 e S1 §§3-4: legami confermati, e un gruppo legato alla valutazione è escluso dal training;
+- `scripts/split_duplicates.py`: il training che ripete la valutazione si toglie, i duplicati interni si contano
+  soltanto.
+
+Come legami confermati valgono solo identità esatte:
+- **pixel:** sha256 dei valori RGBA decodificati;
+- **stato della scena:** la specifica senza chiave, versione e stile (spessore, carattere, dimensioni dell'immagine),
+  cioè la stessa istanza disegnata con un altro stile.
+
+Nessun candidato per somiglianza. Esiti:
+- **pixel:** nessun duplicato, né dentro uno split né fra split.
+- **stato, dentro il train:** 51.995 stati distinti su 60.000 scene. I duplicati sono quasi tutti in `function`, con
+  7.074 stati per 15.000 scene: i grafici hanno coefficienti interi da pochi valori e R = 6, quindi con un solo grafico
+  ci sono circa 600 stati possibili. In polygon 79 scene ripetono lo stato di un'altra (14.921 stati), in coord e
+  shapes nessuna. Si contano soltanto.
+- **stato, fra split:** 79 gruppi, di cui 36 test+train, 33 coppie+train e 10 coppie+test+train. 2.792 scene di train
+  `function` hanno lo stesso stato di almeno un record di valutazione: sono escluse dal training con il motivo
+  `contaminazione`. Test e coppie restano interi.
+- **coppie:** ogni coppia a/b è un solo gruppo nello split delle coppie.
+- **valutazione:** test e coppie condividono stati `function` (10 gruppi); dentro il test ci sono 6 record con lo
+  stato ripetuto, dentro le coppie 48. Per `function` i due insiemi di valutazione non sono indipendenti fra loro.
+
+**Stato delle scene.** Per le coppie vale lo stato del gruppo a/b.
+
+| Split | Record | `candidato` | `quarantena` | `escluso` | Motivi |
+| --- | --- | --- | --- | --- | --- |
+| train | 60.000 | 57.141 | 67 | 2.792 | quarantena: `incerto`, testi sovrapposti (65 coord, 2 function); escluso: `contaminazione` (function) |
+| test | 300 | 300 | 0 | 0 | — |
+| coppie | 600 (300 coppie) | 600 | 0 | 0 | — |
+
+Per categoria, su tutti i 60.900 record:
+- `errore_matematico` (domanda errata, misura o angolo scritti incoerenti col disegno): 0;
+- `visivo_integrita` (violazione bloccante, artefatto non integro o non riproducibile, contratto della coppia): 0;
+- `formato_minore`: 0;
+- `incerto`, in quarantena: 67;
+- `contaminazione`: 2.792.
+
+Le scene in quarantena hanno 77 sovrapposizioni:
+- 73 fra l'etichetta di un punto e il numero di una tacca, in coord;
+- 2 fra la `O` dell'origine e l'etichetta di un punto, in coord (`synth-0011772`, `synth-0048520`);
+- 2 fra il nome del grafico `g` e la tacca `-3`, in function (`synth-0004682`, `synth-0024890`). È una combinazione
+  nuova rispetto alle 20.000 scene in memoria.
+
+In tutte e 67 le domande risultano ok sul layout: la quarantena dice che l'immagine può essere ambigua, non che la
+risposta sia sbagliata. Elenchi con i motivi: `excluded.tsv` e `quarantine.tsv`; lo stato, i motivi e gli hash di ogni
+record sono in `records.jsonl`.
+
+**Copertura del train per compito.** Colonne: le domande di v3 (manifest del job 29756), quelle generate in v4 prima
+dei filtri e quelle delle scene `candidato`.
+
+| Famiglia | Tipo | v3 | v4 prima | v4 dopo | dopo / prima |
+| --- | --- | --- | --- | --- | --- |
+| coord | `coords` | 31.576 | 31.576 | 31.328 | −0.8% |
+| coord | `count`, `exists` | 15.000, 30.000 | 15.000, 30.000 | 14.935, 29.870 | −0.4% |
+| coord | `line_on` | 3.819 | 3.819 | 3.793 | −0.7% |
+| coord | `pair_lr`, `pair_ud` | 122.238, 121.624 | uguali | 121.510, 120.898 | −0.6% |
+| coord | `quadrant`, `side_x`, `side_y` | 52.485 ciascuno | uguali | 52.231 ciascuno | −0.5% |
+| function | `exists` | 30.000 | 30.000 | 24.412 | −18.6% |
+| function | `intercept` | 22.460 | 22.460 | 19.634 | −12.6% |
+| function | `intersections` | 6.307 | 6.436 | 6.411 | −0.4% |
+| function | `opens`, `vertex_ud` | 8.949 | 8.949 | 8.696 | −2.8% |
+| function | `slope` | 13.511 | 13.511 | 10.938 | −19.0% |
+| function | `vertex_lr` | 7.409 | 7.409 | 7.196 | −2.9% |
+| polygon | `m_side` | 7.634 | 6.552 | 6.552 | 0 (−14.2% da v3) |
+| polygon | gli altri 10 tipi (sotto) | uguali | uguali | uguali | 0 |
+| shapes | `has_type` | 28.743 | 28.707 | 28.707 | 0 |
+| shapes | `label_type` | 37.522 | 37.046 | 37.046 | 0 |
+| shapes | `count`, `count_type`, `exists` | 15.000, 15.000, 30.000 | uguali | uguali | 0 |
+
+Scene di train per famiglia, prima e dopo: coord 15.000 → 14.935, function 15.000 → 12.206, polygon e shapes 15.000 →
+15.000.
+- In polygon i tipi invariati sono `angle_val` 3.014, `count` 15.000, `exists` 30.000, `highest` 9.313, `leftmost`
+  9.869, `lowest` 5.870, `right_vertex` 2.128, `rightmost` 9.839, `shape_type` 12.847 e `side_len` 30.060.
+- `m_side` perde 1.082 domande da v3 a v4 (−14.2%), come le −14.6% sulle 20.000 scene in memoria.
+- Nelle shapes le differenze con v3 vengono dalle scene riestratte (§2.4).
+- In function la contaminazione colpisce soprattutto le scene con una sola retta: `slope` perde il 19%, `opens` il 2.8%.
+
+Test e coppie sono interi:
+- test: 75 scene per famiglia, con le domande del manifest del render;
+- coppie, per famiglia e domanda: coord 35 `side_x` e 40 `side_y`; function 22 `opens` e 53 `slope`; polygon 75
+  `side_len`; shapes 75 `count`.
+
+Le distribuzioni delle risposte dopo i filtri sono nel campo `answers_after` del report.
+
+**Costo.** Tre job CPU con 8 CPU (4 core fisici) e 16G ciascuno:
+- 30447 (render): 6 min 18 s;
+- 30448 (test e controllo): 1 min 50 s;
+- 30449 (candidato, con il ridisegno di tutte le scene): 9 min 38 s.
+
+In tutto 17 min 46 s di tempo reale e 2 h 22 min di CPU allocate (`CPUTime` di `sacct`); l'accounting non registra
+`TotalCPU` né `MaxRSS`. Su disco: 892 MiB di shard e 59 MiB di uscite del candidato, quasi tutte in `records.jsonl`.
+
+**Che cosa è verificato** su tutti i 60.900 record:
+- integrità e riproducibilità: dalla chiave si riottengono specifica, domande, PNG e layout identici;
+- approvazione del checker: semantica delle domande sul layout e invarianti del renderer;
+- contratto delle coppie;
+- immagine lasciata invariata dal processor;
+- regole degli split, per identità esatta.
+
+**Che cosa non è coperto:**
+- **checker sul layout.** Il checker legge il layout, non i pixel. Non controlla un grafico che attraversa un'etichetta di
+  tacca (job 30400) né le vicinanze ambigue senza sovrapposizione dei riquadri, come "R8". La soglia di 10 px per
+  l'altezza dei testi è una proposta.
+- **indipendenza parziale.** La verifica prende dalla specifica le formule dei grafici. Predicati di classificazione,
+  contratto delle coppie e definizione di stato sono scritti dallo stesso progetto: errori concettuali condivisi non
+  sono esclusi.
+- **nessuna stima campionaria.** Non ci sono certificazione statistica (S4), audit informativo su un campione
+  (pipeline §15.3) né audit con agenti, che non è autorizzato. Superare il checker non dimostra che ogni risposta sia
+  corretta.
+- **decontaminazione esterna.** Mancano i controlli contro i benchmark riservati, che richiedono l'indice globale
+  (C5-C7). L'evidenza storica `data/decontam/f1eval/synth` riguarda v3 (6 candidati pHash, 0 confermati) e non vale
+  per v4.
+- **legami solo esatti.** Due scene che differiscono solo per un elemento che non cambia le risposte (per esempio le
+  tacche in function) non sono legate.
+- **stati S2.** Le evidenze 1-5 della §1 ora ci sono per i tipi v4, ma S2 è una bozza e i tipi non sono promossi: i
+  record sono `candidato`, non `gold_verificato` né `target_controllato`.
+
+**Stato del candidato: ancora incompleto per gli esperimenti** (pipeline §15.3). I dati sono generati e superano tutti
+i controlli automatici dichiarati, su tutto il candidato. Mancano tre condizioni di "pronto per un esperimento":
+- **manifest nei loader.** Il manifest non è applicato ai compiti caricati: `excluded.tsv` e `quarantine.tsv` sono TSV
+  con intestazione, mentre `Source.exclude` vuole una chiave per riga, e il manifest S1 non esiste (C5-C7).
+- **dev split.** Non è definito.
+- **audit campionario.** Manca l'audit informativo su un campione.
+
+Problemi residui da decidere:
+1. **Stati `function` ripetuti.** Lo spazio degli stati è piccolo, soprattutto con un solo grafico. Per questo la
+   regola degli split toglie il 18.6% delle scene `function` di train, e test e coppie condividono stati. Le opzioni:
+   - tenere l'esclusione, come in questo candidato;
+   - in una versione futura del generatore ampliare lo spazio degli stati, per esempio con più valori dei
+     coefficienti;
+   - riservare in anticipo alla valutazione un insieme di stati.
+
+   Proposta: la prima opzione per questo candidato e la seconda per la versione successiva.
+2. **Le 67 scene in quarantena.** Si possono guardare, correggere nel renderer in una versione futura (etichette dei
+   punti lontane dai numeri delle tacche) o escludere.
+3. **Uso nei loader.** Per usare il candidato servono una lista delle chiavi per `Source.exclude`, o il manifest S1, e
+   la scelta del dev split.
 
 ## 3. MAVIS-Geometry (`f1_mavis.py`, `f1_schema.py`, shard `9c80fff3-caption`)
 
@@ -511,9 +700,14 @@ dei token LaTeX a meno degli spazi (`latex.same_latex`), non l'equivalenza matem
     v4 no, e la verifica la segnala.
   - Intersezioni a meno di 0.4 da \|x\| = 7 o \|y\| = 7: niente domanda.
   - Tangenza, due radici vicine, rette parallele: niente domanda.
-  - Su 10.000 scene il conteggio analitico coincide con quello numerico sulle spezzate.
+  - Su 10.000 scene il conteggio analitico coincide con quello numerico sulle spezzate. Il conteggio numerico conta i
+    cambi di segno della differenza fra campioni consecutivi disegnati per entrambi i grafici, senza le formule delle
+    radici. Dal 2026-10-30 (job 30448): 4.449 domande confermate da entrambi; prima erano 4.000 scene e solo la
+    verifica analitica.
 - **Unicità.** Su 10.000 specifiche per famiglia, esattamente un'opzione vera per ogni domanda di classificazione,
-  calcolata con predicati scritti a parte. Un quadrato con le opzioni square/rectangle/parallelogram/trapezoid accetta
+  calcolata con predicati scritti a parte: `shape_type` sui vertici dei polygon, `label_type` sui lati delle figure
+  delle shapes (24.486 domande nel job 30448; prima 400 scene e solo il testo della domanda). Un quadrato con le opzioni
+  square/rectangle/parallelogram/trapezoid accetta
   solo `square`.
 - **MAVIS.** Per un triangolo rettangolo con i cateti uguali, right e isosceles sono entrambe vere e non compaiono
   insieme fra le opzioni; se non si può costruire un insieme con una sola opzione vera, la domanda non si pone. Un rombo
@@ -555,6 +749,18 @@ dei token LaTeX a meno degli spazi (`latex.same_latex`), non l'equivalenza matem
   - tacche -1 senza numero (`test_origin_labels_v4`);
   - coordinate dalle tacche vicine, con casi positivi e negativi (`test_coords_from_ticks`);
   - limiti esatti delle contraddizioni dell'analisi (`test_review_bounds`).
+- **Candidato** (§2.6, `test_candidate`):
+  - categorie e stati su esiti costruiti: testi sovrapposti, testo piccolo, domanda non ammissibile e violazione
+    sconosciuta in quarantena; domanda errata, misura incoerente, figura tagliata e artefatto non riproducibile
+    esclusi;
+  - coppie vere delle quattro famiglie conformi al contratto; coppie alterate segnalate (due punti cambiati, figura non
+    riscalata, due figure in più, stessa risposta, nome del grafico cambiato);
+  - legami e split su righe costruite: il training con lo stato di un test o di una variante di coppia è escluso, i
+    pixel uguali dentro il train si contano e basta, la coppia è un gruppo con lo stato peggiore;
+  - un PNG sostituito: digest e ridisegno diversi, escluso solo quel record; chiavi in un altro ordine: problema di
+    struttura;
+  - la catena render → controllo → candidato su 12 scene di train, 4 di test e 4 coppie: nessun errore, controllo
+    coincidente, immagini lasciate invariate dal processor.
 - **Valori.** `3/2` disegnato come `1.5`: in lettura la risposta è `1.5`, in calcolo entrambe le forme sono
   equivalenti.
 - **UniMER.** Una rietichettatura non coerente con l'etichetta attesa dà errore (`stream.apply_relabel`, già presente).
