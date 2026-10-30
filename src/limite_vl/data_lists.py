@@ -50,7 +50,14 @@ def _entry(path: str) -> dict:
 
 
 def provenance(specs: list[dict]) -> dict:
-    """{sorgente: {"exclude": [...], "relabel": [...]}} con percorso, byte, sha256 e righe di ogni lista."""
-    return {spec["name"]: {"family": family(spec["shards"]),
-                           "exclude": [_entry(p) for p in spec.get("exclude", [])],
-                           "relabel": [_entry(p) for p in spec.get("relabel", [])]} for spec in specs}
+    """{sorgente: {"exclude": [...], "relabel": [...], "manifest": {...}}} con percorso, byte, sha256 e righe di ogni
+    lista; per una sorgente con manifest delle ammissioni (limite_vl.manifest), manifest.json con lo split letto."""
+    out = {}
+    for spec in specs:
+        entry = {"family": family(spec["shards"]),
+                 "exclude": [_entry(p) for p in spec.get("exclude", [])],
+                 "relabel": [_entry(p) for p in spec.get("relabel", [])]}
+        if spec.get("manifest"):
+            entry["manifest"] = {**file_entry(Path(spec["manifest"]) / "manifest.json"), "split": spec.get("split")}
+        out[spec["name"]] = entry
+    return out

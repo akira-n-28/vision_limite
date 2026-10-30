@@ -3,9 +3,16 @@
 Sorgenti: shard tar di un tipo (data.SAMPLE_LOADERS) con un peso. Ogni worker del DataLoader legge
 tutte le sorgenti nello stesso ordine di shard (mescolato a ogni epoca con il seed) e tiene i campioni
 con indice nello shard ≡ id del worker (mod numero di worker): il carico è bilanciato anche con
-sorgenti di pochi shard, e nessun campione è letto da due worker. I primi `val_count` campioni
-dell'ultimo shard (in ordine di nome) di ogni sorgente sono di validazione e non entrano mai nel
+sorgenti di pochi shard, e nessun campione è letto da due worker. Senza manifest, i primi `val_count`
+campioni dell'ultimo shard (in ordine di nome) di ogni sorgente sono di validazione e non entrano mai nel
 training (`validation_samples`).
+
+Con un manifest delle ammissioni (limite_vl.manifest, S1; campi `manifest` e `split` della sorgente) si leggono
+solo i record `ammesso` dello split richiesto, e la validazione è lo split dev del manifest. Gli shard di
+manifest.MANIFEST_REQUIRED si leggono solo così. Ogni record consegnato deve avere gli sha256 di JSON e PNG del
+manifest; uno diverso è un errore contato (`manifest_errors/<sorgente>`), mai un passaggio silenzioso. I contatori
+dei reader (letti, saltati per il manifest o per le liste, consegnati) e gli esempi costruiti per sorgente
+(`loaded/<sorgente>`) sono nel `meta` di ogni micro-batch.
 
 Per ogni esempio il worker sceglie la sorgente con probabilità proporzionale al peso, prende un
 campione dal buffer di mescolamento della sorgente, costruisce l'Example, impacchetta le righe
@@ -33,6 +40,8 @@ from torch.utils.data import IterableDataset, get_worker_info
 
 from .collator import PackedCollator, iter_packed_rows
 from .data import SAMPLE_LOADERS, build_example, iter_shard
+from .manifest import Admission, ManifestError, manifest_required
+from .manifest import load as load_manifest
 from .processing import LimiteVLProcessor
 
 
@@ -47,6 +56,8 @@ class Source:
     certification: dict | None = None
     # rietichettature esatte (scripts/unimer_check.py, relabel.jsonl): chiave -> (etichetta attesa, nuova etichetta)
     relabel: dict[str, tuple[str, str]] | None = None
+    # manifest delle ammissioni (S1): solo i record ammessi dello split richiesto, validazione dallo split dev
+    admission: Admission | None = None
 
     @property
     def val_shard(self) -> str:
@@ -54,12 +65,15 @@ class Source:
 
 
 def make_sources(specs: list[dict]) -> list[Source]:
-    """[{name, kind, shards: glob, weight, exclude: [file], relabel: [file]}] -> Source, con controlli su tipi, nomi e
-    shard presenti. `exclude` (facoltativo) elenca file con una chiave per riga, da saltare sempre; per f2_solution vale
-    anche come chiave del problema (campo `problem` del JSON). `relabel` (facoltativo) elenca file JSONL
-    {key, label, new_label}: il campo `label` del JSON del campione diventa new_label, solo se coincide con `label`
-    (altrimenti la lista è vecchia e il campione fa fallire il training). `uncertified_reason` lo legge train_f2.py."""
-    sources, names = [], set()
+    """[{name, kind, shards: glob, weight, exclude: [file], relabel: [file], manifest: cartella, split}] -> Source, con
+    controlli su tipi, nomi e shard presenti. `exclude` (facoltativo) elenca file con una chiave per riga, da saltare
+    sempre; per f2_solution vale anche come chiave del problema (campo `problem` del JSON). `relabel` (facoltativo)
+    elenca file JSONL {key, label, new_label}: il campo `label` del JSON del campione diventa new_label, solo se
+    coincide con `label` (altrimenti la lista è vecchia e il campione fa fallire il training). `uncertified_reason` lo
+    legge train_f2.py. `manifest` e `split` (insieme) legano la sorgente a un manifest delle ammissioni
+    (limite_vl.manifest.load, Manifest.admission): manifest mancante o incoerente, shard non registrati o diversi
+    sono errori; gli shard di MANIFEST_REQUIRED senza manifest anche."""
+    sources, names, manifests = [], set(), {}
     for spec in specs:
         if spec["kind"] not in SAMPLE_LOADERS:
             raise ValueError(f"sorgente {spec['name']}: tipo {spec['kind']!r} sconosciuto")
@@ -82,8 +96,19 @@ def make_sources(specs: list[dict]) -> list[Source]:
                     if line.strip():
                         r = json.loads(line)
                         relabel[r["key"]] = (r["label"], r["new_label"])
+        admission = None
+        if "manifest" in spec or "split" in spec:
+            if not spec.get("manifest") or not spec.get("split"):
+                raise ManifestError(f"sorgente {spec['name']}: 'manifest' e 'split' vanno indicati insieme")
+            folder = str(spec["manifest"])
+            if folder not in manifests:
+                manifests[folder] = load_manifest(folder)
+            admission = manifests[folder].admission(shards, spec["split"])
+        elif manifest_required(shards):
+            raise ManifestError(f"sorgente {spec['name']}: gli shard {manifest_required(shards)[:2]} si leggono solo "
+                                "con un manifest delle ammissioni (campi 'manifest' e 'split')")
         sources.append(Source(spec["name"], spec["kind"], shards, float(spec["weight"]), frozenset(exclude),
-                              relabel=relabel or None))
+                              relabel=relabel or None, admission=admission))
     return sources
 
 
@@ -122,6 +147,8 @@ class SourceReader:
         self.epoch, self.pos, self.offset = epoch, pos, offset
         self._it: Iterator | None = None
         self._path = ""
+        # campioni di questo worker: letti, saltati (manifest: non ammessi o di un altro split; liste), consegnati
+        self.counts: Counter = Counter()
 
     def state(self) -> list[int]:
         return [self.epoch, self.pos, self.offset]
@@ -155,15 +182,24 @@ class SourceReader:
             self.offset += 1
             if index % self.n_workers != self.worker:
                 continue
-            if self._path == self.source.val_shard and index < self.val_count:
+            self.counts["letti"] += 1
+            admission = self.source.admission
+            if admission is None and self._path == self.source.val_shard and index < self.val_count:
+                self.counts["saltati_validazione"] += 1
+                continue
+            if admission is not None and not admission.allows(key):  # non ammesso, o di un altro split (dev compreso)
+                self.counts["saltati_manifest"] += 1
                 continue
             if key in self.source.exclude:
+                self.counts["saltati_lista"] += 1
                 continue
             # i campioni F2 si chiamano <chiave>-s<k> o <chiave>-g<indice>: le liste per problema (decontaminazione,
             # esiti degli audit) valgono sulla chiave del problema scritta nel JSON
             if self.source.exclude and self.source.kind == "f2_solution" \
                     and json.loads(files["json"]).get("problem") in self.source.exclude:
+                self.counts["saltati_lista"] += 1
                 continue
+            self.counts["consegnati"] += 1
             return key, apply_relabel(self.source, key, files)
 
 
@@ -241,11 +277,15 @@ class MixedRowStream(IterableDataset):
                 source = self._pick(u01(self.seed, "mix", worker, mix_draws))
                 mix_draws += 1
                 key, files = shufflers[source.name].next()
+                if source.admission is not None and source.admission.check(key, files) is not None:
+                    stats[f"manifest_errors/{source.name}"] += 1  # record diverso da quello ammesso: contato e saltato
+                    continue
                 try:
                     example = build_example(self.processor, source.kind, key, files)
                 except Exception:  # noqa: BLE001 - campione illeggibile: contato e saltato
                     stats[f"errors/{source.name}"] += 1
                     continue
+                stats[f"loaded/{source.name}"] += 1
                 example.source = source.name
                 yield example
 
@@ -257,13 +297,29 @@ class MixedRowStream(IterableDataset):
             batch = self.collate(rows)
             batch["meta"] = {"worker": worker, "state": current_state(),
                              "sources": dict(Counter(e.source for r in rows for e in r)),
-                             "keys": [f"{e.source}/{e.key}" for r in rows for e in r], "stats": dict(stats)}
+                             "keys": [f"{e.source}/{e.key}" for r in rows for e in r], "stats": dict(stats),
+                             "readers": {name: dict(sh.reader.counts) for name, sh in shufflers.items()}}
             rows = []
             yield batch
 
 
 def validation_samples(source: Source, count: int) -> list[tuple[str, dict[str, bytes]]]:
-    """I primi `count` campioni dell'ultimo shard: la parte esclusa dal training."""
+    """I primi `count` campioni dell'ultimo shard: la parte esclusa dal training. Con un manifest, i primi `count`
+    record ammessi dello split dev, nell'ordine degli shard della sorgente; un record diverso da quello ammesso ferma la
+    validazione."""
+    if source.admission is not None:
+        picked: list[tuple[str, dict[str, bytes]]] = []
+        for path in source.shards:
+            for key, files in iter_shard(path):
+                if len(picked) >= count:
+                    return picked
+                if not source.admission.validation(key) or key in source.exclude:
+                    continue
+                problem = source.admission.check(key, files)
+                if problem:
+                    raise ManifestError(f"{source.name}: {key} di validazione: {problem}")
+                picked.append((key, apply_relabel(source, key, files)))
+        return picked
     out = []
     for index, (key, files) in enumerate(iter_shard(source.val_shard)):
         if index >= count:
