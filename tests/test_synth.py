@@ -55,6 +55,23 @@ def fake_items(spec: dict) -> dict:
     return items
 
 
+def polyline_crossings(f: dict, g: dict, items: dict) -> int:
+    """Incroci delle due spezzate disegnate, contati senza formule delle radici: sullo stesso passo di campionamento la
+    differenza delle spezzate è lineare in ogni segmento, quindi si incrociano dove la differenza cambia segno fra due
+    campioni consecutivi, in un segmento disegnato per entrambi i grafici."""
+    fi, gi = items[f["name"]], items[g["name"]]
+    lo, hi = fi["x_range"]
+    n = fi["samples"]
+    xs = [lo + (hi - lo) * i / (n - 1) for i in range(n)]
+
+    def drawn(item, x):
+        return any(a <= x <= b for a, b in item["visible"])
+
+    d = [synth._curve_value(f, x) - synth._curve_value(g, x) for x in xs]
+    return sum(1 for i in range(n - 1) if (d[i] >= 0) != (d[i + 1] >= 0)
+               and all(drawn(it, x) for it in (fi, gi) for x in (xs[i], xs[i + 1])))
+
+
 def first(keys, predicate):
     """Il primo valore che soddisfa predicate (ciclo esplicito: niente := negli iterabili delle comprehension)."""
     for value in keys:
@@ -140,23 +157,39 @@ def test_intersections():
     count, why = synth_check.visible_intersections(*steep, fake_items({"R": 6, "curves": list(steep)}))
     check("incrocio entro un passo di campionamento dal taglio di un grafico ripido: non ammissibile",
           count == 1 and any("campionamento" in w for w in why), why)
-    # su 4.000 scene v4 la verifica indipendente conferma ogni domanda posta
+    # S2 §5: su 10.000 scene v4 ogni domanda posta è confermata dalla verifica indipendente (radici nei tratti
+    # disegnati) e dal conteggio numerico sulle spezzate
     bad, asked = [], 0
-    for i in range(4000):
+    for i in range(10000):
         s = synth.make_spec(f"t-int-{i}", "function", 4)
         q = [x for x in synth.questions(s) if x["type"] == "intersections"]
         if not q:
             continue
         asked += 1
-        count, why = synth_check.visible_intersections(*s["curves"], fake_items(s))
-        if why or str(count) != q[0]["answer"]:
-            bad.append((s["key"], q[0]["answer"], count, why))
-    check("v4: ogni domanda intersections confermata dalla verifica indipendente", asked > 500 and not bad, (asked, bad[:3]))
+        items = fake_items(s)
+        count, why = synth_check.visible_intersections(*s["curves"], items)
+        numeric = polyline_crossings(*s["curves"], items)
+        if why or str(count) != q[0]["answer"] or numeric != count:
+            bad.append((s["key"], q[0]["answer"], count, numeric, why))
+    check("v4: su 10.000 scene ogni domanda intersections confermata dalla verifica indipendente e dal conteggio"
+          " numerico sulle spezzate", asked > 3000 and not bad, (asked, bad[:3]))
+
+
+def shape_classes(s: dict) -> set[str]:
+    """Classi vere di una figura delle shapes, dai lati con cui _draw_shapes la disegna (quadrato 2r x 2r, rettangolo
+    2.4r x 1.2r): un rettangolo con i lati uguali è anche un quadrato, un quadrato è anche un rettangolo."""
+    if s["type"] in ("circle", "triangle"):
+        return {s["type"]}
+    r = s["size"]
+    w, h = (2 * r, 2 * r) if s["type"] == "square" else (2.4 * r, 1.2 * r)
+    return {"square", "rectangle"} if abs(w - h) < 1e-9 * max(w, h) else {"rectangle"}
 
 
 def test_classification():
+    # S2 §5: su 10.000 specifiche per famiglia, esattamente un'opzione vera (la più specifica) per ogni domanda di
+    # classificazione, con predicati scritti a parte: shape_type sui vertici dei polygon, label_type sui lati delle shapes
     bad = []
-    for i in range(4000):
+    for i in range(10000):
         for version in (3, 4):
             s = synth.make_spec(f"t-cls-{i}", "polygon", version)
             for q in synth.questions(s):
@@ -170,7 +203,22 @@ def test_classification():
                 ok = status == "ok" if version == 4 else (status == "non_ammissibile" or s["kind"] == "trapezoid")
                 if not ok:
                     bad.append((version, s["kind"], q["q"], status, why))
-    check("shape_type: v4 una sola risposta vera; v3 aperta con più risposte vere (tranne il trapezio)", not bad, bad[:3])
+    check("shape_type su 10.000 specifiche: v4 una sola risposta vera; v3 aperta con più risposte vere (tranne il"
+          " trapezio)", not bad, bad[:3])
+    bad, asked = [], Counter()
+    for i in range(10000):
+        s = synth.make_spec(f"t-lt-{i}", "shapes", 4)
+        by_label = {x["label"]: x for x in s["shapes"]}
+        for q in synth.questions(s):
+            if q["type"] != "label_type":
+                continue
+            true = shape_classes(by_label[q["q"].split("labeled ", 1)[1].split(":", 1)[0]])
+            status, expected, why = synth_check._classify(q["q"], q["answer"], true, synth_check.SHAPE_VOCAB)
+            asked[q["answer"]] += 1
+            if status != "ok" or expected != q["answer"]:
+                bad.append((s["key"], q["q"], q["answer"], status, why))
+    check("label_type su 10.000 specifiche v4: esattamente un'opzione più specifica vera, uguale alla risposta",
+          not bad and asked["square"] > 0, (dict(asked), bad[:3]))
     sq = next(s for i in range(400) if (s := synth.make_spec(f"t-sq-{i}", "polygon", 4))["kind"] == "square")
     q = next(q for q in synth.questions(sq) if q["type"] == "shape_type")
     true = synth_check.quad_classes([tuple(p) for p in sq["points"]])
@@ -792,6 +840,160 @@ def test_review_bounds():
           not loose["proven"] and strict["proven"], (loose["margin"], strict["margin"]))
 
 
+def test_candidate():
+    """scripts/synth_candidate.py (S2 §2.6): categorie e stati, contratto delle coppie, legami e split, record manomesso,
+    e la catena render -> controllo -> candidato su un render piccolo."""
+    import os
+    import subprocess
+    import tarfile
+    import tempfile
+    from copy import deepcopy
+
+    cand, sr = load_script("synth_candidate"), load_script("synth_render")
+    ok_q = {"type": "count", "q": "?", "answer": "2", "expected": "2", "status": "ok", "why": ""}
+
+    def result(questions=(), violations=(), blocking=()):
+        return {"questions": [dict(ok_q, **q) for q in questions] or [ok_q], "violations": list(violations),
+                "blocking": list(blocking)}
+
+    cases = [
+        ("tutto ok", result(), [], [], "candidato", set()),
+        ("domanda errata", result([{"status": "errata", "expected": "3"}]), [], [], "escluso", {"errore_matematico"}),
+        ("misura incoerente", result(violations=[{"kind": "lunghezza_incoerente", "gids": ["length:AB"], "detail": "x"}]),
+         [], [], "escluso", {"errore_matematico"}),
+        ("figura tagliata", result([{"status": "non_ammissibile", "why": "scena con violazioni bloccanti"}],
+                                   [{"kind": "figura_tagliata", "gids": ["shape:L"]}], ["figura_tagliata"]),
+         [], [], "escluso", {"visivo_integrita"}),
+        ("testi sovrapposti", result(violations=[{"kind": "testi_sovrapposti", "gids": ["label:R", "tick_label:x:8"]}]),
+         [], [], "quarantena", {"incerto"}),
+        ("testo piccolo", result(violations=[{"kind": "testo_piccolo", "gids": ["label:A"]}]), [], [], "quarantena",
+         {"incerto"}),
+        ("domanda non ammissibile", result([{"status": "non_ammissibile", "why": "vicino al bordo"}]), [], [],
+         "quarantena", {"incerto"}),
+        ("violazione sconosciuta", result(violations=[{"kind": "nuova", "gids": []}]), [], [], "quarantena", {"incerto"}),
+        ("formato", result(), [], ["domanda ripetuta 2 volte: ?"], "quarantena", {"formato_minore"}),
+        ("non riproducibile", result(), ["PNG ridisegnato con byte diversi"], [], "escluso", {"visivo_integrita"}),
+    ]
+    bad = []
+    for name, res, integ, fmt, state, cats in cases:
+        c = cand.categorize(res, integ, fmt)
+        if set(c) != cats or cand.state_of(c) != state:
+            bad.append((name, c, cand.state_of(c)))
+    check("candidato: categorie e stati (sovrapposizioni e casi incerti in quarantena, errori esclusi)", not bad, bad)
+
+    # contratto delle coppie: coppie vere per famiglia, poi alterate
+    pairs = {fam: sr.scene((f"synth-pair-{i:05d}", fam, 4)) for i, fam in enumerate(synth.FAMILIES)}
+    real = {fam: cand.pair_contract(a[2], b[2], a[1], b[1]) for fam, (a, b) in pairs.items()}
+    check("coppie v4 vere: contratto rispettato in ogni famiglia", not any(real.values()), real)
+
+    def mutated(fam, fn):
+        (_, pa, ma), (_, pb, mb) = pairs[fam]
+        ma, mb = deepcopy(ma), deepcopy(mb)
+        fn(ma, mb)
+        return cand.pair_contract(ma, mb, pa, pb)
+
+    def two_points(ma, mb):  # oltre al punto riflesso della coppia, un altro punto rimasto uguale
+        same = next(i for i, (p, q) in enumerate(zip(ma["spec"]["points"], mb["spec"]["points"])) if p == q)
+        mb["spec"]["points"][same]["x"] *= -1
+
+    def not_uniform(ma, mb):
+        mb["spec"]["points"][0][0] += 0.5
+
+    def two_shapes(ma, mb):
+        mb["spec"]["shapes"] = mb["spec"]["shapes"] + [dict(mb["spec"]["shapes"][0], label="Z")] * 2
+
+    def same_answer(ma, mb):
+        mb["pair"]["answer"] = ma["pair"]["answer"]
+
+    def other_curve_field(ma, mb):
+        mb["spec"]["curves"][0]["name"] = "h"
+
+    muts = {"coord con due punti cambiati": ("coord", two_points), "polygon non riscalato": ("polygon", not_uniform),
+            "shapes con due figure in più": ("shapes", two_shapes), "stessa risposta": ("coord", same_answer),
+            "function con il nome cambiato": ("function", other_curve_field)}
+    missed = [name for name, (fam, fn) in muts.items() if not mutated(fam, fn)]
+    check("coppie alterate: il contratto le segnala", not missed, missed)
+
+    # legami e split su righe costruite
+    def row(key, split, pix, state, pair=None):
+        return {"key": key, "split": split, "family": "function", "pixels_sha256": pix, "state_sha256": state,
+                "pair": pair, "categories": {}}
+
+    rows = [row("synth-0000001", "train", "p1", "s1"), row("synth-0000002", "train", "p2", "s1"),
+            row("synth-0000003", "train", "p3", "s3"), row("synth-0000004", "train", "p3", "s4"),
+            row("synth-0000005", "train", "p5", "s5"), row("synth-test-00000", "test", "p6", "s1"),
+            row("synth-pair-00000-a", "pairs", "p7", "s7", "synth-pair-00000"),
+            row("synth-pair-00000-b", "pairs", "p8", "s5", "synth-pair-00000")]
+    groups = cand.link_groups(rows)
+    stats = cand.apply_split_rules(rows, groups)
+    cand.assign_states(rows)
+    got = {r["key"]: r["state"] for r in rows}
+    check("split: training legato per stato a un test o alla variante b di una coppia escluso; duplicati interni"
+          " (pixel uguali) contati e non esclusi; la coppia è un gruppo",
+          got == {"synth-0000001": "escluso", "synth-0000002": "escluso", "synth-0000003": "candidato",
+                  "synth-0000004": "candidato", "synth-0000005": "escluso", "synth-test-00000": "candidato",
+                  "synth-pair-00000-a": "candidato", "synth-pair-00000-b": "candidato"}
+          and rows[0]["group"] == rows[1]["group"] == rows[5]["group"] and rows[6]["group"] == rows[7]["group"] == rows[4]["group"]
+          and stats["train_excluded"] == 3 and stats["per_split"]["train"]["records_with_pixel_duplicate"] == 2,
+          (got, stats["train_excluded"]))
+    pair_rows = [dict(row("synth-pair-00001-a", "pairs", "q1", "t1", "synth-pair-00001"), categories={"incerto": ["x"]}),
+                 row("synth-pair-00001-b", "pairs", "q2", "t2", "synth-pair-00001")]
+    cand.assign_states(pair_rows)
+    check("coppia: lo stato peggiore vale per a e b", [r["state"] for r in pair_rows] == ["quarantena", "quarantena"],
+          [r["state"] for r in pair_rows])
+
+    with tempfile.TemporaryDirectory(prefix="test_candidate_") as d:
+        d = Path(d)
+        env = dict(os.environ, MPLBACKEND="Agg")
+        run = [sys.executable, "-B"]
+        steps = [
+            [*run, str(ROOT / "scripts/synth_render.py"), "--out", str(d / "v4"), "--train", "12", "--test", "4",
+             "--pairs", "4", "--per-shard", "6", "--workers", "2", "--generator-version", "4"],
+            [*run, str(ROOT / "scripts/synth_semantics_check.py"), "--out", str(d / "check"), "--shards",
+             str(d / "v4/*/*.tar"), "--workers", "2"],
+            [*run, str(ROOT / "scripts/synth_candidate.py"), "--shards", str(d / "v4"), "--check", str(d / "check"),
+             "--out", str(d / "cand"), "--reference", str(V3 / "manifest.json"), "--workers", "2"]]
+        codes = [subprocess.run(cmd, env=env, capture_output=True, text=True) for cmd in steps]
+        check("catena render -> controllo -> candidato: tre passi senza errori",
+              all(c.returncode == 0 for c in codes), [c.stderr[-800:] for c in codes if c.returncode])
+        if all(c.returncode == 0 for c in codes):
+            rep = json.loads((d / "cand/report.json").read_text())
+            recs = [json.loads(line) for line in (d / "cand/records.jsonl").read_text().splitlines()]
+            check("candidato piccolo: 24 record, coppie appaiate, controllo coincidente, nessun errore dell'insieme",
+                  len(recs) == 24 and rep["pairs"]["coppie"] == 4 and rep["check"]["coincide"] and not rep["fatal"]
+                  and rep["splits"]["train"]["records"] == 12, (rep["states"], rep["fatal"]))
+            artifact = [(r["key"], x) for r in recs for x in r["categories"].get("visivo_integrita", [])
+                        if x.split()[0] not in cand.VISUAL]  # motivi che non vengono dalle violazioni del renderer
+            check("candidato piccolo: nessun problema d'integrità o di riproducibilità degli artefatti, immagini lasciate"
+                  " invariate dal processor", not artifact and rep["integrity"]["image_sizes"]
+                  and all(v["invariata"] for v in rep["integrity"]["image_sizes"].values()), artifact[:3])
+            # record manomesso: il PNG del primo campione sostituito con quello del secondo
+            src = d / "v4/train/synth-train-00000.tar"
+            bad_tar = d / "tampered.tar"
+            members = list(iter_shard(src))
+            with tarfile.open(bad_tar, "w", format=tarfile.USTAR_FORMAT) as tar:
+                for k, (key, files) in enumerate(members):
+                    png = members[1][1]["png"] if k == 0 else files["png"]
+                    sr.add_member(tar, f"{key}.png", png)
+                    sr.add_member(tar, f"{key}.json", files["json"])
+            expected = cand.expected_keys("train", {"train": 6})
+            res = cand.shard_task(("train", str(bad_tar), expected))
+            first_row = res["rows"][0]
+            others = res["rows"][1:]
+            check("record manomesso: digest del layout e ridisegno diversi, solo lui escluso",
+                  any("png_sha256" in x for x in first_row["categories"].get("visivo_integrita", []))
+                  and any("byte diversi" in x for x in first_row["categories"].get("visivo_integrita", []))
+                  and not any("visivo_integrita" in r["categories"] for r in others) and not res["problems"],
+                  first_row["categories"])
+            swapped = d / "swapped.tar"
+            with tarfile.open(swapped, "w", format=tarfile.USTAR_FORMAT) as tar:
+                for key, files in [members[1], members[0], *members[2:]]:
+                    sr.add_member(tar, f"{key}.png", files["png"])
+                    sr.add_member(tar, f"{key}.json", files["json"])
+            res = cand.shard_task(("train", str(swapped), expected))
+            check("shard con le chiavi in un altro ordine: problema di struttura", bool(res["problems"]), res["problems"])
+
+
 if __name__ == "__main__":
     test_v3_reproduction()
     test_intersections()
@@ -807,5 +1009,6 @@ if __name__ == "__main__":
     test_origin_labels_v4()
     test_coords_from_ticks()
     test_review_bounds()
+    test_candidate()
     print("\nfalliti:", FAILS or "nessuno")
     sys.exit(1 if FAILS else 0)
