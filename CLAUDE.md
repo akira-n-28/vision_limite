@@ -25,7 +25,7 @@ aperte. È un progetto: non è una configurazione eseguibile e non autorizza a l
   restano immutati.
 - Pannello di valutazione e decontaminazione (D6, da approvare nei dettagli):
   [`docs/PANNELLO_VALUTAZIONE.md`](docs/PANNELLO_VALUTAZIONE.md). Download `p10-pannello` eseguiti e verificati (job
-  30463); ruoli fissati in `pannello-v2` (job 30466). Le righe `p9-pannello` (più pagine) sono rimandate e commentate.
+  30463); ruoli fissati in `pannello-v3` (job 30469). Le righe `p9-pannello` (più pagine) sono rimandate e commentate.
 - Campione candidato di F0, lacune del training e prossimo lotto:
   [`docs/F0_CAMPIONE_CANDIDATO.md`](docs/F0_CAMPIONE_CANDIDATO.md).
 
@@ -413,17 +413,30 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
   regola del 2026-10-16), `outputs/split_duplicates/run1`. Le liste `exclude.txt` grezze sono solo candidati. Nel
   nuovo manifest si importano come evidenze con motivo, versione e stato (pipeline §5.8), senza applicarle alla
   cieca e senza cancellarle.
-- Pannello (`pannello-v2`, job 30466, codice `e084cba`), descritto in `docs/PANNELLO_VALUTAZIONE.md`.
-  - **Indice** `data/decontam/pannello-v2`: una voce per immagine (99.713 voci, 92.658 immagini, nessuna illeggibile),
-    con pHash e sha256 dei pixel dopo `processing.to_rgb`. Compatibile con `decontam.py scan`.
-  - **Gruppi e ruoli** `data/panel/pannello-v2`, seme 0.
-  - **Legami confermati:** pixel identici o provenienza dichiarata. DocVQA si raggruppa per documento UCSF, MUIRBench
-    per coppia rispondibile/non rispondibile.
-  - **Candidati e irrisolti:** solo somiglianze, tenute separate dai legami. Nel test 1.299 irrisolti, 191 forti, da
-    verificare a vista.
-  - `pannello-v1` (job 30465) è superato e mai usato.
-  - Gli script sono `scripts/panel_index.py` e `scripts/panel_groups.py`, lanciati da `slurm/panel_groups.sbatch`. Le
-    uscite si scrivono una volta: una modifica dà `pannello-v3`.
+- Pannello (`pannello-v3`, job 30469, codice `c9765ca`), descritto in `docs/PANNELLO_VALUTAZIONE.md`.
+  - **Indice** `data/decontam/pannello-v3`: una voce per immagine, cioè 99.713 voci e 92.658 immagini, nessuna
+    illeggibile.
+    - pHash e sha256 dei pixel nella convenzione dichiarata `rgb-su-bianco/1`, con `processing.to_rgb` e le trasparenze
+      su bianco.
+    - `verifica.json`: tutte le 92.658 voci ritrovano la propria immagine.
+    - ChartQA è letto da due file esatti, val e test.
+  - **Convenzione delle immagini** (`limite_vl.decontam`):
+    - `decontam.py scan` e `decontam_review.py` usano quella dell'indice;
+    - un indice che non la dichiara richiede `--convention`. Gli storici p6 e f1eval sono `grigio-diretto/0`, mai
+      riscritti; pannello-v1 e v2 sono `rgb-su-bianco/1`.
+  - **Gruppi e ruoli** `data/panel/pannello-v3`, seme 0.
+  - **Legami confermati:** pixel identici, provenienza dichiarata, oppure testo identico nella forma conservativa per i
+    benchmark di solo testo (`exact_text`; `normalize_words` toglie operatori e segni e dà solo candidati). DocVQA si
+    raggruppa per documento UCSF, MUIRBench per coppia rispondibile/non rispondibile.
+  - **Candidati ed evidenze:** solo somiglianze, tenute separate dai legami.
+    - Nel test ci sono 1.300 evidenze dirette, 191 forti. L'inammissibilità alla metrica primaria vale per gruppo: 743
+      gruppi.
+    - Il confronto pHash è completo, senza troncamenti.
+    - Il test utilizzabile è il campo `metrica_primaria` di `elements.jsonl.gz`.
+  - `pannello-v1` (job 30465) e `pannello-v2` (job 30466) sono superati e mai usati.
+  - Gli script sono `scripts/panel_index.py` (anche `--verify`) e `scripts/panel_groups.py`, lanciati da
+    `slurm/panel_groups.sbatch`; i test sono in `tests/test_panel.py`. Le uscite si scrivono una volta: una modifica dà
+    `pannello-v4`.
 
 ## Strumenti congelati
 

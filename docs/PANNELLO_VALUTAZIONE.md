@@ -2,7 +2,8 @@
 
 **Stato al 2026-10-30, perimetro della pipeline v1.5.**
 - I download decisi dall'utente sono eseguiti e verificati (job 30463).
-- Indice, gruppi e ruoli sono fissati in `pannello-v2` (job 30466), prima di qualsiasi valutazione del modello.
+- Indice, gruppi e ruoli sono fissati in `pannello-v3` (job 30469), prima di qualsiasi valutazione del modello. v3
+  corregge sei problemi di `pannello-v2` (§8) con gli stessi criteri e lo stesso seme.
 - Nessun modello è stato valutato su questi ruoli. L'assegnazione resta da approvare nei dettagli (D6, §7).
 
 Collegamenti: piano F0 (`docs/F0_IMPLEMENTATION_PLAN.md`, decisione D6, punti 3 e 7), campione candidato
@@ -13,30 +14,35 @@ Collegamenti: piano F0 (`docs/F0_IMPLEMENTATION_PLAN.md`, decisione D6, punti 3 
   benchmark nuovi);
 - download: `data/logs/fetch-20261030-153329-p10-pannello.log` e verifica degli hash del job 30463
   (`outputs/verify/report-30463.tsv`);
-- indice e gruppi: job 30466, in `data/decontam/pannello-v2` e `data/panel/pannello-v2` (`summary.json` con conteggi,
-  copertura e sha256 dei file), codice `e084cba` (`scripts/panel_index.py`, `scripts/panel_groups.py`,
-  `slurm/panel_groups.sbatch`);
+- indice e gruppi: job 30469, in `data/decontam/pannello-v3` (indice e `verifica.json`) e `data/panel/pannello-v3`
+  (`summary.json` con conteggi, copertura, sha256 dei file, riesame dei legami testuali e confronto con v2), codice
+  `c9765ca` (`scripts/panel_index.py`, `scripts/panel_groups.py`, `slurm/panel_groups.sbatch`);
+- collaudi delle correzioni: suite CPU del job 30468 (`tests/test_panel.py`, 53 controlli);
 - storiche: sovrapposizioni per pHash fra i benchmark già indicizzati (job 30459, `outputs/panel_overlaps/run1`),
   stati dei sintetici v4 già presenti in v3 (job 30460);
 - fonti primarie: API e schede di Hugging Face, articoli e repository ufficiali, consultati il 2026-10-30.
 
-`pannello-v1` (job 30465) è superato: non raggruppava le pagine dello stesso documento UCSF di DocVQA. Non è mai stato
-usato, e i suoi file restano dove sono.
+`pannello-v1` (job 30465) e `pannello-v2` (job 30466) sono superati e mai usati per valutazioni; i loro file restano
+dove sono. v1 non raggruppava le pagine dello stesso documento UCSF di DocVQA; per v2 vedi §8.
 
 Nel documento:
 - **scaricato** vuol dire che i file del manifest del download sono presenti, con hash verificato;
-- **indicizzato** vuol dire presente in `data/decontam/pannello-v2`;
+- **indicizzato** vuol dire presente in `data/decontam/pannello-v3`;
 - **usato** o **consultato** vuol dire che è servito a una scelta;
-- **legame confermato** vuol dire pixel identici dopo la normalizzazione, oppure provenienza o stesso problema
-  dichiarati nei dati;
-- **candidato** vuol dire somiglianza: pHash vicino o uguale, testo uguale, stesso nome di file. Un pHash uguale indica
-  un candidato duplicato e non dimostra che le immagini siano identiche;
-- **irrisolto** è un candidato fra un elemento di sviluppo e uno di test.
+- **legame confermato** vuol dire pixel identici dopo la normalizzazione, provenienza o stesso problema dichiarati nei
+  dati, oppure lo stesso testo nella forma conservativa per i benchmark di solo testo;
+- **candidato** vuol dire somiglianza: pHash vicino o uguale, testo uguale dopo `normalize_words`, stesso nome di file.
+  Un pHash uguale indica un candidato duplicato e non dimostra che le immagini siano identiche;
+- **evidenza diretta** (irrisolto) è un candidato fra un elemento di sviluppo e uno di test, registrato sull'elemento
+  di test;
+- **gruppo inammissibile** è un gruppo confermato con un'evidenza diretta su un suo membro di test, oppure con
+  copertura incompleta del confronto: tutti i suoi membri di test restano nel test ma escono dalla metrica primaria;
+- **test utilizzabile** è il test senza gruppi inammissibili, la base della metrica primaria.
 
 ## 1. Inventario verificato
 
 Per tutte le sorgenti qui sotto i file del manifest sono presenti e gli hash sono verificati, e nessuna immagine è
-illeggibile (job 30464, 30466).
+illeggibile (job 30464, 30469).
 
 | Benchmark (repo@revisione) | Contenuto | Elementi e immagini indicizzati | Usi precedenti |
 | --- | --- | --- | --- |
@@ -65,7 +71,8 @@ consultati nelle valutazioni F1c (job 29741-29761). Con la stessa chiave lo stat
 300 e per 217 coppie su 300 (job 30460). Restano nello split `test` del manifest, quindi fuori dal training, ma sono
 sviluppo e diagnostica, non test finale.
 
-**Sovrapposizioni fra benchmark** (job 30466, `elementi_legati_fra_insiemi` di `summary.json`):
+**Sovrapposizioni fra benchmark** (job 30469, `elementi_legati_fra_insiemi` di `summary.json`; uguali a v2 salvo il
+testo di APEX):
 - **MathVista.** Testmini e test non condividono ID. Le 382 coppie con lo stesso pHash del job 30459 erano candidati
   duplicati, non una prova. Con i legami confermati, 266 elementi del test stanno nel gruppo di un elemento del
   testmini.
@@ -77,13 +84,17 @@ sviluppo e diagnostica, non test finale.
   un elemento del testmini di MathVista; 609 di ChartQA test e 250 di DocVQA val in quello di un elemento del test di
   MathVista.
 - **MMStar.** I 345 elementi che vengono da MathVista sono tutti legati per nome del file d'immagine.
-- **Testo.** 3 problemi di APEX hanno lo stesso testo di HMMT feb 2025 (2) e AIME 2025 (1). Il commento della suite
-  in `limite_evals/suites.py` ne dichiara 4: il quarto non ha testo identico dopo la normalizzazione e va ancora
-  individuato.
+- **Testo.** Il commento della suite in `limite_evals/suites.py` dichiara 4 problemi di APEX già in AIME 2025 e
+  HMMT feb 2025.
+  - 2, con HMMT feb 2025, hanno lo stesso testo anche nella forma conservativa: sono legami confermati.
+  - 1, con AIME 2025, coincide solo dopo `normalize_words`: il LaTeX è scritto diversamente (`$AB=14,BC=7,…$` contro
+    `$AB=14$, $BC=7$, …`). È un candidato, quindi il problema resta nel test ma fuori dal test utilizzabile.
+  - Il quarto non è stato individuato.
 
 **File fuori da Git che riguardano il pannello.** Snapshot in `hf/hub/datasets--*`, link in `data/eval-datasets`,
-indici e liste in `data/decontam/{p6,f1eval,text,pannello-v1,pannello-v2}`, gruppi in `data/panel/{pannello-v1,pannello-v2}`,
-esiti storici in `outputs/eval`, `outputs/eval_f1_formulas`, `outputs/f1c`. Sono in `docs/ARTIFACT_INVENTORY.tsv`.
+indici e liste in `data/decontam/{p6,f1eval,text,pannello-v1,pannello-v2,pannello-v3}`, gruppi in
+`data/panel/{pannello-v1,pannello-v2,pannello-v3}`, esiti storici in `outputs/eval`, `outputs/eval_f1_formulas`,
+`outputs/f1c`. Sono in `docs/ARTIFACT_INVENTORY.tsv`.
 
 ## 2. Copertura per capacità
 
@@ -107,11 +118,13 @@ CharXiv, InfographicVQA e OCRBench v2, perché la capacità è già coperta o il
 
 ### 2.1 Dove si misurano domande senza risposta, tabelle e visione generale
 
+Domande per ruolo; fra parentesi il test utilizzabile (`pannello-v3`).
+
 | Proprietà | Dove (sviluppo / test, domande) | Limiti |
 | --- | --- | --- |
-| Domande senza risposta | MUIRBench: 567 / 733 varianti non rispondibili, ciascuna nello stesso gruppo della sua rispondibile | solo con più immagini. Con un'immagine sola il pannello non ha domande senza risposta: lacuna dichiarata. VizWiz (foto con "unanswerable") resta un candidato futuro, non scaricato |
-| Tabelle | DocVQA `table/list`: 934 / 846; MathVista testmini con contesto `table`: 70 in sviluppo (62 da TabMWP); estrazione di campi da moduli e scontrini in OCRBench: 122 / 78 | ChartQA ha solo grafici. Il test delle tabelle è DocVQA: tabelle dentro pagine di documenti, senza tabelle di calcolo pure. `question_types` è una lista: una domanda può contare in più tipi |
-| Visione generale | MMStar: 855 / 645, con le 6 capacità in entrambi i ruoli; MUIRBench su foto, mappe, scene, immagini mediche; OCRBench, VQA su scene: 96 / 104 | MMStar è sbilanciato dai legami con MathVista (§3.2) |
+| Domande senza risposta | MUIRBench: 567 / 733 (662) varianti non rispondibili, ciascuna nello stesso gruppo della sua rispondibile | solo con più immagini. Con un'immagine sola il pannello non ha domande senza risposta: lacuna dichiarata. VizWiz (foto con "unanswerable") resta un candidato futuro, non scaricato |
+| Tabelle | DocVQA `table/list`: 934 / 846 (814); MathVista testmini con contesto `table`: 70 in sviluppo (62 da TabMWP); estrazione di campi da moduli e scontrini in OCRBench: 122 / 78 | ChartQA ha solo grafici. Il test delle tabelle è DocVQA: tabelle dentro pagine di documenti, senza tabelle di calcolo pure. `question_types` è una lista: una domanda può contare in più tipi |
+| Visione generale | MMStar: 855 / 645 (518), con le 6 capacità in entrambi i ruoli; MUIRBench su foto, mappe, scene, immagini mediche; OCRBench, VQA su scene: 96 / 104 | MMStar è sbilanciato dai legami con MathVista (§3.2) |
 
 ## 3. Ruoli (D6)
 
@@ -127,7 +140,11 @@ CharXiv, InfographicVQA e OCRBench v2, perché la capacità è già coperta o il
   sottoinsiemi di OlympiadBench in cinese o con dimostrazioni). Servono a escludere dati dal training.
 - **Gruppi:** elementi collegati da un legame confermato formano un gruppo, anche fra benchmark diversi. Un gruppo
   con un membro di sviluppo, o già consultato, va tutto nello sviluppo; altrimenti, con un membro di test, tutto nel
-  test. Nessun gruppo sta in due ruoli.
+  test. Nessun gruppo sta in due ruoli. Per i benchmark di solo testo il legame testuale richiede lo stesso testo
+  nella forma conservativa (`decontam.exact_text`: NFC e spazi compressi). Operatori, segni, numeri, disuguaglianze e
+  condizioni restano intatti; l'uguaglianza dopo `normalize_words` è solo un candidato (`testo_permissivo`).
+- **Ruoli e split:** ogni benchmark ha l'elenco dei suoi split autorizzati (`EXPECTED_SPLITS`). Uno split diverso,
+  per esempio un train di ChartQA entrato nell'indice, ferma il run invece di diventare test.
 - **Estrazione:** per OCRBench, DocVQA, MUIRBench e MMStar ogni gruppo va in sviluppo se il suo rango (`split_rank`
   col seme 0 sull'ID del gruppo) è sotto 0,5; per UniMER-Test sotto 0,05. L'ID del gruppo dipende solo dai membri,
   quindi lo stesso gruppo ha la stessa estrazione in ogni run con lo stesso seme.
@@ -135,59 +152,82 @@ CharXiv, InfographicVQA e OCRBench v2, perché la capacità è già coperta o il
   - AIME 2026, AIME 2025 e HMMT 2026;
   - i primi 200 di spe e i primi 200 di cpe di UniMER-Test;
   - test e coppie dei sintetici v3, e quindi gli stati condivisi da v4.
-- **Irrisolti:** un elemento di test con un candidato verso lo sviluppo resta nel test, ma si conta a parte. La
-  metrica primaria del test usa gli elementi senza irrisolti. La verifica visiva conferma il legame, e allora
-  l'elemento esce dal test con tutto il gruppo, oppure lo esclude. Contano come irrisolti:
+- **Irrisolti:** un candidato fra un elemento di test e uno di sviluppo è un'evidenza diretta sull'elemento di test.
+  - L'inammissibilità alla metrica primaria vale per tutti i membri di test del suo gruppo confermato, perché
+    documenti, varianti e coppie di MUIRBench restano indivisibili.
+  - Il gruppo resta nel test: un candidato non fonde gruppi e non sposta nulla nello sviluppo.
+  - La verifica visiva conferma il legame, e allora il gruppo esce dal test, oppure lo esclude, e allora il gruppo
+    torna utilizzabile.
+
+  Contano come evidenze dirette:
   - pHash entro 4 bit;
   - lo stesso nome di file di ChartQA in split diversi;
-  - testi uguali di almeno 15 parole fra benchmark diversi.
+  - testi uguali di almeno 15 parole fra benchmark diversi;
+  - testi di solo testo uguali solo dopo `normalize_words`.
 
   Un candidato è **forte** se pHash e testo collegano gli stessi due gruppi. Nessuna fusione passa per una catena di
   candidati.
+- **Completezza del confronto pHash:**
+  - per ogni immagine i vicini dello stesso gruppo si tolgono prima di qualsiasi limite;
+  - le coppie si raccolgono da entrambe le direzioni;
+  - il limite operativo (`--max-compare` 50.000) conta i gruppi vicini. Se un'immagine lo supera, il suo gruppo ha
+    copertura incompleta ed è inammissibile come un gruppo irrisolto. In v3 nessuna immagine lo supera;
+  - il limite dei dettagli salvati per la revisione (`--max-saved` 50 per elemento) non cambia il confronto.
+- **Convenzione delle immagini:** pHash e sha256 dei pixel dopo `processing.to_rgb`, con le trasparenze su bianco
+  (`rgb-su-bianco/1`), dichiarata nell'indice. Scansione e revisione usano quella dell'indice (§5).
 - **Protezione dal training:** ogni elemento del pannello, in qualunque ruolo, sviluppo compreso, resta fuori dal
   training. Un record di training legato a uno di essi è escluso; con un candidato irrisolto va in quarantena (S1 §3).
 - **Esposizione pregressa:** la decontaminazione del nuovo training non toglie quello che SigLIP2 e Violetto possono
   aver visto prima.
-- **Versioni:** una modifica produce `pannello-v3`, mai una correzione dei file esistenti. Dopo la prima valutazione
-  del modello sul test l'assegnazione non cambia più.
+- **Versioni:** una modifica produce una versione nuova (`pannello-v4`), mai una correzione dei file esistenti. Dopo
+  la prima valutazione del modello sul test l'assegnazione non cambia più.
 
-### 3.2 Assegnazione (`pannello-v2`, seme 0)
+### 3.2 Assegnazione (`pannello-v3`, seme 0)
 
-Domande per ruolo; fra parentesi i gruppi. "Senza irrisolti" è la base della metrica primaria del test.
+Domande per ruolo; fra parentesi i gruppi. Il test utilizzabile esclude i gruppi inammissibili ed è la base della
+metrica primaria del test.
 
-| Capacità | Sviluppo | Test finale riservato | Test senza irrisolti | Diagnostica o solo decontaminazione |
+| Capacità | Sviluppo | Test finale riservato | Test utilizzabile | Diagnostica o solo decontaminazione |
 | --- | --- | --- | --- | --- |
-| Matematica e geometria | MathVista testmini in inglese 936 (907); MathVerse 4.728 (757); We-Math 1.740 (518); MathVision testmini 304 più i 306 del test con le stesse immagini (304); DynaMath 10 (1 problema, legato a MathVista) | MathVision test 2.734 (2.724); DynaMath 5.000 (495 problemi); OlympiadBench 606 multimodali, di cui 271 con più immagini (in tutto 1.280 col solo testo); MV-MATH 2.009 (2.008) | MathVision 2.731; DynaMath 4.968; OlympiadBench 1.280; MV-MATH 2.003 | MathVista test e non inglese 5.205; OlympiadBench, altri sottoinsiemi 7.196 |
-| Percezione | Geoperception 11.657 (902); VisOnlyQA Real 4 (grafici legati al testmini di MathVista) | VisOnlyQA Real 896 (546), Synthetic 700 (609) | Real 633; Synthetic 700 | — |
+| Matematica e geometria | MathVista testmini in inglese 936 (907); MathVerse 4.728 (757); We-Math 1.740 (518); MathVision testmini 304 più i 306 del test con le stesse immagini (304); DynaMath 10 (1 problema, legato a MathVista) | MathVision test 2.734 (2.724); DynaMath 5.000 (495 problemi); OlympiadBench 606 multimodali, di cui 271 con più immagini (in tutto 1.280 col solo testo); MV-MATH 2.009 (2.008) | MathVision 2.731; DynaMath 4.960; OlympiadBench 1.280; MV-MATH 2.003 | MathVista test e non inglese 5.205; OlympiadBench, altri sottoinsiemi 7.196 |
+| Percezione | Geoperception 11.657 (902); VisOnlyQA Real 4 (grafici legati al testmini di MathVista) | VisOnlyQA Real 896 (546), Synthetic 700 (609) | Real 631; Synthetic 700 | — |
 | Formule | UniMER-Test 1.261 (spe 542, cpe 476, sce 243: i 400 consultati, il 5% estratto e i loro gruppi) | UniMER-Test 16.164 (spe 6.220, cpe 5.445, sce 4.499) | 16.164 | hwe 6.332, diagnostica |
 | OCR | OCRBench 525 (485) | OCRBench 475 (445) | 447 | componenti manoscritte (150), riportate a parte |
-| Documenti a pagina singola | DocVQA 2.681 domande, 644 pagine, 468 documenti UCSF | DocVQA 2.668 domande, 642 pagine, 470 documenti | 2.583 | `question_types` |
-| Grafici | ChartQA val 1.920 più 113 del test, legati al testmini di MathVista (111) o nello stesso gruppo di elementi di val (2); 1.105 gruppi | ChartQA test 2.387 (1.458) | 1.761 | `human` e `augmented` |
-| Poche immagini | MUIRBench 1.134 (462; 567 coppie) | MUIRBench 1.466 (458; 733 coppie) | 1.335 | non rispondibili; `Ordered_Pages` e `Video` fuori perimetro |
-| Visione generale | MMStar 855 (809) | MMStar 645 (617) | 520 | MMStar per capacità |
-| Testo | AIME 2024, 2025, 2026 (90); HMMT feb 2025 e 2026 (63); GSM8K 1.319; IFEval 541; APEX 3 (testo identico a HMMT e AIME) | MATH-500 500; BeyondAIME 100; APEX 44; OlympiadBench `OE_TO_maths_en_COMP` 674 (compreso sopra) | tutti, ma APEX ha ancora un problema in comune da individuare (§1) | — |
+| Documenti a pagina singola | DocVQA 2.681 domande, 644 pagine, 468 documenti UCSF | DocVQA 2.668 domande, 642 pagine, 470 documenti | 2.569 domande, 620 pagine, 450 documenti | `question_types` |
+| Grafici | ChartQA val 1.920 più 113 del test, legati al testmini di MathVista (111) o nello stesso gruppo di elementi di val (2); 1.105 gruppi | ChartQA test 2.387 (1.458) | 1.730 | `human` e `augmented` |
+| Poche immagini | MUIRBench 1.134 (462; 567 coppie) | MUIRBench 1.466 (458; 733 coppie) | 1.324 (662 coppie intere) | non rispondibili; `Ordered_Pages` e `Video` fuori perimetro |
+| Visione generale | MMStar 855 (809) | MMStar 645 (617) | 518 | MMStar per capacità |
+| Testo | AIME 2024, 2025, 2026 (90); HMMT feb 2025 e 2026 (63); GSM8K 1.319; IFEval 541; APEX 2 (testo identico a HMMT feb 2025) | MATH-500 500; BeyondAIME 100; APEX 45; OlympiadBench `OE_TO_maths_en_COMP` 674 (compreso sopra) | MATH-500 500, BeyondAIME 100, APEX 44 (un problema candidato verso AIME 2025; il quarto in comune non individuato, §1) | — |
 | Sintetici | dev del manifest v4 (2.870); test (300) e coppie (600) v4 | nessuno per ora (§3.5) | — | coppie controfattuali v4 |
 
-Irrisolti nel test: 1.299 in tutto, di cui 191 forti.
+Evidenze dirette nel test: 1.300, di cui 191 forti, in 743 gruppi inammissibili. Nessun gruppo ha copertura
+incompleta.
 
-| Benchmark | Irrisolti (forti) | Controparti principali in sviluppo |
-| --- | --- | --- |
-| ChartQA | 626 (90) | ChartQA val 529; OCRBench in sviluppo 254; il testmini di MathVista 94 |
-| VisOnlyQA Real | 263 (7) | MathVista testmini, MathVerse, Geoperception, MMStar (geometrie); ChartQA val (grafici) |
-| MUIRBench | 131 (41) | MUIRBench in sviluppo 101; MMStar 30 |
-| MMStar | 125 | MathVista testmini 95; MUIRBench 25 |
-| DocVQA | 85 (44) | OCRBench in sviluppo 81 (la componente `docVQA`) |
-| DynaMath, OCRBench, MV-MATH, MathVision | 32, 28 (9), 6, 3 | vari |
+| Benchmark | Evidenze dirette (forti) | Altri membri esclusi col gruppo | Controparti principali in sviluppo |
+| --- | --- | --- | --- |
+| ChartQA | 626 (90) | 31 (altre domande sullo stesso grafico) | ChartQA val 529; OCRBench in sviluppo 254; il testmini di MathVista 94 |
+| VisOnlyQA Real | 263 (7) | 2 | MathVista testmini, MathVerse, Geoperception, MMStar (geometrie); ChartQA val (grafici) |
+| MUIRBench | 131 (41) | 11 (controparti e domande con immagini comuni) | MUIRBench in sviluppo 101; MMStar 30 |
+| MMStar | 125 | 2 | MathVista testmini 95; MUIRBench 25 |
+| DocVQA | 85 (44) | 14 (altre pagine o domande dello stesso documento) | OCRBench in sviluppo 81 (la componente `docVQA`) |
+| DynaMath | 32 | 8 (altre varianti dello stesso problema) | MathVision, MathVerse, MMStar e MUIRBench in sviluppo |
+| OCRBench, MV-MATH, MathVision, APEX | 28 (9), 6, 3, 1 | 0 | vari; APEX verso AIME 2025 (`testo_permissivo`) |
 
 Un elemento può avere controparti in più insiemi. Molti candidati sono grafici o pagine di documento con la stessa
-impaginazione, che il pHash a 64 bit non distingue: solo la verifica visiva dice quali sono duplicati.
+impaginazione, che il pHash a 64 bit non distingue: solo la verifica visiva dice quali sono duplicati. Le esclusioni
+per gruppo non sono contaminazioni confermate: seguono la regola dell'indivisibilità.
 
 Note:
 - MathVista test e i sottoinsiemi non inglesi servono solo alla decontaminazione.
 - Il manifest v4 non cambia: test e coppie restano nello split `test`, fuori dal training, e il pannello li usa per
   sviluppo e diagnostica.
-- `data/panel/pannello-v2/elements.jsonl.gz` è il manifest del pannello: un elemento per riga con gruppo, ruolo fisso
-  e finale, motivo e irrisolto. Mancano le metriche per benchmark (D4) e le varianti del contratto (C3).
+- `data/panel/pannello-v3/elements.jsonl.gz` è il manifest del pannello. Ha un elemento per riga con:
+  - gruppo, ruolo fisso e finale, motivo;
+  - evidenze dirette, gruppo irrisolto, copertura incompleta;
+  - ammissione alla metrica primaria (`metrica_primaria`).
+
+  `groups_excluded.jsonl.gz` elenca i gruppi inammissibili con i motivi. Mancano le metriche per benchmark (D4) e le
+  varianti del contratto (C3).
 - Gli sbilanciamenti vengono dai gruppi indivisibili. Si possono correggere solo con una regola nuova, decisa prima di
   qualsiasi valutazione (§7):
   - **MUIRBench:** due gruppi di 232 e 210 domande, legati da immagini riusate, finiscono interi da una parte. Così il
@@ -204,10 +244,11 @@ Note:
   - 31 gruppi con MathVista e 2 con MathVista e MMStar;
   - i documenti con un elemento nel testmini di MathVista vanno nello sviluppo.
 - **Candidati con OCRBench.** La componente `docVQA` di OCRBench (50 domande) non ha pixel identici in DocVQA val.
-  Nel test di DocVQA ci sono 85 domande irrisolte, 44 forti; 81 hanno un candidato nella metà di sviluppo di
-  OCRBench. Se la verifica conferma un legame, il documento esce dal test.
-- **Esito:** sviluppo 2.681 domande, 644 pagine, 468 documenti; test 2.668, 642, 470. Nessun documento sta in due ruoli
-  (`docvqa_documenti_in_piu_ruoli` = 0).
+  Nel test di DocVQA ci sono 85 domande con evidenza diretta, 44 forti; 81 hanno un candidato nella metà di sviluppo
+  di OCRBench. Il loro documento intero è inammissibile, con altre 14 domande senza evidenza propria. Se la verifica
+  conferma un legame, il documento esce dal test; se lo esclude, torna utilizzabile.
+- **Esito:** sviluppo 2.681 domande, 644 pagine, 468 documenti; test 2.668, 642, 470, di cui utilizzabili 2.569
+  domande, 620 pagine, 450 documenti. Nessun documento sta in due ruoli (`docvqa_documenti_in_piu_ruoli` = 0).
 - **Training futuro:** il train di DocVQA (non scaricato) va confrontato con val per documento UCSF, oltre che per pixel.
 
 ### 3.4 MUIRBench: varianti e coppie
@@ -217,6 +258,9 @@ Note:
   riferimento.
 - I gruppi seguono anche le immagini condivise fra domande diverse. Per questo sono 920, e due superano le 200
   domande.
+- **Test utilizzabile:** 662 coppie intere (1.324 domande); 71 coppie sono inammissibili per intero; 567 coppie stanno
+  nello sviluppo. Nessuna coppia è divisa fra ammessa ed esclusa: il controllo `verifica_coppie` di `summary.json`
+  ferma il run se ne trova una.
 - **Fuori perimetro:**
   - relazione `Ordered_Pages` (presentazioni, ragionamento fra pagine): 80 in sviluppo, 268 nel test;
   - tipo `Video` (fotogrammi): 52 e 44.
@@ -288,24 +332,40 @@ Il progetto è solo di ricerca: le fonti si citano e i dati non si ridistribuisc
 
 ## 5. Indice e gruppi: stato e copertura
 
-**Indice** `data/decontam/pannello-v2/index.json` (job 30466, sha256 `e59242f5…`). Ha una voce per immagine e una per
-ogni elemento di solo testo: 99.713 voci, cioè 92.658 immagini e 7.055 testi.
-- Ogni voce ha pHash, sha256 dei pixel normalizzati (`processing.to_rgb`), dimensioni, testo e i campi per gruppi e
-  copertura.
+**Indice** `data/decontam/pannello-v3/index.json` (job 30469, sha256 `02fb3cbf…`, schema `panel-index/2`). Ha una
+voce per immagine e una per ogni elemento di solo testo: 99.713 voci, cioè 92.658 immagini e 7.055 testi.
+- Ogni voce ha pHash, sha256 dei pixel, dimensioni, testo e i campi per gruppi e copertura.
+- La convenzione delle immagini è dichiarata nell'indice: `rgb-su-bianco/1`, cioè `processing.to_rgb` con le
+  trasparenze su bianco. È la stessa di v1 e v2, che però non la dichiaravano: i valori di pHash e pixel non cambiano.
 - Gli elementi con più immagini (MUIRBench, MV-MATH, OlympiadBench) hanno una voce per immagine, con la posizione.
-- È compatibile con `scripts/decontam.py scan`.
+- ChartQA è letto da due file esatti, val e test. Un train scaricato in futuro nella stessa cache non entra.
 - Copre tutti i 26 repository riservati del catalogo. Nessuna immagine è illeggibile, e nessun percorso di MV-MATH manca.
-- Gli indici `p6` e `f1eval` non hanno lo sha256 dei pixel. Restano come evidenze storiche delle scansioni fatte.
+- **Verifica** (`panel_index.py --verify`, `verifica.json`): rileggendo le sorgenti con gli stessi lettori dell'indice,
+  92.658 voci su 92.658 ritrovano il proprio elemento, la propria posizione e lo stesso sha256 dei pixel. Nessun errore.
+- Gli indici `p6` e `f1eval` non hanno lo sha256 dei pixel e usano la convenzione storica `grigio-diretto/0`
+  (`convert("L")`, che ignora l'alfa). Restano come evidenze storiche delle scansioni fatte, senza essere riscritti.
 
-**Gruppi** `data/panel/pannello-v2`: 85.991 elementi in 51.363 gruppi.
+**Compatibilità verificata.** Nel job 30468, su dati costruiti nei test:
+- `decontam.py scan` legge l'indice del pannello, usa la sua convenzione e ritrova a distanza 0 la copia di un PNG
+  trasparente. Con le due convenzioni lo stesso PNG dista 44 bit. Un indice senza convenzione dichiarata è rifiutato,
+  salvo `--convention`;
+- `decontam_review.py` ritrova le immagini delle voci del pannello per elemento e posizione, e si ferma se una voce
+  non corrisponde;
+- la stessa risoluzione (`panel_index.resolve_entries`) è quella verificata sull'indice reale.
+
+Una revisione completa di una scansione di training contro `pannello-v3` non è stata eseguita: non c'è ancora una
+scansione.
+
+**Gruppi** `data/panel/pannello-v3`: 85.991 elementi in 51.386 gruppi.
 
 | File | Contenuto | sha256 |
 | --- | --- | --- |
-| `elements.jsonl.gz` | elemento, gruppo, ruolo, motivo, irrisolto | `31dd636e…` |
-| `links.jsonl.gz` | legami confermati che hanno unito due gruppi | `2b6a7599…` |
-| `candidates.jsonl.gz` | candidati, con tipo e distanza | `94ccda76…` |
-| `unresolved.jsonl.gz` | irrisolti, con le controparti e la forza | `6aac8532…` |
-| `summary.json` | conteggi, copertura per ruolo, regole, seme | — |
+| `elements.jsonl.gz` | elemento, gruppo, ruolo, motivo, evidenze dirette, gruppo irrisolto, copertura, `metrica_primaria` | `dacbea54…` |
+| `links.jsonl.gz` | legami confermati che hanno unito due gruppi | `1f61f676…` |
+| `candidates.jsonl.gz` | 49.141 candidati salvati su 61.038, con tipo e distanza (al più 50 per elemento) | `7874b3b2…` |
+| `unresolved.jsonl.gz` | evidenze dirette per elemento di test, con controparti (al più 10) e forza | `e107baef…` |
+| `groups_excluded.jsonl.gz` | 743 gruppi inammissibili, con motivi e membri | `b1d623f4…` |
+| `summary.json` | conteggi, copertura per ruolo (anche `test_ammesso`), regole, seme, riesame e confronto con v2 | — |
 
 Unioni per tipo di legame:
 
@@ -320,17 +380,25 @@ Unioni per tipo di legame:
 | DocVQA documento UCSF | 347 | 4.064 |
 | ChartQA `imgname` | 0 | 1.855 |
 | UniMER-Test, stessa formula | 931 | 4 |
-| solo testo, stesso testo | 26 | 0 |
+| solo testo, stesso testo nella forma conservativa | 3 (in v2, con `normalize_words`, 26) | 0 |
 | MUIRBench, controparti | 38 | 2.562 |
 | MMStar → MathVista | 345 | 0 |
 
+**Copertura del confronto pHash.**
+- Sono confrontate 68.901 immagini (tutte tranne UniMER-Test), con 35.886 coppie candidate fra gruppi diversi.
+- Nessuna immagine ha superato il limite operativo: nessun gruppo ha copertura incompleta.
+- Il massimo di vicini di altri gruppi per immagine è 220 in ChartQA e OCRBench, 219 in MathVista e VisOnlyQA Real,
+  197 in MMStar.
+- 113 elementi hanno più di 200 vicini di altri gruppi. In v2 il taglio a 200 vicini colpiva 124 immagini, e veniva
+  applicato prima di togliere quelli dello stesso gruppo.
+
 **Limiti.**
 - **UniMER-Test.** Le formule sono quasi bianche, e i loro vicini pHash non hanno senso (job 30039). Per loro contano
-  solo pixel e formula identici.
-- **Cluster densi.** Le immagini con più di 200 vicini registrano solo i più vicini: ChartQA 96, VisOnlyQA 15,
-  MathVista 9, OCRBench 4.
+  solo pixel e formula identici: è una regola, non un troncamento.
 - **Domande di rito.** I testi in più di 25 gruppi non contano come candidati: 16 testi in Geoperception, 6 in
   MathVista, 1 in OCRBench.
+- **Testi di solo testo.** La forma conservativa non riconosce lo stesso problema scritto con un LaTeX diverso: quei
+  casi restano candidati (§8).
 - **Sorgenti di training.** Nessuna è ancora confrontata con questo indice (§6).
 
 ## 6. Piano minimo di decontaminazione
@@ -339,7 +407,7 @@ Unioni per tipo di legame:
 
 | Benchmark | Materiale | Strumenti | Adattamenti indispensabili | Copertura |
 | --- | --- | --- | --- | --- |
-| Tutti i benchmark visivi del pannello | `pannello-v2` | `decontam.py scan` sull'indice nuovo, `decontam_review.py` (correlazione dei pixel a 64×64) | portare lo sha256 dei pixel nella scansione delle sorgenti di training | pixel, pHash, testo, provenienza dichiarata |
+| Tutti i benchmark visivi del pannello | `pannello-v3` | `decontam.py scan` con la convenzione dell'indice, `decontam_review.py` (correlazione dei pixel a 64×64, immagini esatte dal nuovo indice) | portare lo sha256 dei pixel nella scansione delle sorgenti di training | pixel, pHash, testo, provenienza dichiarata |
 | UniMER-Test | immagini e formule | `scripts/unimer_test_overlap.py`, `latex.despace` e `visible_tokens` | indice delle formule normalizzate, da confrontare con tutte le sorgenti con formule (MMFineReason, HME100K di OCRBench) | formule, pixel |
 | Suite testuale, GSM8K, IFEval | testi | `replay_decontam.py` (copertura degli n-gram) | estendere il confronto a MMFineReason e alle domande delle altre sorgenti; individuare il quarto problema in comune di APEX | testo |
 
@@ -348,12 +416,12 @@ Unioni per tipo di legame:
   codice. `decontam_review.py`, con la somiglianza dei pixel ≥ 0.90 e il rapporto d'aspetto entro 1.2, decide quali
   candidati guardare.
 - **Candidato irrisolto fra training e pannello:** resta in quarantena, fuori dal training.
-- **Candidato irrisolto fra sviluppo e test:** si conta a parte finché non si risolve (§3.1).
+- **Candidato irrisolto fra sviluppo e test:** rende inammissibile il gruppo finché non si risolve (§3.1).
 
 ### 6.2 Subito per v4 e dopo con le altre sorgenti
 
 - **Possibile subito, senza download (la scansione va approvata):**
-  - immagini v4 contro `pannello-v2`, con pixel e pHash;
+  - immagini v4 contro `pannello-v3`, con pixel e pHash;
   - le domande, estendendo `texts_of` di `decontam.py` al tipo `synth` (oggi restituisce una lista vuota).
 
   v4 non ha legami di provenienza: è generata.
@@ -374,11 +442,12 @@ Unioni per tipo di legame:
 
 ## 7. Decisioni dell'utente
 
-1. Approvare ruoli e assegnazione di `pannello-v2` (D6), oppure indicare le modifiche. Per esempio una quota diversa
+1. Approvare ruoli e assegnazione di `pannello-v3` (D6), oppure indicare le modifiche. Per esempio una quota diversa
    da 0,5, o un'estrazione stratificata per compito in MUIRBench e per capacità in MMStar. Una regola nuova produce
-   `pannello-v3` e va decisa prima di qualsiasi valutazione.
-2. Irrisolti: approvare la regola di §3.1 (contati a parte finché la verifica visiva non li risolve) e la verifica
-   stessa, senza agenti. Si comincia dai 191 forti.
+   `pannello-v4` e va decisa prima di qualsiasi valutazione.
+2. Irrisolti: approvare la regola di §3.1 e la verifica visiva, senza agenti. La regola vale per gruppo: i gruppi
+   inammissibili restano nel test, fuori dalla metrica primaria, finché la verifica non li risolve. La verifica si fa
+   per gruppo, a partire dai 191 candidati forti; i gruppi inammissibili sono 743.
 3. Metriche (D4):
    - MUIRBench con e senza `Ordered_Pages` e `Video`;
    - OCRBench con e senza le componenti manoscritte;
@@ -387,3 +456,62 @@ Unioni per tipo di legame:
    download separato.
 5. Componente nuova riservata: costruirla più avanti, con le regole di §3.5.
 6. Controlli di IFEval in `third_party/` (clone a un commit fissato) prima di usare IFEval.
+
+## 8. Correzioni di pannello-v3 e confronto con v2
+
+Sei problemi circoscritti di `pannello-v2`, corretti nel codice `c9765ca`, collaudati dal job 30468
+(`tests/test_panel.py`, 53 controlli; suite di 25 file e 990 controlli, nessun fallimento) e applicati nel job 30469.
+Seme, quote, regole dei ruoli e schema degli ID di gruppo non cambiano: un gruppo con gli stessi membri ha lo stesso ID
+e la stessa estrazione.
+
+| # | Problema in v2 | Correzione | Collaudo |
+| --- | --- | --- | --- |
+| 1 | L'irrisolto marcava solo l'elemento di test coinvolto | evidenza diretta sull'elemento, inammissibilità per tutti i membri di test del gruppo; nessuna fusione, nessuno spostamento; controllo delle coppie di MUIRBench | pagina di un documento e membro di una coppia |
+| 2 | Il legame di solo testo usava `normalize_words`, che toglie operatori e segni | legame solo con `exact_text` (NFC, spazi compressi); il resto è candidato `testo_permissivo`; riesame delle 26 unioni di v2 | problemi diversi per operatore, disuguaglianza, segno negativo, `x²` |
+| 3 | Il taglio a 200 vicini rendeva le liste asimmetriche, `j <= i` perdeva coppie e i vicini dello stesso gruppo consumavano il limite | vicini dello stesso gruppo tolti prima; coppie non ordinate da entrambe le direzioni; limite operativo che conta i gruppi; copertura incompleta esplicita; limite dei dettagli separato | vicinato asimmetrico, copie dello stesso gruppo, limite superato |
+| 4 | `decontam.py` e la revisione calcolavano il pHash senza comporre le trasparenze, l'indice dopo `to_rgb` | funzioni condivise in `limite_vl.decontam`; convenzione dichiarata negli indici e nelle scansioni; un indice senza dichiarazione richiede `--convention`; storici non riscritti | copia di un PNG trasparente ritrovata a distanza 0 |
+| 5 | La revisione si aspettava nomi di file, ID originali e un'immagine per riga | lettori condivisi con l'indice; ogni voce ritrova elemento, posizione e pixel, altrimenti errore | MUIRBench, MV-MATH con zip, UniMER; posizioni scambiate e voci assenti |
+| 6 | Il glob `data/*.parquet` di ChartQA avrebbe preso un train futuro; uno split inatteso diventava test | file esatti val e test; split attesi per benchmark, il resto ferma il run | train presente nella cache, split inatteso |
+
+**Confronto con v2** (`confronto_precedente` e `riesame_testo_precedente` di `summary.json`):
+- **Elementi:** gli stessi 85.991.
+- **Ruoli:** cambia un solo elemento. Il problema di APEX che coincide con AIME 2025 solo in forma permissiva torna
+  dallo sviluppo al test, inammissibile. Non c'è nessuna estrazione nuova.
+- **Gruppi:** da 51.363 a 51.386 (+23). Delle 26 unioni testuali di v2 ne restano confermate 3, tutte con testo
+  identico: 2 APEX-HMMT feb 2025 e 1 coppia di OlympiadBench. Le altre 23 sono candidati:
+  - 22 sono coppie di OlympiadBench, tutte `solo_decontaminazione`: 21 in cinese e 1 di dimostrazioni in inglese
+    (`TP_TO_maths_en_COMP`). Differiscono per scrittura del LaTeX, due punti a larghezza piena o parti
+    dell'enunciato;
+  - 1 è APEX-AIME 2025.
+
+  Non si presume che siano tutte problemi diversi: aspettano la verifica.
+- **Candidati:**
+  - coppie pHash da 34.646 a 35.886 (+1.240), trovate dal confronto completo, soprattutto fra grafici (ChartQA,
+    VisOnlyQA, MathVista, OCRBench);
+  - più 23 `testo_permissivo`.
+
+  Le evidenze dirette passano da 1.299 a 1.300 (+1, APEX): le coppie in più collegano elementi già irrisolti, oppure
+  ruoli diversi da sviluppo-test.
+
+| Benchmark | Test utilizzabile v2 | Test utilizzabile v3 | Differenza | Motivo |
+| --- | --- | --- | --- | --- |
+| ChartQA | 1.761 | 1.730 | −31 | altre domande sugli stessi grafici dei 626 con evidenza |
+| DocVQA | 2.583 | 2.569 | −14 | altre domande degli stessi documenti |
+| MUIRBench | 1.335 | 1.324 | −11 | controparti e domande con immagini comuni |
+| DynaMath | 4.968 | 4.960 | −8 | altre varianti degli stessi problemi |
+| MMStar | 520 | 518 | −2 | stesso gruppo |
+| VisOnlyQA Real | 633 | 631 | −2 | stesso gruppo |
+| APEX | 44 | 44 | 0 | il test sale a 45, con un problema inammissibile |
+| MathVision, MV-MATH, OCRBench, OlympiadBench, UniMER-Test, VisOnlyQA Synthetic, MATH-500, BeyondAIME | invariato | invariato | 0 | — |
+
+Le riduzioni vengono dalla regola d'indivisibilità, non da contaminazioni confermate: nessun candidato è stato
+verificato a vista.
+
+**Limiti e lavoro residuo:**
+- verifica visiva dei 743 gruppi inammissibili, a partire dai 191 candidati forti, senza agenti; l'esito va in
+  `pannello-v4`;
+- le 23 unioni testuali ora candidate e il quarto problema in comune di APEX: confronto a vista o con una regola
+  testuale più fine, da decidere;
+- nessuna scansione di training è ancora stata confrontata con `pannello-v3`. Le scansioni storiche e gli indici
+  `p6` e `f1eval` restano nella convenzione `grigio-diretto/0`, e non si mescolano con quella nuova;
+- il pannello copre solo i benchmark scaricati. I due gruppi molto grandi di MUIRBench restano indivisibili (§3.2).

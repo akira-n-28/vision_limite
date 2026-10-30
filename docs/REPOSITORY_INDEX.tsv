@@ -122,8 +122,8 @@ scripts/caption_survey.py	script	riutilizzabile	ispezione dei dati senza trainin
 scripts/check_train_config.py	script	da adeguare	legge lo schema delle config storiche; da rifare sul nuovo manifest	-
 scripts/check_vision_padding.py	script	da adeguare	solo SigLIP2 congelato; da ripetere per i candidati	importato da check_vision_precision
 scripts/check_vision_precision.py	script	da adeguare	precisione con encoder congelato; con il ViT addestrabile va rifatta (§14)	-
-scripts/decontam.py	script	riutilizzabile	decontaminazione: segnali di candidati (pipeline §5.8)	importato da decontam_review, image_sizes
-scripts/decontam_review.py	script	riutilizzabile	decontaminazione: segnali di candidati (pipeline §5.8)	-
+scripts/decontam.py	script	riutilizzabile	decontaminazione: segnali di candidati (pipeline §5.8); l'indice dichiara la convenzione delle immagini e la scansione usa quella dell'indice (--convention per gli indici storici)	importato da decontam_review, image_sizes, panel_index
+scripts/decontam_review.py	script	riutilizzabile	decontaminazione: revisione dei candidati (pipeline §5.8); convenzione dell'indice controllata sulle scansioni; immagini esatte dal nuovo indice del pannello (panel_index.resolve_entries)	-
 scripts/eval_compare.py	script	riutilizzabile	valutazione testuale con il valutatore ufficiale, export del decoder	-
 scripts/eval_f1_formulas.py	script	da adeguare	trascrizione su UniMER-Test con adapter; da collegare al contratto e ai pannelli	importato da f1c_eval, tests/test_f1_data
 scripts/eval_f1_val.py	script	da adeguare	loss di validazione con immagine vera/bianca/assente; base per i controfattuali (§11)	-
@@ -172,8 +172,8 @@ scripts/mavis_fraction_values.py	script	riutilizzabile	controllo deterministico 
 scripts/mavis_geometry_check.py	script	riutilizzabile	controllo deterministico dei dati (pipeline §5.3); esiti come evidenze, non ammissione	importato da tests/test_mavis_geometry
 scripts/mavis_variants.py	script	riutilizzabile	ispezione dei dati senza training	-
 scripts/mavis_zip_survey.py	script	riutilizzabile	ispezione dei dati senza training	-
-scripts/panel_groups.py	script	corrente	gruppi e ruoli del pannello: legami confermati, candidati e irrisolti separati, sviluppo e test per gruppo con seme, copertura per ruolo (job 30466)	solo in un job CPU; uscite scritte una volta
-scripts/panel_index.py	script	corrente	indice del pannello: una voce per immagine con pHash e sha256 dei pixel normalizzati, voci di solo testo, campi per gruppi e copertura (job 30466)	solo in un job CPU; snapshot in sola lettura
+scripts/panel_groups.py	script	corrente	gruppi e ruoli del pannello: legami confermati (testo di solo testo nella forma conservativa), candidati, evidenze dirette e inammissibilità per gruppo, copertura dei vicini pHash, split attesi, riesame e confronto col pannello precedente (job 30469)	solo in un job CPU; uscite scritte una volta
+scripts/panel_index.py	script	corrente	indice del pannello: una voce per immagine con pHash e sha256 dei pixel nella convenzione dichiarata, voci di solo testo, file espliciti di ChartQA; --verify rilegge ogni immagine; lettori condivisi con la revisione (job 30469)	solo in un job CPU; snapshot in sola lettura
 scripts/panel_inventory.py	script	corrente	inventario dei benchmark locali per il pannello: schema, righe, risposte presenti o vuote, contro manifest e verifiche; indici di decontaminazione (job 30457)	-
 scripts/panel_inventory_summary.py	script	corrente	riassunto leggibile dell'inventario dei benchmark (job 30458)	-
 scripts/panel_overlaps.py	script	corrente	sovrapposizioni fra i benchmark indicizzati: pHash identici o vicini (candidati), testi identici, ID condivisi (job 30459)	-
@@ -241,7 +241,7 @@ slurm/mavis_fraction_values.sbatch	launcher	riutilizzabile	launcher di ispezione
 slurm/mavis_geometry_check.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
 slurm/mavis_variants.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
 slurm/mavis_zip_survey.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
-slurm/panel_groups.sbatch	launcher	corrente	indice del pannello e gruppi e ruoli (panel_index.py e panel_groups.py; job 30465, 30466); con INDICE riusa un indice già costruito	-
+slurm/panel_groups.sbatch	launcher	corrente	indice del pannello, sua verifica e gruppi e ruoli (panel_index.py e panel_groups.py; job 30465, 30466, 30469); --indice riusa un indice, --precedente confronta	-
 slurm/panel_inventory.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
 slurm/panel_overlaps.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
 slurm/peek_parquet.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
@@ -272,7 +272,7 @@ src/limite_vl/__init__.py	modulo	corrente	pacchetto	-
 src/limite_vl/collator.py	modulo	da adeguare	packing e collate	posizioni azzerate a ogni esempio; scarta gli esempi troppo lunghi senza contabilità
 src/limite_vl/data.py	modulo	da adeguare	lettura degli shard ed esempi per tipo	un'immagine per Sample; QA costruite al volo senza identità compito/variante
 src/limite_vl/data_lists.py	modulo	riutilizzabile	liste obbligatorie e loro provenienza, col manifest delle ammissioni e lo split di ogni sorgente	REQUIRED vale ancora per famiglia (synth: lista v3 vuota)
-src/limite_vl/decontam.py	modulo	riutilizzabile	pHash e n-gram per candidati di contaminazione	segnale, non prova (§5.10.3)
+src/limite_vl/decontam.py	modulo	riutilizzabile	pHash e n-gram per candidati di contaminazione; convenzioni delle immagini (rgb-su-bianco/1, grigio-diretto/0) e forma conservativa dei testi (exact_text)	segnale, non prova (§5.10.3)
 src/limite_vl/f1_mavis.py	modulo	riutilizzabile	verità, descrizione canonica e domande MAVIS da diagram_generation	valore esatto/visualizzato/richiesto da separare (§5.6)
 src/limite_vl/f1_schema.py	modulo	riutilizzabile	schema delle descrizioni strutturate e parser inverso	-
 src/limite_vl/f1c.py	modulo	storico	dati di F1c	importato da data.py, shard_unimer, f1_mavis
@@ -321,6 +321,7 @@ tests/test_mavis.py	test	storico	test di codice storico mantenuto importabile	-
 tests/test_mavis_gen.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
 tests/test_mavis_geometry.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
 tests/test_normuon.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
+tests/test_panel.py	test	corrente	test CPU del pannello e della convenzione delle immagini: irrisolti per gruppo, testo conservativo, vicini pHash, PNG trasparenti, recupero dal nuovo indice, split di ChartQA (slurm/tests_cpu.sbatch, job 30468)	-
 tests/test_replay.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
 tests/test_stem_audit.py	test	storico-congelato	test di codice storico mantenuto importabile	-
 tests/test_synth.py	test	corrente	test CPU (slurm/tests_cpu.sbatch)	-
