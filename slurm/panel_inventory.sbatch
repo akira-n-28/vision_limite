@@ -2,7 +2,8 @@
 # Inventario dei benchmark locali per il pannello di valutazione (scripts/panel_inventory.py): schema e conteggi dei
 # file degli snapshot, contro i manifest dei download e le verifiche degli hash; indici di decontaminazione. Job solo
 # CPU, in sola lettura; non estrae archivi.
-# Uso: sbatch slurm/panel_inventory.sbatch NOME   -> outputs/panel_inventory/NOME
+# Uso: sbatch slurm/panel_inventory.sbatch NOME   -> outputs/panel_inventory/NOME (inventory.json e sintesi.md)
+#      Se NOME ha già inventory.json, scrive solo il riassunto (scripts/panel_inventory_summary.py).
 #SBATCH --job-name=lvl-panel-inv
 #SBATCH --partition=mat
 #SBATCH --nodes=1
@@ -26,9 +27,13 @@ test -x "$RUN_PYTHON"
 source slurm/prologue.sh
 lagrange_prologue cpu
 export OMP_NUM_THREADS=1
-if srun "$RUN_PYTHON" -u -B scripts/panel_inventory.py --out "$OUT"; then
+if [[ ! -f $OUT/inventory.json ]] && ! srun "$RUN_PYTHON" -u -B scripts/panel_inventory.py --out "$OUT"; then
+  ledger_note failed "panel_inventory -> $OUT"
+  exit 1
+fi
+if srun "$RUN_PYTHON" -u -B scripts/panel_inventory_summary.py --inventory "$OUT/inventory.json" --out "$OUT/sintesi.md"; then
   ledger_note ok "panel_inventory -> $OUT"
 else
-  ledger_note failed "panel_inventory -> $OUT"
+  ledger_note failed "panel_inventory (riassunto) -> $OUT"
   exit 1
 fi
