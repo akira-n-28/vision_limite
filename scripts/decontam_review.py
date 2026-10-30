@@ -13,9 +13,19 @@ misura e scrive esempi, per scegliere le soglie.
 - Uscita in --out/<sorgente>: review.jsonl (un campione per riga), stats.json (fasce e conteggi per soglia),
   pairs_<fascia>.png (coppie training | benchmark), text_examples.txt ed exclude_proposed.txt (le chiavi che la
   regola --propose-* escluderebbe; le liste di decontam.py restano com'erano).
+- Convenzione delle immagini: quella dichiarata dall'indice, oppure --convention per un indice che non la dichiara.
+  Ogni scansione deve avere la stessa, altrimenti la revisione si ferma. pHash e somiglianza normalizzano le immagini
+  con processing.to_rgb (limite_vl.decontam), come l'indice e la scansione.
+- Immagini dei benchmark:
+  - con un indice di scripts/decontam.py index, dalle cartelle --benchmark nello stesso ordine dell'indice;
+  - con un indice del pannello (voci con `item` e `pos`, scripts/panel_index.py), dagli snapshot fissati in
+    panel_index.py. Ogni voce ritrova il proprio elemento e la propria posizione con lo stesso sha256 dei pixel; un
+    mancato abbinamento ferma la revisione, senza ripieghi.
 
     srun $RUN_PYTHON -u -B scripts/decontam_review.py --index INDEX.json --benchmark mathvista=DIR ... \\
-        --scan data/decontam/p6/mmfinereason ... --out outputs/decontam_review
+        --scan data/decontam/p6/mmfinereason ... --out outputs/decontam_review [--convention grigio-diretto/0]
+    srun $RUN_PYTHON -u -B scripts/decontam_review.py --index data/decontam/pannello-v3/index.json \\
+        --scan DIR ... --out DIR
 """
 from __future__ import annotations
 
@@ -39,7 +49,9 @@ sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "scripts"))
 from decontam import ID_COLUMNS, IMAGE_COLUMNS, LooseFiles, image_from, texts_of  # noqa: E402
 from limite_vl.data import iter_shard  # noqa: E402
-from limite_vl.decontam import HashIndex, TextIndex, normalize_words, phash, word_ngrams  # noqa: E402
+from limite_vl.decontam import (  # noqa: E402
+    CONVENTIONS, HashIndex, TextIndex, image_phash, index_convention, normalize_words, word_ngrams)
+from limite_vl.processing import to_rgb  # noqa: E402
 
 Image.MAX_IMAGE_PIXELS = None
 SIM_BINS = [(0.95, 1.01), (0.9, 0.95), (0.8, 0.9), (0.5, 0.8), (-1.01, 0.5)]
@@ -47,11 +59,8 @@ COV_BINS = [(0.8, 1.01), (0.5, 0.8), (0.3, 0.5), (0.0, 0.3)]
 
 
 def on_white(im: Image.Image) -> Image.Image:
-    if im.mode in ("RGBA", "LA") or (im.mode == "P" and "transparency" in im.info):
-        im = im.convert("RGBA")
-        bg = Image.new("RGBA", im.size, (255, 255, 255, 255))
-        return Image.alpha_composite(bg, im).convert("L")
-    return im.convert("L")
+    """Scala di grigi dopo processing.to_rgb (trasparenze su bianco), la stessa normalizzazione dell'indice."""
+    return to_rgb(im).convert("L")
 
 
 def small(data: bytes) -> tuple[np.ndarray, float] | None:
@@ -72,18 +81,34 @@ def corr(a: np.ndarray, b: np.ndarray) -> float:
     return float((a * b).sum() / d)
 
 
-def train_task(task: tuple[str, bytes]):
-    key, data = task
+def train_task(task: tuple[str, bytes, str]):
+    key, data, convention = task
     try:
         with Image.open(io.BytesIO(data)) as im:
-            h = phash(im)
+            h = image_phash(im, convention)
     except Exception:  # noqa: BLE001
         return key, None, None
     return key, h, small(data)
 
 
-def bench_images(specs: list[str], index: list[dict]) -> list[bytes | None]:
-    """Byte delle immagini dei benchmark nello stesso ordine dell'indice (stesso ciclo di decontam.cmd_index)."""
+def is_panel_index(index: list[dict]) -> bool:
+    """Indice di scripts/panel_index.py: voci con `item` e `pos` (una per immagine)."""
+    return bool(index) and all("item" in it and "pos" in it for it in index)
+
+
+def bench_images(specs: list[str], index: list[dict], convention: str, workers: int = 1) -> list[bytes | None]:
+    """Byte delle immagini dei benchmark nello stesso ordine dell'indice. Indice del pannello: ogni voce si ritrova
+    con i lettori di panel_index.py (elemento e posizione esatti, stesso sha256 dei pixel); un errore ferma tutto.
+    Indice di decontam.py index: stesso ciclo di decontam.cmd_index sulle cartelle --benchmark."""
+    if is_panel_index(index):
+        import panel_index
+
+        out, errors = panel_index.resolve_entries(index, convention, workers)
+        if errors:
+            sys.exit(f"{len(errors)} voci dell'indice non ritrovate esattamente, per esempio: {errors[:5]}")
+        return out
+    if not specs:
+        sys.exit("indice di decontam.py index: servono le cartelle --benchmark")
     out: list[bytes | None] = []
     for spec in specs:
         name, _, folder = spec.partition("=")
@@ -137,9 +162,13 @@ def bins_of(value: float, bins) -> str:
     return next(f"{lo:.2f}-{hi:.2f}" for lo, hi in bins if lo <= value < hi)
 
 
-def review_scan(scan: Path, index, with_hash, hidx, tidx, bench_small, bench_bytes, bench_grams, args, pool, out: Path):
+def review_scan(scan: Path, index, with_hash, hidx, tidx, bench_small, bench_bytes, bench_grams, args, pool, out: Path,
+                convention: str):
     t0 = time.time()
     summary = json.loads((scan / "summary.json").read_text())
+    scan_convention = summary.get("convenzione_immagini") or args.convention
+    if scan_convention != convention:
+        sys.exit(f"{scan}: convenzione della scansione {scan_convention!r} diversa da quella dell'indice {convention!r}")
     kind = summary["kind"]
     image_keys, text_keys = set(), set()
     for line in open(scan / "matches.jsonl"):
@@ -193,7 +222,7 @@ def review_scan(scan: Path, index, with_hash, hidx, tidx, bench_small, bench_byt
                 ext = next((e for e in ("png", "jpg", "jpeg", "webp") if e in files), None)
                 if ext:
                     train_bytes[key] = files[ext]
-                    tasks.append((key, files[ext]))
+                    tasks.append((key, files[ext], convention))
                     if len(tasks) >= 2048:
                         flush()
         flush()
@@ -282,7 +311,10 @@ def review_scan(scan: Path, index, with_hash, hidx, tidx, bench_small, bench_byt
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--index", required=True)
-    ap.add_argument("--benchmark", action="append", required=True, help="nome=cartella, come per decontam.py index")
+    ap.add_argument("--benchmark", action="append", default=[],
+                    help="nome=cartella, come per decontam.py index (non serve con un indice del pannello)")
+    ap.add_argument("--convention", choices=CONVENTIONS, default=None,
+                    help="convenzione delle immagini di un indice che non la dichiara (p6, f1eval: grigio-diretto/0)")
     ap.add_argument("--scan", action="append", required=True, type=Path, help="cartella di uscita di decontam.py scan")
     ap.add_argument("--out", required=True, type=Path)
     ap.add_argument("--radius", type=int, default=4)
@@ -298,19 +330,24 @@ def main() -> None:
     if not os.environ.get("SLURM_JOB_ID"):
         sys.exit("decontam_review.py va eseguito in un job SLURM")
     t0 = time.time()
-    index = json.loads(Path(args.index).read_text())["items"]
+    loaded = json.loads(Path(args.index).read_text())
+    try:
+        convention = index_convention(loaded, args.convention)
+    except ValueError as e:
+        sys.exit(f"{args.index}: {e}")
+    index = loaded["items"]
     with_hash = [i for i, it in enumerate(index) if it["phash"]]
     hidx = HashIndex([int(index[i]["phash"], 16) for i in with_hash], radius=args.radius)
     tidx = TextIndex.build([it["text"] for it in index], n=args.ngram, max_df=args.max_df)
     bench_grams = [word_ngrams(normalize_words(it["text"]), args.ngram) & tidx.grams.keys() for it in index]
-    bench_bytes = bench_images(args.benchmark, index)
+    bench_bytes = bench_images(args.benchmark, index, convention, args.workers)
     with Pool(args.workers) as pool:
         bench_small = pool.map(small, [b or b"" for b in bench_bytes], chunksize=64)
-        print(f"benchmark: {len(index)} elementi, {sum(s is not None for s in bench_small)} immagini ridotte "
-              f"({time.time() - t0:.0f} s)", flush=True)
+        print(f"benchmark: {len(index)} voci, convenzione {convention}, {sum(s is not None for s in bench_small)} "
+              f"immagini ridotte ({time.time() - t0:.0f} s)", flush=True)
         for scan in args.scan:
             review_scan(scan, index, with_hash, hidx, tidx, bench_small, bench_bytes, bench_grams, args, pool,
-                        args.out / scan.name)
+                        args.out / scan.name, convention)
 
 
 if __name__ == "__main__":
