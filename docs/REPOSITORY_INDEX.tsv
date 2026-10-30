@@ -162,6 +162,7 @@ scripts/lang_scripts.py	script	riutilizzabile	ispezione dei dati senza training	
 scripts/lang_survey.py	script	riutilizzabile	ispezione dei dati senza training	-
 scripts/link_eval_datasets.py	script	corrente	kit: ambiente, download controllati, cache HF, verifica	-
 scripts/link_hf_snapshot.py	script	corrente	kit: ambiente, download controllati, cache HF, verifica	-
+scripts/manifest_check.py	script	corrente	verifiche CPU del manifest delle ammissioni e dei loader: integrità, split riproducibile, gruppi, letture reali degli split, arresti espliciti (job 30451)	-
 scripts/mavis_caption_check.py	script	riutilizzabile	controllo deterministico dei dati (pipeline §5.3); esiti come evidenze, non ammissione	-
 scripts/mavis_caption_survey.py	script	riutilizzabile	ispezione dei dati senza training	-
 scripts/mavis_contact_sheet.py	script	riutilizzabile	controllo deterministico dei dati (pipeline §5.3); esiti come evidenze, non ammissione	-
@@ -186,6 +187,7 @@ scripts/stem_audit_round.py	script	storico-congelato	audit e gate F2 congelati (
 scripts/stream_stats.py	script	da adeguare	statistiche del flusso con lo schema storico; servono contatori del consumato (§5.8.6)	-
 scripts/synth_candidate.py	script	corrente	candidato dei sintetici in un job (S2 §2.6): integrità e riproducibilità degli shard salvati, verifica indipendente confrontata con synth_semantics_check, contratto delle coppie, legami per pixel o stato e regola degli split, stato e motivi di ogni scena	legge gli shard in sola lettura; job 30449
 scripts/synth_case_svg.py	script	corrente	schema SVG di un caso shapes dalla specifica, senza matplotlib (documentazione dei casi)	-
+scripts/synth_manifest.py	script	corrente	manifest delle ammissioni del candidato sintetici v4 dalle uscite di synth_candidate, con dev stratificato per famiglia (S2 §2.7; job 30451)	scrive data/manifests/<nome>-<versione> una volta sola
 scripts/synth_render.py	script	corrente	render degli shard sintetici con --generator-version obbligatorio (3 riproduce v3, 4 corretto, layout con png_sha256); C1, test e controlli passati (job 30392-30393, 30417-30420); render del candidato v4 (job 30447)	-
 scripts/synth_review.py	script	corrente	analisi degli scarti del controllo dei sintetici in un job (coppie polygon, riquadri di testo sovrapposti, coordinate; prove esatte delle contraddizioni, immagini prima e dopo con --before); strumento di analisi, non passaggio della pipeline; job 30400, 30420	-
 scripts/synth_semantics_check.py	script	corrente	verifica semantica e del renderer dei sintetici in un job (C2), esiti separati di semantica, immagine e campione; --pairs per le coppie in memoria; test e controlli passati (job 30392-30393, 30417-30420); shard v4 salvati (job 30448)	-
@@ -243,6 +245,7 @@ slurm/shard_unimer.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, 
 slurm/split_duplicates.sbatch	launcher	da adeguare	launcher di uno strumento da adeguare (vedi lo script)	-
 slurm/stream_stats.sbatch	launcher	da adeguare	launcher di uno strumento da adeguare (vedi lo script)	-
 slurm/synth_candidate.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
+slurm/synth_manifest.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
 slurm/synth_render.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
 slurm/synth_review.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
 slurm/synth_semantics_check.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
@@ -256,7 +259,7 @@ src/limite_vl/.gitkeep	modulo	corrente	segnaposto	-
 src/limite_vl/__init__.py	modulo	corrente	pacchetto	-
 src/limite_vl/collator.py	modulo	da adeguare	packing e collate	posizioni azzerate a ogni esempio; scarta gli esempi troppo lunghi senza contabilità
 src/limite_vl/data.py	modulo	da adeguare	lettura degli shard ed esempi per tipo	un'immagine per Sample; QA costruite al volo senza identità compito/variante
-src/limite_vl/data_lists.py	modulo	riutilizzabile	liste obbligatorie e loro provenienza	da collegare al manifest di ammissione
+src/limite_vl/data_lists.py	modulo	riutilizzabile	liste obbligatorie e loro provenienza, col manifest delle ammissioni e lo split di ogni sorgente	REQUIRED vale ancora per famiglia (synth: lista v3 vuota)
 src/limite_vl/decontam.py	modulo	riutilizzabile	pHash e n-gram per candidati di contaminazione	segnale, non prova (§5.10.3)
 src/limite_vl/f1_mavis.py	modulo	riutilizzabile	verità, descrizione canonica e domande MAVIS da diagram_generation	valore esatto/visualizzato/richiesto da separare (§5.6)
 src/limite_vl/f1_schema.py	modulo	riutilizzabile	schema delle descrizioni strutturate e parser inverso	-
@@ -269,6 +272,7 @@ src/limite_vl/generation.py	modulo	riutilizzabile	generazione a batch per il mod
 src/limite_vl/latex.py	modulo	riutilizzabile	formule e confronto fra trascrizioni	separare equivalenza matematica e trascrizione (§5.7)
 src/limite_vl/latex_render.py	modulo	riutilizzabile	confronto col disegno di matplotlib	-
 src/limite_vl/limite_code.py	modulo	corrente	import verificato del codice di Limite	-
+src/limite_vl/manifest.py	modulo	corrente	manifest delle ammissioni, sottoinsieme di S1 (§9): JSON canonico, digest e collisioni, record_id e group_id, split per gruppo, lettura verificata, filtro dei reader	solo libreria standard; senza variant_id e uid (dipendono da S3)
 src/limite_vl/mavis.py	modulo	storico	MAVIS come dati F2 col ponte testuale	importato da mavis_gen e f2_claims
 src/limite_vl/mavis_gen.py	modulo	riutilizzabile	diagram_generation di MAVIS e confronto con la didascalia	coerenza ≠ fedeltà ai pixel
 src/limite_vl/mmfine.py	modulo	riutilizzabile	chiavi e lettura dei problemi di MMFineReason	-
@@ -280,7 +284,7 @@ src/limite_vl/processing.py	modulo	da adeguare	immagini in patch e chat in token
 src/limite_vl/provenance.py	modulo	corrente	hash, identità del codice, scrittura senza sovrascrivere	-
 src/limite_vl/replay.py	modulo	da adeguare	replay testuale	prompt con ragionamento e \boxed{} obbligatori
 src/limite_vl/stem_audit.py	modulo	storico-congelato	regole dello screening STEM	sha256 congelato in outputs/f2_pilot/*
-src/limite_vl/stream.py	modulo	da adeguare	flusso misto riprendibile, esclusioni e rietichettature	validazione = primi val_count dell'ultimo shard; esclusioni per chiave immagine
+src/limite_vl/stream.py	modulo	corrente	flusso misto riprendibile, esclusioni, rietichettature e filtro del manifest delle ammissioni (solo record ammessi dello split, validazione dal dev, contatori; 630d00a, S1 §9)	senza manifest la validazione resta il prefisso dell'ultimo shard; ammissione per record, non per variante
 src/limite_vl/synth.py	modulo	corrente	generatore dei sintetici: v4 corretta (C1), v3 riproducibile con version=3	correzioni minime di v4 in b0b90c5 (coppie per riscalatura, punto segnato lontano dalle misure, tacche -1 senza numero; S2 §2.5); test e controlli passati (job 30417-30420)
 src/limite_vl/synth_check.py	modulo	corrente	verifica indipendente delle domande sintetiche contro il disegno (C2)	coordinate anche dalle tacche vicine, con le tacche nel layout (b0b90c5); test e controlli passati (job 30417-30420)
 src/limite_vl/train_utils.py	modulo	riutilizzabile	loss a blocchi, checkpointing per layer, ricompilazioni di flex	-
@@ -300,6 +304,7 @@ tests/test_f2_records.py	test	storico-congelato	test di codice storico mantenuto
 tests/test_f2_train.py	test	storico	test di codice storico mantenuto importabile	-
 tests/test_latex_render.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
 tests/test_latex_structure.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
+tests/test_manifest.py	test	corrente	test CPU (slurm/tests_cpu.sbatch): manifest delle ammissioni e reader (S1 §8, in parte)	importa torch
 tests/test_mavis.py	test	storico	test di codice storico mantenuto importabile	-
 tests/test_mavis_gen.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
 tests/test_mavis_geometry.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-

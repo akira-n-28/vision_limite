@@ -2,11 +2,15 @@
 
 Le quattro specifiche brevi della pipeline v1.4 §5.10, da approvare prima di scrivere codice
 (`docs/F0_IMPLEMENTATION_PLAN.md`, §1). Seconde bozze del 2026-10-28, rivedute dopo la revisione esterna dei push
-fino a `e81f884`, con le correzioni chieste sul commit `1c1e852`. Nessuna è approvata. È implementato solo C1-C2
-(S2 §2, sintetici): `38af82a`, poi corretto il 2026-10-29 dopo la revisione di quel commit (figure tagliate, intersezioni
-nei buchi del disegno, test che non compilava). Test e controlli sono stati eseguiti nei job 30392-30420. Il
-2026-10-30 il candidato v4 è stato generato e controllato su tutti i record (job 30447-30449, S2 §2.6). Resta ancora
-incompleto per gli esperimenti, e nessun dato è certificato.
+fino a `e81f884`, con le correzioni chieste sul commit `1c1e852`. Nessuna è approvata. Sono implementati C1-C2 e,
+in parte, C5 e C7:
+- **C1-C2** (S2 §2, sintetici): `38af82a`, corretto il 2026-10-29 dopo la revisione di quel commit (figure tagliate,
+  intersezioni nei buchi del disegno, test che non compilava). Test e controlli nei job 30392-30420. Il 2026-10-30 il
+  candidato v4 è stato generato e controllato su tutti i record (job 30447-30449, S2 §2.6).
+- **C5 e C7, in parte** (S1 §9): il sottoinsieme di S1 che applica il candidato nei loader, con il dev split
+  (`630d00a`, job 30450-30451, S2 §2.7).
+
+Il candidato resta incompleto per gli esperimenti, e nessun dato è certificato.
 
 | Specifica | Tema | Decisioni dell'utente che contiene |
 | --- | --- | --- |

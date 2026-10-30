@@ -1,7 +1,8 @@
 # S1 — Record, manifest e derivati
 
 **Stato:** bozza 2 del 2026-10-28, rivista dopo la revisione esterna dei push fino a `e81f884`; da approvare. Attua la
-pipeline v1.4 §§5.2, 5.5, 5.8, 5.10.1, 5.10.3 (rilievi G1, G5, R5, R7). Nessun codice è ancora scritto.
+pipeline v1.4 §§5.2, 5.5, 5.8, 5.10.1, 5.10.3 (rilievi G1, G5, R5, R7). Dal 2026-10-30 è implementato il
+sottoinsieme che serve al candidato dei sintetici v4 (§9, commit `630d00a`); il resto non è scritto.
 
 ## 1. Identificatori
 
@@ -159,3 +160,61 @@ Una versione si scrive una volta sola (`provenance.write_new_json`); ogni correz
   - Un target cambiato dal codice dopo l'ammissione è un errore contato.
   - La validazione viene dal manifest.
   - I contatori sono coerenti su un flusso di prova.
+
+## 9. Sottoinsieme implementato per i sintetici v4 (2026-10-30)
+
+Serve a rappresentare e applicare il candidato v4 (S2 §2.7). Il codice è in `src/limite_vl/manifest.py` e
+`src/limite_vl/stream.py`, con `scripts/synth_manifest.py` (costruzione), `scripts/manifest_check.py` (verifiche CPU) e
+`tests/test_manifest.py`.
+
+**Implementato:**
+- **Identità (§1).** JSON canonico, che rifiuta i numeri non interi; digest completi con la mappa delle collisioni
+  (`Digests`); `require_digest` rifiuta i prefissi brevi; `record_id` e `group_id`.
+  - La revisione dei sintetici è `v4@<commit del generatore>`.
+  - L'indice dei gruppi è quello dei legami esatti del candidato (pixel, stato della scena, coppia), identificato dallo
+    sha256 del report del candidato.
+- **Record (§2), in parte.** Una riga per record, non per `uid`. Campi:
+  - identità e posizione: `record_id`, sorgente, revisione, record, insieme d'origine, shard e posizione, famiglia,
+    coppia;
+  - ammissione: gruppo, split, stato, motivo, `gold` (null);
+  - contenuto: immagini (sha256 del PNG e dei pixel, griglia di patch), `json_sha256`, `stato_scena_sha256`, QA con
+    tipo e digest;
+  - evidenze per riferimento (file e sha256); trasformazione e genitori vuoti.
+- **Gruppi e split (§3).** Lo split si assegna al gruppo, e la coppia a/b è un gruppo. I gruppi legati a test o coppie
+  vanno in `test`, con i loro record di train esclusi. Con un manifest la validazione è lo split dev, e il prefisso
+  dell'ultimo shard non si usa.
+- **Reader (§6), in parte.**
+  - `Source` riceve manifest e split, e il reader legge solo i record ammessi di quello split.
+  - Ogni record consegnato deve avere gli sha256 di JSON e PNG del manifest. Uno diverso è un errore contato nel flusso
+    (`manifest_errors/<sorgente>`) e ferma la validazione.
+  - Il `meta` di ogni micro-batch porta i contatori dei reader (letti, saltati, consegnati) e gli esempi caricati per
+    sorgente.
+- **File (§7).** `data/manifests/<nome>-<versione>/`, scritto una volta sola:
+  - `records.jsonl.gz`, con righe in ordine fisso e gzip senza data;
+  - `manifest.json`, con shard e ingressi con sha256, conteggi per insieme, split, stato, famiglia e compito, sha256 dei
+    record e dei file derivati, identità del codice;
+  - `keys/`, file derivati dal manifest con una chiave per riga.
+- **Collaudi (§8), in parte.** Collisione forzata, canonicalizzazione, prefissi, gruppi e split, reader (domande
+  costruite, validazione dal manifest, contatori), arresti.
+
+**Regole aggiunte, necessarie al candidato:**
+- **Manifest obbligatorio.** Gli shard di `manifest.MANIFEST_REQUIRED` (oggi `data/shards/synth/v4`) si leggono solo
+  con un manifest. Senza, `make_sources` si ferma: niente ripiego sull'intero dataset.
+- **Dev.** S1 non fissava quota e seme. Per questo candidato (decisione dell'utente del 2026-10-30, `assign_splits`):
+  - circa il 5% delle scene ammesse di ogni famiglia;
+  - gruppi indivisibili, in ordine di sha256({seme, gruppo}) con seme 0;
+  - un gruppo va in dev finché le scene ammesse di dev della famiglia sono meno dell'obiettivo;
+  - un gruppo senza scene ammesse resta in train, dove nessun suo record si legge.
+- **Valutazione.** Test e coppie hanno lo split `test`; il campo `insieme` li distingue.
+
+**Fuori, con il motivo:**
+- **`variant_id` e `uid`.** Dipendono dal contratto di risposta (S3, D3), non ancora definito. Il manifest ammette
+  record. Nei sintetici v4 ogni QA di un record ammesso è approvata dal checker, e il loader (`f1c.pick_questions`)
+  costruisce solo QA del record, il cui JSON è verificato.
+- **Hash dei token, tokenizer, template e contratto (§2, §7).** Dipendono dal contratto.
+- **Indice globale (§4) e liste storiche (§5).** I gruppi sono solo quelli dei legami esatti dentro i sintetici v4;
+  `liste_importate` è vuota.
+- **Ammissione della singola QA (§6).** Non serve a questo candidato.
+- **Contatori per compito e target-token nel flusso (§6).** I conteggi per compito sono nel controllo
+  (`manifest_check.py`); `too_long` resta in totale.
+- **Collaudi del contratto e delle chiavi storiche (§8).**

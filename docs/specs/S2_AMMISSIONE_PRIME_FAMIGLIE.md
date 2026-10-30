@@ -650,6 +650,216 @@ Problemi residui da decidere:
 3. **Uso nei loader.** Per usare il candidato servono una lista delle chiavi per `Source.exclude`, o il manifest S1, e
    la scelta del dev split.
 
+Aggiornamento dello stesso giorno: il manifest nei loader e il dev split sono fatti (§2.7). Restano l'audit campionario
+e la decontaminazione esterna (§2.8).
+
+### 2.7 Manifest delle ammissioni e dev split (job 30450-30451, codice `630d00a`, 2026-10-30)
+
+**Decisioni dell'utente (2026-10-30)** per questo candidato:
+- restano escluse dal training le 2.792 scene `function` legate alla valutazione;
+- restano in quarantena le 67 scene con sovrapposizioni;
+- le riduzioni di copertura della §2.6 sono accettate;
+- shard v3 e v4, test e coppie restano come sono, e il generatore non cambia ora;
+- dev: circa il 5% delle scene ammesse, stratificato per famiglia, seme 0, gruppi indivisibili. S1 non fissava né quota
+  né seme (S1 §9).
+
+**Manifest** `data/manifests/synth-v4-candidato-1` (45 MiB, fuori da git; sottoinsieme di S1, S1 §9).
+- **Costruzione** (`scripts/synth_manifest.py`). Parte dalle uscite del candidato (job 30449) e non ricontrolla gli
+  shard. Verifica gli sha256 del render, del candidato, degli shard e di ogni JSON e PNG.
+- **Gruppi.** Ricalcolati dai legami esatti, coincidono con quelli del candidato: 52.457. Ogni gruppo ha una sola
+  famiglia.
+- **Record.** Una riga per record, 60.900, con `record_id`, gruppo, split, stato, motivi, hash di immagine, JSON e QA,
+  e le evidenze (job 30448, 30449) per riferimento.
+- **File derivati** in `keys/`, una chiave per riga: `train` 54.271, `dev` 2.870, `test` 300, `coppie` 600,
+  `non_ammessi` 2.859.
+- **Identità.** sha256 di `manifest.json` `975dfe42…`. All'avvio del job erano modificati solo documenti e ledger.
+
+| Insieme | Split | Stato | Record |
+| --- | --- | --- | --- |
+| train | train | `ammesso` | 54.271 |
+| train | train | `quarantena` (testi sovrapposti) | 67 |
+| train | dev | `ammesso` | 2.870 |
+| train | test | `escluso` (contaminazione: gruppo con un record di test o delle coppie) | 2.792 |
+| test | test | `ammesso` | 300 |
+| coppie | test | `ammesso` | 600 (300 coppie) |
+
+I gruppi sono 49.277 in train, 2.608 in dev e 572 in test. Questi ultimi comprendono i record di train esclusi.
+
+**Dev per famiglia** (obiettivo: 5% delle scene ammesse fuori dalla valutazione):
+- coord: 747 su 14.935 (obiettivo 747);
+- function: 623 su 12.206 (obiettivo 610). L'ultimo gruppo preso ha 50 scene, uno stato frequente con una sola retta;
+- polygon e shapes: 750 su 15.000 ciascuna.
+
+In tutto 2.870 scene, il 5.02% delle 57.141 ammesse.
+
+**Copertura per compito.** Per ogni compito il dev ha fra il 4.7% (polygon `lowest`, 276 su 5.870) e il 5.4%
+(function `vertex_lr`, 391 su 7.196) delle QA ammesse. I compiti più piccoli in dev sono polygon `right_vertex` (110),
+`angle_val` (151) e coord `line_on` (187). I conteggi completi per split, famiglia e compito sono in `manifest.json` e
+nel report delle verifiche.
+
+Il loader costruisce per ogni scena una sola variante, da 1 a 5 domande scelte da `f1c.pick_questions`:
+
+| Famiglia | Domande costruite, train | Domande costruite, dev |
+| --- | --- | --- |
+| coord | 42.692 | 2.369 |
+| function | 34.326 | 1.895 |
+| polygon | 42.735 | 2.303 |
+| shapes | 42.846 | 2.212 |
+| totale | 162.599 | 8.779 |
+
+**Verifiche CPU** (job 30451, `outputs/manifest_check/synth-v4-candidato-1`, `scripts/manifest_check.py`): 32
+controlli, nessun fallimento.
+- **Integrità.**
+  - Il manifest si legge con tutte le verifiche: sha256 dei record, `record_id` ricalcolati, un solo split per gruppo,
+    conteggi per shard.
+  - Gli shard su disco hanno gli sha256 del manifest.
+  - I file derivati coincidono con le chiavi del manifest e con i loro sha256.
+- **Riproducibilità dello split.** Ricalcolato due volte con quota e seme del manifest, è identico. Con seme 1 cambia
+  per 4.948 gruppi.
+- **Gruppi.**
+  - I legami ricalcolati dagli hash del manifest danno gli stessi 52.457 gruppi.
+  - Nessun gruppo è in due split.
+  - Nessun gruppo legato a test o coppie è in train o dev.
+- **Loader.**
+  - Per train, dev, test e coppie, un'epoca con 2 worker di `SourceReader` consegna esattamente le chiavi ammesse dello
+    split (54.271, 2.870, 300 e 600), ciascuna una volta.
+  - Non arriva nessuna chiave esclusa, in quarantena o di un altro split, e nessun gruppo compare in due split.
+  - Le domande costruite hanno i digest delle QA ammesse e i conteggi per compito attesi dal manifest.
+  - `validation_samples` restituisce tutto il dev.
+  - `MixedRowStream` col processor di Violetto: in 30 micro-batch 638 esempi caricati, solo chiavi di train, nessun
+    errore del manifest.
+- **Arresti espliciti.** Ognuno dei casi seguenti ferma il caricamento con `ManifestError`:
+  - manifest mancante, o senza split;
+  - `records.jsonl.gz` alterato;
+  - sha256 di uno shard diverso;
+  - gruppo spostato in un altro split;
+  - `record_id` non ricalcolabile;
+  - shard v3 col manifest v4, o shard v4 senza manifest;
+  - split senza record ammessi, o split sconosciuto.
+
+Prima del job la suite CPU (job 30450) ha eseguito 24 file e 937 controlli, nessun fallimento.
+`tests/test_manifest.py` ne aggiunge 34 su shard piccoli costruiti nel test: forma canonica, collisione forzata,
+prefissi, regola degli split, reader, validazione, contatori, arresti, record alterato contato nel flusso.
+
+**Valutazione.** Test e coppie restano riservati, nello split `test`. Condividono 10 gruppi `function`, quindi le
+metriche dei due insiemi non sono conferme statisticamente indipendenti. Anche dentro ciascun insieme ci sono stati
+ripetuti: 6 record nel test e 48 nelle coppie (§2.6).
+
+**Uso in una config.** La validazione viene dallo split dev senza altri campi. La famiglia `synth` richiede ancora la
+lista v3 vuota `data/decontam/f1eval/synth/exclude_final.txt` (`data_lists.REQUIRED`), che non è un'evidenza su v4
+(§2.8).
+
+```json
+{"name": "synth-v4", "kind": "synth_qa", "weight": 1.0,
+ "shards": "/home/prignano/vision_limite/data/shards/synth/v4/train/*.tar",
+ "manifest": "/home/prignano/vision_limite/data/manifests/synth-v4-candidato-1", "split": "train",
+ "exclude": ["/home/prignano/vision_limite/data/decontam/f1eval/synth/exclude_final.txt"]}
+```
+
+**Costo:**
+- job 30450 (suite CPU): 10 min 46 s, 4 CPU;
+- job 30451: 4 min, 8 CPU (manifest 23 s, verifiche 128 s);
+- in tutto 1 h 15 min di CPU allocate; su disco 45 MiB di manifest e 21 KB di report.
+
+**Stato.** Il filtro nei loader e il dev split sono applicati, con nessun errore rilevato dai controlli eseguiti. Il
+candidato resta **ancora incompleto per gli esperimenti** (pipeline §15.3), per tre motivi:
+- manca l'audit campionario informativo (§2.8);
+- la decontaminazione esterna di v4 non è fatta (§2.8);
+- il manifest copre record e gruppi, ma non le varianti né il contratto (S1 §9).
+
+Il candidato non è certificato e non è pronto per il training.
+
+### 2.8 Audit visivo e decontaminazione esterna di v4: piano (2026-10-30, non eseguiti)
+
+Sono le due condizioni che, dopo il manifest (§2.7), mancano per "pronto per un esperimento" (pipeline §15.3; S4
+§1). Qui c'è solo il piano: nessun audit, agente, download o scansione è stato avviato.
+
+**Audit visivo.** È una revisione umana delle immagini come le vede il modello, cioè il PNG, che il processor lascia
+invariato (§2.6). Non si usano agenti LLM. I due campioni restano separati (S4 §2).
+
+1. **Campione casuale, di stima (informativo).**
+   - **Proprietà:** la risposta è quella che si vede (correttezza) e l'informazione necessaria è visibile e leggibile
+     (osservabilità), S2 §1.
+   - **Quantità e unità:** la quota di QA errate fra le QA che il loader costruisce (`f1c.pick_questions`) per le scene
+     ammesse di train e dev. L'unità è la QA costruita: record, posizione, digest.
+   - **Strati e popolazioni** (manifest `synth-v4-candidato-1`, §2.7):
+     - le quattro famiglie, con le QA costruite di train e dev: coord N = 45.061, function 36.221, polygon 45.038,
+       shapes 45.058;
+     - il test, con tutte le QA delle 300 scene, come in `f1c_eval.py`: N = 4.038;
+     - le coppie, N = 300. Una coppia è un'unità sola: le due varianti si giudicano insieme.
+   - **Numerosità proposta:** 75 QA per famiglia, 50 QA del test e 30 coppie, 380 unità in tutto. Con 0 errori il limite
+     superiore al 95% (ipergeometrico, S4 §3) è circa:
+     - 3.9% per famiglia;
+     - 5.8% per il test;
+     - 9.0% per le coppie.
+
+     Si fa un'affermazione per strato, senza unirle.
+   - **Selezione riproducibile:** in ogni strato le n unità con lo sha256 più piccolo di `{"audit": "synth-v4-1",
+     "seme": 0, "record_id", "posizione", "qa"}`. È un'estrazione senza reinserimento con probabilità uguali n/N. Il
+     file del campione registra seme, N, n, probabilità d'inclusione e sha256 del manifest; la numerosità non si
+     estende dopo l'estrazione.
+   - **Procedura:** il revisore risponde prima senza vedere il target (S4 §5), guardando l'immagine e la domanda con le
+     opzioni; poi confronta. Un disaccordo si risolve con layout e specifica, e si documenta. Incerti e casi non
+     giudicabili contano come errori nel limite, e la loro quota si riporta sempre.
+   - **Risultato:** condizionato alla sensibilità del revisore, che non è misurata (S4 §4).
+2. **Casi mirati, diagnostici.** Contano errori e falsi allarmi, ma non stimano un tasso. Sono circa 170:
+   - le 67 scene in quarantena, tutte. Per ciascuna: leggibile e univoca (proposta di riammissione in una versione
+     nuova del manifest) oppure ambigua (esclusione);
+   - scene approvate vicino alle soglie, 8 per soglia: riquadri di testo appena sopra `OVERLAP_PX`, testi poco sopra
+     `MIN_TEXT_PX`, intersezioni vicine a `EDGE`, grafici vicini a `TANGENT`, coordinate lette dalle tacche vicine,
+     vertici estremi vicini a `EXTREME`;
+   - 20 coppie, 5 per famiglia, con le due immagini affiancate;
+   - 10 esclusioni per contaminazione accanto al loro record di valutazione, per confermare che sono la stessa istanza;
+   - 10 domande per ciascuna regola nuova di v4: `intersections` nel dominio disegnato, `shape_type` e `label_type` con
+     le opzioni.
+3. **Rubrica,** per ogni QA o coppia:
+   - **grave** (errore):
+     - il target non è la risposta visibile;
+     - la domanda non si risponde dall'immagine, perché un elemento è nascosto, tagliato, coperto o illeggibile alla
+       risoluzione data;
+     - nessuna opzione vera, o più di una;
+     - nella coppia, la variante b non cambia la risposta, o cambia più del dettaglio dichiarato;
+   - **minore** (non è un errore, si conta a parte): difetti che non cambiano la risposta né la lettura, come testi
+     attaccati ma leggibili, un'etichetta un po' lontana ma univoca, la forma della domanda;
+   - **incerto:** il revisore non decide. Si risolve con un'evidenza indipendente, altrimenti resta incerto e conta come
+     errore nel limite.
+
+   Per ogni caso si registrano anche il tipo di difetto e il tempo.
+4. **Prerequisiti, da approvare (D5):**
+   - il disegno e le numerosità sopra;
+   - il limite ipergeometrico con i collaudi di S4 §8 (C8, `estimate.py`, non implementato);
+   - uno script che estrae i campioni e prepara i fogli di revisione, in un job CPU di pochi minuti;
+   - un foglio TSV per gli esiti.
+
+   Costo previsto: 0 token LLM, circa 4-5 ore di revisione umana (circa 30 s per caso su circa 550 casi), qualche
+   minuto di CPU. Un errore trovato non si corregge nel manifest v1: produce una versione nuova.
+
+**Decontaminazione esterna di v4: inventario.**
+
+| Elemento | Stato | Uso per v4 |
+| --- | --- | --- |
+| Benchmark visivi riservati del catalogo: MathVista, MathVerse, MathVision, We-Math, DynaMath_Sample (p6); Geoperception, VisOnlyQA Real e Synthetic (p8-f1clean) | scaricati, hash verificati (job 29555, 30022) | ingressi riutilizzabili |
+| Indici pHash e testo: `data/decontam/p6/index.json` (job 29565, 20.963 elementi), `data/decontam/f1eval/index.json` (job 30034, 13.257) | presenti | ingressi riutilizzabili, dopo averne registrato sha256 e revisioni. Non hanno lo sha256 dei pixel, che serve a un legame confermato (S1 §4) |
+| `scripts/decontam.py scan` | esiste | immagini sì (pHash entro 4 bit). Per il tipo `synth` non legge le domande (`texts_of` restituisce una lista vuota), quindi il testo non è coperto |
+| `scripts/decontam_review.py` | esiste | filtro dei candidati: somiglianza dei pixel ≥ 0.90 con rapporto d'aspetto entro 1.2, oppure n-gram ≥ 0.8. Dà candidati, non legami confermati |
+| Esiti su v3 (`data/decontam/f1eval/synth`: 6 candidati, 0 confermati) | — | non valgono per v4 |
+| Lista obbligatoria `data/decontam/f1eval/synth/exclude_final.txt` (`data_lists.REQUIRED`) | vuota, chiavi di v3 | va ancora indicata nelle config della famiglia `synth`, ma non è un'evidenza su v4 |
+| Benchmark testuali riservati (p1) | scaricati | rischio basso, perché le domande sono a modello su scene generate. Gli n-gram sulle domande richiedono di estendere `texts_of` |
+| Pannelli riservati del progetto (D6) | decisione aperta | da fissare prima dell'ammissione definitiva (pipeline §5.8.1) |
+| Indice globale (S1 §4, C6) | non implementato | non serve alla decontaminazione di v4, che è un confronto con i riservati |
+| Liste nel manifest | `liste_importate` vuota | da importare in una versione nuova del manifest |
+
+Passi proposti, non eseguiti:
+1. decidere D6;
+2. registrare sha256 e revisioni degli indici, oppure ricostruirli con `decontam.py index`;
+3. estendere `texts_of` alle domande dei sintetici, con un test;
+4. scansionare tutti i 60.900 record v4 in un job CPU (su v3 sono serviti 152 s);
+5. rivedere i candidati: un legame è confermato solo con pixel identici dopo la normalizzazione; gli altri candidati
+   vanno nei casi mirati dell'audit o in quarantena;
+6. importare le evidenze in una versione nuova del manifest, con le esclusioni per gruppo.
+
+Costo previsto: pochi minuti di CPU, nessun download, nessun token.
+
 ## 3. MAVIS-Geometry (`f1_mavis.py`, `f1_schema.py`, shard `9c80fff3-caption`)
 
 La verità viene da `diagram_generation`, confermata dalla didascalia (`mavis_gen.compare`: 0 segnalazioni su 199.050,

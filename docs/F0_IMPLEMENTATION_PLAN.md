@@ -95,14 +95,14 @@ di mutazione per famiglia. Poi un job CPU che costruisce i record su tutti gli s
 
 | Requisito | Stato | Evidenza |
 | --- | --- | --- |
-| Validazione per gruppo esplicito | mancante | `stream.py:5-8`, `158-166`, `265-273`: validazione = primi `val_count` campioni dell'ultimo shard di ogni sorgente |
+| Validazione per gruppo esplicito | implementata per i sintetici v4 (2026-10-30, `630d00a`, S1 §9); mancante per le altre sorgenti | con un manifest (`manifest.py`, `stream.py`) la validazione è lo split dev del manifest, assegnato per gruppo; senza, resta quella di prima: i primi `val_count` campioni dell'ultimo shard di ogni sorgente |
 | Esclusioni per identità di compito/variante | mancante | `stream.py:45`, `74-77`: insieme di chiavi del campione (immagine); per `f2_solution` anche la chiave del problema (`164-165`) |
 | QA costruite al volo legate al record ammesso | mancante | `data.py:191-283` (`mavis_qa_sample`, `mavis_f1_sample`, `unimer_line_sample`, …) scelgono domanda o riga durante il caricamento |
 | Rietichettature tracciate | da collaudare | `stream.py:79-97` (`apply_relabel`, solo se l'etichetta coincide); `unimer_check/run4/relabel.jsonl` |
 | Liste obbligatorie e provenienza | verificato per la bozza F1-clean | `data_lists.py`; job 30051 |
 | Deduplicazione trasversale fra sorgenti | mancante | `scripts/split_duplicates.py` lavora per sorgente e usa target identici; `decontam.py` normalizza il testo togliendo simboli: segnali, non prove |
 | Esclusioni storiche come evidenze riesaminabili | mancante | liste in `data/decontam/p6`, `data/decontam/f1eval`, `data/decontam/text/replay`, `outputs/unimer_check/run4`, `outputs/unimer_overlap/run2`, `outputs/split_duplicates/run1`, `outputs/pixmo_check/run4` (riferite dalla bozza archiviata `f1-clean.json`) |
-| Contabilità per sorgente di esempi consumati, target-token, ripetizioni, scarti dopo l'ammissione | parziale | `stream.py:243-248` conta gli errori per sorgente; `collator.py:68-72` conta `too_long` solo in totale; nessun conteggio di target-token per sorgente |
+| Contabilità per sorgente di esempi consumati, target-token, ripetizioni, scarti dopo l'ammissione | parziale | `stream.py` conta errori, errori del manifest ed esempi caricati per sorgente, e i reader contano letti, saltati e consegnati (`630d00a`); `collator.py` conta `too_long` solo in totale; nessun conteggio per compito né di target-token nel flusso (i conteggi per compito sono nel controllo `manifest_check.py`) |
 
 **Intervento minimo.** (a) Indice globale costruito dall'inventario fissato (`docs/ARTIFACT_INVENTORY.tsv`): ID e
 provenienza, sha256 dei file, pixel normalizzati, pHash, testo e formule con normalizzazione conservativa; i
@@ -219,9 +219,9 @@ dopo questi.
 | C2 | Verifica semantica indipendente dei sintetici: ricalcolo per tipo dagli oggetti disegnati (layout) con predicati propri, intersezioni solo nei tratti disegnati; invarianti del renderer, compreso il taglio sull'area effettiva degli assi; violazioni bloccanti che impediscono la verifica del campione; nel report esiti separati per semantica della scena, corrispondenza col PNG dello shard e campione (S2 §2.4). **Implementato il 2026-10-28 (`38af82a`), corretto il 2026-10-29, esiti per campione dopo la revisione di `f7d32d3`; suite CPU passata (job 30392), controllo sugli shard eseguito (job 30393, §4); coordinate lette dalle tacche vicine (`b0b90c5`, S2 §2.5), controlli passati (job 30417-30420); collaudi a 10.000 scene e controllo del candidato v4 sugli shard salvati (`284e8f1`, job 30448-30449: integrità, riproducibilità, checker, coppie, duplicati e split)** | `src/limite_vl/synth_check.py`, `scripts/synth_semantics_check.py` (anche `--cases`), `slurm/synth_semantics_check.sbatch`, `scripts/synth_case_svg.py` (schemi dei casi), `scripts/synth_candidate.py`, `slurm/synth_candidate.sbatch` | mutazioni ed esiti per campione (`test_sample_evidence`) e candidato (`test_candidate`) in `tests/test_synth.py`; su v3 deve ritrovare i difetti noti | controllo di v3 e di scene v4 in memoria (CPU, 8 CPU, 16G, ≤ 1 h 30); candidato v4: 8 CPU, 16G, 9 min 38 s | C1 |
 | C3 | Contratto `vl-contract/1`: oggetto versionato, template `limite-vl/1`, processor che lo riceve e lo registra | `src/limite_vl/contract.py` (nuovo), `processing.py` | S3 §6 (tokenizzazione delle due modalità, system prompt canonico identico ai token di Violetto) | — | D3 |
 | C4 | Estrattore e verificatori: forma, completezza dai metadati, candidati, tre esiti separati; `generate_batch` restituisce anche `max_new_tokens` e il motivo d'arresto | `src/limite_vl/answers.py` (nuovo), `generation.py` | S3 §6, compresi i casi A-T della tassonomia ufficiale | — | C3 |
-| C5 | Identità e manifest: JSON canonico, digest completi, mappa delle collisioni, record, scrittura immutabile; i loader restituiscono la costruzione canonica | `src/limite_vl/manifest.py` (nuovo), `data.py` | S1 §8 (collisione forzata, canonicalizzazione, prefissi, contratto) | — | C3 |
+| C5 | Identità e manifest: JSON canonico, digest completi, mappa delle collisioni, record, scrittura immutabile; i loader restituiscono la costruzione canonica. **In parte, per i sintetici v4 (2026-10-30, `630d00a`, S1 §9): JSON canonico, digest e collisioni, `record_id`, `group_id`, record, split per gruppo, scrittura immutabile (`data/manifests/synth-v4-candidato-1`, job 30451); mancano `variant_id`, `uid` e la costruzione canonica dai loader, che dipendono da C3** | `src/limite_vl/manifest.py`, `scripts/synth_manifest.py`, `data.py` | S1 §8 (collisione forzata, canonicalizzazione, prefissi, contratto): `tests/test_manifest.py` tranne il contratto | — | C3 (per la costruzione canonica) |
 | C6 | Indice globale e import delle esclusioni storiche | `scripts/build_index.py` (nuovo) | S1 §8 (gruppi, chiavi storiche) | costruzione dell'indice (CPU, 4 CPU, 24G, durata da misurare su uno shard per sorgente) | C5, D6 |
-| C7 | Reader col manifest, validazione dal manifest, contatori per sorgente e compito (`too_long` compreso) | `stream.py`, `collator.py` | S1 §8 (reader) | — | C5 |
+| C7 | Reader col manifest, validazione dal manifest, contatori per sorgente e compito (`too_long` compreso). **In parte (2026-10-30, `630d00a`): solo i record ammessi dello split, validazione dal manifest, sha256 di JSON e PNG controllati, contatori dei reader e degli esempi caricati per sorgente, shard v4 leggibili solo col manifest; verifiche sui dati reali nel job 30451 (`scripts/manifest_check.py`); mancano i contatori per compito e `too_long` per sorgente** | `stream.py`, `collator.py`, `data_lists.py` | S1 §8 (reader): `tests/test_manifest.py` | verifiche del manifest (CPU, 8 CPU, 16G, 4 min) | C5 |
 | C8 | Stime: limite ipergeometrico e binomiale, estrazione con probabilità registrate, Bonferroni, rifiuto se unità e quantità non coincidono | `src/limite_vl/estimate.py` (nuovo) | S4 §8 (copertura esatta sul controesempio) | — | S4 |
 | C9 | MAVIS: `shape_type` con opzioni dalle misure note; valore visualizzato ed esatto nel record | `src/limite_vl/f1_mavis.py` | S2 §5 (MAVIS) | controllo su tutti gli shard (CPU, come il job 30052) | C5 |
 
@@ -242,6 +242,8 @@ dopo questi.
 | 30447 (2026-10-30) | `slurm/synth_render.sbatch v4 --generator-version 4` su `284e8f1`: 60.000 scene train, 300 test, 300 coppie, chiavi e semi di v3 | 6 min 18 s; 8 shard in `data/shards/synth/v4` (892 MiB), manifest con sha256 e identità del codice | che il candidato v4 esiste con le dimensioni, le chiavi e gli split di v3; v3 intatta |
 | 30448 (2026-10-30) | `slurm/synth_semantics_check.sbatch v4-run1` su `284e8f1`: prima `tests/test_synth.py`, poi il checker sugli 8 shard v4 salvati | 1 min 50 s. Test: 128 controlli, nessun fallimento (collaudi a 10.000: 4.449 `intersections` confermate anche dal conteggio numerico, 24.486 `label_type` uniche). Checker: 60.900 record con digest corrispondente, 60.833 approvati, 67 con testi sovrapposti, nessuna domanda non ok | che le regressioni a 10.000 e i collaudi del candidato passano, e che il checker approva gli artefatti salvati salvo 67 scene. Non certifica dati |
 | 30449 (2026-10-30) | `slurm/synth_candidate.sbatch v4-run1` su `284e8f1`: integrità, riproducibilità, checker confrontato col 30448, coppie, formato, duplicati e split | 9 min 38 s. Nessun problema d'integrità, di riproducibilità, di coppie o di formato; processor invariato su 49 dimensioni. Train: 57.141 `candidato`, 67 `quarantena` (testi sovrapposti), 2.792 `escluso` (`function` con lo stato di un record di valutazione); test e coppie interi. S2 §2.6 | che il candidato v4 è riproducibile e integro e che le regole degli split sono applicate. Non certifica dati: niente stima campionaria, checker sul layout |
+| 30450 (2026-10-30) | `slurm/tests_cpu.sbatch` su `630d00a` (manifest delle ammissioni e filtro dei reader) | 24 file, 937 controlli, nessun fallimento, stderr vuoto, 10 min 46 s; `tests/test_manifest.py` 34 controlli | che il sottoinsieme di S1 supera i collaudi su shard piccoli e che i test esistenti di stream e loader non cambiano |
+| 30451 (2026-10-30) | `slurm/synth_manifest.sbatch synth-v4-candidato 1` su `630d00a`: manifest dal candidato v4-run1 e verifiche CPU | 4 min. Manifest `data/manifests/synth-v4-candidato-1`: train 54.271, dev 2.870 (5.02%, per famiglia 747, 623, 750, 750), quarantena 67, esclusi 2.792, test 300, coppie 600; 52.457 gruppi. Verifiche: 32 su 32 (integrità, split riproducibile, nessun gruppo in due split, ogni split letto esattamente dai reader, domande costruite uguali alle QA ammesse, validazione dal dev, flusso col processor, 10 arresti espliciti). S2 §2.7 | che i loader consumano solo i record ammessi dello split richiesto e che lo split è riproducibile. Non certifica dati |
 
 Calcoli di sola libreria standard sul frontend, il 2026-10-28, a supporto delle specifiche (non sono collaudi):
 - riproduzione delle domande di synth v3 dalle chiavi, con istogrammi identici al manifest del job 29756;
@@ -401,6 +403,18 @@ accettato, sovrapposizioni in quarantena su tutte le scene, nessuna soglia allen
 - **Stato.** Ancora incompleto per gli esperimenti (pipeline §15.3): mancano il manifest nei loader, il dev split e un
   audit campionario.
 
+Manifest e dev split (job 30450-30451, 2026-10-30, codice `630d00a`; dettagli in S2 §2.7 e S1 §9). Le decisioni
+dell'utente: esclusioni e quarantena mantenute, coperture accettate, generatore invariato; dev al 5% per famiglia, seme
+0, gruppi indivisibili.
+- **Manifest** `data/manifests/synth-v4-candidato-1`: 60.900 record, 52.457 gruppi.
+  - train 54.271 ammessi, dev 2.870, quarantena 67, esclusi 2.792 (nello split test);
+  - test 300 e coppie 600, riservati, che condividono 10 gruppi `function`.
+- **Loader.** Le sorgenti con `manifest` e `split` leggono solo i record ammessi di quello split, e la validazione è lo
+  split dev. Gli shard v4 senza manifest non si leggono. Ogni incoerenza ferma il caricamento.
+- **Verifiche (30451).** 32 su 32, comprese le letture reali di ogni split e 10 arresti espliciti.
+- **Stato.** Restano incompleti per gli esperimenti l'audit campionario e la decontaminazione esterna, pianificati in S2
+  §2.8 e da approvare.
+
 ### Da pianificare
 
 Nessuno dei controlli che restano in questa tabella è stato eseguito o è dichiarato superato: quelli eseguiti sono
@@ -409,9 +423,9 @@ un job CPU (CLAUDE.md).
 
 | Collaudo | Scopo | Risorse | Quando |
 | --- | --- | --- | --- |
-| Sintetici (C1, C2) | Eseguiti: test (job 30392, 30417, 30448), controllo sugli shard (job 30393, 30418, 30448), coppie v4 (job 30419), analisi degli scarti (job 30400, 30420), render e candidato v4 (job 30447-30449). Da decidere (S2 §2.6): gli stati `function` ripetuti (2.792 scene di train escluse), le 67 scene in quarantena, la lista delle chiavi per i loader o il manifest S1, il dev split | nessun job previsto | con l'ok dell'utente |
+| Sintetici (C1, C2) | Eseguiti: test (job 30392, 30417, 30448), controllo sugli shard (job 30393, 30418, 30448), coppie v4 (job 30419), analisi degli scarti (job 30400, 30420), render e candidato v4 (job 30447-30449), manifest e dev split (job 30450-30451). Da fare, con l'ok dell'utente: audit visivo (piano in S2 §2.8: campione casuale di 380 unità e circa 170 casi mirati, rubrica, C8 prima del limite) e decontaminazione esterna di v4 (inventario e passi in S2 §2.8, dopo D6) | estrazione dell'audit e scansione: pochi minuti di CPU ciascuna | con l'ok dell'utente |
 | Contratto ed estrattore (C3, C4; punto 1) | Tokenizzazione e label per modalità; quattro forme e terminazione; tassonomia ufficiale; risposta diretta di Violetto | CPU 20 min; GPU 1 ora | dopo D3 e S3 |
-| Manifest, indice e reader (C5-C7; punto 3) | Collisioni, split ereditati, chiavi storiche, filtro dei reader, contatori | CPU 20 min; indice CPU 4 CPU 24G, durata da misurare | dopo S1, D6 |
+| Manifest, indice e reader (C5-C7; punto 3) | Per i sintetici v4 eseguiti (job 30450-30451, S1 §9). Restano: indice globale e chiavi storiche (C6), varianti e contratto (dopo C3), contatori per compito, le altre sorgenti | CPU 20 min; indice CPU 4 CPU 24G, durata da misurare | dopo S1, D6 |
 | Stime (C8) | Copertura esatta, limite ipergeometrico, estrazioni | CPU 20 min | dopo S4 |
 | MAVIS (C9; punto 2) | `shape_type` con opzioni; valori visualizzati ed esatti | CPU 20 min; controllo CPU su tutti gli shard | dopo C5 |
 | Più immagini (punto 4) | Ordine, budget, parità con cache | CPU 20 min; GPU 1 ora | dopo i punti 1, 3 |

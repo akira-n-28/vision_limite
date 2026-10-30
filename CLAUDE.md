@@ -90,7 +90,7 @@ repository git; le cartelle pesanti sono sottocartelle escluse da `.gitignore`:
 | --- | --- | --- |
 | `./` (CLAUDE.md, pipeline, config, scripts, slurm, src, tests, env, downloads, docs, runs/ledger.tsv) | codice, configurazione e documenti correnti | sì |
 | `archive/pipeline-precedente/` | ricette, launcher e istruzioni della strategia precedente (`MOVES.tsv`) | sì |
-| `data/` | dataset, shard, liste di decontaminazione, log e stato dei download, specifiche degli snapshot | no |
+| `data/` | dataset, shard, manifest delle ammissioni (`data/manifests/`), liste di decontaminazione, log e stato dei download, specifiche degli snapshot | no |
 | `hf/` | cache Hugging Face con le revisioni fissate | no |
 | `wheels/`, `tools/` | wheel scaricate, binario di uv | no |
 | `venvs/` | `build-<jobid>` e i link `current`, `evals-current` ai build adottati | no |
@@ -379,8 +379,13 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
   - artefatti integri e riproducibili dalla chiave, nessun errore matematico;
   - train 57.141 `candidato`, 67 in quarantena per testi sovrapposti, 2.792 `function` esclusi perché hanno lo
     stesso stato di un record di test o delle coppie;
-  - lo stato di una scena è la specifica senza chiave, versione e stile. Le scene `function` ne hanno pochi;
-  - ancora incompleto per gli esperimenti: niente manifest nei loader, dev split o audit campionario.
+  - lo stato di una scena è la specifica senza chiave, versione e stile. Le scene `function` ne hanno pochi.
+
+  Manifest delle ammissioni `data/manifests/synth-v4-candidato-1` (job 30451, `630d00a`, S2 §2.7, S1 §9):
+  - train 54.271, dev 2.870 (5% per famiglia, seme 0, gruppi indivisibili), quarantena 67, esclusi 2.792;
+  - test 300 e coppie 600, riservati, con 10 gruppi `function` in comune;
+  - gli shard v4 si leggono solo con un manifest (campi `manifest` e `split` della sorgente);
+  - ancora incompleto per gli esperimenti: mancano audit campionario e decontaminazione esterna, pianificati in S2 §2.8.
 
   Nessun dato è certificato. Per controllare la compilazione usare `compile()` in un job, non `ast.parse`, che non vede
   gli errori della tabella dei simboli.
@@ -430,7 +435,8 @@ parametri in `groups.py` sono ipotesi da verificare con `f0_checks.py` (sezione 
   - `processing.py`: immagini in patch a griglia pari, chat in token e label;
   - `collator.py`: packing e collate;
   - `data.py`: lettura degli shard tar ed esempi per tipo di sorgente (un'immagine per `Sample`);
-  - `stream.py`: flusso misto e riprendibile di micro-batch, esclusioni e rietichettature;
+  - `stream.py`: flusso misto e riprendibile di micro-batch, esclusioni, rietichettature e filtro del manifest;
+  - `manifest.py`: identità sha256, gruppi e split, lettura verificata del manifest delle ammissioni (S1 §9);
   - `data_lists.py`: liste obbligatorie e loro provenienza;
   - `latex.py`, `latex_render.py`: formule e confronto fra trascrizioni;
   - `synth.py`, `synth_check.py`, `mavis_gen.py`, `f1_schema.py`, `f1_mavis.py`, `mavis.py`: sintetici, la loro verifica

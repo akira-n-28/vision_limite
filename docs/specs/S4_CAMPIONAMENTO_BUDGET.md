@@ -125,6 +125,11 @@ I controlli del codice costano zero token ma non zero CPU: si registrano ore CPU
 
 I numeri della tabella sono proposte di lavoro, non soglie approvate.
 
+Per i sintetici v4 il piano concreto del 2026-10-30 è in S2 §2.8, ed è anch'esso da approvare. Rispetto alla riga della
+tabella aggiunge un campione casuale informativo (75 QA per famiglia, 50 del test, 30 coppie), oltre ai casi mirati,
+perché "pronto per un esperimento" chiede un audit campionario (pipeline §15.3; §1). Il limite ipergeometrico richiede C8,
+non ancora implementato.
+
 ## 8. Collaudi (CPU, `tests_cpu`)
 
 - **Copertura esatta sul controesempio.** Il campione di gruppi con `clustered_rate` copre nel 30% dei casi. Il
