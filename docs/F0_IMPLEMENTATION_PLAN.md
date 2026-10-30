@@ -1,13 +1,34 @@
 # Piano di implementazione F0
 
-Stato al 2026-10-28, dopo la migrazione alla [pipeline v1.4](../PIPELINE_ADDESTRAMENTO_LIMITE_VL.md) (§§3, 5, 6, 17).
-Aggiornato lo stesso giorno dopo la revisione esterna dei push fino a `e81f884`. Il confronto è fra il codice del
-repository sul cluster e i requisiti della pipeline. La migrazione ha spostato solo config, launcher e documenti: per
-codice e test il repository è identico a `9d977b6`.
+Stato al 2026-10-30, [pipeline v1.5](../PIPELINE_ADDESTRAMENTO_LIMITE_VL.md) (§§3, 5, 6, 17). Il confronto è fra il
+codice del repository sul cluster e i requisiti della pipeline.
 
-**Nessun intervento di questo piano è stato eseguito.** Dopo la migrazione è girato un solo collaudo,
-`slurm/tests_cpu.sbatch` (job 30255: 22 file, 775 controlli, nessun fallimento). Riguarda il codice esistente, non i
-requisiti nuovi (§4).
+**Stato attuale degli interventi (§3):**
+- **C1-C2, sintetici:** implementati e collaudati. Il candidato v4 è generato e controllato (job 30447-30449), e il
+  manifest è applicato nei loader con il dev split (job 30450-30451; S2 §§2.6-2.7).
+- **C5 e C7:** implementati in parte, nel sottoinsieme di S1 per i sintetici v4 (S1 §9).
+- **C3, C4, C6, C8, C9:** non iniziati.
+- **Pannello di valutazione (punto 7):** benchmark scaricati e verificati (job 30463). Indice, gruppi e ruoli sono
+  fissati in `pannello-v2` (job 30466), prima di qualsiasi valutazione del modello, e descritti in
+  `docs/PANNELLO_VALUTAZIONE.md`. Da approvare (D6).
+- **Campione candidato di F0:** `docs/F0_CAMPIONE_CANDIDATO.md`. Non è ancora caricabile: mancano contratto,
+  varianti, manifest delle altre sorgenti, decontaminazione e verifica visiva (§5 di quel documento).
+
+**Perimetro della prima versione** (pipeline v1.5, decisione dell'utente del 2026-10-30). Comprende:
+- matematica/STEM, geometria e formule stampate;
+- grafici, tabelle, OCR e documenti a pagina singola;
+- visione generale di supporto;
+- pochi compiti con più immagini, legati alla matematica e al confronto visivo.
+
+Sono rimandati i documenti a più pagine, il training dedicato al manoscritto (MathWriting) e i video. Il manoscritto
+non è un requisito di F0.
+
+**Evidenze storiche:**
+- Stato al 2026-10-28, dopo la migrazione alla pipeline v1.4 e la revisione esterna dei push fino a `e81f884`. La
+  migrazione aveva spostato solo config, launcher e documenti: per codice e test il repository era identico a
+  `9d977b6`.
+- Allora nessun intervento era eseguito, e l'unico collaudo era `slurm/tests_cpu.sbatch` (job 30255: 22 file, 775
+  controlli, nessun fallimento).
 
 Stati: **verificato** = presente e verificato da un job citato, per la proprietà indicata; **da collaudare** = presente,
 ma senza collaudo rispetto al requisito nuovo; **mancante**; **decisione aperta** = serve una scelta dell'utente o del
@@ -22,7 +43,7 @@ protocollo prima di implementare.
 | D3 | Contratto di risposta: come si chiede o si sceglie la risposta diretta, system prompt (quello canonico di Violetto impone ragionamento e `\boxed{}` e rifiuta gli altri), `<think>` vuoto o assente nella modalità diretta, stop, prefill di F1 | Punto 1 e ogni target con decoder addestrabile | aperta |
 | D4 | Metriche primarie, margini di regressione, budget di inferenza e regole di arresto dei piloti (§15.2) | Punto 7, piloti | aperta |
 | D5 | Budget degli audit con agenti per sorgente e disegno dei campioni diagnostico e di stima (§§5.9, 16) | Ammissione dei dati annotati | aperta |
-| D6 | Ruoli del pannello: quali benchmark pubblici sono sviluppo e quale componente nuova resta test riservato (§§5.5, 15.1) | Punti 3 e 7 | proposta pronta, da approvare: [`docs/PANNELLO_VALUTAZIONE.md`](PANNELLO_VALUTAZIONE.md) (2026-10-30) |
+| D6 | Ruoli del pannello: quali benchmark pubblici sono sviluppo e quale componente nuova resta test riservato (§§5.5, 15.1) | Punti 3 e 7 | perimetro definitivo e download dei benchmark mancanti decisi dall'utente (2026-10-30); ruoli e gruppi fissati in `pannello-v2` (job 30466) e descritti in [`docs/PANNELLO_VALUTAZIONE.md`](PANNELLO_VALUTAZIONE.md), da approvare nei dettagli (quote, stratificazione, irrisolti) |
 
 Le scelte tecniche ordinarie (formati dei file, nomi, struttura dei moduli) non richiedono una domanda: si propongono
 nelle specifiche del passo 1 e si mostrano all'utente prima di scrivere codice.
@@ -117,14 +138,14 @@ manifest di prova. Costruzione dell'indice: job CPU (0 GPU, 4 CPU, 24G); la dura
 sorgente: si leggono circa 170 GiB di shard e i benchmark riservati.
 **Dipende da:** S1; D6 per i pannelli riservati, che vanno fissati prima dell'ammissione definitiva (§5.8.1).
 
-### Punto 4 — Più immagini, preprocessing e ordine delle pagine (pipeline §§3.2, 3.4, 8; R2)
+### Punto 4 — Poche immagini e preprocessing (pipeline §§3.2, 3.4, 8; R2). Ordine delle pagine rimandato (v1.5)
 
 | Requisito | Stato | Evidenza |
 | --- | --- | --- |
 | Processor con liste di immagini | da collaudare | `processing.py:166-196, 204-216`: più immagini ammesse, solo prima del testo; segnaposti concatenati senza riferimenti espliciti |
 | Encoder e proiettore per immagine, in ordine | da collaudare | `modeling.py:89-101` (shuffle per immagine, token in ordine), `190-235` (gruppi per lunghezza, risultato in ordine); job 29447 con una immagine per esempio |
 | Caricatori con più immagini | mancante | `data.py:67-70`: `Sample.image` singola; `build_example` (`data.py:343-361`) passa `[sample.image]` |
-| Posizioni continue fra le pagine dello stesso esempio | da collaudare | `collator.py:92-107` azzera le posizioni a ogni `Example`: le pagine dentro lo stesso esempio restano contigue se l'esempio è unico |
+| Posizioni continue fra le immagini dello stesso esempio (le pagine sono rimandate, v1.5) | da collaudare | `collator.py:92-107` azzera le posizioni a ogni `Example`: le pagine dentro lo stesso esempio restano contigue se l'esempio è unico |
 | Tetto per immagine e budget dell'intero esempio | decisione aperta | `processing.py:31` `MAX_IMAGE_TOKENS = 768`; `DIAGRAM_MAX_PATCHES = 2304` oltre le 1024 patch di training di NaFlex |
 
 **Intervento minimo.** `Sample.images` (lista ordinata con identità) mantenendo i loader esistenti a un'immagine;
@@ -189,19 +210,23 @@ continua. CPU: partizione dei gruppi senza sovrapposizioni.
 | Testo puro col valutatore ufficiale | verificato | `eval_text_baseline`, `eval_text_local` (job 29391-29398, 29682-29686) |
 | Trascrizione di formule su UniMER-Test | dati presenti; valutatore da collaudare | shard spe, cpe, sce e hwe (hwe = manoscritto) in `data/shards/unimer/2343ddd9/test/`; `scripts/eval_f1_formulas.py` usa spe e cpe di default, gli altri con `--subsets`; esiti storici in `outputs/eval_f1_formulas` |
 | Immagine vera, bianca, assente | presente | `data.build_example(image_mode=…)` (`data.py:343-361`), `scripts/eval_f1_val.py` |
-| Benchmark visivi (MathVista, MathVerse, MathVision, We-Math, DynaMath, Geoperception, VisOnlyQA) | dati presenti; valutatore mancante | dati e indici di decontaminazione in `hf/hub`, `data/decontam/p6`, `data/decontam/f1eval`; nessun valutatore del modello VL |
-| Dati presenti per i pannelli percettivi | presenti, da selezionare | scene reali: PixMo-Cap (25 parquet su 75) e LLaVA-Pretrain; manoscritto: UniMER-Test hwe (solo valutazione) e le formule CROHME nel training di UniMER (meno dell'1%, non separabili per indice); grafici e tabelle: solo dentro alcuni benchmark visivi riservati, da individuare per ID |
-| Dati mancanti | mancante; pannello e download proposti in [`docs/PANNELLO_VALUTAZIONE.md`](PANNELLO_VALUTAZIONE.md) | documenti a più pagine, struttura di tabelle e pagine, OCR generale, manoscritto per il training (MathWriting), coppie di immagini: nessuna sorgente scaricata (`downloads/catalog_status.tsv`) |
+| Benchmark visivi (MathVista, MathVerse, MathVision, We-Math, DynaMath, Geoperception, VisOnlyQA, OlympiadBench, OCRBench, DocVQA val, ChartQA, MUIRBench, MV-MATH, MMStar) | dati presenti e indicizzati; valutatore mancante | snapshot in `hf/hub`; indice `data/decontam/pannello-v2` con sha256 dei pixel e una voce per immagine, gruppi e ruoli in `data/panel/pannello-v2` (job 30466); nessun valutatore del modello VL |
+| Dati presenti per i pannelli percettivi | presenti, da selezionare | scene reali: PixMo-Cap (25 parquet su 75) e LLaVA-Pretrain; manoscritto (non richiesto dalla v1.5): UniMER-Test hwe solo diagnostica e le formule CROHME nel training di UniMER (meno dell'1%, non separabili per indice, restano); grafici e tabelle per il training: nessuna sorgente scaricata (`docs/F0_CAMPIONE_CANDIDATO.md`) |
+| Dati mancanti | pannello scaricato e verificato (job 30463, [`docs/PANNELLO_VALUTAZIONE.md`](PANNELLO_VALUTAZIONE.md)); training mancante | per il training: grafici e tabelle, OCR e documenti a pagina singola, poche immagini (proposte minime in [`docs/F0_CAMPIONE_CANDIDATO.md`](F0_CAMPIONE_CANDIDATO.md)); documenti a più pagine e manoscritto rimandati (v1.5) |
 | Valutatori mancanti | mancante | nessun valutatore del modello VL per i benchmark visivi, per più immagini o per i documenti; per le formule c'è solo `eval_f1_formulas.py` |
-| Controfattuali e varianti raggruppate | mancante | coppie controfattuali dei sintetici in `data/shards/synth/v3/pairs`; varianti di MathVerse e DynaMath non raggruppate |
+| Controfattuali e varianti raggruppate | raggruppate nel pannello; confronti appaiati mancanti | coppie controfattuali dei sintetici in `data/shards/synth/v4/pairs`; varianti di MathVerse, DynaMath e MUIRBench (coppie rispondibile/non rispondibile) nello stesso gruppo in `pannello-v2`; nessun valutatore le appaia ancora |
 | Profilo dei costi | parziale | 15.4 mila token/s con decoder addestrabile a 32k, 12.9 mila a 4k (job 29402, ViT congelato); ViT addestrabile ed encoder B non misurati |
 
-**Intervento minimo.** Manifest del pannello (ID, ruolo sviluppo o test, metrica, gruppo delle varianti) fissato prima
-dell'ammissione definitiva dei dati; valutatore per capacità del modello VL, con generazione a batch
-(`generation.py`) e gli estrattori di S3, risultati appaiati per problema e intervalli; scelta delle sorgenti minime
-per le capacità mancanti (§6.1: un sottoinsieme manoscritto, uno di scene reali, grafici e tabelle, documenti, coppie
-di immagini), con download solo dopo approvazione. Preventivo: un job di profilo per ciascuna configurazione
-implementata (token/s, memoria, secondi per passo) e la formula di §16.
+**Intervento minimo.**
+- **Manifest del pannello,** fissato prima dell'ammissione definitiva dei dati. ID, ruolo e gruppo sono in
+  `pannello-v2`; mancano la metrica (D4) e le varianti del contratto (C3).
+- **Valutatore per capacità del modello VL:** generazione a batch (`generation.py`), estrattori di S3, risultati
+  appaiati per problema e intervalli.
+- **Sorgenti minime per le capacità mancanti** (§6.1): scene reali, grafici e tabelle, documenti a pagina singola,
+  poche immagini; il manoscritto non è richiesto (v1.5). Le proposte sono in `docs/F0_CAMPIONE_CANDIDATO.md` §4, e i
+  download vanno approvati.
+- **Preventivo:** un job di profilo per ciascuna configurazione implementata (token/s, memoria, secondi per passo) e la
+  formula di §16.
 **Collaudo.** CPU: costruzione del manifest del pannello e decontaminazione contro il training. GPU: una valutazione di
 prova del valutatore visivo su Violetto con proiettore casuale e con un adapter storico, solo per validare il codice
 (1 GPU, 8 CPU, 48G, ≤ 2 ore).
@@ -212,6 +237,14 @@ prova del valutatore visivo su Violetto con proiettore casuale e con un adapter 
 Ognuno è piccolo, ha i suoi collaudi CPU in `slurm/tests_cpu.sbatch` e non tocca dataset o checkpoint esistenti. I job
 segnati vanno approvati uno per uno. Gli interventi dei punti 4-7 (più immagini, encoder, trainer, valutatore) vengono
 dopo questi.
+
+Il prossimo lotto minimo, indipendente dalle decisioni aperte, è in `docs/F0_CAMPIONE_CANDIDATO.md` §6:
+1. verifica visiva degli irrisolti del pannello;
+2. decontaminazione di v4 contro `pannello-v2`;
+3. manifest delle ammissioni di UniMER e MAVIS (estensione di C5 e C7);
+4. scansione delle sorgenti locali contro il pannello.
+
+C3 e C4 seguono D3.
 
 | # | Intervento | File | Collaudi | Job necessario | Dipende da |
 | --- | --- | --- | --- | --- | --- |
@@ -244,6 +277,10 @@ dopo questi.
 | 30449 (2026-10-30) | `slurm/synth_candidate.sbatch v4-run1` su `284e8f1`: integrità, riproducibilità, checker confrontato col 30448, coppie, formato, duplicati e split | 9 min 38 s. Nessun problema d'integrità, di riproducibilità, di coppie o di formato; processor invariato su 49 dimensioni. Train: 57.141 `candidato`, 67 `quarantena` (testi sovrapposti), 2.792 `escluso` (`function` con lo stato di un record di valutazione); test e coppie interi. S2 §2.6 | che il candidato v4 è riproducibile e integro e che le regole degli split sono applicate. Non certifica dati: niente stima campionaria, checker sul layout |
 | 30450 (2026-10-30) | `slurm/tests_cpu.sbatch` su `630d00a` (manifest delle ammissioni e filtro dei reader) | 24 file, 937 controlli, nessun fallimento, stderr vuoto, 10 min 46 s; `tests/test_manifest.py` 34 controlli | che il sottoinsieme di S1 supera i collaudi su shard piccoli e che i test esistenti di stream e loader non cambiano |
 | 30451 (2026-10-30) | `slurm/synth_manifest.sbatch synth-v4-candidato 1` su `630d00a`: manifest dal candidato v4-run1 e verifiche CPU | 4 min. Manifest `data/manifests/synth-v4-candidato-1`: train 54.271, dev 2.870 (5.02%, per famiglia 747, 623, 750, 750), quarantena 67, esclusi 2.792, test 300, coppie 600; 52.457 gruppi. Verifiche: 32 su 32 (integrità, split riproducibile, nessun gruppo in due split, ogni split letto esattamente dai reader, domande costruite uguali alle QA ammesse, validazione dal dev, flusso col processor, 10 arresti espliciti). S2 §2.7 | che i loader consumano solo i record ammessi dello split richiesto e che lo split è riproducibile. Non certifica dati |
+| 30463 (2026-10-30) | `slurm/verify_hashes.sbatch downloads/manifests/p10-pannello.tsv`, dopo `fetch_manifest.sh` sul frontend (kit, limiti della guida): OCRBench, DocVQA val, ChartQA val e test, MUIRBench, MV-MATH, MMStar, GSM8K test, IFEval | download: 30 file, 1.680 MiB, nessuno già presente, nessun errore; verifica: 30 file su 30 ok | che i benchmark del perimetro sono presenti e integri alle revisioni fissate. Nulla sulla loro qualità |
+| 30464 (2026-10-30) | `slurm/panel_inventory.sbatch run2` su `59c27cd`: inventario dei benchmark riservati, compresi i nuovi | 58 s; 26 repository, tutti i file del manifest presenti e verificati; schema e righe in `outputs/panel_inventory/run2` | struttura e campi dei benchmark su cui si fondano gruppi e ruoli |
+| 30465 (2026-10-30) | `slurm/panel_groups.sbatch pannello-v1` su `59c27cd` | 2 min 24 s; superato dal job 30466: le pagine dello stesso documento UCSF di DocVQA non erano raggruppate | niente: mai usato, i file restano |
+| 30466 (2026-10-30) | `slurm/panel_groups.sbatch pannello-v2` su `e084cba`: indice del pannello e gruppi e ruoli con seme 0 | 2 min 30 s. Indice: 99.713 voci, 92.658 immagini, nessuna illeggibile. 85.991 elementi in 51.363 gruppi. DocVQA per documento UCSF, senza documenti in due ruoli; 1.300 coppie di MUIRBench insieme; 1.299 irrisolti nel test, 191 forti (`docs/PANNELLO_VALUTAZIONE.md` §§3, 5) | che criteri, seme e assegnazione sono fissati prima di qualsiasi valutazione e che i legami confermati sono applicati. Non dice quali candidati siano duplicati: serve la verifica visiva |
 
 Calcoli di sola libreria standard sul frontend, il 2026-10-28, a supporto delle specifiche (non sono collaudi):
 - riproduzione delle domande di synth v3 dalle chiavi, con istogrammi identici al manifest del job 29756;
@@ -432,6 +469,7 @@ un job CPU (CLAUDE.md).
 | Encoder (punto 5) | Refactoring SigLIP2 identico; parità dell'encoder B col percorso nativo; rami disattivati uguali al riferimento | GPU 1 ora ciascuno | (a) dopo l'ok; (b) dopo D1 |
 | ViT addestrabile (punto 6) | Gradienti, variazione dei pesi, salvataggio, ripresa | GPU 64G 1 ora | dopo il punto 5 (a) |
 | Valutatore visivo (punto 7) | Correttezza del codice di valutazione | GPU ≤ 2 ore | dopo C4 |
+| Pannello e campione (punto 7; D6) | Eseguiti: download e verifica (job 30463), inventario (job 30464), indice, gruppi e ruoli `pannello-v2` (job 30466). Da fare, con l'ok dell'utente: verifica visiva dei 1.299 irrisolti, a partire dai 191 forti, con esito in `pannello-v3`; decontaminazione di v4 e delle sorgenti locali contro `pannello-v2`; manifest delle ammissioni di UniMER e MAVIS (lotto in `docs/F0_CAMPIONE_CANDIDATO.md` §6) | CPU, pochi minuti per job; revisione umana per la verifica visiva | dopo l'approvazione di D6 |
 
 ## 5. Fuori dal primo perimetro
 

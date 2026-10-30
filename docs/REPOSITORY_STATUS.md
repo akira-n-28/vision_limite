@@ -1,5 +1,8 @@
 # Stato del repository rispetto alla pipeline v1.4
 
+**Documento storico** della migrazione del 2026-10-28 (pipeline v1.4), non aggiornato dopo. Lo stato corrente è in
+[`F0_IMPLEMENTATION_PLAN.md`](F0_IMPLEMENTATION_PLAN.md) (pipeline v1.5).
+
 Preparato il 28 ottobre 2026 sul portatile per la migrazione alla [pipeline v1.4](../PIPELINE_ADDESTRAMENTO_LIMITE_VL.md);
 **aggiornato lo stesso giorno sul cluster** dopo la [migrazione](MIGRATION_REPORT.md), con le evidenze del checkout reale.
 

@@ -12,6 +12,10 @@ in parte, C5 e C7:
 
 Il candidato resta incompleto per gli esperimenti, e nessun dato è certificato.
 
+Dal 2026-10-30 il riferimento è la pipeline v1.5. Le sezioni citate dalle specifiche hanno lo stesso numero; cambia il
+perimetro: documenti a più pagine, training dedicato al manoscritto e video sono rimandati. Il pannello per la
+decontaminazione (D6, S1 §3) è in `pannello-v2` (`docs/PANNELLO_VALUTAZIONE.md`).
+
 | Specifica | Tema | Decisioni dell'utente che contiene |
 | --- | --- | --- |
 | [S1](S1_RECORD_MANIFEST.md) | Identificatori sha256 completi e controllo delle collisioni; record con contratto, modalità e prefill; gruppi, split, indice globale; esclusioni storiche risolte su un solo record; reader e contabilità | — |

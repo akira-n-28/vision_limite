@@ -1,6 +1,6 @@
 # Limite-VL — Pipeline completa di addestramento
 
-**Versione:** 1.4 — 28 ottobre 2026
+**Versione:** 1.5 — 30 ottobre 2026
 
 **Stato:** progetto di addestramento; non è una configurazione esecutiva né un'autorizzazione a lanciare job.
 
@@ -16,14 +16,18 @@ Questo documento sostituisce, per la proposta futura, la sequenza descritta nell
 
 **Aggiornamento 1.4:** completata la risposta progettuale ai rilievi R1–R14 della prima revisione: template, contesto, estrazione Qwen, aggiornamento/salvataggio del ViT, replay, nucleo dati, confronto encoder, integrazione RL e interpolazioni. La pipeline è ora il riferimento nella repository; [stato e tracciabilità](./docs/REPOSITORY_STATUS.md) distinguono requisiti recepiti, decisioni aperte e implementazione da eseguire. I rapporti originali restano immutati e non costituiscono una nuova approvazione della v1.4.
 
+**Aggiornamento 1.5 (2026-10-30, decisione dell'utente):** perimetro definitivo della prima versione. Comprende matematica/STEM, geometria e formule stampate; grafici, tabelle, OCR e documenti a pagina singola; visione generale di supporto; un perimetro limitato di compiti con poche immagini, legati alla matematica e al confronto visivo; inglese come lingua principale. Rimanda i documenti a più pagine e il ragionamento fra pagine, il training dedicato al manoscritto (MathWriting) e i video. Il manoscritto non è un requisito di F0, una quota del mix né un criterio di avanzamento; gli esempi manoscritti incidentali nelle raccolte miste restano, senza classificazioni costose per toglierli. Delle raccolte documentali miste si usano solo esempi autonomi a pagina singola, senza troncare domande che richiedono altre pagine. Pannello e campione candidato di F0: [`docs/PANNELLO_VALUTAZIONE.md`](./docs/PANNELLO_VALUTAZIONE.md), [`docs/F0_CAMPIONE_CANDIDATO.md`](./docs/F0_CAMPIONE_CANDIDATO.md).
+
 ## 1. Obiettivo e decisioni
 
-Costruire un modello basato su Limite 1B — Violetto che sappia leggere immagini, documenti e formule, collegare più immagini e risolvere problemi matematici e scientifici. La visione generale serve a sostenere queste capacità.
+Costruire un modello basato su Limite 1B — Violetto che sappia leggere immagini, documenti a pagina singola e formule stampate, collegare poche immagini e risolvere problemi matematici e scientifici. La visione generale serve a sostenere queste capacità (perimetro della v1.5).
 
 | Decisione | Stato |
 | --- | --- |
-| Matematica/STEM, documenti e visione generale di supporto | Confermata dall'utente |
-| Immagini singole e multiple, incluse sequenze di pagine | Confermata dall'utente |
+| Matematica/STEM, geometria, formule stampate; grafici, tabelle, OCR e documenti a pagina singola; visione generale di supporto | Confermata dall'utente (perimetro definitivo del 2026-10-30) |
+| Immagini singole e poche immagini per compiti di matematica e confronto visivo | Confermata dall'utente (2026-10-30) |
+| Documenti a più pagine e ragionamento fra pagine | Rimandati (2026-10-30) |
+| Training dedicato al manoscritto (MathWriting) | Rimandato (2026-10-30); il manoscritto non è un criterio di F0 |
 | Video | Esclusi dalla prima versione |
 | Lingua principale | Inglese |
 | Risposta diretta per compiti semplici; spiegazione proporzionata per problemi complessi | Confermata dall'utente |
@@ -99,7 +103,7 @@ Il prefill `<think></think>` può essere uno strumento dichiarato di F1; non pro
 
 Distinguere i limiti dello snapshot: 131.072 posizioni nominali, 48 layer di cui 12 globali e 36 locali con finestra configurata a 1024; il processor impone separatamente un tetto software di 768 token per immagine. La finestra locale non è il contesto totale e le posizioni nominali non dimostrano capacità multimodale a quella lunghezza. [Configurazione del decoder](https://huggingface.co/paradigma-inc/limite-1b-violetto/blob/b1f3d572ccacb6919f4d64c321b70ba034ddaef2/config.json).
 
-Definire ordine e identità delle immagini, token per immagine e totali, lunghezza della domanda e spazio per la risposta. Il processor accetta liste ma non testo/immagini alternati arbitrariamente nello stesso turno; il caricatore corrente conserva una sola immagine per `Sample`. Il primo percorso può usare immagini all'inizio del turno e riferimenti espliciti, senza implementare subito l'interleaving generale. Non azzerare le posizioni fra pagine dello stesso esempio: una sequenza impacchettata di molti problemi brevi non allena dipendenze documentali lunghe. Testare uso della prima/ultima pagina, ordine scambiato e dettaglio piccolo. Ogni cambio del tetto 768 o della risoluzione richiede una prova mirata di leggibilità, costo e uso dell'informazione.
+Definire ordine e identità delle immagini, token per immagine e totali, lunghezza della domanda e spazio per la risposta. Il processor accetta liste ma non testo/immagini alternati arbitrariamente nello stesso turno; il caricatore corrente conserva una sola immagine per `Sample`. Il primo percorso può usare immagini all'inizio del turno e riferimenti espliciti, senza implementare subito l'interleaving generale. Nella prima versione gli esempi con più immagini sono pochi e brevi (matematica e confronto visivo, di solito 2-4 immagini): non azzerare le posizioni fra le immagini dello stesso esempio, e testare uso della prima e dell'ultima immagine, ordine scambiato e dettaglio piccolo. Le sequenze di pagine e le dipendenze documentali lunghe sono rimandate (v1.5). Ogni cambio del tetto 768 o della risoluzione richiede una prova mirata di leggibilità, costo e uso dell'informazione.
 
 ### 3.5 Artefatto Qwen da confrontare
 
@@ -114,7 +118,7 @@ Prima del confronto fissare famiglia, ID e revisione del checkpoint Qwen, chiavi
 | [MAVIS-Geometry](https://huggingface.co/datasets/CaraJ/MAVIS-Geometry) | Integrato; target canonici nella bozza F1-clean | F1–F2; problemi selezionati in F3/F4 | Coerenza delle specifiche non prova leggibilità o fedeltà del rendering |
 | [UniMER](https://github.com/opendatalab/UniMERNet) | Integrato, con controlli e rietichettature | F1–F2; mantenimento percettivo in F3 | Separare trascrizione, equivalenza di notazione ed equivalenza matematica |
 | Sintetici del progetto | Generatore e caricatore esistenti | F1–F4 secondo il compito | Lo stato esatto deve corrispondere all'immagine e alle informazioni disponibili |
-| [MathWriting](https://github.com/google-research/google-research/blob/master/mathwriting/README.md) | Da integrare | Manoscritto in F1–F2 | I tratti richiedono rasterizzazione; mantenere gli split e le identità disponibili |
+| [MathWriting](https://github.com/google-research/google-research/blob/master/mathwriting/README.md) | Rimandato (v1.5) | Manoscritto: fuori dalla prima versione | I tratti richiedono rasterizzazione; mantenere gli split e le identità disponibili |
 | [HierText](https://github.com/google-research-datasets/hiertext) | Da integrare | OCR e localizzazione in F1–F2 | Non inventare un ordine di lettura completo dalle sole regioni annotate |
 | [PixMo-Cap](https://docs.allenai.org/training_data/pixmo) | Presente nei mix precedenti; fuori dalla bozza F1-clean | Scene reali in F1–F2; mantenimento in F3 | Caption e trascrizioni dell'annotatore possono differire; occorre controllo visivo campionario |
 | [LLaVA-Pretrain](https://huggingface.co/datasets/liuhaotian/LLaVA-Pretrain) | Presente nei mix precedenti | Complemento eventuale per F1 | Ammesso se aggiunge copertura utile; non obbligatorio |
@@ -122,9 +126,9 @@ Prima del confronto fissare famiglia, ID e revisione del checkpoint Qwen, chiavi
 | [MAVIS-Function](https://huggingface.co/datasets/CaraJ/MAVIS-Function) | Nel catalogo; non nel mix F1-clean | Funzioni in F2–F3; F4 dove verificabile | Non trattarlo come un dataset di caption già pronto |
 | [ChartQA](https://github.com/vis-nlp/ChartQA), [PlotQA](https://github.com/NiteshMethani/PlotQA) | Nessun percorso dedicato nel mix esaminato | Lettura in F1; comprensione e calcolo in F2–F3; F4 selezionato | Verificare domanda, dati sottostanti, unità e leggibilità |
 | [TabMWP](https://github.com/lupantech/PromptPG) | Da integrare esplicitamente | Tabelle e matematica in F2–F4 | La tabella strutturata serve al verificatore, non deve rivelare nell'input ciò che va letto |
-| [PubTabNet](https://github.com/ibm-aur-nlp/PubTabNet), [DocLayNet](https://github.com/DS4SD/DocLayNet) | Da integrare | Struttura di tabelle e pagine in F1–F2 | Layout annotato non equivale automaticamente a QA o ordine di lettura certificati |
-| [Docmatix](https://huggingface.co/datasets/HuggingFaceM4/Docmatix) | Da integrare | QA documentale e più pagine in F2–F3 | Le QA generate richiedono controlli; non sono verità formale |
-| [M4-Instruct](https://llava-vl.github.io/blog/2024-06-16-llava-next-interleave/) | Da integrare, selezionando i sottoinsiemi | Confronto e collegamento fra immagini in F2–F3 | Escludere i compiti video dalla prima versione |
+| [PubTabNet](https://github.com/ibm-aur-nlp/PubTabNet), [DocLayNet](https://github.com/DS4SD/DocLayNet) | Da integrare | Struttura di tabelle e di pagine singole in F1–F2 | Layout annotato non equivale automaticamente a QA o ordine di lettura certificati |
+| [Docmatix](https://huggingface.co/datasets/HuggingFaceM4/Docmatix) | Da integrare | QA documentale a pagina singola in F2–F3: solo esempi autonomi, senza troncare domande che richiedono altre pagine (v1.5) | Le QA generate richiedono controlli; non sono verità formale |
+| [M4-Instruct](https://llava-vl.github.io/blog/2024-06-16-llava-next-interleave/) | Da integrare, selezionando i sottoinsiemi | Confronto fra poche immagini in F2–F3, limitato a matematica e confronto visivo (v1.5) | Escludere i compiti video dalla prima versione |
 | [PGPS9K](https://nlpr.ia.ac.cn/databases/CASIA-PGPS9K/), [FormalGeo](https://formalgeo.github.io/) | Candidati da verificare | Geometria strutturata in F2–F4 | Sovrapposizioni con Geometry3K/Geoperception; solver condizionato alle premesse |
 | [MMFineReason](https://github.com/LHL3341/MMFineReason) | Bacino già integrato | Problemi selezionati in F2–F3; F4 dove ammissibile | Separare affidabilità di domanda, riferimento, caption e CoT; release e subset possono sovrapporsi |
 | [AI2D](https://registry.opendata.aws/allenai-diagrams/), [ScienceQA](https://github.com/lupantech/ScienceQA), [VisualWebInstruct](https://github.com/TIGER-AI-Lab/VisualWebInstruct) | Alcune sorgenti già rappresentate indirettamente in MMFineReason | Copertura scientifica in F2–F3 | Inventario e deduplicazione prima di aggiungere gli originali; ScienceQA ha anche esempi senza immagini |
@@ -248,9 +252,9 @@ Separare sempre **valore esatto**, **valore visualizzato** e **risposta richiest
 | --- | --- | --- |
 | Sintetici propri | Stato della scena, formule e programmi; calcolo esatto, vincoli e controlli indipendenti sulle famiglie | Controllare clipping, occlusioni, label e leggibilità dopo il preprocessing. Una variabile nascosta del generatore non può diventare una risposta visiva non inferibile. Audit dei renderer e campione casuale delle uscite. |
 | MAVIS-Geometry / MAVIS-Caption | Riusare parser e fatti supportati; ricalcolare le QA quando la specifica basta; tenere separati descrizione canonica e soluzione | `diagram_generation` è una specifica testuale, non sempre un programma eseguibile. Coerenza con la caption non prova fedeltà ai pixel. Verificare famiglia del disegno, misure stampate e casi ambigui. |
-| UniMER / MathWriting / OCR | Etichette e sorgenti originali; parsing e normalizzazione che preservano la notazione; confronto con rasterizzazione quando disponibile | Un LaTeX compilabile può descrivere un'altra formula. Rendering/OCR aggiuntivo aiutano a trovare candidati errati, non sono un oracolo. Separare matematica equivalente e trascrizione; controllare crop, indici e simboli piccoli. |
+| UniMER / OCR (MathWriting rimandato, v1.5) | Etichette e sorgenti originali; parsing e normalizzazione che preservano la notazione; confronto con rasterizzazione quando disponibile | Un LaTeX compilabile può descrivere un'altra formula. Rendering/OCR aggiuntivo aiutano a trovare candidati errati, non sono un oracolo. Separare matematica equivalente e trascrizione; controllare crop, indici e simboli piccoli. |
 | Grafici e tabelle | Calcoli sulle tabelle sorgente: selezione, somma, differenza, rapporto, unità e arrotondamenti | Le celle interrogate devono essere visibili o deducibili. Non usare precisione interna non rappresentata nel grafico; ammettere una tolleranza motivata dal compito. |
-| Documenti, PubTabNet/DocLayNet e QA multipagina | Strutture e annotazioni disponibili; pagine/celle di evidenza per la risposta; programmi aritmetici quando presenti | Layout e HTML non certificano automaticamente ogni QA. Controllare che tutte le pagine necessarie siano fornite, in ordine, leggibili e con un riferimento non ambiguo. |
+| Documenti a pagina singola, PubTabNet/DocLayNet (QA multipagina rimandata, v1.5) | Strutture e annotazioni disponibili; pagine/celle di evidenza per la risposta; programmi aritmetici quando presenti | Layout e HTML non certificano automaticamente ogni QA. Controllare che tutte le pagine necessarie siano fornite, in ordine, leggibili e con un riferimento non ambiguo. |
 | PixMo, descrizioni generali, Docmatix | Provenienza, copertura delle annotazioni e campioni stratificati; conservare solo trasformazioni giustificate | Testo libero senza verità strutturata non diventa interamente gold con parser o consenso. Separare target controllati da nucleo gold; evitare riscritture automatiche che introducano nuovi dettagli visivi. |
 | MMFineReason, DeepVision/ViRL e aggregati | Risalire alla sorgente originale; ricontrollare risposta, opzioni e problemi risolvibili con strumenti | Caption del teacher, risposta e CoT sono tre oggetti distinti. Se è verificata solo la risposta, usarla senza la spiegazione dubbia; il gold non si ricava dalla stessa traccia che si vuole validare. |
 | Replay matematico testuale | Problema originale, dominio, risposta e soluzione breve verificabile quando disponibile | Nessun controllo visivo, ma stessi gruppi di provenienza e decontaminazione. La concordanza con Violetto non dimostra la correttezza del riferimento. |
@@ -315,11 +319,11 @@ Il criterio per l'esperimento iniziale è un nucleo gold motivato, nessuna colli
 
 ### 6.1 Materiale necessario
 
-Preparare un pannello rappresentativo di formule stampate e manoscritte, geometria, grafici, tabelle, documenti e immagini reali. Non usare solo la geometria sintetica per scegliere l'encoder destinato a tutta la pipeline.
+Preparare un pannello rappresentativo di formule stampate, geometria, grafici, tabelle, documenti a pagina singola e immagini reali (perimetro v1.5). Non usare solo la geometria sintetica per scegliere l'encoder destinato a tutta la pipeline.
 
-Partire da sintetici propri, MAVIS supportato e UniMER verificati; aggiungere il minor insieme che copra le capacità mancanti: un sottoinsieme manoscritto, uno di scene reali, grafici/tabelle e documenti, più un piccolo pannello di coppie di immagini. MathWriting, PixMo e le raccolte documentali della tabella sono candidati, non prerequisiti da integrare tutti. Scegliere gli adattatori iniziali in base a disponibilità, verificabilità e lacune di copertura, senza dichiarare che siano già implementati o scaricati. Nuove grandi raccolte entrano quando colmano una lacuna documentata.
+Partire da sintetici propri, MAVIS supportato e UniMER verificati; aggiungere il minor insieme che copra le capacità mancanti: uno di scene reali, grafici/tabelle e documenti a pagina singola, più un piccolo pannello con poche immagini per esempio. Il manoscritto non è richiesto (v1.5). PixMo e le raccolte documentali della tabella sono candidati, non prerequisiti da integrare tutti. Scegliere gli adattatori iniziali in base a disponibilità, verificabilità e lacune di copertura, senza dichiarare che siano già implementati o scaricati. Nuove grandi raccolte entrano quando colmano una lacuna documentata.
 
-Fissare anche il pannello documentale e multi-immagine prima dell'ammissione definitiva, per poterne decontaminare i dati. Raggruppare le varianti dello stesso problema, incluse quelle di MathVerse/DynaMath, nei confronti statistici; non contarle come prove indipendenti.
+Fissare anche il pannello documentale (pagina singola) e quello con poche immagini prima dell'ammissione definitiva, per poterne decontaminare i dati. Raggruppare le varianti dello stesso problema, incluse quelle di MathVerse/DynaMath, nei confronti statistici; non contarle come prove indipendenti.
 
 Fissare prima della prova:
 
@@ -414,7 +418,7 @@ Collegare le rappresentazioni visive a Limite mantenendo congelati encoder e dec
 
 ### Dati e target
 
-Nucleo: MAVIS canonico, UniMER e sintetici esistenti. Integrare un campione controllato di manoscritto, OCR generale, lettura di grafici e tabelle, struttura di pagina e scene reali.
+Nucleo: MAVIS canonico, UniMER e sintetici esistenti. Integrare un campione controllato di OCR generale, lettura di grafici e tabelle, struttura di pagina singola e scene reali (il manoscritto è rimandato, v1.5).
 
 Compiti: trascrivere, identificare, localizzare, estrarre e descrivere brevemente. Esempi: leggere una formula, indicare una misura scritta, riconoscere una legenda, estrarre una cella, individuare un oggetto.
 
@@ -444,14 +448,14 @@ Il trainer attuale raccoglie i parametri fuori dal decoder come adapter: sblocca
 
 ### Copertura
 
-- OCR generale, formule e manoscritto.
+- OCR generale e formule stampate (manoscritto rimandato, v1.5).
 - Geometria, coordinate e funzioni.
 - Grafici statistici e tabelle.
 - Layout e comprensione documentale.
 - Localizzazione, conteggio e relazioni spaziali.
 - Diagrammi e domande scientifiche.
 - Scene reali e domande varie.
-- Confronto fra immagini e collegamento fra pagine.
+- Confronto fra poche immagini, in matematica e confronto visivo (collegamento fra pagine rimandato, v1.5).
 - Illeggibilità, ambiguità e informazione insufficiente.
 - Istruzioni, chiarimenti e dialogo.
 
@@ -461,11 +465,11 @@ Il campionamento corrente pesa esempi, mentre la loss media token supervisionati
 
 ### Immagini multiple e contesto
 
-Cominciare da pochi elementi leggibili, ad esempio due immagini o poche pagine: confronto fra figure, pagina e dettaglio, tabella collegata a grafico, informazione distribuita fra pagine.
+Cominciare da pochi elementi leggibili, di solito due immagini: confronto fra figure, figura e dettaglio, tabella collegata a grafico, problemi di matematica con più figure. Le sequenze di pagine sono rimandate (v1.5).
 
 Le domande devono richiedere davvero il collegamento fra gli input. Aggiungere distrattori controllati e riferimenti espliciti alle immagini. Non fornire nell'input la tabella o la scena di riferimento quando il compito richiede di ricavarla dai pixel.
 
-Un contesto iniziale intorno a 8k è un'ipotesi di lavoro. Espandere verso 16k–32k solo per compiti che lo richiedono e dopo verifiche dell'uso effettivo del contesto. Il budget visivo si controlla sull'intero esempio: aggiungere pagine riducendole fino a renderle illeggibili non costituisce addestramento utile.
+Un contesto iniziale intorno a 8k è un'ipotesi di lavoro. Espandere verso 16k–32k solo per compiti che lo richiedono e dopo verifiche dell'uso effettivo del contesto. Il budget visivo si controlla sull'intero esempio: aggiungere immagini riducendole fino a renderle illeggibili non costituisce addestramento utile.
 
 ### Criterio di passaggio
 
@@ -636,7 +640,7 @@ Ordine di estensione:
 1. Variazioni controllate di notazione, stile, etichette, risoluzione e impaginazione.
 2. Tabelle e grafici statistici da dati sorgente.
 3. Funzioni e problemi quantitativi con soluzioni eseguibili.
-4. Documenti con testo, formule, tabelle e riferimenti fra pagine.
+4. Documenti a pagina singola con testo, formule e tabelle (riferimenti fra pagine rimandati, v1.5).
 5. Solidi, proiezioni e sezioni da scene controllate.
 6. Altri diagrammi scientifici solo dove esiste un riferimento verificabile.
 
@@ -681,7 +685,7 @@ Il budget visivo va espresso in token forniti al decoder oltre che in patch del 
 | Formule e OCR | Fedeltà strutturale, errori di simboli e trascrizioni; formati equivalenti quando appropriato |
 | Geometria | Estrazione dei fatti distinta dalla soluzione matematica |
 | Grafici e tabelle | Lettura dei dati distinta dai calcoli |
-| Documenti | Struttura, ricerca dell'informazione, collegamento fra regioni e pagine |
+| Documenti | Struttura, ricerca dell'informazione e collegamento fra regioni della pagina (più pagine rimandate, v1.5) |
 | Immagini multiple | Associazione di riferimenti e uso congiunto degli input |
 | Ragionamento | Correttezza finale e validità dei passaggi su campione indipendente |
 | Dipendenza visiva | Controfattuali, immagine rimossa o alterata, sottogruppi che richiedono visione |
@@ -690,9 +694,9 @@ Il budget visivo va espresso in token forniti al decoder oltre che in patch del 
 | Comportamento | Risposta diretta, spiegazione proporzionata, chiarimenti e gestione dell'insufficienza |
 | Efficienza | Ore GPU, memoria, latenza, token generati e costo per problema |
 
-Mantenere la suite matematica prevista: MathVista, MathVerse, MathVision, We-Math e DynaMath, con la decontaminazione appropriata. Affiancare Geoperception, VisOnlyQA, UniMER-Test e valutazioni documentali/percettive coerenti con le nuove capacità.
+Mantenere la suite matematica prevista: MathVista, MathVerse, MathVision, We-Math e DynaMath, con la decontaminazione appropriata. Affiancare Geoperception, VisOnlyQA, UniMER-Test (formule stampate; la parte manoscritta hwe è solo diagnostica, v1.5) e valutazioni documentali a pagina singola e percettive coerenti con le nuove capacità ([pannello](./docs/PANNELLO_VALUTAZIONE.md)).
 
-Nessun benchmark aggregato viene considerato indipendente dagli originali senza controllo della provenienza. Conservare una componente nuova riservata con verità indipendente dove possibile.
+Nessun benchmark aggregato viene considerato indipendente dagli originali senza controllo della provenienza. Conservare una componente nuova riservata con verità indipendente dove possibile. Generarla alla fine non la rende automaticamente nuova: la novità si misura sugli stati e sui componenti delle combinazioni con più immagini, distinguendo contenuti nuovi da nuove combinazioni di contenuti già usati ([pannello, §3.5](./docs/PANNELLO_VALUTAZIONE.md)).
 
 ### 15.2 Decisioni
 
@@ -767,7 +771,7 @@ Non sono previsti un grande refactoring dell'audit, un agente per esempio, gener
 ### Parametri da decidere con l'inventario e i piloti
 
 - Sottoinsiemi ammessi, quote per capacità e volumi.
-- Risoluzione, token visivi e numero di immagini/pagine per esempio.
+- Risoluzione, token visivi e numero di immagini per esempio.
 - Layer del ViT, fusione, compressione e dimensioni del proiettore; adozione o esclusione motivata di DeepStack e rami visivi MUDD/value embeddings.
 - Learning rate, batch effettivo, durata e precisione.
 - Metriche primarie, margini di non inferiorità e soglie operative.

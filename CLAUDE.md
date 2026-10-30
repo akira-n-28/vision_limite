@@ -3,18 +3,31 @@
 Progetto: aggiungere la visione a Limite 1B - Violetto su una H100 NVL del cluster Lagrange, per leggere immagini,
 documenti e formule, collegare più immagini e risolvere problemi di matematica e scienze.
 
-**Riferimento corrente:** [`PIPELINE_ADDESTRAMENTO_LIMITE_VL.md`](PIPELINE_ADDESTRAMENTO_LIMITE_VL.md), versione 1.4
-del 2026-10-28. Contiene obiettivi, fasi F0-F4, protocollo dei dati (gold, split, decontaminazione, audit) e decisioni
+**Riferimento corrente:** [`PIPELINE_ADDESTRAMENTO_LIMITE_VL.md`](PIPELINE_ADDESTRAMENTO_LIMITE_VL.md), versione 1.5
+del 2026-10-30. Contiene obiettivi, fasi F0-F4, protocollo dei dati (gold, split, decontaminazione, audit) e decisioni
 aperte. È un progetto: non è una configurazione eseguibile e non autorizza a lanciare job.
+
+**Perimetro della prima versione** (v1.5, decisione dell'utente del 2026-10-30).
+- **Comprende:** matematica/STEM, geometria e formule stampate; grafici, tabelle, OCR e documenti a pagina singola;
+  visione generale di supporto; pochi compiti con più immagini, legati alla matematica e al confronto visivo;
+  l'inglese.
+- **Rimanda:** documenti a più pagine e ragionamento fra pagine; training dedicato al manoscritto (MathWriting);
+  video.
+- **Manoscritto:** non è un requisito di F0, una quota del mix né un criterio di avanzamento. Gli esempi manoscritti
+  incidentali restano, senza classificazioni costose per toglierli.
+- **Raccolte documentali miste:** solo esempi autonomi a pagina singola, senza troncare domande che richiedono altre
+  pagine.
 
 - Stato reale del codice e prossimi interventi: [`docs/F0_IMPLEMENTATION_PLAN.md`](docs/F0_IMPLEMENTATION_PLAN.md).
 - Migrazione, artefatti e percorsi non toccati: [`docs/MIGRATION_REPORT.md`](docs/MIGRATION_REPORT.md),
   [`docs/ARTIFACT_INVENTORY.tsv`](docs/ARTIFACT_INVENTORY.tsv), [`docs/REPOSITORY_INDEX.tsv`](docs/REPOSITORY_INDEX.tsv).
 - Rilievi delle revisioni indipendenti: [`docs/REVIEW_ACTIONS.md`](docs/REVIEW_ACTIONS.md). I rapporti in `docs/reviews/`
   restano immutati.
-- Pannello di valutazione e decontaminazione, proposta per D6 da approvare:
-  [`docs/PANNELLO_VALUTAZIONE.md`](docs/PANNELLO_VALUTAZIONE.md). Le righe `p9-pannello` del catalogo sono proposte,
-  non download approvati.
+- Pannello di valutazione e decontaminazione (D6, da approvare nei dettagli):
+  [`docs/PANNELLO_VALUTAZIONE.md`](docs/PANNELLO_VALUTAZIONE.md). Download `p10-pannello` eseguiti e verificati (job
+  30463); ruoli fissati in `pannello-v2` (job 30466). Le righe `p9-pannello` (più pagine) sono rimandate e commentate.
+- Campione candidato di F0, lacune del training e prossimo lotto:
+  [`docs/F0_CAMPIONE_CANDIDATO.md`](docs/F0_CAMPIONE_CANDIDATO.md).
 
 La strategia precedente (F1, F1b, F1c, ponte teacher di F2, gate f2-cert, replay generato da Violetto) è in
 `archive/pipeline-precedente/`, con la copia integrale delle vecchie istruzioni. Non si riprendono i run storici, non
@@ -400,6 +413,17 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
   regola del 2026-10-16), `outputs/split_duplicates/run1`. Le liste `exclude.txt` grezze sono solo candidati. Nel
   nuovo manifest si importano come evidenze con motivo, versione e stato (pipeline §5.8), senza applicarle alla
   cieca e senza cancellarle.
+- Pannello (`pannello-v2`, job 30466, codice `e084cba`), descritto in `docs/PANNELLO_VALUTAZIONE.md`.
+  - **Indice** `data/decontam/pannello-v2`: una voce per immagine (99.713 voci, 92.658 immagini, nessuna illeggibile),
+    con pHash e sha256 dei pixel dopo `processing.to_rgb`. Compatibile con `decontam.py scan`.
+  - **Gruppi e ruoli** `data/panel/pannello-v2`, seme 0.
+  - **Legami confermati:** pixel identici o provenienza dichiarata. DocVQA si raggruppa per documento UCSF, MUIRBench
+    per coppia rispondibile/non rispondibile.
+  - **Candidati e irrisolti:** solo somiglianze, tenute separate dai legami. Nel test 1.299 irrisolti, 191 forti, da
+    verificare a vista.
+  - `pannello-v1` (job 30465) è superato e mai usato.
+  - Gli script sono `scripts/panel_index.py` e `scripts/panel_groups.py`, lanciati da `slurm/panel_groups.sbatch`. Le
+    uscite si scrivono una volta: una modifica dà `pannello-v3`.
 
 ## Strumenti congelati
 
@@ -422,7 +446,8 @@ parametri in `groups.py` sono ipotesi da verificare con `f0_checks.py` (sezione 
 
 - `CLAUDE.md`, `LAGRANGE.md`, `README.md` — istruzioni; `PIPELINE_ADDESTRAMENTO_LIMITE_VL.md` — riferimento corrente;
   `ISTRUZIONI_MIGRAZIONE_LAGRANGE.md` — incarico della migrazione del 2026-10-28
-- `docs/` — stato del repository, piano F0, inventario degli artefatti, indice dei file, rilievi e rapporti delle revisioni
+- `docs/` — stato del repository, piano F0, pannello di valutazione, campione candidato di F0, inventario degli
+  artefatti, indice dei file, rilievi e rapporti delle revisioni
 - `config/paths.env` — percorsi e variabili offline; `config/runs/` — vuota finché non ci sono ricette collaudate;
   `config/audit/` — istruzioni e politica degli audit storici (congelate)
 - `downloads/` — `sources.tsv`, `catalog_status.tsv`, `build_manifests.sh`, `manifests/`

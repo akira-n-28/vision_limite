@@ -71,9 +71,10 @@ config/paths.env	config	corrente	percorsi offline	-
 config/runs/README.md	config	corrente	nessuna ricetta corrente	-
 docs/ACTIVE_WORK_AND_UNTOUCHED_PATHS.md	documento	corrente	stato, piano o inventario della migrazione	-
 docs/ARTIFACT_INVENTORY.tsv	documento	corrente	stato, piano o inventario della migrazione	-
+docs/F0_CAMPIONE_CANDIDATO.md	documento	corrente	campione candidato di F0: selezione riproducibile per training dei piloti, sviluppo e test riservato; lacune e aggiunte minime; cosa manca; prossimo lotto	proposta, nessuna sorgente ammessa
 docs/F0_IMPLEMENTATION_PLAN.md	documento	corrente	stato, piano o inventario della migrazione	-
 docs/MIGRATION_REPORT.md	documento	corrente	stato, piano o inventario della migrazione	-
-docs/PANNELLO_VALUTAZIONE.md	documento	corrente	proposta per D6: inventario verificato dei benchmark, pannello e ruoli, download mancanti, piano di decontaminazione	da approvare
+docs/PANNELLO_VALUTAZIONE.md	documento	corrente	pannello di valutazione (D6): inventario verificato, copertura per capacità, ruoli fissati in pannello-v2 (job 30466), download eseguiti (job 30463), stato dell indice, piano di decontaminazione	da approvare nei dettagli
 docs/REPOSITORY_INDEX.tsv	documento	corrente	stato, piano o inventario della migrazione	-
 docs/REPOSITORY_STATUS.md	documento	corrente	stato, piano o inventario della migrazione	-
 docs/REVIEW_ACTIONS.md	documento	corrente	stato, piano o inventario della migrazione	-
@@ -171,6 +172,8 @@ scripts/mavis_fraction_values.py	script	riutilizzabile	controllo deterministico 
 scripts/mavis_geometry_check.py	script	riutilizzabile	controllo deterministico dei dati (pipeline §5.3); esiti come evidenze, non ammissione	importato da tests/test_mavis_geometry
 scripts/mavis_variants.py	script	riutilizzabile	ispezione dei dati senza training	-
 scripts/mavis_zip_survey.py	script	riutilizzabile	ispezione dei dati senza training	-
+scripts/panel_groups.py	script	corrente	gruppi e ruoli del pannello: legami confermati, candidati e irrisolti separati, sviluppo e test per gruppo con seme, copertura per ruolo (job 30466)	solo in un job CPU; uscite scritte una volta
+scripts/panel_index.py	script	corrente	indice del pannello: una voce per immagine con pHash e sha256 dei pixel normalizzati, voci di solo testo, campi per gruppi e copertura (job 30466)	solo in un job CPU; snapshot in sola lettura
 scripts/panel_inventory.py	script	corrente	inventario dei benchmark locali per il pannello: schema, righe, risposte presenti o vuote, contro manifest e verifiche; indici di decontaminazione (job 30457)	-
 scripts/panel_inventory_summary.py	script	corrente	riassunto leggibile dell'inventario dei benchmark (job 30458)	-
 scripts/panel_overlaps.py	script	corrente	sovrapposizioni fra i benchmark indicizzati: pHash identici o vicini (candidati), testi identici, ID condivisi (job 30459)	-
@@ -238,6 +241,7 @@ slurm/mavis_fraction_values.sbatch	launcher	riutilizzabile	launcher di ispezione
 slurm/mavis_geometry_check.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
 slurm/mavis_variants.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
 slurm/mavis_zip_survey.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
+slurm/panel_groups.sbatch	launcher	corrente	indice del pannello e gruppi e ruoli (panel_index.py e panel_groups.py; job 30465, 30466); con INDICE riusa un indice già costruito	-
 slurm/panel_inventory.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
 slurm/panel_overlaps.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
 slurm/peek_parquet.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-

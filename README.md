@@ -8,10 +8,11 @@ Lagrange (frontend `lagrangectl`, nodo `lagrange0` con H100 NVL) con Claude Code
 
 | Documento | Ruolo |
 | --- | --- |
-| [`PIPELINE_ADDESTRAMENTO_LIMITE_VL.md`](PIPELINE_ADDESTRAMENTO_LIMITE_VL.md) | **Riferimento corrente** (v1.4, 2026-10-28): fasi F0-F4, protocollo dei dati, decisioni aperte. Progetto, non ricetta eseguibile |
+| [`PIPELINE_ADDESTRAMENTO_LIMITE_VL.md`](PIPELINE_ADDESTRAMENTO_LIMITE_VL.md) | **Riferimento corrente** (v1.5, 2026-10-30; perimetro della prima versione): fasi F0-F4, protocollo dei dati, decisioni aperte. Progetto, non ricetta eseguibile |
 | [`CLAUDE.md`](CLAUDE.md) | Regole operative per Claude Code sul cluster |
 | [`LAGRANGE.md`](LAGRANGE.md) | Guida del cluster (frontend, storage, SLURM, download) |
 | [`docs/F0_IMPLEMENTATION_PLAN.md`](docs/F0_IMPLEMENTATION_PLAN.md) | Stato reale del codice rispetto alla pipeline e interventi F0 in ordine |
+| [`docs/PANNELLO_VALUTAZIONE.md`](docs/PANNELLO_VALUTAZIONE.md), [`docs/F0_CAMPIONE_CANDIDATO.md`](docs/F0_CAMPIONE_CANDIDATO.md) | Pannello di valutazione e decontaminazione (D6, ruoli in `pannello-v2`); campione candidato di F0, lacune e prossimo lotto |
 | [`docs/REPOSITORY_STATUS.md`](docs/REPOSITORY_STATUS.md), [`docs/REVIEW_ACTIONS.md`](docs/REVIEW_ACTIONS.md) | Stato e tracciabilità dei rilievi delle revisioni indipendenti (`docs/reviews/`, immutati) |
 | [`docs/MIGRATION_REPORT.md`](docs/MIGRATION_REPORT.md) | Migrazione del 2026-10-28: base git, spostamenti, controlli e limiti |
 | [`docs/ARTIFACT_INVENTORY.tsv`](docs/ARTIFACT_INVENTORY.tsv), [`docs/REPOSITORY_INDEX.tsv`](docs/REPOSITORY_INDEX.tsv) | Artefatti fuori da git e stato di ogni file versionato |
