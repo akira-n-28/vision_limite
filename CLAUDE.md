@@ -12,6 +12,9 @@ aperte. È un progetto: non è una configurazione eseguibile e non autorizza a l
   [`docs/ARTIFACT_INVENTORY.tsv`](docs/ARTIFACT_INVENTORY.tsv), [`docs/REPOSITORY_INDEX.tsv`](docs/REPOSITORY_INDEX.tsv).
 - Rilievi delle revisioni indipendenti: [`docs/REVIEW_ACTIONS.md`](docs/REVIEW_ACTIONS.md). I rapporti in `docs/reviews/`
   restano immutati.
+- Pannello di valutazione e decontaminazione, proposta per D6 da approvare:
+  [`docs/PANNELLO_VALUTAZIONE.md`](docs/PANNELLO_VALUTAZIONE.md). Le righe `p9-pannello` del catalogo sono proposte,
+  non download approvati.
 
 La strategia precedente (F1, F1b, F1c, ponte teacher di F2, gate f2-cert, replay generato da Violetto) è in
 `archive/pipeline-precedente/`, con la copia integrale delle vecchie istruzioni. Non si riprendono i run storici, non

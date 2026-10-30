@@ -32,7 +32,7 @@ lettura ha dato errori (job 30457).
 | Geoperception `euclid-multimodal/Geoperception@c34c5956` | 11.657 domande (split `train`), 7 predicati | figure di Geometry3K, risposta breve (1 vuota) | f1eval: 11.657 | struttura letta (job 30026) | scaricato, indicizzato |
 | VisOnlyQA Real `ryokamoi/VisOnlyQA_Eval_Real_v1.1@3747d137` | 900 domande in 10 file: grafici, chimica, geometria | scelta multipla | f1eval: 900 | 30026 | scaricato, indicizzato |
 | VisOnlyQA Synthetic `ryokamoi/VisOnlyQA_Eval_Synthetic@ef0b5fbc` | 700 domande in 7 file: 3D, geometria sintetica | scelta multipla | f1eval: 700 | 30026 | scaricato, indicizzato |
-| OlympiadBench `Hothan/OlympiadBench@91184b52` | 18 sottoinsiemi; in inglese con immagini: `OE_MM_maths_en_COMP` 150 (19 con 2-4 immagini), `OE_MM_physics_en_COMP` 456, `TP_MM_*_en_COMP` 62 + 19 (dimostrazioni); solo testo: `OE_TO_maths_en_COMP` 674 | `final_answer`, tipo di risposta, unità, materia | nessuno per le immagini; il testo è nel controllo del replay (job 29699-29700) | nessuno | scaricato, non indicizzato |
+| OlympiadBench `Hothan/OlympiadBench@91184b52` | 18 sottoinsiemi; in inglese con immagini: `OE_MM_maths_en_COMP` 150 (19 con 2-4 immagini), `OE_MM_physics_en_COMP` 456, `TP_MM_*_en_COMP` 62 + 19 (dimostrazioni); solo testo: `OE_TO_maths_en_COMP` 674 | `final_answer`, tipo di risposta, unità, materia | nessuno per le immagini; le domande della suite testuale sono nel confronto col replay (job 29699-29700) | nessuno | scaricato, immagini non indicizzate |
 | UniMER-Test (`wanderkid/UniMER_Dataset@2343ddd9`, `UniMER-Test.zip`) | spe 6.762, cpe 5.921, sce 4.742, hwe 6.332 immagini, con le etichette | formule LaTeX | nessuno: c'è il confronto col training di UniMER (`outputs/unimer_overlap/run2`) | i primi 200 di spe e i primi 200 di cpe: criterio di F1 e valutazioni F1c (job 29448-29761) | scaricato; in parte usato |
 | Suite testuale (job 29348) | AIME 2024 30, AIME 2025 30, AIME 2026 30, HMMT feb 2025 30, HMMT feb 2026 33, BeyondAIME 100, APEX shortlist 47, MATH-500 500, OlympiadBench `OE_TO_maths_en_COMP` 674 | problema e risposta | confronto col replay testuale (job 29699-29700) | AIME 2026: baseline e ablation dell'ottimizzatore, usate per decidere (job 29685-29697). AIME 2025 e HMMT 2026: baseline (job 29393) | scaricata. AIME 2026 è già usata per scegliere |
 | GSM8K (`openai/gsm8k`) | — | — | — | — | non scaricato. È nella suite ufficiale del valutatore (`MATH_STANDARD`), senza revisione fissata |
@@ -51,9 +51,10 @@ Restano protetti dal training, ma non sono un test finale indipendente.
 - **Figure di Geometry3K e affini:** attraversano più benchmark. Elementi con un vicino entro 4 bit in un altro
   insieme:
   - verso Geoperception: 269 di MathVerse, 199 del test e 38 del testmini di MathVista;
-  - verso le geometrie di VisOnlyQA Real: 632 di Geoperception, 227 del testmini di MathVista, 167 di MathVerse.
+  - verso le geometrie di VisOnlyQA Real: 632 di Geoperception, 257 del test e 227 del testmini di MathVista, 167 di
+    MathVerse.
 - **Grafici:** quelli di VisOnlyQA Real sono vicini a quelli di MathVista (46 elementi del test e 13 del testmini).
-- **DynaMath:** pochi vicini (fino a 30 per coppia di insiemi).
+- **DynaMath:** pochi vicini, al più 20 elementi per coppia di insiemi.
 
 La conferma richiede il confronto dei pixel (§5).
 
@@ -125,16 +126,15 @@ Note:
 
 ### 3.3 Componente nuova riservata
 
-Ha la verità dal codice e non è mai stata pubblicata, quindi nessun encoder o decoder l'ha vista. Qui si fissa come
-costruirla; non si genera in questo incarico.
+Ha la verità dal codice e si genera solo per la valutazione finale, quindi nessun encoder o decoder può averla vista.
+Qui si fissa come costruirla; non si genera in questo incarico.
 
 1. **Sintetici riservati.** Si generano con il generatore v4 congelato (`284e8f1`) e chiavi nuove
    (`synth-riservato-NNNNNN`): 1.000 scene per famiglia e 300 coppie, tenendo solo gli stati assenti da tutto il
    manifest v4 (controllo per `stato_scena_sha256`). Le scene `function` con un solo grafico hanno circa 600 stati,
    quasi tutti già nel training (S2 §2.6): servono un generatore v5 o le sole scene con due grafici. Si aggiunge uno
-   split di stili mai visti
-   (S1 §3): caratteri, spessori e dimensioni fuori dagli intervalli di `synth._style`, che richiede un'opzione del
-   generatore.
+   split di stili mai visti (S1 §3): caratteri, spessori e dimensioni fuori dagli intervalli di `synth._style`, che
+   richiede un'opzione del generatore.
 2. **Grafici, tabelle e documenti generati.** Un generatore nuovo produce tabelle casuali e, con matplotlib (già
    nell'ambiente), grafici a barre, linee e torte e pagine di rapporto su più pagine. Le domande sono di lettura, di
    calcolo, di collegamento fra pagine, e non rispondibili (dato assente). La verità è per costruzione, con un
@@ -211,7 +211,7 @@ A questi si aggiungono i `README.md`, di pochi KB.
 
 ### 5.2 Subito per v4 e dopo con le altre sorgenti
 
-- **Subito, senza download:**
+- **Possibile subito, senza download (le scansioni vanno approvate):**
   - immagini v4 contro gli indici p6 e f1eval;
   - pixel identici, aggiungendo lo sha256 all'indice;
   - le domande, estendendo `texts_of` di `decontam.py` al tipo `synth` (oggi restituisce una lista vuota).

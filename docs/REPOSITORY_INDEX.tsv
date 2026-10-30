@@ -73,6 +73,7 @@ docs/ACTIVE_WORK_AND_UNTOUCHED_PATHS.md	documento	corrente	stato, piano o invent
 docs/ARTIFACT_INVENTORY.tsv	documento	corrente	stato, piano o inventario della migrazione	-
 docs/F0_IMPLEMENTATION_PLAN.md	documento	corrente	stato, piano o inventario della migrazione	-
 docs/MIGRATION_REPORT.md	documento	corrente	stato, piano o inventario della migrazione	-
+docs/PANNELLO_VALUTAZIONE.md	documento	corrente	proposta per D6: inventario verificato dei benchmark, pannello e ruoli, download mancanti, piano di decontaminazione	da approvare
 docs/REPOSITORY_INDEX.tsv	documento	corrente	stato, piano o inventario della migrazione	-
 docs/REPOSITORY_STATUS.md	documento	corrente	stato, piano o inventario della migrazione	-
 docs/REVIEW_ACTIONS.md	documento	corrente	stato, piano o inventario della migrazione	-
@@ -170,6 +171,9 @@ scripts/mavis_fraction_values.py	script	riutilizzabile	controllo deterministico 
 scripts/mavis_geometry_check.py	script	riutilizzabile	controllo deterministico dei dati (pipeline §5.3); esiti come evidenze, non ammissione	importato da tests/test_mavis_geometry
 scripts/mavis_variants.py	script	riutilizzabile	ispezione dei dati senza training	-
 scripts/mavis_zip_survey.py	script	riutilizzabile	ispezione dei dati senza training	-
+scripts/panel_inventory.py	script	corrente	inventario dei benchmark locali per il pannello: schema, righe, risposte presenti o vuote, contro manifest e verifiche; indici di decontaminazione (job 30457)	-
+scripts/panel_inventory_summary.py	script	corrente	riassunto leggibile dell'inventario dei benchmark (job 30458)	-
+scripts/panel_overlaps.py	script	corrente	sovrapposizioni fra i benchmark indicizzati: pHash identici o vicini (candidati), testi identici, ID condivisi (job 30459)	-
 scripts/peek_parquet.py	script	riutilizzabile	ispezione dei dati senza training	-
 scripts/peek_shard.py	script	riutilizzabile	ispezione dei dati senza training	-
 scripts/pixmo_transcript_check.py	script	riutilizzabile	controllo deterministico dei dati (pipeline §5.3); esiti come evidenze, non ammissione	-
@@ -187,6 +191,7 @@ scripts/stem_audit_round.py	script	storico-congelato	audit e gate F2 congelati (
 scripts/stream_stats.py	script	da adeguare	statistiche del flusso con lo schema storico; servono contatori del consumato (§5.8.6)	-
 scripts/synth_candidate.py	script	corrente	candidato dei sintetici in un job (S2 §2.6): integrità e riproducibilità degli shard salvati, verifica indipendente confrontata con synth_semantics_check, contratto delle coppie, legami per pixel o stato e regola degli split, stato e motivi di ogni scena	legge gli shard in sola lettura; job 30449
 scripts/synth_case_svg.py	script	corrente	schema SVG di un caso shapes dalla specifica, senza matplotlib (documentazione dei casi)	-
+scripts/synth_eval_reuse.py	script	corrente	stati di test e coppie dei sintetici v4 uguali a quelli v3 consultati in F1c, solo specifiche (job 30460; docs/PANNELLO_VALUTAZIONE.md)	-
 scripts/synth_manifest.py	script	corrente	manifest delle ammissioni del candidato sintetici v4 dalle uscite di synth_candidate, con dev stratificato per famiglia (S2 §2.7; job 30451)	scrive data/manifests/<nome>-<versione> una volta sola
 scripts/synth_render.py	script	corrente	render degli shard sintetici con --generator-version obbligatorio (3 riproduce v3, 4 corretto, layout con png_sha256); C1, test e controlli passati (job 30392-30393, 30417-30420); render del candidato v4 (job 30447)	-
 scripts/synth_review.py	script	corrente	analisi degli scarti del controllo dei sintetici in un job (coppie polygon, riquadri di testo sovrapposti, coordinate; prove esatte delle contraddizioni, immagini prima e dopo con --before); strumento di analisi, non passaggio della pipeline; job 30400, 30420	-
@@ -233,6 +238,8 @@ slurm/mavis_fraction_values.sbatch	launcher	riutilizzabile	launcher di ispezione
 slurm/mavis_geometry_check.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
 slurm/mavis_variants.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
 slurm/mavis_zip_survey.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
+slurm/panel_inventory.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
+slurm/panel_overlaps.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
 slurm/peek_parquet.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
 slurm/peek_shard.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
 slurm/pixmo_transcript_check.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
@@ -245,6 +252,7 @@ slurm/shard_unimer.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, 
 slurm/split_duplicates.sbatch	launcher	da adeguare	launcher di uno strumento da adeguare (vedi lo script)	-
 slurm/stream_stats.sbatch	launcher	da adeguare	launcher di uno strumento da adeguare (vedi lo script)	-
 slurm/synth_candidate.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
+slurm/synth_eval_reuse.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
 slurm/synth_manifest.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
 slurm/synth_render.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
 slurm/synth_review.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
@@ -315,4 +323,3 @@ tests/test_synth.py	test	corrente	test CPU (slurm/tests_cpu.sbatch)	-
 tests/test_transcripts.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
 tests/test_vl_data.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
 third_party/.gitkeep	documento	corrente	cartella dei repository esterni	-
-docs/PANNELLO_VALUTAZIONE.md	documento	corrente	proposta per D6: inventario verificato dei benchmark, pannello, ruoli, download mancanti, piano di decontaminazione	da approvare
