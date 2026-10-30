@@ -22,7 +22,7 @@ protocollo prima di implementare.
 | D3 | Contratto di risposta: come si chiede o si sceglie la risposta diretta, system prompt (quello canonico di Violetto impone ragionamento e `\boxed{}` e rifiuta gli altri), `<think>` vuoto o assente nella modalità diretta, stop, prefill di F1 | Punto 1 e ogni target con decoder addestrabile | aperta |
 | D4 | Metriche primarie, margini di regressione, budget di inferenza e regole di arresto dei piloti (§15.2) | Punto 7, piloti | aperta |
 | D5 | Budget degli audit con agenti per sorgente e disegno dei campioni diagnostico e di stima (§§5.9, 16) | Ammissione dei dati annotati | aperta |
-| D6 | Ruoli del pannello: quali benchmark pubblici sono sviluppo e quale componente nuova resta test riservato (§§5.5, 15.1) | Punti 3 e 7 | aperta |
+| D6 | Ruoli del pannello: quali benchmark pubblici sono sviluppo e quale componente nuova resta test riservato (§§5.5, 15.1) | Punti 3 e 7 | proposta pronta, da approvare: [`docs/PANNELLO_VALUTAZIONE.md`](PANNELLO_VALUTAZIONE.md) (2026-10-30) |
 
 Le scelte tecniche ordinarie (formati dei file, nomi, struttura dei moduli) non richiedono una domanda: si propongono
 nelle specifiche del passo 1 e si mostrano all'utente prima di scrivere codice.
@@ -191,7 +191,7 @@ continua. CPU: partizione dei gruppi senza sovrapposizioni.
 | Immagine vera, bianca, assente | presente | `data.build_example(image_mode=…)` (`data.py:343-361`), `scripts/eval_f1_val.py` |
 | Benchmark visivi (MathVista, MathVerse, MathVision, We-Math, DynaMath, Geoperception, VisOnlyQA) | dati presenti; valutatore mancante | dati e indici di decontaminazione in `hf/hub`, `data/decontam/p6`, `data/decontam/f1eval`; nessun valutatore del modello VL |
 | Dati presenti per i pannelli percettivi | presenti, da selezionare | scene reali: PixMo-Cap (25 parquet su 75) e LLaVA-Pretrain; manoscritto: UniMER-Test hwe (solo valutazione) e le formule CROHME nel training di UniMER (meno dell'1%, non separabili per indice); grafici e tabelle: solo dentro alcuni benchmark visivi riservati, da individuare per ID |
-| Dati mancanti | mancante | documenti a più pagine, struttura di tabelle e pagine, OCR generale, manoscritto per il training (MathWriting), coppie di immagini: nessuna sorgente scaricata (`downloads/catalog_status.tsv`) |
+| Dati mancanti | mancante; pannello e download proposti in [`docs/PANNELLO_VALUTAZIONE.md`](PANNELLO_VALUTAZIONE.md) | documenti a più pagine, struttura di tabelle e pagine, OCR generale, manoscritto per il training (MathWriting), coppie di immagini: nessuna sorgente scaricata (`downloads/catalog_status.tsv`) |
 | Valutatori mancanti | mancante | nessun valutatore del modello VL per i benchmark visivi, per più immagini o per i documenti; per le formule c'è solo `eval_f1_formulas.py` |
 | Controfattuali e varianti raggruppate | mancante | coppie controfattuali dei sintetici in `data/shards/synth/v3/pairs`; varianti di MathVerse e DynaMath non raggruppate |
 | Profilo dei costi | parziale | 15.4 mila token/s con decoder addestrabile a 32k, 12.9 mila a 4k (job 29402, ViT congelato); ViT addestrabile ed encoder B non misurati |

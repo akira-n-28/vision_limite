@@ -315,3 +315,4 @@ tests/test_synth.py	test	corrente	test CPU (slurm/tests_cpu.sbatch)	-
 tests/test_transcripts.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
 tests/test_vl_data.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
 third_party/.gitkeep	documento	corrente	cartella dei repository esterni	-
+docs/PANNELLO_VALUTAZIONE.md	documento	corrente	proposta per D6: inventario verificato dei benchmark, pannello, ruoli, download mancanti, piano di decontaminazione	da approvare
