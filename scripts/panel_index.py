@@ -9,8 +9,8 @@ zip) e limite_vl.decontam.phash. Ogni voce ha i campi che legge `decontam.py sca
   per immagine; quelli di solo testo una voce senza immagine);
 - pixel_sha256: sha256 di dimensioni e valori RGB dopo processing.to_rgb (trasparenze su bianco). Due immagini con
   lo stesso pixel_sha256 sono identiche nei pixel decodificati. Un pHash uguale indica solo un candidato duplicato;
-- hints: i campi che servono a gruppi e ruoli (problem_index, docId, imgname, counterpart_idx, meta_info, lingua,
-  sottoinsieme, formula).
+- hints: i campi che servono a gruppi, ruoli e copertura (problem_index, docId e documento UCSF, imgname,
+  counterpart_idx con opzioni e risposta, meta_info, lingua, contesto e compito di MathVista, sottoinsieme, formula).
 I benchmark e le revisioni sono quelli di BENCHMARKS, cioè le sorgenti riservate del catalogo (downloads/catalog_status.tsv).
 
 Uscita nella cartella nuova --out: index.json ({"items": [...], "report": {...}}) e report.json (voci per benchmark e
@@ -55,7 +55,8 @@ TEXT = ("question", "query", "problem", "prompt")
 BENCHMARKS = {
     "mathvista": dict(repo="AI4Math/MathVista", rev="2b6ad69445fbb5695c9b165475e8decdbeb97747", files="data/*.parquet",
                       id="pid", images=("decoded_image",),
-                      hints={"image": "image", "language": "metadata.language", "source": "metadata.source"}),
+                      hints={"image": "image", "language": "metadata.language", "source": "metadata.source",
+                             "context": "metadata.context", "task": "metadata.task", "category": "metadata.category"}),
     "mathverse": dict(repo="AI4Math/MathVerse", rev="3bc86196678bad115a923d2851c6821dbe235939", files="testmini*.parquet",
                       id="sample_index", images=("image",),
                       hints={"problem_index": "problem_index", "version": "problem_version"}),
@@ -84,7 +85,8 @@ BENCHMARKS = {
                     id=None, images=("image",), hints={"imgname": "imgname", "type": "type"}),
     "muirbench": dict(repo="MUIRBENCH/MUIRBENCH", rev="4c393cffc985c77d28de3b9045e2e5186920df80", files="data/*.parquet",
                       id="idx", images=("image_list",), multi=True,
-                      hints={"counterpart_idx": "counterpart_idx", "task": "task", "image_relation": "image_relation"}),
+                      hints={"counterpart_idx": "counterpart_idx", "task": "task", "image_relation": "image_relation",
+                             "image_type": "image_type", "options": "options", "answer": "answer"}),
     "mmstar": dict(repo="Lin-Chen/MMStar", rev="bc98d668301da7b14f648724866e57302778ab27", files="mmstar.parquet",
                    id="index", images=("image",),
                    hints={"category": "category", "l2_category": "l2_category", "source": "meta_info.source",

@@ -5,22 +5,36 @@ Criteri, seme e assegnazione sono fissati qui, prima di qualsiasi valutazione de
 Legami **confermati** (fondono i gruppi):
 - pixel identici: stesso `pixel_sha256` (dimensioni e valori RGB normalizzati) fra due elementi qualsiasi;
 - provenienza o stesso problema, dichiarati nei dati: MathVerse `problem_index`, We-Math `ID`, DynaMath `id` fra le
-  varianti, MathVision `id` fra testmini e test, DocVQA `docId`, ChartQA `imgname` nello stesso split, MUIRBench
-  `counterpart_idx`, MMStar `meta_info` verso MathVista (stesso nome di file d'immagine), UniMER-Test con la stessa
-  formula, benchmark di solo testo con lo stesso testo normalizzato (almeno 8 parole).
-**Candidati** (non fondono nulla): pHash entro --radius bit fra immagini di gruppi diversi, e testi uguali (almeno 8
-parole) fra elementi visivi di gruppi diversi. **Irrisolti**: candidati che collegano un elemento di sviluppo a uno di
-test; l'elemento di test resta nel test ma è contato a parte finché il legame non si conferma o si esclude.
+  varianti, MathVision `id` fra testmini e test, DocVQA `docId` e documento UCSF (`ucsf_document_id`: le pagine dello
+  stesso documento stanno insieme), ChartQA `imgname` nello stesso split, MUIRBench `counterpart_idx`, MMStar
+  `meta_info` verso MathVista (stesso nome di file d'immagine), UniMER-Test con la stessa formula, benchmark di solo
+  testo con lo stesso testo normalizzato (almeno 8 parole).
+I legami si contano come unioni nuove, nell'ordine delle regole; quelli che confermano un gruppo già formato sono in
+`legami_ridondanti`.
 
-Ruoli fissi (RULES) per benchmark e split; `casuale` vuol dire estratto per gruppo con seme e quota: ogni gruppo va in
-sviluppo se il suo rango (manifest.split_rank) è sotto la quota, altrimenti nel test. Un gruppo con un membro di
+**Candidati** (non fondono nulla):
+- pHash entro --radius bit fra immagini di gruppi diversi. Un pHash vicino, o uguale, indica un candidato duplicato e
+  non dimostra che le immagini siano identiche;
+- lo stesso `imgname` di ChartQA in split diversi;
+- testi uguali (almeno 8 parole) fra elementi visivi di gruppi diversi. Un testo condiviso da più di MAX_TEXT_GROUPS
+  gruppi è una domanda di rito e non conta.
+Un candidato è **forte** se pHash e testo collegano la stessa coppia di gruppi.
+
+**Irrisolti**: candidati che collegano un elemento di sviluppo a uno di test. Contano i pHash, i nomi di file e i testi
+fra benchmark diversi con almeno TEXT_UNRESOLVED_WORDS parole; dentro lo stesso benchmark un testo uguale su
+un'immagine diversa è un altro elemento. L'elemento di test resta nel test, ma è contato a parte finché il legame non
+si conferma o si esclude (verifica visiva).
+
+Ruoli fissi (fixed_role) per benchmark e split; `casuale` vuol dire estratto per gruppo con seme e quota: ogni gruppo
+va in sviluppo se il suo rango (manifest.split_rank) è sotto la quota, altrimenti nel test. Un gruppo con un membro di
 sviluppo (o già consultato) va tutto in sviluppo; altrimenti, con un membro di test, tutto nel test. I membri
 `solo_decontaminazione` (senza risposte, fuori lingua o non verificabili) e `diagnostica` restano tali, ma il loro
 gruppo segue la regola. Tutti i ruoli sono esclusi dal training.
 
 Uscite nella cartella nuova --out: elements.jsonl.gz (un elemento per riga: benchmark, file, split, item, gruppo,
 ruolo fisso, ruolo finale, irrisolto), links.jsonl.gz (legami confermati, per tipo), candidates.jsonl.gz,
-unresolved.jsonl.gz, summary.json (conteggi, regole, seme, sha256 dell'indice, identità del codice).
+unresolved.jsonl.gz, summary.json (conteggi, copertura per ruolo, regole, seme, sha256 dell'indice, identità del
+codice).
 
     srun $RUN_PYTHON -u -B scripts/panel_groups.py --index FILE --unimer-shards DIR --out DIR [--seed 0] [--radius 4]
 """
@@ -30,6 +44,7 @@ import argparse
 import gzip
 import json
 import os
+import re
 import sys
 from collections import Counter, defaultdict
 from pathlib import Path, PurePosixPath
@@ -46,7 +61,27 @@ FRACTIONS = {"ocrbench": 0.5, "docvqa": 0.5, "muirbench": 0.5, "mmstar": 0.5, "u
 TEXT_ONLY_DEV = {"gsm8k", "ifeval", "aime24", "aime25", "aime26", "hmmt25", "hmmt26"}
 TEXT_ONLY_TEST = {"math500", "beyondaime", "apex"}
 MIN_WORDS = 8
+TEXT_UNRESOLVED_WORDS = 15  # come --propose-words di decontam_review.py
+MAX_TEXT_GROUPS = 25  # come --max-df di decontam_review.py: un testo in più gruppi è una domanda di rito
 MAX_NEIGHBORS = 200
+# Etichetta dello schema degli ID di gruppo, non del run: a parità di membri un gruppo ha lo stesso ID, e quindi la
+# stessa estrazione, in ogni run con lo stesso seme.
+GROUP_SCHEME = "pannello-v1"
+NONE_OPTION = re.compile(r"\bnone of\b", re.I)  # opzione corretta delle varianti non rispondibili di MUIRBench
+# Campi contati per ruolo (le liste contano ogni valore); `immagini` e `senza_risposta` sono derivati.
+COVERAGE = {
+    "docvqa": ("question_types",),
+    "ocrbench": ("question_type", "dataset"),
+    "chartqa": ("type",),
+    "muirbench": ("task", "image_relation", "image_type", "senza_risposta", "immagini"),
+    "mmstar": ("category", "l2_category", "source"),
+    "mathvista": ("context", "task", "category", "source"),
+    "mathverse": ("version",),
+    "geoperception": ("predicate",),
+    "mvmath": ("subject", "answer_type", "image_relavance", "immagini"),
+    "olympiadbench": ("subset", "immagini"),
+}
+NAMED_SPLITS = {"testmini", "test", "val", "validation"}
 
 
 def split_of(benchmark: str, file: str) -> str:
@@ -86,6 +121,13 @@ def fixed_role(e: dict, consulted: set[str]) -> str:
     raise ValueError(f"benchmark senza regola: {b}")
 
 
+def unanswerable(e: dict) -> bool:
+    """Variante non rispondibile di MUIRBench: l'opzione indicata dalla risposta è del tipo "None of ..."."""
+    options, answer = e["hints"].get("options") or [], str(e["hints"].get("answer") or "").strip().upper()
+    i = ord(answer) - ord("A") if len(answer) == 1 and "A" <= answer <= "Z" else -1
+    return bool(0 <= i < len(options) and NONE_OPTION.search(str(options[i])))
+
+
 class Union:
     def __init__(self, keys):
         self.parent = {k: k for k in keys}
@@ -111,6 +153,11 @@ def write_gz(path: Path, rows) -> dict:
         raise FileExistsError(path)
     path.write_bytes(data)
     return {"path": str(path), "bytes": len(data), "sha256": sha256_file(path)}
+
+
+def plain(d):
+    """defaultdict e Counter annidati -> dict ordinati, per il JSON."""
+    return {k: plain(v) for k, v in sorted(d.items())} if isinstance(d, dict) else d
 
 
 def main() -> None:
@@ -146,14 +193,21 @@ def main() -> None:
             e["images"].append((it["pixel_sha256"], int(it["phash"], 16)))
     for e in elements.values():
         e["fixed"] = fixed_role(e, consulted)
+        e["derived"] = {"immagini": len(e["images"])}
+        if e["benchmark"] == "muirbench":
+            e["derived"]["senza_risposta"] = unanswerable(e)
     keys = sorted(elements)
     uf = Union(keys)
-    link_counts, link_rows = Counter(), []
+    link_counts, redundant, link_rows = Counter(), Counter(), []
 
     def link(a: str, b: str, kind: str) -> None:
-        if a != b and uf.union(a, b):
+        if a == b:
+            return
+        if uf.union(a, b):
             link_counts[kind] += 1
             link_rows.append({"tipo": kind, "a": a, "b": b})
+        else:
+            redundant[kind] += 1
 
     def link_by(kind: str, select, value) -> None:
         first: dict = {}
@@ -182,6 +236,7 @@ def main() -> None:
     link_by("dynamath_varianti", lambda e: e["benchmark"] == "dynamath", lambda e: e["hints"].get("seed"))
     link_by("mathvision_testmini_test", lambda e: e["benchmark"] == "mathvision", lambda e: e["hints"].get("id"))
     link_by("docvqa_documento", lambda e: e["benchmark"] == "docvqa", lambda e: e["hints"].get("docId"))
+    link_by("docvqa_documento_ucsf", lambda e: e["benchmark"] == "docvqa", lambda e: e["hints"].get("ucsf"))
     link_by("chartqa_grafico", lambda e: e["benchmark"] == "chartqa",
             lambda e: f"{e['split']}/{e['hints'].get('imgname')}" if e["hints"].get("imgname") else None)
     link_by("unimer_stessa_formula", lambda e: e["benchmark"] == "unimer_test",
@@ -190,12 +245,34 @@ def main() -> None:
                                                                           or e["benchmark"] == "olympiadbench"),
             lambda e: " ".join(w) if len(w := normalize_words(e["text"])) >= MIN_WORDS else None)
     muir = {e["hints"].get("id"): k for k, e in elements.items() if e["benchmark"] == "muirbench"}
-    for k, e in elements.items():
-        if e["benchmark"] == "muirbench" and e["hints"].get("counterpart_idx") in muir:
-            link(k, muir[e["hints"]["counterpart_idx"]], "muirbench_controparte")
+    muir_refs, muir_pairs, none_texts = Counter(), Counter(), Counter()
+    seen_muir = set()
+    for k in keys:
+        e = elements[k]
+        if e["benchmark"] != "muirbench":
+            continue
+        ref = muir.get(e["hints"].get("counterpart_idx"))
+        if ref is None or ref == k:
+            muir_refs["assente" if ref is None else "se_stessa"] += 1
+            continue
+        muir_refs["trovata"] += 1
+        link(k, ref, "muirbench_controparte")
+        pair = tuple(sorted((k, ref)))
+        if pair not in seen_muir:
+            seen_muir.add(pair)
+            flags = sorted(str(elements[m]["derived"]["senza_risposta"]) for m in pair)
+            muir_pairs["+".join(flags)] += 1
+    for k in keys:
+        e = elements[k]
+        if e["benchmark"] == "muirbench":
+            opts, ans = e["hints"].get("options") or [], str(e["hints"].get("answer") or "").strip().upper()
+            i = ord(ans) - ord("A") if len(ans) == 1 and "A" <= ans <= "Z" else -1
+            if 0 <= i < len(opts) and "none" in str(opts[i]).lower():
+                none_texts[str(opts[i])] += 1
     vista = {PurePosixPath(str(e["hints"].get("image"))).name: k for k, e in elements.items()
              if e["benchmark"] == "mathvista" and e["hints"].get("image")}
-    for k, e in elements.items():
+    for k in keys:
+        e = elements[k]
         if e["benchmark"] == "mmstar" and "mathvista" in str(e["hints"].get("source") or "").lower():
             target = vista.get(PurePosixPath(str(e["hints"].get("image_path"))).name)
             if target:
@@ -208,7 +285,7 @@ def main() -> None:
     digests = Digests()
     group_of, group_role = {}, {}
     for root, ms in members.items():
-        gid = digests({"indice": "pannello-v1", "membri": sorted(ms)})
+        gid = digests({"indice": GROUP_SCHEME, "membri": sorted(ms)})
         fixed = {elements[m]["fixed"] for m in ms}
         if "sviluppo" in fixed:
             role, why = "sviluppo", "membro di sviluppo o già consultato"
@@ -232,13 +309,30 @@ def main() -> None:
             return e["fixed"]
         return group_role[group_of[k]][0]
 
-    # ---- candidati e irrisolti. Le formule di UniMER-Test, quasi bianche, danno vicini pHash senza senso (job 30039):
-    # per loro contano pixel identici e formula identica. Un'immagine con più di MAX_NEIGHBORS vicini è un cluster
-    # denso: si registrano i primi e il cluster si conta a parte.
+    def set_of(k: str) -> str:
+        return f"{elements[k]['benchmark']}/{elements[k]['split']}"
+
+    # ---- candidati e irrisolti
+    cand_rows, cand_counts = [], Counter()
+    pair_kinds: dict[tuple, set] = defaultdict(set)
+    unresolved: dict[str, list] = defaultdict(list)
+
+    def candidate(kind: str, a: str, b: str, distance=None, unresolving: bool = True) -> None:
+        pair = " + ".join(sorted((elements[a]["benchmark"], elements[b]["benchmark"])))
+        cand_counts[f"{kind}/{pair}"] += 1
+        r1, r2 = final(a), final(b)
+        cand_rows.append({"tipo": kind, "a": a, "b": b, "distanza": distance, "ruoli": [r1, r2]})
+        pair_kinds[tuple(sorted((group_of[a], group_of[b])))].add(kind)
+        if unresolving and {r1, r2} == {"sviluppo", "test"}:
+            t, d = (a, b) if r1 == "test" else (b, a)
+            unresolved[t].append({"sviluppo": d, "tipo": kind, "distanza": distance})
+
+    # pHash. Le formule di UniMER-Test, quasi bianche, danno vicini pHash senza senso (job 30039): per loro contano
+    # pixel identici e formula identica. Un'immagine con più di MAX_NEIGHBORS vicini è un cluster denso: si registrano
+    # i più vicini e il cluster si conta a parte.
     flat = [(k, pixels, h) for k in keys if elements[k]["benchmark"] != "unimer_test"
             for pixels, h in elements[k]["images"]]
     hidx = HashIndex([h for _, _, h in flat], radius=args.radius)
-    cand_rows, cand_counts, unresolved = [], Counter(), {}
     seen_pairs = set()
     for i, (k, _, h) in enumerate(flat):
         near = hidx.query(h)
@@ -250,63 +344,129 @@ def main() -> None:
             if j <= i or group_of[k] == group_of[k2] or (k, k2) in seen_pairs:
                 continue
             seen_pairs.add((k, k2))
-            pair = " + ".join(sorted((elements[k]["benchmark"], elements[k2]["benchmark"])))
-            cand_counts[f"phash/{pair}"] += 1
-            r1, r2 = final(k), final(k2)
-            cand_rows.append({"tipo": "phash", "a": k, "b": k2, "distanza": d, "ruoli": [r1, r2]})
-            if {r1, r2} == {"sviluppo", "test"}:
-                unresolved[k if r1 == "test" else k2] = k2 if r1 == "test" else k
+            candidate("phash", k, k2, d)
+    # stesso nome di file di ChartQA in split diversi
+    by_name: dict[str, dict] = defaultdict(dict)
+    for k in keys:
+        e = elements[k]
+        if e["benchmark"] == "chartqa" and e["hints"].get("imgname"):
+            by_name[e["hints"]["imgname"]].setdefault(e["split"], k)
+    for reps in by_name.values():
+        if len(reps) > 1:
+            a, b = sorted(reps.values())[:2]
+            if group_of[a] != group_of[b]:
+                candidate("nome_file", a, b)
+    # testi uguali fra elementi visivi
     by_text: dict[str, list[str]] = defaultdict(list)
     for k in keys:
         e = elements[k]
         if e["images"] and len(w := normalize_words(e["text"])) >= MIN_WORDS:
             by_text[" ".join(w)].append(k)
-    for ks in by_text.values():
-        groups = sorted({group_of[k] for k in ks})
-        if len(groups) < 2:
+    for text, ks in sorted(by_text.items()):
+        reps: dict[str, str] = {}
+        for k in ks:
+            reps.setdefault(group_of[k], k)
+        if len(reps) < 2:
             continue
-        reps = [next(k for k in ks if group_of[k] == g) for g in groups]
-        for a, b in zip(reps, reps[1:]):
-            pair = " + ".join(sorted((elements[a]["benchmark"], elements[b]["benchmark"])))
-            cand_counts[f"testo/{pair}"] += 1
-            cand_rows.append({"tipo": "testo", "a": a, "b": b, "distanza": None, "ruoli": [final(a), final(b)]})
+        if len(reps) > MAX_TEXT_GROUPS:
+            cand_counts["testo_di_rito/" + "+".join(sorted({elements[k]["benchmark"] for k in ks}))] += 1
+            continue
+        groups = sorted(reps)
+        long_text = len(text.split()) >= TEXT_UNRESOLVED_WORDS
+        for n, g1 in enumerate(groups):
+            for g2 in groups[n + 1:]:
+                a, b = reps[g1], reps[g2]
+                candidate("testo", a, b, None, long_text and elements[a]["benchmark"] != elements[b]["benchmark"])
+    strong = {p for p, kinds in pair_kinds.items() if {"phash", "testo"} <= kinds}
+
+    def is_strong(t: str) -> bool:
+        return any(tuple(sorted((group_of[t], group_of[c["sviluppo"]]))) in strong for c in unresolved[t])
 
     # ---- uscite
     args.out.mkdir(parents=True, exist_ok=True)
     rows, per_bench, per_bench_split = [], Counter(), Counter()
+    groups_per_role: dict[str, set] = defaultdict(set)
+    coverage = defaultdict(lambda: defaultdict(Counter))
+    docs = defaultdict(lambda: defaultdict(set))
     for k in keys:
         e = elements[k]
         role = final(k)
         gid = group_of[k]
         rows.append({"chiave": k, "benchmark": e["benchmark"], "file": e["file"], "split": e["split"], "item": e["item"],
                      "gruppo": gid, "dimensione_gruppo": group_role[gid][2], "ruolo_fisso": e["fixed"], "ruolo": role,
-                     "motivo_gruppo": group_role[gid][1], "irrisolto_con": unresolved.get(k)})
+                     "motivo_gruppo": group_role[gid][1],
+                     "irrisolto_con": unresolved[k][0]["sviluppo"] if k in unresolved else None,
+                     "irrisolto_forte": is_strong(k) if k in unresolved else None})
         per_bench[f"{e['benchmark']}/{role}"] += 1
         per_bench_split[f"{e['benchmark']}/{e['split']}/{role}"] += 1
+        groups_per_role[f"{e['benchmark']}/{role}"].add(gid)
+        for f in COVERAGE.get(e["benchmark"], ()):
+            v = e["derived"][f] if f in e["derived"] else e["hints"].get(f)
+            for x in (v if isinstance(v, list) else [v]):
+                coverage[f"{e['benchmark']}/{f}"][str(x)][role] += 1
+        if e["benchmark"] == "docvqa":
+            docs[role]["documenti_ucsf"].add(e["hints"].get("ucsf"))
+            docs[role]["pagine_docId"].add(e["hints"].get("docId"))
+    ucsf_roles = Counter()
+    for role, d in docs.items():
+        for u in d["documenti_ucsf"]:
+            ucsf_roles[u] += 1
+    unresolved_rows = [{"test": t, "candidati": cs[:10], "n_candidati": len(cs), "forte": is_strong(t)}
+                       for t, cs in sorted(unresolved.items())]
     files = {"elements": write_gz(args.out / "elements.jsonl.gz", rows),
              "links": write_gz(args.out / "links.jsonl.gz", link_rows),
              "candidates": write_gz(args.out / "candidates.jsonl.gz", cand_rows),
-             "unresolved": write_gz(args.out / "unresolved.jsonl.gz",
-                                    [{"test": t, "sviluppo": d} for t, d in sorted(unresolved.items())])}
-    cross = Counter()
+             "unresolved": write_gz(args.out / "unresolved.jsonl.gz", unresolved_rows)}
+    cross, cross_sets, largest = Counter(), Counter(), []
     for ms in members.values():
         benches = sorted({elements[m]["benchmark"] for m in ms})
         if len(benches) > 1:
             cross[" + ".join(benches)] += 1
+        sets = {set_of(m) for m in ms}
+        if len(sets) > 1:
+            for m in ms:
+                s = set_of(m)
+                for o in sets:
+                    if o != s and (elements[m]["benchmark"] != o.split("/")[0]
+                                   or {elements[m]["split"], o.split("/", 1)[1]} <= NAMED_SPLITS):
+                        cross_sets[f"{s} -> {o}"] += 1
+        largest.append((len(ms), " + ".join(f"{b}:{n}" for b, n in sorted(Counter(elements[m]["benchmark"]
+                                                                                     for m in ms).items()))))
+    largest.sort(key=lambda x: (-x[0], x[1]))
+    test_counts = Counter(elements[k]["benchmark"] for k in keys if final(k) == "test")
+    unresolved_by = Counter(elements[k]["benchmark"] for k in unresolved)
     summary = {
-        "schema": "panel-groups/1", "job_id": os.environ.get("SLURM_JOB_ID"), "code": code_identity(),
+        "schema": "panel-groups/2", "job_id": os.environ.get("SLURM_JOB_ID"), "code": code_identity(),
         "indice": {"path": str(args.index), "sha256": sha256_file(args.index), "voci": len(index)},
-        "seme": args.seed, "radius": args.radius, "quote_casuali": FRACTIONS, "parole_minime_testo": MIN_WORDS,
-        "unimer_consultati": sorted(consulted), "elementi": len(keys), "gruppi": len(members),
-        "gruppi_fra_benchmark": dict(cross.most_common()),
-        "legami_confermati": dict(link_counts), "candidati": dict(cand_counts.most_common()),
-        "irrisolti_test": len(unresolved),
-        "irrisolti_per_benchmark": dict(Counter(elements[k]["benchmark"] for k in unresolved).most_common()),
+        "seme": args.seed, "radius": args.radius, "schema_id_gruppo": GROUP_SCHEME, "quote_casuali": FRACTIONS,
+        "parole_minime_testo": MIN_WORDS, "parole_testo_irrisolto": TEXT_UNRESOLVED_WORDS,
+        "gruppi_massimi_testo": MAX_TEXT_GROUPS, "unimer_consultati": sorted(consulted), "elementi": len(keys),
+        "gruppi": len(members), "gruppi_fra_benchmark": dict(cross.most_common()),
+        "elementi_legati_fra_insiemi": dict(cross_sets.most_common()),
+        "gruppi_piu_grandi": [{"membri": n, "composizione": c} for n, c in largest[:15]],
+        "legami_confermati": dict(link_counts), "legami_ridondanti": dict(redundant),
+        "muirbench_controparti": {"riferimenti": dict(muir_refs), "coppie_per_senza_risposta": dict(muir_pairs),
+                                  "testi_della_risposta_con_none": dict(none_texts.most_common(10))},
+        "docvqa_documenti": {r: {n: len(v) for n, v in d.items()} for r, d in sorted(docs.items())},
+        "docvqa_documenti_in_piu_ruoli": sum(1 for n in ucsf_roles.values() if n > 1),
+        "candidati": dict(cand_counts.most_common()), "candidati_forti_coppie_di_gruppi": len(strong),
+        "irrisolti_test": len(unresolved), "irrisolti_per_benchmark": dict(unresolved_by.most_common()),
+        "irrisolti_forti_per_benchmark": dict(Counter(elements[k]["benchmark"] for k in unresolved
+                                                      if is_strong(k)).most_common()),
+        "irrisolti_per_tipo": dict(Counter(f"{elements[t]['benchmark']}/{'+'.join(sorted({c['tipo'] for c in cs}))}"
+                                           for t, cs in unresolved.items()).most_common()),
+        "irrisolti_per_controparte": dict(Counter(f"{set_of(t)} <- {o}" for t, cs in unresolved.items()
+                                                  for o in sorted({set_of(c['sviluppo']) for c in cs})).most_common()),
+        "test_senza_irrisolti": {b: {"test": n, "irrisolti": unresolved_by[b], "senza_irrisolti": n - unresolved_by[b]}
+                                 for b, n in sorted(test_counts.items())},
         "ruoli_per_benchmark": dict(sorted(per_bench.items())),
-        "ruoli_per_benchmark_split": dict(sorted(per_bench_split.items())), "files": files}
+        "gruppi_per_benchmark_ruolo": {k: len(v) for k, v in sorted(groups_per_role.items())},
+        "ruoli_per_benchmark_split": dict(sorted(per_bench_split.items())),
+        "copertura": plain(coverage), "files": files}
     write_new_json(args.out / "summary.json", summary)
-    print(json.dumps({k: summary[k] for k in ("elementi", "gruppi", "legami_confermati", "irrisolti_test",
-                                              "irrisolti_per_benchmark", "ruoli_per_benchmark")}, ensure_ascii=False))
+    print(json.dumps({k: summary[k] for k in ("elementi", "gruppi", "legami_confermati", "legami_ridondanti",
+                                              "irrisolti_test", "irrisolti_per_benchmark", "test_senza_irrisolti",
+                                              "ruoli_per_benchmark")}, ensure_ascii=False))
 
 
 if __name__ == "__main__":
