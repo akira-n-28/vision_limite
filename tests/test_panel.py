@@ -5,7 +5,9 @@
 
 Coprono: irrisolto su un membro di una coppia o di un documento; problemi diversi per operatore, disuguaglianza o
 segno; vicinati pHash asimmetrici dopo il limite e vicini dello stesso gruppo; PNG trasparenti fra indice e scansione;
-recupero delle singole immagini dal nuovo indice; file train di ChartQA nella cache senza inclusione nel pannello."""
+recupero delle singole immagini dal nuovo indice; file train di ChartQA nella cache senza inclusione nel pannello;
+confronto fra versioni del pannello (due v3 identici con membri esclusi per gruppo o per copertura incompleta, e un
+precedente nel formato v2)."""
 from __future__ import annotations
 
 import io
@@ -63,7 +65,9 @@ def key(v: dict) -> str:
 
 
 # ---------------------------------------------------------------- 1. irrisolti per gruppo
-def test_group_unresolved():
+def group_items() -> tuple[list[dict], dict]:
+    """Un documento di DocVQA con due pagine (una con un candidato verso lo sviluppo), una coppia di MUIRBench con un
+    candidato su un membro e una coppia senza candidati."""
     hs = far_hashes(12)
     dvf = "DocVQA/validation-00000-of-00006.parquet"
     mf = "data/test-00000-of-00005.parquet"
@@ -88,6 +92,12 @@ def test_group_unresolved():
     m4 = [voice("muirbench", mf, "4", h=hs[8], pixels="m4a", pos=0,
                 hints={"id": "4", "counterpart_idx": "3", "options": none, "answer": "C"})]
     items = [dev_chart, dev_verse, q1, q2, q3, *m1, *m2, *m3, *m4]
+    return items, {"dev_chart": dev_chart, "q1": q1, "q2": q2, "q3": q3, "m1": m1, "m2": m2, "m3": m3, "m4": m4}
+
+
+def test_group_unresolved():
+    items, named = group_items()
+    dev_chart, q1, q2, q3, m1, m2, m3, m4 = (named[n] for n in ("dev_chart", "q1", "q2", "q3", "m1", "m2", "m3", "m4"))
     r = pg.build(items, set(), fractions=FRACTIONS_TEST)
     g, role, adm, ev = r["group_of"], r["role"], r["admitted"], r["evidence"]
     k1, k2, k3, km1, km2, km3, km4 = (key(v) for v in (q1, q2, q3, m1[0], m2[0], m3[0], m4[0]))
@@ -381,10 +391,77 @@ def test_chartqa_splits():
     check("ChartQA: un file autorizzato mancante è segnalato", missing == ["data/val-00000-of-00001.parquet"])
 
 
+# ---------------------------------------------------------------- 7. confronto fra versioni del pannello
+V2_FIELDS = ("chiave", "benchmark", "file", "split", "item", "gruppo", "dimensione_gruppo", "ruolo_fisso", "ruolo",
+             "motivo_gruppo", "irrisolto_con", "irrisolto_forte")  # le colonne di elements.jsonl.gz in pannello-v2
+
+
+def flows(cmp: dict) -> dict:
+    """{benchmark: (test utilizzabile prima, ora, usciti, entrati)} dal confronto."""
+    names = ("test utilizzabile prima", "test utilizzabile ora", "usciti dal test utilizzabile",
+             "entrati nel test utilizzabile")
+    return {b: tuple(c.get(n, 0) for n in names) for b, c in cmp["per_benchmark"].items()}
+
+
+def old_rule_usable(row: dict) -> bool:
+    """La regola di compare_panels prima della correzione, applicata al pannello precedente in ogni formato."""
+    return row["ruolo"] == "test" and row.get("irrisolto_con") is None
+
+
+def test_compare():
+    check("test utilizzabile: metrica_primaria False rispettata anche senza irrisolto_con",
+          not pg.usable_test({"ruolo": "test", "irrisolto_con": None, "metrica_primaria": False})
+          and pg.usable_test({"ruolo": "test", "irrisolto_con": None, "metrica_primaria": True})
+          and not pg.usable_test({"ruolo": "sviluppo", "irrisolto_con": None, "metrica_primaria": None}))
+    check("test utilizzabile: senza il campo vale la regola di v2",
+          pg.usable_test({"ruolo": "test", "irrisolto_con": None})
+          and not pg.usable_test({"ruolo": "test", "irrisolto_con": "x"}))
+    # due v3 identici, con membri di test esclusi solo per il gruppo (una pagina del documento, una controparte)
+    items, _ = group_items()
+    r = pg.build(items, set(), fractions=FRACTIONS_TEST)
+    rows, summary = r["rows"], r["summary"]
+    by_group = [x["chiave"] for x in rows if x["ruolo"] == "test" and x["irrisolto_con"] is None
+                and x["metrica_primaria"] is False]
+    check("confronto: il pannello ha membri di test esclusi solo per gruppo", len(by_group) == 2, str(by_group))
+    same = flows(pg.compare_panels({"elements": [dict(x) for x in rows], "summary": summary}, rows, summary))
+    check("confronto fra due v3 identici (esclusi per gruppo): nessuna entrata o uscita, prima uguale a ora",
+          all(p == o and u == e == 0 for p, o, u, e in same.values()), str(same))
+    check("confronto fra due v3 identici: il test utilizzabile è quello di metrica_primaria",
+          same["docvqa"][:2] == (1, 1) and same["muirbench"][:2] == (2, 2), str(same))
+    old_exits = sum(old_rule_usable(x) and not pg.usable_test(x) for x in rows)
+    check("la regola precedente avrebbe contato uscite false sugli stessi pannelli", old_exits == 2, str(old_exits))
+    # due v3 identici con esclusioni per copertura incompleta (limite superato), senza evidenze dirette
+    df = "data/sample1-00000-of-00001.parquet"
+    dyn = [voice("dynamath", df, str(i), h=h, pixels=f"d{i}", pos=0, hints={"seed": str(i)})
+           for i, h in enumerate((0, 1, 2, 4))]
+    cut = pg.build(dyn, set(), max_compare=2)
+    check("confronto: esclusioni solo per copertura incompleta",
+          all(x["copertura_incompleta"] and x["irrisolto_con"] is None and x["metrica_primaria"] is False
+              for x in cut["rows"]))
+    same = flows(pg.compare_panels({"elements": cut["rows"], "summary": cut["summary"]}, cut["rows"], cut["summary"]))
+    check("confronto fra due v3 identici (copertura incompleta): nessuna entrata o uscita",
+          same == {"dynamath": (0, 0, 0, 0)}, str(same))
+    full = pg.build(dyn, set(), max_compare=None)
+    change = flows(pg.compare_panels({"elements": cut["rows"], "summary": cut["summary"]}, full["rows"],
+                                     full["summary"]))
+    check("confronto con la copertura completata: le entrate vere restano contate", change == {"dynamath": (0, 4, 0, 4)},
+          str(change))
+    # pannello precedente nel formato v2: senza metrica_primaria vale la regola di v2
+    v2_rows = [{k: x[k] for k in V2_FIELDS} for x in rows]
+    cmp = pg.compare_panels({"elements": v2_rows, "summary": {}}, rows, summary)
+    v2 = flows(cmp)
+    check("compatibilità v2: il precedente usa la regola di v2, le uscite sono quelle della regola per gruppo",
+          v2["docvqa"] == (2, 1, 1, 0) and v2["muirbench"] == (3, 2, 1, 0), str(v2))
+    check("compatibilità v2: evidenze dirette da irrisolto_con, uguali prima e ora",
+          cmp["per_benchmark"]["docvqa"].get("evidenze dirette prima") == 1
+          == cmp["per_benchmark"]["docvqa"].get("evidenze dirette ora"), str(cmp["per_benchmark"]["docvqa"]))
+
+
 if __name__ == "__main__":
     test_group_unresolved()
     test_text_math()
     test_neighbors()
+    test_compare()
     tmp = ROOT / "outputs" / "tmp" / f"test-panel-{os.environ.get('SLURM_JOB_ID', os.getpid())}"
     tmp.mkdir(parents=True, exist_ok=True)
     pi.HF = tmp / "hub"  # snapshot finti: i lettori di panel_index.py li cercano qui

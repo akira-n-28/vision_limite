@@ -655,8 +655,25 @@ def review_text_links(links: list[dict], elements: dict, group_of: dict) -> dict
             "candidate": sum(r["esito"] == "candidato" for r in out), "dettagli": out}
 
 
+def usable_test(row: dict) -> bool:
+    """Elemento del test utilizzabile. Dal formato di pannello-v3 decide `metrica_primaria`, anche quando è False: un
+    membro di test può essere escluso per il gruppo (irrisolto o con copertura incompleta) senza un proprio
+    irrisolto_con. Solo per i formati precedenti, senza il campo, vale la regola di v2: test senza irrisolto_con."""
+    if "metrica_primaria" in row:
+        return row["metrica_primaria"] is True
+    return row["ruolo"] == "test" and row.get("irrisolto_con") is None
+
+
+def direct_evidence(row: dict) -> bool:
+    """Evidenza diretta sull'elemento: `evidenze_dirette` dal formato v3, altrimenti irrisolto_con (v2)."""
+    if "evidenze_dirette" in row:
+        return bool(row["evidenze_dirette"])
+    return row.get("irrisolto_con") is not None
+
+
 def compare_panels(previous: dict, rows: list[dict], summary: dict) -> dict:
-    """Differenze per benchmark rispetto a un pannello precedente (v2: test utilizzabile = test senza irrisolti)."""
+    """Differenze per benchmark rispetto a un pannello precedente, con le stesse regole per i due lati (usable_test,
+    direct_evidence): due pannelli identici non danno entrate né uscite dal test utilizzabile."""
     prev = {r["chiave"]: r for r in previous.get("elements") or []}
     cur = {r["chiave"]: r for r in rows}
     per = defaultdict(Counter)
@@ -666,12 +683,11 @@ def compare_panels(previous: dict, rows: list[dict], summary: dict) -> dict:
         if p["ruolo"] != c["ruolo"]:
             per[b][f"ruolo {p['ruolo']} -> {c['ruolo']}"] += 1
         per[b]["gruppo cambiato"] += p["gruppo"] != c["gruppo"]
-        p_ok = p["ruolo"] == "test" and p.get("irrisolto_con") is None
-        c_ok = bool(c["metrica_primaria"])
+        p_ok, c_ok = usable_test(p), usable_test(c)
         per[b]["test utilizzabile prima"] += p_ok
         per[b]["test utilizzabile ora"] += c_ok
-        per[b]["evidenze dirette prima"] += p.get("irrisolto_con") is not None
-        per[b]["evidenze dirette ora"] += bool(c["evidenze_dirette"])
+        per[b]["evidenze dirette prima"] += direct_evidence(p)
+        per[b]["evidenze dirette ora"] += direct_evidence(c)
         per[b]["usciti dal test utilizzabile"] += p_ok and not c_ok
         per[b]["entrati nel test utilizzabile"] += c_ok and not p_ok
     ps = previous.get("summary") or {}

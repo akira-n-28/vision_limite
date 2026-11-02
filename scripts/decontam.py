@@ -7,11 +7,17 @@
          JSON: per ogni elemento benchmark, id, pHash dell'immagine e testo della domanda. L'indice dichiara la
          convenzione delle immagini (limite_vl.decontam.IMAGE_CONVENTION, trasparenze su bianco).
   scan   Confronta gli shard di training di un tipo con l'indice e scrive in --out:
-         exclude.txt (chiavi da escludere, una per riga), matches.jsonl (ogni corrispondenza con benchmark,
-         id, tipo e distanza) e summary.json. Le chiavi in exclude.txt sono quelle del flusso di training
-         (stream.Source.exclude le salta). Le immagini di training si normalizzano con la convenzione dell'indice.
-         Un indice che non la dichiara (p6, f1eval, pannello-v1 e v2) richiede --convention; summary.json la
-         registra.
+         exclude.txt (chiavi con almeno una corrispondenza, una per riga), matches.jsonl (le corrispondenze con
+         benchmark, id, tipo e distanza, al più --max-lines per campione), records.jsonl.gz (un campione per riga:
+         shard, posizione, sha256 dei byte dell'immagine, controlli eseguiti, numero completo di corrispondenze per
+         tipo) e summary.json. Le chiavi in exclude.txt sono quelle del flusso di training (stream.Source.exclude le
+         salta). Le immagini di training si normalizzano con la convenzione dell'indice. Un indice che non la dichiara
+         (p6, f1eval, pannello-v1 e v2) richiede --convention; summary.json la registra.
+         Tipi di corrispondenza: `pixel` (stesso sha256 dei pixel normalizzati: solo con un indice che ha
+         pixel_sha256 nella convenzione rgb-su-bianco/1, come quello del pannello), `image` (pHash entro --radius
+         bit) e `text` (un 10-gram di normalize_words in comune). Solo `pixel` è un'identità; pHash e n-gram danno
+         candidati. Con un indice del pannello (voci con `item` e `pos`) ogni corrispondenza riporta anche
+         elemento e posizione.
 
     srun $RUN_PYTHON -u -B scripts/decontam.py index --benchmark mathvista=DIR ... --out INDEX.json
     srun $RUN_PYTHON -u -B scripts/decontam.py scan --index INDEX.json --kind mmfinereason --shards GLOB --out DIR \\
@@ -21,13 +27,15 @@ from __future__ import annotations
 
 import argparse
 import glob
+import gzip
+import hashlib
 import io
 import json
 import os
 import sys
 import time
 import zipfile
-from collections import Counter
+from collections import Counter, defaultdict
 from multiprocessing import Pool
 from pathlib import Path, PurePosixPath
 
@@ -38,7 +46,9 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from limite_vl.data import iter_shard  # noqa: E402
 from limite_vl.decontam import (  # noqa: E402
-    CONVENTIONS, IMAGE_CONVENTION, HashIndex, TextIndex, hash_image_bytes, image_phash, index_convention)
+    CONVENTIONS, IMAGE_CONVENTION, HashIndex, TextIndex, hash_image_bytes, image_phash, index_convention,
+    normalize_words)
+from limite_vl.provenance import code_identity, sha256_file  # noqa: E402
 
 Image.MAX_IMAGE_PIXELS = None
 IMAGE_COLUMNS = ("decoded_image", "image", "image_path", "images")  # in ordine di preferenza
@@ -146,12 +156,26 @@ def texts_of(kind: str, meta: dict) -> list[str]:
         return [en.get(k) or "" for k in ("text_dominant_question", "text_lite_question", "vision_dominant_question")]
     if kind in ("deepvision", "virl"):
         return [meta.get("question") or ""]
+    if kind == "synth":  # sintetici (S2 §2.8): le domande della scena e quella della coppia controfattuale
+        qas = list(meta.get("qa") or []) + ([meta["pair"]] if meta.get("pair") else [])
+        return [q.get("q") or "" for q in qas]
     return []  # didascalie e formule: solo immagini
 
 
 def scan_sample(task: tuple[str, str, bytes | None, list[str], str]):
+    """(chiave, pHash, sha256 dei pixel, sha256 dei byte, esito della lettura, testi). Lo sha256 dei pixel esiste
+    solo nella convenzione rgb-su-bianco/1."""
     key, ext, data, texts, convention = task
-    return key, hash_bytes(data, convention) if data else None, texts
+    if not data:
+        return key, None, None, None, "assente", texts
+    h, pixels, _ = hash_image_bytes(data, convention)
+    return key, h, pixels, hashlib.sha256(data).hexdigest(), "letta" if h is not None else "illeggibile", texts
+
+
+def element_of(it: dict) -> str:
+    """Elemento dell'indice: `benchmark/item` per l'indice del pannello (la chiave di elements.jsonl.gz),
+    `benchmark/id` per un indice di decontam.py index."""
+    return f"{it['benchmark']}/{it.get('item') or it['id']}"
 
 
 def cmd_scan(args) -> None:
@@ -164,48 +188,83 @@ def cmd_scan(args) -> None:
     index = loaded["items"]
     with_hash = [(i, int(it["phash"], 16)) for i, it in enumerate(index) if it["phash"]]
     hidx = HashIndex([h for _, h in with_hash], radius=args.radius)
+    by_pixels: dict[str, list[int]] = defaultdict(list)  # identità dei pixel: solo nella convenzione corrente
+    if convention == IMAGE_CONVENTION:
+        for i, it in enumerate(index):
+            if it.get("pixel_sha256"):
+                by_pixels[it["pixel_sha256"]].append(i)
     tidx = TextIndex.build([it["text"] for it in index], n=args.ngram, max_df=args.max_df)
-    print(f"indice: {len(with_hash)} immagini, convenzione {convention}, {len(tidx.grams)} n-gram ({tidx.dropped} "
-          f"esclusi perché in più di {args.max_df} testi diversi)", flush=True)
+    print(f"indice: {len(with_hash)} immagini, {sum(map(len, by_pixels.values()))} con sha256 dei pixel, convenzione "
+          f"{convention}, {len(tidx.grams)} n-gram ({tidx.dropped} esclusi perché in più di {args.max_df} testi "
+          "diversi)", flush=True)
     shards = sorted(glob.glob(args.shards))
     if not shards:
         sys.exit(f"nessuno shard per {args.shards}")
     out = Path(args.out)
+    if out.exists() and any(out.iterdir()):
+        sys.exit(f"{out} non è vuota: una scansione si scrive in una cartella nuova")
     out.mkdir(parents=True, exist_ok=True)
     excluded: set[str] = set()
-    per_bench, by_kind = Counter(), Counter()
+    per_bench, by_kind, reading, text_cov = Counter(), Counter(), Counter(), Counter()
     n = 0
-    with Pool(args.workers) as pool, open(out / "matches.jsonl", "w") as matches:
+    raw_records = gzip.GzipFile(out / "records.jsonl.gz", "wb", mtime=0)
+    with Pool(args.workers) as pool, open(out / "matches.jsonl", "w") as matches, \
+            io.TextIOWrapper(raw_records, encoding="utf-8") as records:
         for shard in shards:
-            tasks = []
+            tasks, where = [], []
 
             def flush():
                 nonlocal n
-                for key, h, texts in pool.imap(scan_sample, tasks, chunksize=64):
+                for (key, h, pixels, data_sha, status, texts), pos in zip(pool.imap(scan_sample, tasks, chunksize=64),
+                                                                           where):
                     n += 1
-                    found = []
+                    reading[status] += 1
+                    found = [("pixel", j, 0) for j in by_pixels.get(pixels, ())] if pixels else []
                     if h is not None:
                         for j, d in hidx.query(h):
                             found.append(("image", with_hash[j][0], d))
+                    comparable = 0
                     for t in texts:
                         if t:
+                            comparable += len(normalize_words(t)) >= tidx.n
                             found.extend(("text", j, None) for j in tidx.query(t))
+                    text_cov["testi"] += sum(bool(t) for t in texts)
+                    text_cov["confrontabili"] += comparable
+                    text_cov["campioni_senza_testi_confrontabili"] += comparable == 0
+                    rows = []
                     for m, (kind, j, d) in enumerate(found):
                         it = index[j]
                         per_bench[f"{it['benchmark']}/{kind}"] += 1
+                        row = {"key": key, "match": kind, "distance": d, "benchmark": it["benchmark"],
+                               "bench_id": it["id"], "n_matches": len(found)}
+                        if "item" in it:
+                            row.update(item=it["item"], pos=it.get("pos"), elemento=element_of(it))
                         if m < args.max_lines:  # un'immagine quasi vuota può somigliare a centinaia di altre
-                            matches.write(json.dumps({"key": key, "match": kind, "distance": d, "benchmark": it["benchmark"],
-                                                      "bench_id": it["id"], "n_matches": len(found)},
-                                                     ensure_ascii=False) + "\n")
+                            matches.write(json.dumps(row, ensure_ascii=False) + "\n")
+                            rows.append({k: v for k, v in row.items() if k not in ("key", "n_matches")})
+                    counts = Counter(kind for kind, _, _ in found)
+                    records.write(json.dumps({
+                        "key": key, "shard": shard, "posizione": pos, "immagine": status, "byte_sha256": data_sha,
+                        "phash": None if h is None else f"{h:016x}", "pixel_sha256": pixels,
+                        "controlli": {"pixel": pixels is not None and bool(by_pixels), "phash": h is not None,
+                                      "testo": {"testi": sum(bool(t) for t in texts), "confrontabili": comparable}},
+                        "corrispondenze": dict(counts),
+                        "elementi": {kind: len({element_of(index[j]) for k2, j, _ in found if k2 == kind})
+                                     for kind in counts},
+                        "dettagli": rows, "dettagli_completi": len(found) <= args.max_lines},
+                        sort_keys=True, ensure_ascii=False) + "\n")
                     if found:
                         excluded.add(key)
-                        by_kind["image" if any(k == "image" for k, _, _ in found) else "text_only"] += 1
+                        by_kind["image" if any(k in ("image", "pixel") for k, _, _ in found) else "text_only"] += 1
+                        by_kind["pixel"] += counts["pixel"] > 0
                 tasks.clear()
+                where.clear()
 
-            for key, files in iter_shard(shard):
+            for pos, (key, files) in enumerate(iter_shard(shard)):
                 ext = next((e for e in ("png", "jpg", "jpeg", "webp") if e in files), None)
                 meta = json.loads(files["json"]) if "json" in files else {}
                 tasks.append((key, ext, files.get(ext) if ext else None, texts_of(args.kind, meta), convention))
+                where.append(pos)
                 if len(tasks) >= 4096:
                     flush()
             flush()
@@ -213,12 +272,21 @@ def cmd_scan(args) -> None:
                   flush=True)
     (out / "exclude.txt").write_text("".join(f"{k}\n" for k in sorted(excluded)))
     summary = {"kind": args.kind, "shards": shards, "index": args.index, "convenzione_immagini": convention,
+               "job_id": os.environ.get("SLURM_JOB_ID"), "code": code_identity(),
+               "indice": {"path": str(args.index), "sha256": sha256_file(Path(args.index)),
+                          "schema": loaded.get("schema"), "voci": len(index), "voci_con_phash": len(with_hash),
+                          "voci_con_pixel_sha256": sum(map(len, by_pixels.values()))},
+               "identita_pixel": bool(by_pixels),
                "radius": args.radius, "ngram": args.ngram,
-               "max_df": args.max_df, "ngrams_dropped": tidx.dropped, "samples": n, "excluded": len(excluded),
-               "excluded_by": dict(by_kind), "matches_per_benchmark": dict(per_bench), "seconds": round(time.time() - t0, 1)}
-    (out / "summary.json").write_text(json.dumps(summary, indent=1))
-    print(json.dumps({k: summary[k] for k in ("samples", "excluded", "excluded_by", "matches_per_benchmark", "seconds")},
-                     indent=1))
+               "max_df": args.max_df, "ngrams_dropped": tidx.dropped, "max_lines": args.max_lines, "samples": n,
+               "lettura_immagini": dict(reading), "testi": dict(text_cov), "excluded": len(excluded),
+               "excluded_by": dict(by_kind), "matches_per_benchmark": dict(per_bench),
+               "files": {name: {"sha256": sha256_file(out / name), "bytes": (out / name).stat().st_size}
+                         for name in ("records.jsonl.gz", "matches.jsonl", "exclude.txt")},
+               "seconds": round(time.time() - t0, 1)}
+    (out / "summary.json").write_text(json.dumps(summary, indent=1, ensure_ascii=False))
+    print(json.dumps({k: summary[k] for k in ("samples", "lettura_immagini", "testi", "excluded", "excluded_by",
+                                              "matches_per_benchmark", "seconds")}, indent=1, ensure_ascii=False))
 
 
 def main() -> None:

@@ -173,7 +173,7 @@ def review_scan(scan: Path, index, with_hash, hidx, tidx, bench_small, bench_byt
     image_keys, text_keys = set(), set()
     for line in open(scan / "matches.jsonl"):
         m = json.loads(line)
-        (image_keys if m["match"] == "image" else text_keys).add(m["key"])
+        (image_keys if m["match"] in ("image", "pixel") else text_keys).add(m["key"])
     text_keys -= image_keys
     out.mkdir(parents=True, exist_ok=True)
     rows, train_bytes = {}, {}

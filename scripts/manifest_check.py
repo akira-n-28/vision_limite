@@ -8,7 +8,10 @@ Solo in un job SLURM CPU; manifest e shard in sola lettura, scrive solo nella ca
 2. Split: ricalcolato due volte dai record con la regola, la quota e il seme del manifest (manifest.assign_splits) e
    uguale a quello scritto; con un altro seme è diverso. I legami esatti ricalcolati dagli hash del manifest (pixel,
    stato della scena, coppia) danno gli stessi gruppi; nessun gruppo è in due split; dev per famiglia rispetto alla
-   quota.
+   quota. Per una versione derivata (`split.ereditato_da`, es. dopo la decontaminazione esterna) la regola si
+   ricalcola sulla versione precedente, letta e verificata, e si controlla che record, gruppi, insiemi, split e
+   posizioni siano gli stessi, che nessuno stato diventi meno grave e che ogni record abbia una sola evidenza della
+   decontaminazione, con il motivo dove lo stato cambia.
 3. Loader: sorgenti di stream.make_sources con il manifest per train e dev (shard train) e per test e coppie (split
    test). Ogni sorgente si legge per un'epoca con --workers worker di SourceReader: le chiavi consegnate devono essere
    esattamente quelle ammesse dello split, ciascuna una volta, nessuna esclusa o in quarantena, e i gruppi letti non
@@ -158,13 +161,40 @@ def main() -> None:
     by_group: dict[str, list[dict]] = defaultdict(list)
     for r in records:
         by_group[r["gruppo"]].append(r)
-    info = {g: {"famiglia": rs[0]["famiglia"], "valutazione": any(r["insieme"] != "train" for r in rs),
-                "ammessi": sum(r["stato"] == "ammesso" for r in rs)} for g, rs in by_group.items()}
     rule = meta["split"]
+    base = records  # i record su cui si ricalcola la regola degli split
+    inherited = rule.get("ereditato_da")
+    if inherited:  # versione derivata (es. dopo la decontaminazione): split e gruppi della versione precedente
+        parent = mf.load(mf.ROOT / inherited["percorso"])
+        base = [r for shard in parent.by_shard.values() for r in shard.values()]
+        check("versione precedente: manifest.json con lo sha256 registrato",
+              parent.manifest_sha256 == inherited["manifest_sha256"], parent.manifest_sha256)
+        old = {r["record"]: r for r in base}
+        fields = ("record_id", "gruppo", "split", "insieme", "shard", "indice", "json_sha256")
+        same = len(old) == len(records) and all(
+            r["record"] in old and all(r[f] == old[r["record"]][f] for f in fields) for r in records)
+        check("split ereditati: stessi record, gruppi, insiemi, split e posizioni della versione precedente", same)
+        severity = {"ammesso": 0, "quarantena": 1, "escluso": 2}
+        better = [r["record"] for r in records if r["record"] in old
+                  and severity[r["stato"]] < severity[old[r["record"]]["stato"]]]
+        check("stati: nessun record torna ammesso o passa a uno stato meno grave", not better, len(better))
+        if meta.get("decontaminazione"):
+            name = meta["decontaminazione"]["controllo"]
+            no_ev = [r["record"] for r in records if sum(e.get("controllo") == name for e in r["evidenze"]) != 1]
+            check(f"{name}: una e una sola evidenza per record", not no_ev, len(no_ev))
+            unexplained = [r["record"] for r in records if r["record"] in old
+                           and r["stato"] != old[r["record"]]["stato"] and name not in (r["motivo"] or {})]
+            check(f"{name}: ogni cambio di stato ha il suo motivo", not unexplained, len(unexplained))
+    base_group: dict[str, list[dict]] = defaultdict(list)
+    for r in base:
+        base_group[r["gruppo"]].append(r)
+    info = {g: {"famiglia": rs[0]["famiglia"], "valutazione": any(r["insieme"] != "train" for r in rs),
+                "ammessi": sum(r["stato"] == "ammesso" for r in rs)} for g, rs in base_group.items()}
     again = [mf.assign_splits(info, rule["quota_dev"], rule["seme"]) for _ in range(2)]
-    written = {g: rs[0]["split"] for g, rs in by_group.items()}
-    check("split ricalcolato due volte con quota e seme del manifest: identico a quello scritto",
-          again[0] == again[1] == written, sum(again[0][g] != written[g] for g in written))
+    written = {g: rs[0]["split"] for g, rs in base_group.items()}
+    check("split ricalcolato due volte con quota e seme del manifest" + (" (sulla versione precedente, da cui è "
+                                                                         "ereditato)" if inherited else "")
+          + ": identico a quello scritto", again[0] == again[1] == written, sum(again[0][g] != written[g] for g in written))
     other = mf.assign_splits(info, rule["quota_dev"], rule["seme"] + 1)
     moved = sum(other[g] != written[g] for g in written)
     check("con un altro seme lo split di dev cambia (la scelta dipende dal seme)", moved > 0, moved)
@@ -197,7 +227,8 @@ def main() -> None:
           len(ours))
     crossing = [g for g, rs in by_group.items() if len({r["split"] for r in rs}) > 1]
     check("nessun gruppo in due split (train, dev, test)", not crossing, len(crossing))
-    eval_train = [r["record"] for r in records if r["split"] in ("train", "dev") and info[r["gruppo"]]["valutazione"]]
+    eval_train = [r["record"] for r in records if r["split"] in ("train", "dev")
+                  and any(x["insieme"] != "train" for x in by_group[r["gruppo"]])]
     check("nessun gruppo legato a test o coppie in train o dev", not eval_train, len(eval_train))
     dev_info = {}
     for fam, d in rule["dev_per_famiglia"].items():
@@ -223,7 +254,7 @@ def main() -> None:
         counts[e["name"]].update(e["counts"])
         picked[e["name"]].update(e["picked"])
     rec_by_key = {r["record"]: r for r in records}
-    group_split = {g: written[g] for g in by_group}
+    group_split = {g: rs[0]["split"] for g, rs in by_group.items()}
     load_report = {}
     for name in SOURCES:
         ks = loaded[name]
@@ -333,7 +364,7 @@ def main() -> None:
     report = {"schema": "manifest-check/1", "job_id": os.environ.get("SLURM_JOB_ID"), "code": code_identity(),
               "args": {k: str(v) for k, v in vars(args).items()},
               "manifest": {"path": str(args.manifest), "manifest_sha256": m.manifest_sha256,
-                           "records_sha256": meta["records"]["sha256"]},
+                           "records_sha256": meta["records"]["sha256"], "split_ereditato_da": inherited},
               "controlli": RESULTS, "falliti": failed, "dev": dev_info, "loader": load_report,
               "gruppi_letti_in_comune": overlap, "qa_ammesse_per_compito_e_split": coverage,
               "conteggi_manifest": meta["conteggi"], "seconds": round(time.time() - t0, 1)}
