@@ -400,8 +400,18 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
   Manifest delle ammissioni `data/manifests/synth-v4-candidato-1` (job 30451, `630d00a`, S2 §2.7, S1 §9):
   - train 54.271, dev 2.870 (5% per famiglia, seme 0, gruppi indivisibili), quarantena 67, esclusi 2.792;
   - test 300 e coppie 600, riservati, con 10 gruppi `function` in comune;
-  - gli shard v4 si leggono solo con un manifest (campi `manifest` e `split` della sorgente);
-  - ancora incompleto per gli esperimenti: mancano audit campionario e decontaminazione esterna, pianificati in S2 §2.8.
+  - gli shard v4 si leggono solo con un manifest (campi `manifest` e `split` della sorgente).
+
+  Versione 2 `data/manifests/synth-v4-candidato-2` (job 30518, `fe85a97`, S2 §2.9): la versione 1 con la
+  decontaminazione esterna contro `pannello-v3`.
+  - Esiti: 0 pixel identici, 0 candidati testuali; 264 record con candidati pHash, tutti con somiglianza dei pixel
+    sotto 0,80. I candidati vanno in quarantena per gruppo, senza riammissioni.
+  - Ammessi: train 53.997, dev 2.864, test 296, coppie 584. Quarantena 367, esclusi 2.792. Split e gruppi ereditati.
+  - Ogni record ha l'evidenza `decontaminazione_pannello`; `manifest_check.py` verifica anche le versioni derivate.
+  - Il campione per l'audit delle golden answer è preparato in `outputs/synth_gold_review/campione-1` (job 30522, S2
+    §2.10), ma l'audit non è eseguito.
+  - Ancora incompleto per gli esperimenti: mancano audit visivo, verifica dei candidati, varianti e contratto. La
+    config della famiglia `synth` richiede ancora la lista v3 vuota di `data_lists.REQUIRED`.
 
   Nessun dato è certificato. Per controllare la compilazione usare `compile()` in un job, non `ast.parse`, che non vede
   gli errori della tabella dei simboli.
@@ -432,7 +442,11 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
     - Nel test ci sono 1.300 evidenze dirette, 191 forti. L'inammissibilità alla metrica primaria vale per gruppo: 743
       gruppi.
     - Il confronto pHash è completo, senza troncamenti.
-    - Il test utilizzabile è il campo `metrica_primaria` di `elements.jsonl.gz`.
+    - Il test utilizzabile è il campo `metrica_primaria` di `elements.jsonl.gz`. Anche il confronto fra versioni
+      (`compare_panels`) lo usa quando c'è; la regola di v2 vale solo per i formati precedenti (job 30517).
+  - Sorgenti di training confrontate: solo i sintetici v4 (job 30518, scansione in `data/decontam/pannello-v3/synth-v4`).
+    Sette record di sviluppo sintetico hanno candidati verso sette elementi di test: materiale per `pannello-v4`
+    (`docs/PANNELLO_VALUTAZIONE.md` §8).
   - `pannello-v1` (job 30465) e `pannello-v2` (job 30466) sono superati e mai usati.
   - Gli script sono `scripts/panel_index.py` (anche `--verify`) e `scripts/panel_groups.py`, lanciati da
     `slurm/panel_groups.sbatch`; i test sono in `tests/test_panel.py`. Le uscite si scrivono una volta: una modifica dà

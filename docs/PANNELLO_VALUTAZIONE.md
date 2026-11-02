@@ -1,10 +1,13 @@
 # Pannello di valutazione e decontaminazione di Limite-VL (D6)
 
-**Stato al 2026-10-30, perimetro della pipeline v1.5.**
+**Stato al 2026-11-02, perimetro della pipeline v1.5.**
 - I download decisi dall'utente sono eseguiti e verificati (job 30463).
 - Indice, gruppi e ruoli sono fissati in `pannello-v3` (job 30469), prima di qualsiasi valutazione del modello. v3
   corregge sei problemi di `pannello-v2` (§8) con gli stessi criteri e lo stesso seme.
 - Nessun modello è stato valutato su questi ruoli. L'assegnazione resta da approvare nei dettagli (D6, §7).
+- Il 2026-11-02:
+  - il confronto fra versioni usa `metrica_primaria` (§8). `pannello-v3` non cambia;
+  - i sintetici v4 sono la prima sorgente di training confrontata con `pannello-v3` (job 30518, §6.2, S2 §2.9).
 
 Collegamenti: piano F0 (`docs/F0_IMPLEMENTATION_PLAN.md`, decisione D6, punti 3 e 7), campione candidato
 (`docs/F0_CAMPIONE_CANDIDATO.md`), pipeline §§5.5, 5.8, 6.1, 15, S1 §§3-4.
@@ -17,7 +20,10 @@ Collegamenti: piano F0 (`docs/F0_IMPLEMENTATION_PLAN.md`, decisione D6, punti 3 
 - indice e gruppi: job 30469, in `data/decontam/pannello-v3` (indice e `verifica.json`) e `data/panel/pannello-v3`
   (`summary.json` con conteggi, copertura, sha256 dei file, riesame dei legami testuali e confronto con v2), codice
   `c9765ca` (`scripts/panel_index.py`, `scripts/panel_groups.py`, `slurm/panel_groups.sbatch`);
-- collaudi delle correzioni: suite CPU del job 30468 (`tests/test_panel.py`, 53 controlli);
+- collaudi delle correzioni: suite CPU del job 30468 (`tests/test_panel.py`, 53 controlli); confronto fra versioni
+  corretto e collaudato nei job 30517 e 30523 (`tests/test_panel.py`, 64 controlli);
+- decontaminazione dei sintetici v4 contro `pannello-v3`: job 30517-30518 (`data/decontam/pannello-v3/synth-v4`) e
+  revisione dei candidati nel job 30522 (`outputs/decontam_review/campione-1`), S2 §§2.9-2.10;
 - storiche: sovrapposizioni per pHash fra i benchmark già indicizzati (job 30459, `outputs/panel_overlaps/run1`),
   stati dei sintetici v4 già presenti in v3 (job 30460);
 - fonti primarie: API e schede di Hugging Face, articoli e repository ufficiali, consultati il 2026-10-30.
@@ -353,8 +359,16 @@ voce per immagine e una per ogni elemento di solo testo: 99.713 voci, cioè 92.6
   non corrisponde;
 - la stessa risoluzione (`panel_index.resolve_entries`) è quella verificata sull'indice reale.
 
-Una revisione completa di una scansione di training contro `pannello-v3` non è stata eseguita: non c'è ancora una
-scansione.
+**Sui dati reali** (job 30517-30518, S2 §2.9): `decontam.py scan --kind synth` ha confrontato i 60.900 record dei
+sintetici v4 con tutte le voci di `pannello-v3`, con identità dei pixel, pHash e domande. La verifica di compatibilità
+ha superato 23 controlli su 23:
+- convenzione, schema e sha256 dell'indice;
+- `verifica.json`;
+- perimetro con tutti i ruoli;
+- identificativi ricondotti al record e all'elemento.
+
+La revisione dei 264 candidati con `decontam_review.py` (job 30522) ha ritrovato le immagini dal nuovo indice senza
+errori.
 
 **Gruppi** `data/panel/pannello-v3`: 85.991 elementi in 51.386 gruppi.
 
@@ -399,7 +413,7 @@ Unioni per tipo di legame:
   MathVista, 1 in OCRBench.
 - **Testi di solo testo.** La forma conservativa non riconosce lo stesso problema scritto con un LaTeX diverso: quei
   casi restano candidati (§8).
-- **Sorgenti di training.** Nessuna è ancora confrontata con questo indice (§6).
+- **Sorgenti di training.** Solo i sintetici v4 sono confrontati con questo indice (§6.2).
 
 ## 6. Piano minimo di decontaminazione
 
@@ -420,11 +434,16 @@ Unioni per tipo di legame:
 
 ### 6.2 Subito per v4 e dopo con le altre sorgenti
 
-- **Possibile subito, senza download (la scansione va approvata):**
-  - immagini v4 contro `pannello-v3`, con pixel e pHash;
-  - le domande, estendendo `texts_of` di `decontam.py` al tipo `synth` (oggi restituisce una lista vuota).
+- **Eseguito per v4 il 2026-11-02** (job 30517-30518, S2 §2.9). Pixel, pHash e domande (`texts_of` per il tipo
+  `synth`) su 60.900 record, contro tutte le voci di `pannello-v3`:
+  - nessuna immagine con pixel identici;
+  - nessun candidato testuale;
+  - 264 record con candidati pHash, soprattutto verso DynaMath (178), i cui grafici di funzioni hanno la stessa
+    impaginazione.
 
-  v4 non ha legami di provenienza: è generata.
+  La somiglianza dei pixel non supera mai 0,80 (job 30522). I candidati vanno in quarantena per gruppo, nel manifest
+  `data/manifests/synth-v4-candidato-2`, finché la verifica visiva non li risolve. v4 non ha legami di provenienza: è
+  generata.
 - **Quando entrano le altre sorgenti locali:**
   - MAVIS (stessi autori di MathVerse) contro le geometrie del pannello;
   - UniMER contro UniMER-Test (già fatto, `outputs/unimer_overlap/run2`) e HME100K di OCRBench;
@@ -512,6 +531,26 @@ verificato a vista.
   `pannello-v4`;
 - le 23 unioni testuali ora candidate e il quarto problema in comune di APEX: confronto a vista o con una regola
   testuale più fine, da decidere;
-- nessuna scansione di training è ancora stata confrontata con `pannello-v3`. Le scansioni storiche e gli indici
-  `p6` e `f1eval` restano nella convenzione `grigio-diretto/0`, e non si mescolano con quella nuova;
+- delle sorgenti di training solo i sintetici v4 sono confrontati con `pannello-v3` (§6.2). Le scansioni storiche e
+  gli indici `p6` e `f1eval` restano nella convenzione `grigio-diretto/0`, e non si mescolano con quella nuova;
 - il pannello copre solo i benchmark scaricati. I due gruppi molto grandi di MUIRBench restano indivisibili (§3.2).
+
+**Confronto fra versioni** (correzione del 2026-11-02, codice `fe85a97`). `compare_panels` dava il test utilizzabile
+del pannello precedente con la regola di v2, "test senza `irrisolto_con`". Nel formato v3 un membro di test può essere
+escluso per il gruppo, perché irrisolto o con copertura incompleta, senza un proprio `irrisolto_con`. Confrontando due
+v3 la regola avrebbe contato uscite false.
+- Ora decide `metrica_primaria` quando il campo c'è, anche False; la regola di v2 vale solo per i formati precedenti,
+  senza il campo.
+- Il confronto v2 → v3 di `summary.json` non era toccato, perché il precedente era v2. `pannello-v3` non è rigenerato.
+- Collaudi in `tests/test_panel.py` (job 30517), su due v3 identici e su un precedente nel formato v2. I due v3 hanno
+  membri esclusi per gruppo o per copertura incompleta, e danno zero entrate e zero uscite; la regola vecchia ne
+  avrebbe contate 2. Il formato v2 resta compatibile.
+
+**Candidati dai sintetici verso il test** (S2 §§2.9-2.10), per `pannello-v4`. Sette record di sviluppo sintetico (dev
+3, test 1, coppie 3) hanno candidati pHash verso sette elementi di test:
+- DynaMath: cinque varianti dei problemi 44, 96 e 329;
+- UniMER-Test `sce-0000116`;
+- MathVision test 1274.
+
+Con la regola di §3.1 sarebbero evidenze dirette e renderebbero inammissibili i gruppi di quegli elementi. L'indice di `pannello-v3`
+non contiene i sintetici, quindi v3 non le registra. La somiglianza dei pixel di tutti i candidati è sotto 0,80.

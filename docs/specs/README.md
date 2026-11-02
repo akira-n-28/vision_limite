@@ -9,6 +9,9 @@ in parte, C5 e C7:
   candidato v4 è stato generato e controllato su tutti i record (job 30447-30449, S2 §2.6).
 - **C5 e C7, in parte** (S1 §9): il sottoinsieme di S1 che applica il candidato nei loader, con il dev split
   (`630d00a`, job 30450-30451, S2 §2.7).
+- **Decontaminazione esterna di v4** contro `pannello-v3`, con il manifest derivato `synth-v4-candidato-2` (`fe85a97`,
+  job 30517-30518, S2 §2.9). Il campione per l'audit delle golden answer è preparato (job 30522, S2 §2.10), senza
+  revisione.
 
 Il candidato resta incompleto per gli esperimenti, e nessun dato è certificato.
 

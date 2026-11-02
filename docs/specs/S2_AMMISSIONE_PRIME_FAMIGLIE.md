@@ -769,10 +769,15 @@ candidato resta **ancora incompleto per gli esperimenti** (pipeline §15.3), per
 
 Il candidato non è certificato e non è pronto per il training.
 
-### 2.8 Audit visivo e decontaminazione esterna di v4: piano (2026-10-30, non eseguiti)
+Aggiornamento del 2026-11-02: la decontaminazione esterna è eseguita, con il manifest nuovo
+`data/manifests/synth-v4-candidato-2` (§2.9). L'audit campionario è preparato ma non eseguito (§2.10). Restano
+l'audit, la verifica dei 264 candidati, le varianti e il contratto.
+
+### 2.8 Audit visivo e decontaminazione esterna di v4: piano (2026-10-30)
 
 Sono le due condizioni che, dopo il manifest (§2.7), mancano per "pronto per un esperimento" (pipeline §15.3; S4
-§1). Qui c'è solo il piano: nessun audit, agente, download o scansione è stato avviato.
+§1). Il 2026-10-30 c'era solo il piano. Il 2026-11-02 la decontaminazione esterna è eseguita (§2.9) e il campione
+dell'audit è preparato (§2.10); l'audit non è iniziato.
 
 **Audit visivo.** È una revisione umana delle immagini come le vede il modello, cioè il PNG, che il processor lascia
 invariato (§2.6). Non si usano agenti LLM. I due campioni restano separati (S4 §2).
@@ -859,6 +864,266 @@ Passi proposti, non eseguiti:
 6. importare le evidenze in una versione nuova del manifest, con le esclusioni per gruppo.
 
 Costo previsto: pochi minuti di CPU, nessun download, nessun token.
+
+### 2.9 Decontaminazione esterna di v4 contro `pannello-v3` (job 30517-30518, codice `fe85a97`, 2026-11-02)
+
+Esegue i passi 2-6 della §2.8 per la decontaminazione. Il pannello è `pannello-v3` (D6 resta da approvare nei
+dettagli, ma i ruoli non cambiano l'esito: ogni elemento, in qualunque ruolo, protegge dal training).
+
+**Strumenti**, riusati con aggiunte minime:
+- `scripts/decontam.py scan --kind synth` confronta ogni record con tutte le 99.713 voci dell'indice, senza filtri
+  per ruolo. I segnali sono tre:
+  - **identità dei pixel:** lo stesso sha256 dei pixel normalizzati (`rgb-su-bianco/1`) di una voce dell'indice. È
+    l'unico legame confermato;
+  - **pHash entro 4 bit:** candidato;
+  - **10-gram di `normalize_words`** fra le domande della scena (o della coppia) e i testi dell'indice, senza i 712
+    n-gram di rito: candidato.
+
+  Per ogni record la scansione scrive shard, posizione, sha256 dei byte del PNG, controlli eseguiti e corrispondenze,
+  con elemento e posizione del pannello (`records.jsonl.gz`).
+- `scripts/synth_decontam.py` fa la verifica di compatibilità e scrive il manifest derivato.
+- `scripts/manifest_check.py` verifica anche le versioni derivate.
+
+**Compatibilità verificata**: 23 controlli, superati in entrambi i job.
+- **Indice:**
+  - convenzione `rgb-su-bianco/1` dichiarata, schema `panel-index/2`, sha256 `02fb3cbf…`;
+  - `verifica.json` con 92.658 voci su 92.658 ritrovate nelle sorgenti, e sha256 dei pixel per ogni immagine.
+- **Pannello e perimetro:** il pannello è costruito dallo stesso indice. Ogni elemento ha voci nell'indice e ogni voce
+  ha il suo elemento, compresi i ruoli fuori dalla metrica primaria.
+- **Manifest v1:** letto con le sue verifiche; gli shard hanno gli sha256 registrati.
+- **Scansione:** stesso indice e stessa convenzione, identità dei pixel attiva, solo shard del manifest.
+- **Identificativi:**
+  - ogni riga della scansione ritrova un solo record per chiave, shard, posizione e sha256 dei byte del PNG;
+  - ogni corrispondenza ritrova il suo elemento del pannello;
+  - nessun elenco di corrispondenze è tagliato.
+
+| Ruolo nel pannello | Elementi confrontati |
+| --- | --- |
+| sviluppo | 30.189 |
+| test ammesso alla metrica primaria | 35.701 |
+| test inammissibile (gruppo irrisolto) | 1.368 |
+| solo decontaminazione | 12.401 |
+| diagnostica | 6.332 |
+
+**Controllo limitato** (job 30517, 1 min 57 s):
+- test mirati: `tests/test_panel.py`, `test_decontam.py`, `test_synth_decontam.py`, `test_manifest.py`;
+- scansione delle 300 scene di test e verifica parziale.
+
+Risultato: 23 controlli su 23 e un candidato pHash. Nessun problema operativo: indice in memoria e confronto in 10 s.
+
+**Scansione completa** (job 30518): 60.900 record in 93 s, tutte le immagini lette.
+
+| Esito per record | Record | Che cosa vuol dire |
+| --- | --- | --- |
+| corrispondenza confermata | 0 | nessuna immagine con i pixel identici a una del pannello |
+| candidato | 264 | tutti per pHash: 755 corrispondenze, a distanza 0 (47), 2 (241) e 4 (467). Nessun candidato testuale |
+| non verificabile o controllo incompleto | 0 | ogni immagine letta; identità dei pixel e pHash eseguiti su tutti |
+| nessuna corrispondenza | 60.636 | nei controlli eseguiti. Non certifica la risposta né l'assenza di ogni contaminazione |
+
+Testo: 844.309 domande, di cui 308.237 con almeno 10 parole confrontate; nessun 10-gram in comune. 520 record non
+hanno domande confrontabili, quasi tutti varianti di coppie con la domanda breve: per loro decide l'immagine.
+
+| Benchmark del pannello | Record con candidati | Corrispondenze | Ruoli degli elementi |
+| --- | --- | --- | --- |
+| DynaMath | 178 | 583 | test ammesso |
+| UniMER-Test | 26 | 26 | sviluppo 8, test ammesso 18 (25 in `sce`, 1 in `spe`) |
+| MV-MATH | 24 | 24 | test ammesso |
+| MMStar | 20 | 20 | sviluppo 17, test inammissibile 3 |
+| MathVision | 16 | 22 | test ammesso |
+| MathVista | 15 | 19 | solo decontaminazione 14, sviluppo 5 |
+| ChartQA | 10 | 24 | sviluppo 15, test ammesso 3, test inammissibile 6 |
+| We-Math | 5 | 6 | sviluppo |
+| Geoperception | 3 | 12 | sviluppo |
+| MUIRBench | 3 | 10 | test ammesso |
+| OlympiadBench | 2 | 6 | solo decontaminazione |
+| VisOnlyQA Synthetic | 2 | 2 | test ammesso |
+| DocVQA | 1 | 1 | sviluppo |
+
+Un record può avere candidati in più benchmark. I 264 record si dividono così: train 191, dev 6, train già escluso per
+contaminazione interna 61, test 1, coppie 5.
+- **DynaMath** genera grafici di funzioni e figure con matplotlib, come i nostri. Un pHash vicino indica
+  un'impaginazione simile, non lo stesso contenuto: lo dice solo la verifica visiva.
+- **UniMER-Test.** Nel pannello i vicini pHash delle formule non contano, perché le immagini sono quasi bianche (job
+  30039). Qui restano candidati, per prudenza.
+
+**Stati: regola per gruppo.** Il gruppo del manifest (stessa scena, stato della scena o coppia) è l'unità:
+- una corrispondenza confermata esclude il gruppo;
+- un candidato o un controllo incompleto lo mette in quarantena;
+- la gravità non diminuisce mai: nessun record già in quarantena o escluso per altri motivi torna ammesso;
+- split e gruppi sono quelli della versione 1.
+
+I gruppi con un candidato sono 199. Cambiano stato, tutti da ammesso a quarantena: train 274, dev 6, test 4, coppie 16
+(cioè 8 coppie).
+
+**Manifest** `data/manifests/synth-v4-candidato-2` (job 30518): sha256 di `manifest.json` `9a8104cd…`, dei record
+`5863b06a…`.
+
+| Insieme | Split e stato | Versione 1 | Versione 2 |
+| --- | --- | --- | --- |
+| train | train ammesso | 54.271 | 53.997 |
+| train | train in quarantena | 67 | 341 (67 + 274) |
+| train | dev ammesso | 2.870 | 2.864 (coord 747, function 623, polygon 748, shapes 746) |
+| train | dev in quarantena | 0 | 6 |
+| train | test escluso | 2.792 | 2.792 |
+| test | test ammesso | 300 | 296, più 4 in quarantena |
+| coppie | test ammesso | 600 | 584, più 16 in quarantena |
+
+**Evidenze nel manifest.** Ogni record ha l'evidenza `decontaminazione_pannello`, con:
+- esito proprio e del gruppo;
+- controlli eseguiti: pixel, pHash, e testo con il numero di domande confrontabili;
+- corrispondenze per tipo, e fino a 10 elementi del pannello con posizione, distanza, ruolo, gruppo e ammissione alla
+  metrica primaria;
+- il riferimento a `records.jsonl.gz` della scansione, con lo sha256.
+
+Chi cambia stato ha anche il motivo `decontaminazione_pannello`, con i membri del gruppo che lo causano. Il manifest
+registra, con i loro sha256, indice, verifica, pannello, scansione, versione precedente e identità del codice.
+
+**Verifiche** (job 30518, `outputs/manifest_check/synth-v4-candidato-2`): 37 controlli su 37.
+- I 32 della versione 1, sul manifest nuovo. Fra questi i loader: un'epoca consegna esattamente 53.997 record di
+  train, 2.864 di dev, 296 di test e 584 delle coppie.
+- 5 controlli nuovi:
+  - versione precedente letta, con lo sha256 registrato;
+  - stessi record, gruppi, insiemi, split e posizioni;
+  - nessuno stato meno grave;
+  - una sola evidenza di decontaminazione per record;
+  - un motivo per ogni cambio di stato.
+
+  La regola degli split si ricalcola sulla versione 1, da cui gli split sono ereditati.
+
+**Identificativi.** Ogni decisione si riconduce al record originale. Chiave, `record_id` ricalcolato da
+`manifest.load`, shard, posizione e sha256 dei byte del PNG coincidono fra manifest e riga della scansione. Ogni
+corrispondenza si riconduce all'elemento del pannello (`benchmark/item` e posizione), con ruolo e gruppo da
+`elements.jsonl.gz`.
+
+**Che cosa non è coperto:**
+- nessun candidato è risolto. La verifica visiva dei 264, con il foglio della §2.10, decide quali riammettere in una
+  versione nuova;
+- il pHash non riconosce la stessa figura disegnata in un altro stile, né lo stesso contenuto con un'impaginazione
+  diversa;
+- i sintetici sono generati, quindi non hanno legami di provenienza con i benchmark;
+- l'esposizione pregressa di SigLIP2 e Violetto resta;
+- il testo copre solo le domande di almeno 10 parole, che sono a modello;
+- il confronto riguarda solo i benchmark scaricati del pannello.
+
+**Conseguenza per il pannello**, non applicata a `pannello-v3`. 12 record di sviluppo sintetico (dev 6, test 1, coppie
+5) hanno candidati verso elementi del pannello, anche di test (§2.10). Per la regola del pannello un candidato fra
+sviluppo e test è un'evidenza diretta sull'elemento di test (`docs/PANNELLO_VALUTAZIONE.md` §3.1). L'indice del
+pannello non contiene i sintetici, quindi `pannello-v3` non le vede: vanno considerate in `pannello-v4`.
+
+**Requisiti ancora mancanti per il loader di F0:**
+1. la config deve indicare `data/manifests/synth-v4-candidato-2` con lo split; senza manifest gli shard v4 non si
+   leggono;
+2. `data_lists.REQUIRED` chiede ancora, per la famiglia `synth`, la lista v3 `data/decontam/f1eval/synth/exclude_final.txt`.
+   È vuota, ha chiavi di v3 e non è un'evidenza su v4. Va indicata nella config finché il controllo non passa
+   all'evidenza del manifest; il codice non è cambiato qui;
+3. mancano `variant_id`, `uid`, contratto e hash dei token (C3, C5; D3);
+4. mancano i contatori per compito e `too_long` per sorgente (C7);
+5. il campo gold è vuoto: nessuna stima campionaria (S4) e nessun audit.
+
+### 2.10 Golden answer di v4: inventario dei controlli e campione per la revisione (job 30522, 2026-11-02)
+
+Preparazione dell'audit della §2.8 sul manifest `synth-v4-candidato-2`, con `scripts/synth_gold_sample.py` (codice
+`fe85a97`, script poi committati in `87c4108`) e uscite in `outputs/synth_gold_review/campione-1`. Nessuna revisione è
+avviata: niente agenti, nessun dato o spiegazione rigenerati.
+
+**Quattro proprietà, tenute separate** (§1):
+1. **correttezza matematica:** il target è vero per la scena descritta dalla specifica;
+2. **coerenza fra annotazioni e immagine:** il PNG mostra ciò che dicono specifica e layout;
+3. **rispondibilità con la sola immagine e la domanda:** l'informazione è visibile, leggibile e univoca;
+4. **spiegazioni:** i record v4 hanno risposte brevi, senza spiegazioni. La proprietà non si applica.
+
+**Inventario dei controlli disponibili** (`inventario.tsv`: 38 righe per famiglia, tipo di domanda e unità, con QA e
+esiti del checker):
+
+| Proprietà | Che cosa esiste, su ogni record | Indipendenza | Che cosa manca |
+| --- | --- | --- | --- |
+| correttezza | il generatore calcola il target dalla specifica. Il checker (`synth_check`) lo ricalcola dagli oggetti disegnati del layout, con predicati propri: su 60.900 record tutte le QA sono ok (job 30448-30449). Prove esatte solo per le 9 coppie polygon contraddittorie (job 30420) | parziale: stesso progetto; per function le formule vengono dalla specifica | una verifica dai pixel; la revisione su campione |
+| coerenza con l'immagine | il layout porta lo sha256 del PNG dello stesso render (60.900 digest corrispondenti); dalla chiave si riottengono byte identici (job 30449) | il legame layout-PNG è verificato; il contenuto dei pixel non è letto e dipende dal renderer | lettura dei pixel o revisione |
+| rispondibilità | invarianti del renderer sul layout: figure dentro gli assi, testi dentro l'immagine, non sovrapposti e alti almeno 10 px (proposta), margini SIDE, EDGE, TANGENT ed EXTREME, una sola opzione vera | indicatori sul layout, non sui pixel | leggibilità alla risoluzione del modello e vicinanze ambigue senza sovrapposizione: solo la revisione |
+| spiegazioni | — | — | non applicabile |
+
+**Stato del gold:** nessun record è `gold_verificato` né `target_controllato`. Il checker approva le risposte, ma è
+dello stesso progetto del generatore e legge il layout. Inoltre S2 non è approvata e manca la stima campionaria (S4).
+
+**Campione casuale** (`campione.tsv`, 380 unità), con la regola della §2.8 sugli stati del manifest v2:
+
+| Strato | Unità | N | n | Probabilità d'inclusione | Limite con 0 errori |
+| --- | --- | --- | --- | --- | --- |
+| coord | QA costruite dal loader per le scene ammesse di train e dev | 45.056 | 75 | 0,17% | 3,9% |
+| function | idem | 35.961 | 75 | 0,21% | 3,9% |
+| polygon | idem | 44.941 | 75 | 0,17% | 3,9% |
+| shapes | idem | 44.614 | 75 | 0,17% | 3,9% |
+| test | tutte le QA delle scene ammesse | 4.019 | 50 | 1,24% | 5,8% |
+| coppie | coppia con entrambe le varianti ammesse | 292 | 30 | 10,3% | 8,9% |
+
+Il limite è il superiore esatto al 95%, ipergeometrico, ed è solo informativo:
+- vale con zero errori osservati, contando incerti e casi non giudicabili come errori;
+- resta condizionato alla sensibilità del revisore (S4 §4);
+- C8 (`estimate.py`) non è implementato; qui il limite viene da `synth_gold_sample.upper_zero`, collaudato sui valori
+  della §2.8.
+
+Una numerosità minore va fissata prima di guardare: è il prefisso nell'ordine del rango.
+
+**Casi mirati** (`mirati.tsv`, 175 casi): servono a cercare errori, non a stimare un tasso.
+
+| Categoria | Casi | Scelta |
+| --- | --- | --- |
+| scene in quarantena per testi sovrapposti | 67 | tutte |
+| testi più bassi | 8 | altezza minima 11,1 px (soglia 10) |
+| riquadri di testo più vicini | 8 | 0,9-1,0 px (violazione oltre 1) |
+| intersezioni vicine al bordo del tratto | 8 | 0,402-0,455 (EDGE 0,4) |
+| grafici vicini senza incrociarsi | 8 | 0,333-0,375 (il checker segnala sotto 0,25, il generatore non chiede sotto 0,3) |
+| vertici estremi | 8 | stacco 0,150 (EXTREME 0,15) |
+| coordinate lette contando le tacche | 8 | per rango |
+| coppie per famiglia | 20 | 5 per famiglia, per rango, fuori dal campione |
+| esclusioni per contaminazione | 10 | per rango, accanto al record di valutazione con lo stesso stato della scena |
+| regole nuove di v4 | 30 | 10 per `intersections`, `shape_type` e `label_type` |
+
+I margini si calcolano dal layout salvato, senza ridisegnare.
+
+**Candidati della decontaminazione** (`candidati_decontaminazione.tsv`): tutti i 264 della §2.9. Per ognuno:
+- il PNG v4 e le immagini del pannello citate nell'evidenza: 131 immagini distinte, ritrovate con i lettori
+  dell'indice, senza errori;
+- ruolo e ammissione alla metrica primaria degli elementi.
+
+`scripts/decontam_review.py` (in `outputs/decontam_review/campione-1/synth-v4`) misura la somiglianza dei pixel a
+64×64. Nessun candidato supera 0,80: 198 stanno sotto 0,50 e 66 fra 0,50 e 0,80. La misura serve solo a ordinare la
+verifica e non risolve un candidato.
+
+Sette record di sviluppo sintetico hanno candidati verso elementi di test del pannello. Sono materiale per
+`pannello-v4` (§2.9):
+
+| Record v4 | Insieme | Elementi di test del pannello |
+| --- | --- | --- |
+| `synth-0026407` | dev | DynaMath, problema 329 |
+| `synth-test-00007` | test | DynaMath, problema 329 |
+| `synth-pair-00050-b` | coppie | DynaMath, problema 96 |
+| `synth-pair-00074-b` | coppie | DynaMath, problema 96 |
+| `synth-0017751` | dev | DynaMath, problema 44 (varianti 2 e 8) |
+| `synth-0011211` | dev | UniMER-Test `sce-0000116`; MathVision test 1274 |
+| `synth-pair-00115-b` | coppie | UniMER-Test `sce-0000116`; MathVision test 1274 |
+
+Gli altri cinque record di sviluppo con candidati toccano solo elementi di sviluppo o solo di decontaminazione.
+
+**Fogli e moduli:**
+- `immagini/`: 870 PNG v4 copiati byte per byte, con lo sha256 controllato, e 737 file del pannello; 17 MiB;
+- `soluzioni.tsv`: target, esito del checker e stato della scena, a parte, per rispondere prima senza vederli;
+- `esiti.tsv`: 555 righe, una per unità, con una colonna per ciascuna delle quattro proprietà, più gravità, tipo di
+  difetto e tempo;
+- `esiti_decontaminazione.tsv`: 264 righe;
+- `report.json`: disegno, inventario, limiti e sha256 dei file.
+
+La procedura resta quella della §2.8: risposta prima senza il target, poi il confronto; un disaccordo si risolve con
+layout e specifica.
+
+**Costo:** job 30522, 5 min 4 s, 8 CPU e 48G, 40 min di CPU allocate; nessun token. Il job 30521, uguale, si era
+fermato in 1 s su un errore del test (etichette dei vertici uguali nel poligono di prova), prima di scrivere uscite.
+
+**Restano da decidere e da fare:**
+- D5: budget degli audit e numerosità;
+- la revisione umana dei 380 + 175 casi e dei 264 candidati;
+- C8, per il limite con collaudi;
+- una versione nuova del manifest con gli esiti: riammissioni o esclusioni, mai correzioni della v2.
 
 ## 3. MAVIS-Geometry (`f1_mavis.py`, `f1_schema.py`, shard `9c80fff3-caption`)
 

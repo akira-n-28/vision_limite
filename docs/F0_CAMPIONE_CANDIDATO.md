@@ -1,6 +1,6 @@
 # Campione candidato di F0: selezione riproducibile
 
-**Stato al 2026-10-30.** È una proposta.
+**Stato al 2026-11-02.** È una proposta.
 - Nessuna sorgente è ammessa o gold.
 - Il campione non è ancora caricabile per un pilota: mancano i passi di §5.
 - Avere i file non vuol dire che F0 sia completo.
@@ -21,7 +21,8 @@ Collegamenti: pipeline v1.5 §6.1 (materiale di F0), §5 (dati), §15.3 (pronto 
 
 **Ingressi fissati.**
 - Revisione della sorgente e manifest degli shard: ogni manifest ha il job di sharding e lo sha256 di ogni tar.
-- Manifest delle ammissioni, dove esiste: `data/manifests/synth-v4-candidato-1`, sha256 `975dfe42…`.
+- Manifest delle ammissioni, dove esiste: `data/manifests/synth-v4-candidato-2`, sha256 `9a8104cd…`. È la
+  versione 1 (`975dfe42…`) con la decontaminazione esterna contro `pannello-v3`; split e gruppi non cambiano.
 - File del pannello: `data/panel/pannello-v3/elements.jsonl.gz`, sha256 `dacbea54…`.
 
 **Ordine di estrazione.**
@@ -48,7 +49,7 @@ capacità senza sorgente locale sono in §4.
 
 | Capacità | Sorgente e shard | Selezione e numerosità | Provenienza del target | Controlli disponibili | Incertezze | Adattamenti mancanti |
 | --- | --- | --- | --- | --- | --- | --- |
-| Geometria, coordinate e grafici di funzioni (sintetici) | `src/limite_vl/synth.py` v4 (`284e8f1`), `data/shards/synth/v4` (job 30447), manifest `synth-v4-candidato-1` (job 30451) | split `train`, stato `ammesso`: 54.271 scene. Il loader ne costruisce 162.599 QA (coord 42.692, function 34.326, polygon 42.735, shapes 42.846) | calcolata dal codice del generatore e approvata dal checker sul layout (C2) | integrità, riproducibilità, checker su tutti i 60.900 record, gruppi e split, filtro dei loader (job 30447-30451) | il checker legge il layout, non i pixel; 67 scene in quarantena; audit visivo e decontaminazione esterna non fatti (S2 §2.8) | `variant_id` e contratto (C3, C5); audit (D5); scansione contro `pannello-v3` |
+| Geometria, coordinate e grafici di funzioni (sintetici) | `src/limite_vl/synth.py` v4 (`284e8f1`), `data/shards/synth/v4` (job 30447), manifest `synth-v4-candidato-2` (job 30518) | split `train`, stato `ammesso`: 53.997 scene; dev 2.864. Per train e dev il loader costruisce 170.572 QA (coord 45.056, function 35.961, polygon 44.941, shapes 44.614) | calcolata dal codice del generatore e approvata dal checker sul layout (C2) | integrità, riproducibilità, checker su tutti i 60.900 record, gruppi e split, filtro dei loader (job 30447-30451); decontaminazione esterna contro `pannello-v3`: pixel, pHash e domande (job 30518, S2 §2.9) | il checker legge il layout, non i pixel; 367 scene in quarantena, cioè 67 per testi sovrapposti e 300 per i 264 candidati pHash del pannello, propagati al gruppo; audit visivo non fatto, campione preparato (S2 §2.10) | `variant_id` e contratto (C3, C5); audit e verifica dei candidati (D5) |
 | Geometria (MAVIS-Geometry) | `CaraJ/MAVIS-Geometry@9c80fff3`, `data/shards/mavis-geometry/9c80fff3-caption` (11 tar, job 29419) | 199.050 immagini `caption.jpg`; esclusi `d3-3228` e 552 didascalie duplicate | regole del motore di MAVIS (`diagram_generation`): descrizione canonica e domande costruite dal codice (`f1_schema.py`, `f1_mavis.py`) | andata e ritorno su 199.050 (job 30033, 30052); valori razionali disegnati come decimali (job 30049) | la coerenza fra due descrizioni non prova la fedeltà ai pixel; solo 40 immagini guardate; `shape_type` ambigua, in quarantena; renderer non nostro; stessi autori di MathVerse | C9 (opzioni di `shape_type`, valore visualizzato ed esatto); manifest delle ammissioni (C5, C7); controllo visivo campionario (S4); scansione contro le geometrie del pannello |
 | Formule stampate (UniMER-1M) | `wanderkid/UniMER_Dataset@2343ddd9`, `data/shards/unimer/2343ddd9-dense` (5 tar, job 29729; più `lines/` con 30.685 righe ritagliate) | 985.450 formule, meno 51 errori certi (`escluso`) e 1.119 incerti (`quarantena`), di cui 1.116 in 402 gruppi in conflitto. Le 18.827 rietichettature sono tracciate (S2 §4) | LaTeX della sorgente, senza gli spazi del formato im2latex (`latex.despace`); uguaglianza dei token, non equivalenza matematica | `outputs/unimer_check/run4` (job 30047: struttura, rendering, conflitti); sovrapposizioni col test (`outputs/unimer_overlap/run2`) | le formule CROHME manoscritte (meno dell'1%) non si separano per indice: restano (v1.5); un LaTeX compilabile può descrivere un'altra formula | import di esclusioni, quarantena e rietichettature come evidenze (C5, C6); manifest (C7); confronto con HME100K di OCRBench |
 | Scene reali, descrizioni dettagliate (PixMo-Cap) | `anthracite-org/pixmo-cap-images@3e42775e`, 25 parquet su 75; `data/shards/pixmo-cap/3e42775e` (25 tar, job 29560) | 235.896 esempi | descrizione riscritta da un modello a partire dalle trascrizioni degli annotatori, che non sono negli shard | `outputs/pixmo_check/run4` (job 30044): segnali di rischio su dettagli assenti dalle trascrizioni, non esclusioni. Righe con almeno un segnale: conteggi 2-12 10.181, colori 8.803, testi citati 3.564 | testo libero senza verità strutturata: è un target controllato, non gold (pipeline §5.7); un terzo del dataset | audit campionario (D5); manifest (C5, C7); scansione contro MMStar e MUIRBench |
@@ -114,12 +115,14 @@ per `p10-pannello`.
 4. **C9 per MAVIS:** `shape_type` con le opzioni, e valore visualizzato ed esatto nel record.
 5. **Esclusioni storiche come evidenze (C6):** `unimer_check/run4`, `pixmo_check/run4`, `split_duplicates/run1`, liste di
    `p6` e `f1eval`, ciascuna con motivo, versione e stato.
-6. **Decontaminazione contro `pannello-v3`.** Non è fatta per nessuna sorgente di training. Per v4 è possibile subito
-   (S2 §2.8, `texts_of` per i sintetici). Per MAVIS, UniMER, PixMo e LLaVA serve una scansione con pixel, pHash e
-   testo, e poi la risoluzione dei candidati.
+6. **Decontaminazione contro `pannello-v3`.**
+   - **Fatta per v4** (job 30517-30518, S2 §2.9): nessuna corrispondenza confermata e 264 candidati pHash, in
+     quarantena per gruppo nel manifest `synth-v4-candidato-2`.
+   - Per MAVIS, UniMER, PixMo e LLaVA serve una scansione con pixel, pHash e testo, e poi la risoluzione dei candidati.
 7. **Verifica visiva:**
    - dei 743 gruppi inammissibili del pannello (1.300 evidenze dirette, 191 forti), prima di qualsiasi uso del test;
-   - l'audit di v4 (380 unità e circa 170 casi, S2 §2.8, D5);
+   - l'audit di v4 (S2 §2.8, D5): campione di 380 unità e 175 casi mirati preparato (S2 §2.10), revisione non fatta;
+   - i 264 candidati della decontaminazione di v4, con il foglio della S2 §2.10;
    - campioni di MAVIS (fedeltà ai pixel) e di PixMo (dettagli aggiunti);
    - l'osservabilità alla risoluzione scelta.
 8. **Più immagini (punto 4 del piano).** `Sample.images`, loader e riferimenti nel testo servono per MUIRBench, MV-MATH,
@@ -137,8 +140,9 @@ né agenti.
    - Le immagini si ritrovano con `panel_index.resolve_entries`, già verificato sull'indice.
    - La correlazione dei pixel a 64×64 di `decontam_review.py` serve a ordinarli.
    - Revisione umana; l'esito va in `pannello-v4`.
-2. **Decontaminazione esterna di v4 contro `pannello-v3`** (passi 2-6 di S2 §2.8). L'esito va in una versione nuova
-   del manifest v4.
+2. **Decontaminazione esterna di v4 contro `pannello-v3`.** Fatta il 2026-11-02 (job 30517-30518, S2 §2.9), con il
+   manifest nuovo `synth-v4-candidato-2`. Il campione per l'audit delle golden answer è preparato (job 30522, S2
+   §2.10). Restano la revisione visiva e la verifica dei candidati.
 3. **Manifest delle ammissioni di UniMER-1M e MAVIS-Geometry,** col sottoinsieme di S1 già usato per v4:
    - record, gruppi e stati;
    - esclusioni e quarantena importate da `unimer_check/run4`;
