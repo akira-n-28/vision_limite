@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Autotest della revisione · synth-v4 campione-2</title>
+<link rel="stylesheet" href="stile.css">
+<style>
+  body { padding: 16px; }
+  td.ok { color: #1e7d32; font-weight: 600; } td.fail { color: #c41e3a; font-weight: 600; }
+  #risultati td { border: 1px solid #d2d2d7; padding: 3px 8px; vertical-align: top; font-size: 13px; }
+  #risultati { border-collapse: collapse; }
+  #sintesi { font-size: 18px; font-weight: 600; margin: 8px 0; }
+</style>
+</head>
+<body>
+<h1>Autotest dell'interfaccia di revisione</h1>
+<p>Questa pagina prova, in questo browser e sui dati veri del pacchetto, la logica di index.html: primo giudizio separato
+dalla soluzione, coppie, decontaminazione, esportazione e importazione, TSV, immagini. Non legge e non modifica il lavoro
+salvato nel browser. Se compare anche una sola riga rossa, non iniziare la revisione e segnala il problema.</p>
+<div id="sintesi">Esecuzione…</div>
+<table id="risultati"></table>
+<div id="prova" hidden></div>
+<script src="dati/pacchetto.js" charset="utf-8"></script>
+<script src="dati/soluzioni.js" charset="utf-8"></script>
+<script src="dati/evidenze.js" charset="utf-8"></script>
+<script src="logica.js" charset="utf-8"></script>
+<script src="app.js" charset="utf-8"></script>
+<script src="test.js" charset="utf-8"></script>
+</body>
+</html>
