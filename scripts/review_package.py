@@ -19,11 +19,17 @@ I file .js si caricano con <script>, quindi l'interfaccia si apre da file:// sen
 
 `verifica` rilegge il pacchetto e lo confronta con campione-2: conteggi (380 unità casuali, 175 mirate, 264 candidati,
 755 corrispondenze), identificativi, prompt esatti, risposte e opzioni, immagini, moduli, SHA256SUMS, separazione del
-primo passaggio, riferimenti dell'interfaccia e assenza di richieste di rete. Scrive --report ed esce con errore se un
-controllo fallisce. Non prova l'interfaccia in un browser.
+primo passaggio, collegamenti fra unità per record e per scena, riferimenti dell'interfaccia e assenza di richieste di
+rete. Scrive --report ed esce con errore se un controllo fallisce. Non prova l'interfaccia in un browser.
+
+`esegui-js` esegue il JavaScript del pacchetto (dati, logica.js, app.js, test.js) con Duktape, la libreria di sistema
+di lagrange0 caricata con ctypes, senza DOM e su un DOM simulato (scripts/review_package_dom.js); confronta i
+collegamenti di logica.js con quelli calcolati qui e cerca soluzioni nell'output dell'autotest. Non è una prova in un
+browser.
 
     srun $RUN_PYTHON -u -B scripts/review_package.py build --campione DIR --manifest DIR --out DIR
-    srun $RUN_PYTHON -u -B scripts/review_package.py verifica --campione DIR --pacchetto DIR --report FILE
+    srun $RUN_PYTHON -u -B scripts/review_package.py verifica --campione DIR --pacchetto DIR --manifest DIR --report FILE
+    srun $RUN_PYTHON -u -B scripts/review_package.py esegui-js --pacchetto DIR --dom FILE --report FILE
 """
 from __future__ import annotations
 
@@ -436,6 +442,73 @@ def js_lexical(text: str) -> str | None:
     return f"{stack[-1][0]} non chiuso ({where(stack[-1][1])})" if stack else None
 
 
+STYLE = ("lw", "font", "font_family", "width", "height")  # come synth_candidate.STYLE: stile, non stato della scena
+
+
+def scene_key(json_text: str) -> str:
+    """Chiave dello stato della scena di un record, calcolata come in logica.js (chiaveScena): la specifica senza
+    chiave, versione del generatore e stile (synth_candidate.scene_state), in forma canonica."""
+    spec = json.loads(json_text)["spec"]
+    return json.dumps({k: v for k, v in spec.items() if k not in ("key", "generator_version", *STYLE)},
+                      sort_keys=True, ensure_ascii=False)
+
+
+def links_map(units: list[dict], ev: dict):
+    """(unità per record, record per scena, chiave della scena per record, unità collegate per unità): mostrare la
+    soluzione di un'unità espone i suoi record, e con loro le scene uguali; le unità collegate sono quelle che mostrano
+    uno di questi record o un record con la stessa scena (logica.js, contesto)."""
+    rec_units: dict[str, list[str]] = defaultdict(list)
+    for u in units:
+        for x in u["immagini"]:
+            if u["id"] not in rec_units[x["record"]]:
+                rec_units[x["record"]].append(u["id"])
+    key_of = {r: scene_key(ev[r]["json"]) for r in rec_units}
+    by_scene: dict[str, list[str]] = defaultdict(list)
+    for r, k in key_of.items():
+        by_scene[k].append(r)
+    linked: dict[str, set] = {u["id"]: set() for u in units}
+    for u in units:
+        for x in u["immagini"]:
+            for r in by_scene[key_of[x["record"]]]:
+                linked[u["id"]].update(w for w in rec_units[r] if w != u["id"])
+    return rec_units, by_scene, key_of, linked
+
+
+def unit_links(units: list[dict], ev: dict, by_key: dict) -> dict:
+    """Statistiche dei collegamenti fra unità (links_map), con il controllo che le scene uguali calcolate dal JSON dei
+    record coincidano con lo stato della scena registrato nel manifest."""
+    rec_units, by_scene, _, linked = links_map(units, ev)
+    by_state: dict[str, list[str]] = defaultdict(list)
+    for r in rec_units:
+        by_state[by_key[r]["stato_scena_sha256"]].append(r)
+    same_partition = sorted(map(sorted, by_scene.values())) == sorted(map(sorted, by_state.values()))
+    seen, sizes = set(), []
+    for uid in linked:  # componenti connesse della relazione "collegate"
+        if uid in seen:
+            continue
+        stack, comp = [uid], 0
+        seen.add(uid)
+        while stack:
+            cur = stack.pop()
+            comp += 1
+            for w in linked[cur]:
+                if w not in seen:
+                    seen.add(w)
+                    stack.append(w)
+        sizes.append(comp)
+    shared = {r: us for r, us in rec_units.items() if len(us) > 1}
+    scenes = [rs for rs in by_scene.values() if len(rs) > 1]
+    return {"partizione_uguale_al_manifest": same_partition,
+            "record": len(rec_units), "record_con_piu_unita": len(shared),
+            "unita_su_record_condivisi": len({w for us in shared.values() for w in us}),
+            "scene_con_piu_record": len(scenes), "record_in_scene_condivise": sum(map(len, scenes)),
+            "unita_con_collegamenti": sum(1 for v in linked.values() if v),
+            "max_collegate_per_unita": max(map(len, linked.values())),
+            "componenti": dict(sorted(Counter(sizes).items())),
+            "esempi_record": {r: us for r, us in sorted(shared.items())[:5]},
+            "esempi_scene": [{r: rec_units[r] for r in rs} for rs in scenes[:5]]}
+
+
 def verify(args) -> int:
     pkg_dir, src = args.pacchetto, args.campione
     checks: list[dict] = []
@@ -557,6 +630,10 @@ def verify(args) -> int:
           set(ev) == recs and all(hashlib.sha256(e["json"].encode("utf-8")).hexdigest() == e["json_sha256"]
                                   == by_key[k]["json_sha256"] for k, e in ev.items())
           and all(e["checker"] is not None and e["checker"]["key"] == k for k, e in ev.items()), len(ev))
+    links = unit_links(units, ev, by_key)
+    check("collegamenti fra unità per record e per stato della scena (specifica senza chiave, versione e stile, come "
+          "in logica.js): stessa partizione dello stato registrato nel manifest", links["partizione_uguale_al_manifest"],
+          links)
     refs = {x["immagine"]: x["immagine_sha256"] for u in units for x in u["immagini"]}
     refs.update({d["immagine"]: d["immagine_sha256"] for d in pkg["decontaminazione"]})
     refs.update({x["immagine"]: x["immagine_sha256"] for d in pkg["decontaminazione"] for x in d["elenco"]
@@ -604,6 +681,185 @@ def verify(args) -> int:
     return 1 if failed else 0
 
 
+# ---------------------------------------------------------------- esecuzione del JavaScript con Duktape
+
+DUKTAPE = "/lib/x86_64-linux-gnu/libduktape.so.207"  # libreria di sistema di lagrange0 (Duktape 2.7, ES5.1)
+JS_FILES = ("dati/pacchetto.js", "dati/soluzioni.js", "dati/evidenze.js", "logica.js", "app.js", "test.js")
+
+
+class JSError(Exception):
+    pass
+
+
+class Duktape:
+    """Motore JavaScript Duktape caricato con ctypes. Ogni sorgente si valuta con l'eval globale del motore (eval
+    indiretto: ambito globale, come uno <script>), chiamato in modo protetto: un errore JavaScript diventa JSError con
+    il messaggio e la riga, senza fermare l'interprete."""
+
+    def __init__(self, path: str):
+        import ctypes
+        self.c = ctypes
+        lib = ctypes.CDLL(path)
+        vp, sz = ctypes.c_void_p, ctypes.c_size_t
+        lib.duk_create_heap.restype, lib.duk_create_heap.argtypes = vp, [vp] * 5
+        lib.duk_destroy_heap.restype, lib.duk_destroy_heap.argtypes = None, [vp]
+        lib.duk_get_global_string.restype, lib.duk_get_global_string.argtypes = ctypes.c_uint, [vp, ctypes.c_char_p]
+        lib.duk_push_lstring.restype, lib.duk_push_lstring.argtypes = vp, [vp, ctypes.c_char_p, sz]
+        lib.duk_pcall.restype, lib.duk_pcall.argtypes = ctypes.c_int, [vp, ctypes.c_int]
+        lib.duk_safe_to_lstring.restype = vp
+        lib.duk_safe_to_lstring.argtypes = [vp, ctypes.c_int, ctypes.POINTER(sz)]
+        lib.duk_pop.restype, lib.duk_pop.argtypes = None, [vp]
+        lib.duk_get_top.restype, lib.duk_get_top.argtypes = ctypes.c_int, [vp]
+        self.lib, self.ctx = lib, lib.duk_create_heap(None, None, None, None, None)
+        if not self.ctx:
+            raise Failed(f"{path}: heap di Duktape non creato")
+
+    def eval(self, source: str, name: str = "codice") -> str:
+        lib, ctx, c = self.lib, self.ctx, self.c
+        top = lib.duk_get_top(ctx)
+        lib.duk_get_global_string(ctx, b"eval")
+        data = source.encode("utf-8")
+        lib.duk_push_lstring(ctx, data, len(data))
+        rc = lib.duk_pcall(ctx, 1)
+        n = c.c_size_t()
+        ptr = lib.duk_safe_to_lstring(ctx, -1, c.byref(n))
+        text = c.string_at(ptr, n.value).decode("utf-8", "replace") if ptr else ""
+        lib.duk_pop(ctx)
+        if lib.duk_get_top(ctx) != top:
+            raise Failed(f"{name}: pila di Duktape non bilanciata")
+        if rc != 0:
+            raise JSError(f"{name}: {text}")
+        return text
+
+    def close(self) -> None:
+        self.lib.duk_destroy_heap(self.ctx)
+
+
+LINKS_JS = """JSON.stringify((function () {
+  var C = window.Logica.contesto(window.PACCHETTO, window.EVIDENZE), o = {};
+  Object.keys(C.collegati).forEach(function (k) { o[k] = C.collegati[k].map(function (c) { return c.id; }).sort(); });
+  return o;
+})())"""
+
+
+WORD = re.compile(r"[A-Za-z0-9_]")
+
+
+def bounded(text: str, s: str) -> bool:
+    """s compare in text come parola intera, o con bordi non alfanumerici (come confinato() in test.js)."""
+    i = text.find(s)
+    while i >= 0:
+        before = text[i - 1] if i else " "
+        after = text[i + len(s)] if i + len(s) < len(text) else " "
+        if ((not WORD.match(s[0]) or not WORD.match(before))
+                and (not WORD.match(s[-1]) or not WORD.match(after))):
+            return True
+        i = text.find(s, i + 1)
+    return False
+
+
+def secrets_of(units: list[dict], sol: dict) -> list[str]:
+    """Come segreti() in test.js: risposte attese, opzioni, motivi e misure di un'unità (almeno 4 caratteri) che non
+    compaiono nel suo testo visibile al primo passaggio (id, prompt, domanda, consegna, record)."""
+    out = set()
+    for u in units:
+        s = sol.get(u["id"])
+        if not s:
+            continue
+        visible = "\n".join([u["id"], u["prompt"] or "", u["domanda"] or "", u["consegna"] or "",
+                             *[x["record"] for x in u["immagini"]]])
+        cand = [s.get("motivo"), s.get("misura")]
+        for x in s["varianti"]:
+            cand += [x["risposta"], *x["opzioni"]]
+        for t in cand:
+            t = ("" if t is None else str(t)).strip()
+            if len(t) >= 4 and not bounded(visible, t):
+                out.add(t)
+    return sorted(out)
+
+
+def run_once(lib: str, pkg_dir: Path, dom: Path | None) -> dict:
+    duk = Duktape(lib)
+    res = {"dom": str(dom) if dom else None, "file": {}, "errore": None, "righe": None, "collegati": None}
+    try:
+        res["versione_duktape"] = duk.eval("String(typeof Duktape === 'object' ? Duktape.version : '?')")
+        if dom:
+            duk.eval(dom.read_text(encoding="utf-8"), str(dom))
+            res["file"][str(dom)] = {"sha256": sha256_file(dom)}
+        else:
+            duk.eval("var window = this;", "prelude")
+        for name in JS_FILES:
+            path = pkg_dir / name
+            t1 = time.time()
+            duk.eval(path.read_text(encoding="utf-8"), name)
+            res["file"][name] = {"sha256": sha256_file(path), "secondi": round(time.time() - t1, 2)}
+        if dom:  # timer in sospeso (salvataggi ritardati dell'interfaccia)
+            res["timer_rimasti"] = int(float(duk.eval("String(window.__DOM.svuotaTimer())", "timer")))
+        res["righe"] = json.loads(duk.eval("JSON.stringify(window.RISULTATI_TEST || null)", "risultati"))
+        res["collegati"] = json.loads(duk.eval(LINKS_JS, "collegamenti"))
+    except (JSError, Failed) as exc:
+        res["errore"] = str(exc)
+    finally:
+        duk.close()
+    return res
+
+
+def run_js(args) -> int:
+    """Esegue con Duktape (libreria di sistema, via ctypes) i dati, logica.js, app.js e test.js del pacchetto, come
+    verifica.html ma fuori dal browser: una volta senza DOM e, con --dom, una volta sul DOM simulato
+    (scripts/review_package_dom.js). Confronta i collegamenti fra unità calcolati da logica.js con quelli calcolati qui
+    e cerca nelle righe dell'autotest le soluzioni del secondo passaggio. Scrive --report ed esce con errore se una riga
+    fallisce, se il codice non si esegue o se l'output contiene una soluzione. Non è una prova in un browser: niente
+    disegno della pagina, eventi veri, immagini o localStorage."""
+    t0 = time.time()
+    pkg_dir = args.pacchetto
+    pkg = read_js(pkg_dir / "dati/pacchetto.js", "PACCHETTO")
+    sol = read_js(pkg_dir / "dati/soluzioni.js", "SOLUZIONI")
+    ev = read_js(pkg_dir / "dati/evidenze.js", "EVIDENZE")
+    units = pkg["campione"] + pkg["mirati"]
+    _, _, _, linked = links_map(units, ev)
+    expected_links = {k: sorted(v) for k, v in linked.items()}
+    secrets = secrets_of(units, sol)
+    out = {"schema": SCHEMA + "-esecuzione-js", "job_id": os.environ.get("SLURM_JOB_ID"), "code": code_identity(),
+           "pacchetto": str(pkg_dir), "impronta": pkg["impronta"],
+           "motore": {"libreria": args.libreria, "sha256": sha256_file(Path(args.libreria))},
+           "nota": "logica e interfaccia eseguite con Duktape, senza DOM e su un DOM simulato; non è una prova in un "
+                   "browser (disegno, eventi veri, immagini e localStorage si provano con verifica.html)",
+           "segreti_cercati": len(secrets), "esecuzioni": []}
+    failed = False
+    for dom in [None] + ([args.dom] if args.dom else []):
+        res = run_once(args.libreria, pkg_dir, dom)
+        label = "DOM simulato" if dom else "senza DOM"
+        print(f"== esecuzione {label}", flush=True)
+        rows = res["righe"]
+        if res["errore"] or rows is None:
+            print("ERRORE " + str(res["errore"]), flush=True)
+            failed = True
+        else:
+            leaks = [i for i, r in enumerate(rows)
+                     if any(bounded(r["nome"] + "\n" + r["dettaglio"], s) for s in secrets)]
+            for i in leaks:  # nel rapporto (tracciato in git e scaricato con il pacchetto) non resta nulla
+                rows[i] = {"nome": f"riga {i + 1}", "ok": False, "dettaglio": "[nascosto: conteneva una soluzione]"}
+            res["righe_con_soluzioni"] = leaks
+            res["collegamenti_uguali_a_python"] = res["collegati"] == expected_links
+            res["superati"] = sum(r["ok"] is True for r in rows)
+            res["falliti"] = [r["nome"] for r in rows if r["ok"] is False]
+            res["saltati"] = [r["nome"] for r in rows if r["ok"] is None]
+            for r in rows:
+                mark = {True: "ok   ", False: "FAIL ", None: "salt "}[r["ok"]]
+                print(mark + r["nome"] + (f"  ({r['dettaglio']})" if r["dettaglio"] else ""), flush=True)
+            print(f"{res['superati']} superati, {len(res['falliti'])} falliti, {len(res['saltati'])} saltati su "
+                  f"{len(rows)}; collegamenti uguali a quelli calcolati in Python: {res['collegamenti_uguali_a_python']}; "
+                  f"righe con soluzioni: {len(leaks)}", flush=True)
+            failed |= bool(res["falliti"] or leaks or not res["collegamenti_uguali_a_python"])
+        res["collegati"] = None if res["collegati"] == expected_links else res["collegati"]
+        out["esecuzioni"].append(res)
+    out["seconds"] = round(time.time() - t0, 1)
+    args.report.parent.mkdir(parents=True, exist_ok=True)
+    args.report.write_text(json.dumps(out, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+    return 1 if failed else 0
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -616,12 +872,19 @@ def main() -> None:
     v.add_argument("--pacchetto", required=True, type=Path)
     v.add_argument("--manifest", required=True, type=Path)
     v.add_argument("--report", required=True, type=Path)
+    j = sub.add_parser("esegui-js")
+    j.add_argument("--pacchetto", required=True, type=Path)
+    j.add_argument("--report", required=True, type=Path)
+    j.add_argument("--dom", type=Path, help="DOM simulato da caricare prima dei dati (scripts/review_package_dom.js)")
+    j.add_argument("--libreria", default=DUKTAPE)
     args = ap.parse_args()
     if not os.environ.get("SLURM_JOB_ID"):
         sys.exit("review_package.py va eseguito in un job SLURM")
     try:
         if args.cmd == "build":
             build(args)
+        elif args.cmd == "esegui-js":
+            sys.exit(run_js(args))
         else:
             sys.exit(verify(args))
     except Failed as exc:

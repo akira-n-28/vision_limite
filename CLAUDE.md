@@ -415,8 +415,15 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
     prompt del loader nel primo passaggio e le soluzioni per variante delle coppie. L'audit non è eseguito.
   - La revisione umana la fa l'utente sul portatile, col pacchetto offline `revisioni/synth-v4-campione-2` (tracciato in
     git, S2 §2.12; job 30557-30559). Gli esiti tornano in `revisioni/synth-v4-campione-2/risultati/`, da verificare
-    contro impronta e identificativi prima di qualsiasi uso. L'interfaccia non è provata in un browser: nei job non c'è
-    un motore JavaScript, e il primo collaudo è `verifica.html` sul portatile.
+    contro impronta, identificativi e registro delle esposizioni prima di qualsiasi uso. Le regole del file:
+    - la soluzione di un'unità si mostra solo dopo i primi giudizi delle unità sullo stesso record o sulla stessa
+      scena, che restano fissati;
+    - le esposizioni non si perdono in importazioni e ripristini;
+    - il file è nel formato `synth-v4-revisione-avanzamento/2`, con migrazione dal formato 1.
+
+    Il JavaScript si esegue nei job con Duktape, libreria di sistema di `lagrange0` usata via ctypes, su un DOM
+    simulato: `review_package.py esegui-js`, job 30562-30566. Non usare Node in `~/.nvm` né Firefox snap, che stanno
+    fuori dal progetto. Non è una prova in un browser: il collaudo resta `verifica.html` sul portatile.
   - Ancora incompleto per gli esperimenti: mancano audit visivo, verifica dei candidati, varianti e contratto. La
     config della famiglia `synth` richiede ancora la lista v3 vuota di `data_lists.REQUIRED`.
 

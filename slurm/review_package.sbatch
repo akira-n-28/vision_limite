@@ -7,9 +7,10 @@
 #   CAMPIONE: cartella in outputs/synth_gold_review (es. campione-2); NOME: cartella in revisioni (es. synth-v4-campione-2)
 #   senza "verifica": costruzione -> revisioni/NOME/{dati,immagini,moduli,pacchetto.json,SHA256SUMS}, poi le verifiche;
 #   con "verifica": solo le verifiche di un pacchetto già costruito.
-#   Verifica statica: scripts/review_package.py verifica -> revisioni/NOME/verifica_pacchetto.json. Non esegue il
-#   JavaScript: su lagrange0 non c'è un motore JS (job 30558) e non è una prova in un browser; l'interfaccia si collauda
-#   aprendo revisioni/NOME/verifica.html.
+#   Verifica statica: scripts/review_package.py verifica -> revisioni/NOME/verifica_pacchetto.json. Poi esecuzione
+#   del JavaScript con la libreria di sistema Duktape (job 30562) su un DOM simulato: review_package.py esegui-js ->
+#   revisioni/NOME/verifica_js.json. Nessuna delle due è una prova in un browser: l'interfaccia si collauda aprendo
+#   revisioni/NOME/verifica.html.
 #SBATCH --job-name=lvl-review-package
 #SBATCH --partition=mat
 #SBATCH --nodes=1
@@ -47,10 +48,23 @@ if [[ $MODE == costruzione ]]; then
     exit 1
   fi
 fi
+status=0
 if srun "$RUN_PYTHON" -u -B scripts/review_package.py verifica --campione "$SRC" --pacchetto "$PKG" --manifest "$MANIFEST" \
     --report "$PKG/verifica_pacchetto.json"; then
   ledger_note ok "review_package $NAME ($MODE): pacchetto da $SRC -> $PKG, verifica statica superata"
 else
-  ledger_note failed "review_package $NAME ($MODE): verifica -> $PKG/verifica_pacchetto.json"
-  exit 1
+  ledger_note failed "review_package $NAME ($MODE): verifica statica -> $PKG/verifica_pacchetto.json"
+  status=1
 fi
+# Esecuzione del JavaScript (dati, logica.js, app.js, test.js) con Duktape, libreria di sistema di lagrange0, su un DOM
+# simulato: è l'esecuzione della logica e dell'interfaccia fuori da un browser, non una prova in un browser.
+DOM=()
+[[ -f scripts/review_package_dom.js ]] && DOM=(--dom scripts/review_package_dom.js)
+if srun "$RUN_PYTHON" -u -B scripts/review_package.py esegui-js --pacchetto "$PKG" "${DOM[@]}" \
+    --report "$PKG/verifica_js.json"; then
+  ledger_note ok "review_package $NAME ($MODE): JavaScript eseguito con Duktape ${DOM[*]:-senza DOM}, autotest superato"
+else
+  ledger_note failed "review_package $NAME ($MODE): esecuzione del JavaScript con Duktape -> $PKG/verifica_js.json"
+  status=1
+fi
+exit $status

@@ -1274,7 +1274,7 @@ manifest 24 KiB.
 I 743 gruppi esclusi dal pannello possono restare esclusi: risolverli tutti non è un prerequisito per avanzare
 (`docs/PANNELLO_VALUTAZIONE.md` §7, punto 2).
 
-### 2.12 Pacchetto offline per la revisione umana (job 30557-30559, 2026-11-04)
+### 2.12 Pacchetto offline per la revisione umana (job 30557-30566, 2026-11-04)
 
 L'utente fa la revisione sul proprio portatile: scarica il pacchetto da GitHub, compila gli esiti e li ricarica in
 `risultati/`. Il pacchetto è `revisioni/synth-v4-campione-2/`, tracciato in git; le istruzioni sono nel suo
@@ -1342,12 +1342,9 @@ La verifica statica controlla:
 - riferimenti degli script e nessuna richiesta di rete;
 - commenti, stringhe, regex e parentesi bilanciate nei file JS.
 
-**Non è stato provato in un browser**, e il JavaScript non è stato eseguito. Non c'è un motore JavaScript nei job né
-nei venv. L'unico browser disponibile è il Firefox snap del frontend, che sul frontend non si esegue e che scriverebbe
-il profilo in `~/snap/`, fuori dalla cartella del progetto.
-
-Per questo il pacchetto contiene `verifica.html` (`test.js`), un autotest da aprire sul Mac prima di iniziare. Gira sui
-dati veri e prova:
+Fino a `a9252b5` il JavaScript non era stato eseguito: si credeva che nei job non ci fosse un motore JavaScript. Per
+questo il pacchetto contiene `verifica.html` (`test.js`), un autotest da aprire sul Mac prima di iniziare. Gira sui dati
+veri e prova:
 - primo giudizio separato dalla soluzione;
 - coppie e casi sulla scena intera;
 - esportazione e reimportazione con caratteri speciali e note su più righe;
@@ -1357,7 +1354,72 @@ dati veri e prova:
 - costruzione delle pagine;
 - caricamento di tutte le 972 immagini.
 
-Finché non dà "tutti i controlli superati" sul browser del revisore, l'interfaccia resta non collaudata.
+**Correzioni della protezione del primo giudizio** (revisione dell'utente fino ad `a9252b5`; job 30562-30566). Campione,
+ordine, identificativi, prompt, target, immagini, dati del pacchetto e impronta non cambiano; cambiano interfaccia,
+autotest e formato del file di avanzamento.
+1. **Autotest.** La `verifica.html` di `a9252b5` stampava il target di un'unità nel controllo del DOM. Ora nomi e
+   dettagli contengono solo identificativi e conteggi. Un controllo finale cerca nell'output le risposte attese, le
+   opzioni, i motivi e le misure di almeno 4 caratteri assenti dal testo visibile dell'unità (184 stringhe). Se ne
+   trova, nasconde la riga e fallisce; una prova interna verifica che riconosca un target vero. Sul cluster lo stesso
+   controllo è ripetuto in Python sulle righe prima di scrivere il rapporto.
+2. **Unità collegate.** Il materiale di un record (tutte le QA con le risposte, spec, layout, checker) rivela anche le
+   risposte delle altre unità dello stesso record. Lo stesso vale per i record con la stessa scena: specifica senza
+   chiave, versione e stile, come `synth_candidate.scene_state`. La scena è calcolata in `logica.js` dal JSON dei
+   record, e la partizione coincide con lo stato del manifest. Nel pacchetto:
+   - 7 record compaiono in più unità (15 unità), per esempio `synth-test-00038` in `C-test-008` e `C-test-012`;
+   - 13 scene ricorrono in 28 record;
+   - le unità collegate sono 23, in componenti di al più 4.
+
+   La soluzione si mostra solo quando le unità collegate hanno un primo giudizio salvato, senza modifiche in sospeso.
+   La pagina le elenca con un pulsante per raggiungerle, senza dire nel primo passaggio se il legame è record o scena,
+   perché nei casi «stessa istanza?» lo anticiperebbe. Alla rivelazione:
+   - i loro primi giudizi restano fissati (`prima_fissata`: quando, tramite quale unità, quale record, che legame);
+   - ogni record esposto entra nel registro `esposizioni` (record, quando, tramite, origine).
+
+   Un'unità esposta prima di avere un primo giudizio salvato è segnata `esposta_senza_primo_giudizio`: il suo primo
+   giudizio resta fissato al salvataggio. Nel TSV vale `non_indipendente`, con la risposta nelle note. Coppie e casi
+   mirati con più immagini espongono tutti i loro record. Nessun giudizio si compila da solo.
+3. **Importazione, sostituzione e ripresa.** `Logica.unisci` sostituisce l'assegnazione diretta dello stato:
+   - le esposizioni si uniscono sempre;
+   - un primo giudizio fissato vince su una versione non fissata; fra due fissati diversi vale quello fissato prima;
+   - la soluzione mostrata tiene la data più antica;
+   - il lavoro in conflitto resta quello del browser finché il revisore non sceglie browser, file o «sostituisci tutto»
+     (che tiene comunque la conoscenza);
+   - ogni versione scartata va in `archivio`, con origine e motivo; una salvata dopo l'esposizione è marcata non
+     indipendente.
+
+   La stessa unione vale per l'importazione e per il salvataggio nel browser, che prima di scrivere rilegge lo stato
+   salvato da un'altra scheda. Prima di un'importazione si scarica una copia del browser. Uno stato del browser
+   illeggibile si copia in una chiave di riserva invece di essere sovrascritto.
+4. **Formato.** Il file di avanzamento passa a `synth-v4-revisione-avanzamento/2`. Il formato 1 si legge con una
+   migrazione esplicita, registrata in `migrazioni` e annunciata: le soluzioni mostrate diventano esposizioni, e le
+   unità collegate sono fissate (salvate prima) o non indipendenti. Nel browser resta una copia del formato 1.
+
+**Esecuzione del JavaScript.** Una sonda di sola lettura su `lagrange0` (`slurm/js_engine_probe.sbatch`, job 30562) ha
+trovato tre candidati:
+- `libduktape.so.207`: Duktape 2.7, motore ES5.1, libreria di sistema installata con il sistema operativo;
+- Node in `~/.nvm`, fuori dalla cartella del progetto: non usato;
+- Firefox snap, che scriverebbe in `~/snap/`: non usato.
+
+`review_package.py esegui-js` carica Duktape con ctypes e valuta i dati, `logica.js`, `app.js` e `test.js` con l'eval
+globale, come gli `<script>` della pagina. Lo fa due volte:
+- **senza DOM:** si eseguono logica e regressioni;
+- **su un DOM simulato** (`scripts/review_package_dom.js`): si costruiscono le pagine, si premono i pulsanti, si
+  usa una memoria finta al posto di localStorage.
+
+Confronta poi i collegamenti calcolati da `logica.js` con quelli calcolati in Python e scrive
+`revisioni/synth-v4-campione-2/verifica_js.json`. Esiti:
+- job 30563, sul codice pubblicato `a9252b5`: 58 controlli superati su 59, saltata la parte DOM. Era la prima
+  esecuzione di quel codice;
+- job 30564, sulle correzioni: un fallimento, in un controllo del test troppo largo;
+- job 30565: senza DOM 97 superati, 0 falliti e 1 saltato; su DOM simulato 118, 0 e 1 (le immagini); collegamenti
+  uguali a Python; nessuna soluzione nell'output; verifica statica 29 su 29.
+
+Sono tre livelli distinti:
+- controllo statico;
+- esecuzione della logica e dell'interfaccia con Duktape;
+- prova in un browser, **non eseguita**. Disegno, eventi veri, localStorage, scaricamenti e immagini si provano solo
+  con `verifica.html` sul Mac.
 
 **Restituzione:** il file di avanzamento JSON (obbligatorio) e i due TSV (facoltativi) vanno in
 `revisioni/synth-v4-campione-2/risultati/`; il resto del pacchetto non si modifica. Sul cluster i file si verificheranno

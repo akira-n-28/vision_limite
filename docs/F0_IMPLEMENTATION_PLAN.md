@@ -295,6 +295,7 @@ C3 e C4 seguono D3.
 | 30523 (2026-11-02) | `slurm/tests_cpu.sbatch` su `87c4108` | 27 file, 1.052 controlli, nessun fallimento, stderr vuoto, 10 min 54 s. Nuovi: `tests/test_panel.py` +11, `test_synth_decontam.py` 31, `test_synth_gold.py` 20 | che le modifiche di questo lotto superano le regressioni scritte e che i 990 controlli precedenti non cambiano |
 | 30555 (2026-11-04) | `slurm/tests_cpu.sbatch` su `6328a29` | 27 file, 1.086 controlli, nessun fallimento, stderr vuoto, 10 min 2 s. Nuovi: `test_synth_gold.py` +22 (prompt del loader con e senza opzioni incorporate, coppia con risposte diverse, undicesima corrispondenza, riconciliazione), `test_synth_decontam.py` +12 (due derivazioni consecutive) | che le quattro correzioni superano le regressioni scritte e che i controlli precedenti non cambiano |
 | 30557-30559 (2026-11-04) | `slurm/review_package.sbatch campione-2 synth-v4-campione-2` (30557), poi con `verifica` (30558, 30559) | Pacchetto offline `revisioni/synth-v4-campione-2` (S2 §2.12): 380 + 175 unità, 264 candidati con 755 corrispondenze, 972 immagini con sha256 identici; verifica statica 28 su 28 con il controllo lessicale dei file JS. `jjs` non c'è su `lagrange0` (30558) | che i dati del pacchetto sono quelli di `campione-2` e completi. Non prova l'interfaccia in un browser né esegue il JavaScript: il collaudo è `verifica.html` sul portatile |
+| 30562-30566 (2026-11-04) | `slurm/js_engine_probe.sbatch` (30562); `slurm/review_package.sbatch campione-2 synth-v4-campione-2 verifica` (30563-30566) | Sonda: su `lagrange0` c'è Duktape 2.7 come libreria di sistema; Node in `~/.nvm` e Firefox snap restano fuori dal progetto e non si usano. Il JavaScript pubblicato (`a9252b5`), eseguito per la prima volta con Duktape: 58 su 59 controlli, saltata la parte DOM. Correzioni del primo giudizio (S2 §2.12): autotest senza target, unità collegate per record e scena (23 unità), registro delle esposizioni, unione degli stati, formato 2 con migrazione. Esito: senza DOM 97 superati e 0 falliti; su DOM simulato 118 e 0; collegamenti uguali a Python; verifica statica 29 su 29 | che logica e interfaccia si eseguono con Duktape, con le regressioni scritte, sui dati veri. Non è una prova in un browser: il collaudo resta `verifica.html` sul portatile |
 | 30556 (2026-11-04) | `slurm/synth_gold_sample.sbatch campione-2 campione-1 campione-1`, dopo il 30555 | 4 min. Test mirati; `manifest_check` di `synth-v4-candidato-2` col validatore corretto, 44 su 44 con la catena 2 → 1; fogli `campione-2`: 755 corrispondenze su 755 riconciliate (18 oltre l'anteprima, in 3 record), 102 immagini del pannello, prompt del loader per 337 unità, soluzioni per variante; selezione identica a `campione-1` (S2 §2.11) | che i fogli sono completi e riproducibili con la stessa estrazione. Nessuna revisione e nessuna stima |
 
 Calcoli di sola libreria standard sul frontend, il 2026-10-28, a supporto delle specifiche (non sono collaudi):
@@ -487,8 +488,13 @@ dettagli in S2 §§2.9-2.10):
   - `manifest_check` verifica gli split risalendo la catena delle derivazioni fino alla versione che li assegnò.
 
   I fogli da usare sono quelli di `campione-2`. Per la revisione sul portatile c'è il pacchetto offline
-  `revisioni/synth-v4-campione-2` (job 30557-30559, S2 §2.12), con l'autotest `verifica.html`; gli esiti tornano in
+  `revisioni/synth-v4-campione-2` (job 30557-30566, S2 §2.12), con l'autotest `verifica.html`; gli esiti tornano in
   `revisioni/synth-v4-campione-2/risultati/`.
+  - La soluzione di un'unità si mostra solo dopo i primi giudizi delle unità sullo stesso record o sulla stessa scena,
+    che restano fissati.
+  - Le esposizioni si registrano e non si perdono in importazioni e ripristini; il file di avanzamento è nel formato 2,
+    con migrazione dal formato 1.
+  - Logica e interfaccia sono eseguite con Duktape su un DOM simulato; nessuna prova in un browser.
 - **Stato.** Ancora incompleto per gli esperimenti: mancano l'audit visivo, la verifica dei candidati, le varianti e il
   contratto. Decontaminazione superata, golden answer verificate e dati pronti per F0 sono tre condizioni diverse, e
   nessuna delle ultime due è raggiunta.

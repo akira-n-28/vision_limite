@@ -22,8 +22,13 @@ in `SHA256SUMS`; l'esito della verifica sul cluster in `verifica_pacchetto.json`
 2. Facoltativo, per controllare l'integrità: nel Terminale, dentro la cartella, `shasum -a 256 -c SHA256SUMS` deve dare
    `OK` per ogni riga.
 3. **Prima di iniziare apri `verifica.html`** (doppio clic). È un autotest nel tuo browser, sui dati veri: logica del
-   primo giudizio, coppie, decontaminazione, esportazione e importazione, TSV, caricamento di tutte le 972 immagini. Non
-   tocca il tuo lavoro. Deve dire "Tutti i … controlli superati"; se c'è una riga rossa, fermati e segnalala.
+   primo giudizio, unità collegate ed esposizioni, coppie, decontaminazione, esportazione, importazione e ripresa, TSV,
+   caricamento di tutte le 972 immagini. Non tocca il tuo lavoro: usa una memoria finta al posto di quella del browser
+   e non scarica file. Non mostra soluzioni: nei risultati ci sono solo identificativi e conteggi, e un controllo
+   finale cerca nell'output risposte attese, opzioni ausiliarie e motivi. Deve dire "Tutti i … controlli superati"; se
+   c'è una riga rossa, fermati e segnalala.
+   - **Non usare la `verifica.html` delle copie scaricate fino al commit `a9252b5`:** in un controllo mostrava il target
+     di un'unità del campione. Scarica di nuovo lo ZIP e usa solo questa versione.
 4. Apri `index.html`. Se Safari blocca qualcosa, apri il file da *File → Apri file*; anche Firefox e Chrome vanno bene.
    Usa sempre lo stesso browser: il salvataggio automatico vale solo per quel browser.
 
@@ -73,6 +78,38 @@ Il materiale di confronto comprende:
 - per ogni record, le domande con le risposte, la specifica della scena, il layout disegnato e la riga del checker,
   presi dagli shard e dal file del candidato senza rigenerarli.
 
+### Unità collegate: perché alcune soluzioni aspettano altre unità
+
+Il materiale di un record rivela le risposte di **tutte** le sue domande, non solo di quella dell'unità: la tabella
+delle QA, la specifica, il layout e il JSON completo. Lo stesso vale per un record diverso con **la stessa scena**
+(stessa specifica a meno di chiave, versione del generatore e stile). Nel pacchetto succede per 23 unità, in gruppi di
+al più 4:
+- 7 record compaiono in più unità, per esempio `synth-test-00038` in `C-test-008` e `C-test-012`;
+- 13 scene compaiono in più record, per esempio `synth-test-00038`, `synth-test-00014` e `synth-pair-00094-a`.
+
+Per questo, nella pagina di un'unità con collegamenti:
+- il riquadro **Unità collegate** elenca le altre unità di cui la soluzione rivelerebbe la risposta, con il loro stato
+  e un pulsante per raggiungerle. Nel primo passaggio non dice se il legame è lo stesso record o la stessa scena,
+  perché nei casi «stessa istanza?» lo anticiperebbe; lo dice dopo la soluzione;
+- **Mostra soluzione** resta disattivato finché ogni unità collegata non ha un primo giudizio salvato, senza modifiche
+  in sospeso. Sotto il pulsante c'è l'elenco di quelle che mancano;
+- quando mostri la soluzione, il primo giudizio delle unità collegate resta **fissato**: non si modifica più, come il
+  tuo. Nella loro pagina compare da quando e per quale unità. La loro soluzione la mostri poi normalmente.
+
+Le coppie espongono i record di entrambe le varianti; un caso mirato con due immagini espone entrambi i record.
+
+### Registro delle esposizioni
+
+Ogni volta che mostri una soluzione si registrano i record esposti, con data e ora e l'unità da cui li hai visti
+(Riepilogo → *Record esposti*). Il registro sta nel file di avanzamento e non si cancella: né importando un file più
+vecchio, né sostituendo lo stato, né riaprendo la pagina.
+
+Se un record risulta esposto prima che un'unità collegata avesse un primo giudizio salvato, l'unità è segnata **non
+indipendente** (`~` nell'elenco, avviso rosso nella pagina). Può succedere solo con lavoro fatto altrove, per esempio
+importando un file di avanzamento del formato 1 in cui una soluzione era già stata mostrata. Puoi compilarne il primo
+giudizio, che resta fissato al salvataggio. Nel TSV la colonna `risposta_revisore` vale `non_indipendente`, e la
+risposta con il motivo va nelle note: una risposta data dopo l'esposizione non conta mai come indipendente.
+
 Nel giudizio finale, per ogni QA o variante:
 
 | Campo | Domanda |
@@ -121,16 +158,54 @@ una versione nuova del manifest.
 ## 3. Salvare e riprendere
 
 - La pagina salva da sola nel browser a ogni modifica, ma è solo una comodità: può sparire, per esempio con la
-  pulizia dei dati di Safari o in una finestra privata.
+  pulizia dei dati di Safari o in una finestra privata. Se all'apertura compare "Nessun lavoro salvato in questo
+  browser" e hai già lavorato, importa subito l'ultimo file di avanzamento prima di continuare.
 - **La copia che conta è il file di avanzamento:** *Scarica il file di avanzamento* (in alto, o nella scheda Riepilogo)
   scarica nella cartella Download `synth-v4-campione-2_avanzamento_<data-ora>.json`. Scaricalo spesso, almeno a fine
-  sessione. Contiene tutto: primo giudizio con data e ora, momento in cui hai visto la soluzione, giudizi finali,
-  risposte dopo la soluzione, esami delle corrispondenze, tempi ed eventi.
-- **Per riprendere** su un altro browser o dopo una pulizia: Riepilogo → *Importa il file JSON*. Il file si accetta
-  solo se pacchetto, versione, impronta, identificativi e valori coincidono. I casi presenti solo nel file si
-  aggiungono; quelli uguali restano; se un caso è diverso nel browser e nel file non si importa niente, e scegli tu se
-  tenere il browser o sostituire tutto con il file. In quel caso viene scaricata prima una copia di sicurezza.
+  sessione. Contiene tutto:
+  - primi giudizi con data e ora, primi giudizi fissati con la loro provenienza;
+  - registro dei record esposti e archivio delle versioni scartate;
+  - giudizi finali, risposte dopo la soluzione ed esami delle corrispondenze;
+  - tempi ed eventi.
+- Lavora in **una sola scheda**. Se la revisione è aperta in due schede, a ogni salvataggio le esposizioni e i primi
+  giudizi fissati dell'altra si uniscono, e compare un avviso; per il resto del lavoro vale l'ultima modifica.
 - Se lo scaricamento non funziona, Riepilogo → *copia il JSON a mano*.
+
+### Importare e ripristinare
+
+Riepilogo → *Importa il file JSON*. Il file si accetta solo se pacchetto, versione, impronta, identificativi e valori
+coincidono. Poi:
+1. se nel browser c'è già del lavoro, prima di cambiare qualcosa si scarica una **copia di sicurezza** del browser
+   (`…_copia_del_browser_<data-ora>.json`);
+2. la **conoscenza** del file si unisce subito e non si perde mai:
+   - le esposizioni del file si aggiungono a quelle del browser;
+   - un primo giudizio fissato vince su una versione non fissata della stessa unità, sia che venga dal file sia che
+     stia nel browser; fra due primi giudizi fissati diversi vale quello fissato prima;
+   - la data della soluzione mostrata resta la più antica;
+   - i casi presenti solo nel file si aggiungono;
+3. il **lavoro in conflitto**, cioè la stessa unità diversa nel browser e nel file senza un primo giudizio fissato, o
+   con lo stesso primo giudizio fissato ma un giudizio finale diverso, resta come nel browser finché non scegli:
+   - *Tieni le versioni del browser*;
+   - *Usa le versioni del file per i casi in conflitto*;
+   - *Sostituisci tutto con il file*: vale il file anche per i casi presenti solo nel browser, ma esposizioni e primi
+     giudizi fissati restano.
+
+Ogni versione scartata, da una scelta o perché un primo giudizio fissato ha vinto, va nell'**archivio** del file di
+avanzamento, con origine e motivo; niente sparisce in silenzio. Una versione salvata dopo l'esposizione è marcata come
+non indipendente.
+
+Così importare un file salvato prima di aver visto una soluzione non riapre il primo giudizio, e importare un file
+più recente porta con sé le sue esposizioni.
+
+**Formato dei file.** Questa versione scrive il formato 2 (`synth-v4-revisione-avanzamento/2`). Un file o uno stato del
+browser nel formato 1, quello del pacchetto fino ad `a9252b5`, si legge con una migrazione esplicita, annunciata in un
+messaggio e registrata nel file:
+- ogni soluzione già mostrata diventa un'esposizione dei suoi record;
+- le unità collegate sono fissate se avevano un primo giudizio salvato prima, altrimenti segnate come non
+  indipendenti.
+
+Nel browser resta anche una copia del formato 1. Uno stato del browser illeggibile non si sovrascrive: si copia in una
+chiave di riserva e la pagina chiede di importare il file di avanzamento.
 - Nella scheda Riepilogo trovi i conteggi di casi completi, in corso, non iniziati, incerti, non giudicabili e non
   verificabili, per sezione e per strato o categoria.
 
@@ -155,6 +230,7 @@ una versione nuova del manifest.
 | --- | --- |
 | `index.html`, `app.js`, `logica.js`, `stile.css` | interfaccia, senza framework né risorse esterne |
 | `verifica.html`, `test.js` | autotest nel browser |
+| `verifica_js.json` | esito dell'autotest eseguito sul cluster con Duktape, senza DOM e su un DOM simulato |
 | `dati/pacchetto.js` | unità come si vedono al primo passaggio |
 | `dati/soluzioni.js`, `dati/evidenze.js` | soluzioni e materiale del secondo passaggio. Non aprirli prima di aver finito |
 | `immagini/` | 870 PNG v4 e 102 immagini del pannello, byte per byte come in campione-2 |
@@ -164,6 +240,18 @@ una versione nuova del manifest.
 
 ## 6. Limiti
 
-- L'interfaccia è stata scritta e verificata sul cluster solo staticamente: dati, riferimenti e assenza di richieste
-  di rete. Non è stata aperta in un browser. Il primo controllo reale è `verifica.html` sul tuo Mac.
+Sul cluster sono stati eseguiti tre tipi di controllo, distinti:
+1. **Controlli statici** (`verifica_pacchetto.json`), in Python:
+   - dati identici a campione-2 e immagini con sha256 identici;
+   - prompt esatti e soluzioni assenti dai dati del primo passaggio;
+   - collegamenti fra unità, con la scena calcolata dal JSON dei record uguale allo stato registrato nel manifest;
+   - nessuna richiesta di rete e controllo lessicale dei file JavaScript.
+2. **Esecuzione della logica e dell'interfaccia** (`verifica_js.json`): `logica.js`, `app.js` e `test.js` girano con
+   Duktape, il motore JavaScript ES5.1 installato come libreria di sistema su `lagrange0`. È lo stesso autotest di
+   `verifica.html`, una volta senza DOM e una volta su un DOM simulato (`scripts/review_package_dom.js`). Il DOM
+   simulato costruisce le pagine, preme i pulsanti e usa una memoria finta al posto di localStorage. I collegamenti
+   calcolati da `logica.js` si confrontano con quelli calcolati in Python, e un controllo indipendente cerca le
+   soluzioni nelle righe dell'autotest.
+3. **Prova in un browser: non eseguita.** Disegno della pagina, eventi veri, localStorage, scaricamenti e caricamento
+   delle immagini si provano solo con `verifica.html` sul tuo Mac. Duktape non è il motore di Safari, Chrome o Firefox.
 - Nessun record è promosso a gold da questa revisione, che non avvia nessuna valutazione automatica.

@@ -1,15 +1,21 @@
 /* Interfaccia della revisione offline (index.html). Legge window.PACCHETTO, SOLUZIONI ed EVIDENZE (dati/*.js) e usa
-   window.Logica (logica.js). Nessuna richiesta di rete: immagini e dati sono file locali della cartella. */
+   window.Logica (logica.js). Nessuna richiesta di rete: immagini e dati sono file locali della cartella.
+
+   Salvataggio nel browser: prima di ogni scrittura lo stato salvato si rilegge e si unisce a quello in memoria
+   (Logica.unisci, senza scelta), così un'esposizione registrata da un'altra scheda o da una sessione precedente non si
+   cancella mai. Uno stato salvato che non si riesce a leggere non si sovrascrive: si copia in una chiave di riserva. */
 (function (root) {
   "use strict";
   var L = root.Logica;
-  var PKG = null, IDX = null, SOL = null, EVI = null, STATO = null;
+  var PKG = null, IDX = null, CTX = null, SOL = null, EVI = null, STATO = null;
   var OPZ = {persisti: true};
   var vista = {scheda: "campione", id: null, filtro: "tutti", zoom: "1"};
   var cronometro = {id: null, inizio: 0};
   var voceElenco = {};
   var timerSalvataggio = null;
   var esitoSalvataggio = "";
+  var ultimoScritto = null;
+  var altraScheda = false;
 
   var NOMI = {
     corretta: "Correttezza: il target è giusto?",
@@ -113,6 +119,10 @@
     nodo.className = "messaggio" + (tipo ? " " + tipo : "");
   }
 
+  function conferma(testo) {
+    return OPZ.conferma ? OPZ.conferma(testo) : root.confirm(testo);
+  }
+
   /* ------------------------------------------------------------ immagini ingrandibili */
 
   function figura(src, didascalia, conLente) {
@@ -176,29 +186,103 @@
 
   /* ------------------------------------------------------------ salvataggio */
 
+  function memoria() {
+    if (!OPZ.persisti) {
+      return null;
+    }
+    try {
+      return OPZ.memoria || root.localStorage;
+    } catch (e) {
+      return null;
+    }
+  }
+
   function chiaveLocale() {
     return "revisione:" + PKG.id + ":v" + PKG.versione + ":" + PKG.impronta.slice(0, 16);
   }
 
+  function marcaTempo() {
+    return new Date().toISOString().slice(0, 19).replace(/:/g, "-");
+  }
+
+  /* Copia di riserva nel browser di un testo che non si carica o che si migra: non si cancella mai. */
+  function riserva(mem, motivo, testo) {
+    var k = chiaveLocale() + ":riserva:" + motivo + ":" + marcaTempo();
+    try {
+      mem.setItem(k, testo);
+      return k;
+    } catch (e) {
+      return null;
+    }
+  }
+
   function caricaLocale() {
-    if (!OPZ.persisti) {
+    var mem = memoria();
+    if (!mem) {
       return L.nuovoStato(PKG);
     }
+    var testo = null;
     try {
-      var testo = root.localStorage.getItem(chiaveLocale());
-      if (testo) {
-        var r = L.controllaImport(PKG, testo);
-        if (!r.errori.length) {
-          esitoSalvataggio = "Ripreso il lavoro salvato in questo browser (" + quando(r.stato.aggiornato_il) + ").";
-          return r.stato;
-        }
-        esitoSalvataggio = "Lo stato salvato nel browser non è valido e non è stato caricato: importa il tuo file " +
-                           "di avanzamento. (" + r.errori.slice(0, 2).join("; ") + ")";
-      }
+      testo = mem.getItem(chiaveLocale());
     } catch (e) {
       esitoSalvataggio = "Salvataggio nel browser non disponibile: esporta spesso il file di avanzamento.";
+      OPZ.persisti = false;
+      return L.nuovoStato(PKG);
     }
-    return L.nuovoStato(PKG);
+    if (!testo) {
+      esitoSalvataggio = "Nessun lavoro salvato in questo browser. Se hai già lavorato altrove, importa subito " +
+                         "l'ultimo file di avanzamento (Riepilogo e file → Importa) prima di continuare.";
+      return L.nuovoStato(PKG);
+    }
+    var r = L.controllaImport(CTX, testo);
+    if (r.errori.length) {
+      var k = riserva(mem, "non-caricato", testo);
+      // senza una copia di riserva lo stato salvato non si sovrascrive finché non importi un file valido
+      OPZ.bloccaScrittura = !k;
+      esitoSalvataggio = "Lo stato salvato nel browser non è valido e non è stato caricato (" +
+                         r.errori.slice(0, 2).join("; ") + "). Non è stato cancellato" +
+                         (k ? " (copia nel browser: " + k + ")" : " e non si sovrascrive") +
+                         ": importa il tuo ultimo file di avanzamento.";
+      return L.nuovoStato(PKG);
+    }
+    if (r.migrazione) {
+      var kv = riserva(mem, "formato-1", testo);
+      esitoSalvataggio = "Lavoro salvato nel formato 1 migrato al formato 2: " + r.migrazione.esposizioni +
+                         " esposizioni ricavate dalle soluzioni già mostrate, " + r.migrazione.fissate.length +
+                         " primi giudizi fissati, " + r.migrazione.non_indipendenti.length + " unità non indipendenti" +
+                         (kv ? "; copia del formato 1 in " + kv : "") + ".";
+    } else {
+      esitoSalvataggio = "Ripreso il lavoro salvato in questo browser (" + quando(r.stato.aggiornato_il) + ").";
+    }
+    ultimoScritto = testo;  // lo stato in memoria viene da questo testo: non serve riunirlo al primo salvataggio
+    return r.stato;
+  }
+
+  /* Unisce allo stato in memoria quello salvato nel browser da un'altra scheda o finestra (solo conoscenza e voci
+     nuove; il lavoro in conflitto resta quello in memoria). Restituisce true se lo stato è cambiato. */
+  function sincronizza(mem) {
+    var testo;
+    try {
+      testo = mem.getItem(chiaveLocale());
+    } catch (e) {
+      return false;
+    }
+    if (!testo || testo === ultimoScritto) {
+      return false;
+    }
+    var r = L.controllaImport(CTX, testo);
+    if (r.errori.length) {
+      return false;
+    }
+    var prima = L.impronteConoscenza(STATO);
+    var u = L.unisci(CTX, STATO, r.stato, "senza_scelta");
+    var cambiato = u.nuove > 0 || u.esposizioni_nuove > 0 || u.risolti.length > 0 || u.archiviate > 0 ||
+      L.impronteConoscenza(u.stato) !== prima;
+    if (cambiato) {
+      STATO = u.stato;
+      altraScheda = true;
+    }
+    return cambiato;
   }
 
   function salvaLocale() {
@@ -207,16 +291,25 @@
       timerSalvataggio = null;
     }
     STATO.aggiornato_il = L.ora();
-    if (!OPZ.persisti) {
+    var mem = memoria();
+    if (!mem || OPZ.bloccaScrittura) {
+      disegnaBarraSalvataggio();
       return;
     }
+    var cambiato = sincronizza(mem);
     try {
-      root.localStorage.setItem(chiaveLocale(), L.esportaJSON(PKG, STATO));
+      var testo = L.esportaJSON(CTX, STATO);
+      mem.setItem(chiaveLocale(), testo);
+      ultimoScritto = testo;
       esitoSalvataggio = "Salvato nel browser alle " + new Date().toLocaleTimeString("it-IT") + ".";
     } catch (e) {
       esitoSalvataggio = "Salvataggio nel browser non riuscito: scarica subito il file di avanzamento.";
     }
-    disegnaBarraSalvataggio();
+    if (cambiato) {
+      disegna();
+    } else {
+      disegnaBarraSalvataggio();
+    }
   }
 
   function salva() {
@@ -228,20 +321,28 @@
   }
 
   function ultimaEsportazione() {
+    var mem = memoria();
     try {
-      return root.localStorage.getItem(chiaveLocale() + ":esportato") || "";
+      return mem ? mem.getItem(chiaveLocale() + ":esportato") || "" : "";
     } catch (e) {
       return "";
     }
   }
 
   function segnaEsportazione() {
+    var mem = memoria();
     try {
-      root.localStorage.setItem(chiaveLocale() + ":esportato", STATO.aggiornato_il);
+      if (mem) {
+        mem.setItem(chiaveLocale() + ":esportato", STATO.aggiornato_il);
+      }
     } catch (e) { /* solo un promemoria */ }
   }
 
   function scarica(nome, testo, tipo) {
+    if (OPZ.scarica) {
+      OPZ.scarica(nome, testo, tipo);
+      return;
+    }
     var blob = new Blob([testo], {type: tipo + ";charset=utf-8"});
     var url = URL.createObjectURL(blob);
     var a = el("a", {href: url, download: nome});
@@ -253,14 +354,10 @@
     }, 3000);
   }
 
-  function marcaTempo() {
-    return new Date().toISOString().slice(0, 19).replace(/:/g, "-");
-  }
-
   function scaricaAvanzamento() {
     fermaCronometro();
     salvaLocale();
-    scarica(PKG.id + "_avanzamento_" + marcaTempo() + ".json", L.esportaJSON(PKG, STATO), "application/json");
+    scarica(PKG.id + "_avanzamento_" + marcaTempo() + ".json", L.esportaJSON(CTX, STATO), "application/json");
     segnaEsportazione();
     avviaCronometro();
     disegnaBarraSalvataggio();
@@ -276,6 +373,10 @@
       esportato !== STATO.aggiornato_il ? "Modifiche successive all'ultimo file scaricato." : "File scaricato aggiornato.";
     barra.innerHTML = "";
     barra.appendChild(el("span", {testo: esitoSalvataggio + " " + avviso}));
+    if (altraScheda) {
+      barra.appendChild(el("span", {classe: "errore", testo: "La revisione è aperta anche in un'altra scheda o " +
+        "finestra: lavora in una sola. Le esposizioni registrate là sono state unite qui."}));
+    }
     barra.appendChild(el("button", {type: "button", classe: "primario", testo: "Scarica il file di avanzamento",
                                     onclick: scaricaAvanzamento}));
   }
@@ -400,7 +501,7 @@
     if (!nav) {
       return;
     }
-    var r = L.riepilogo(PKG, STATO);
+    var r = L.riepilogo(CTX, STATO);
     nav.innerHTML = "";
     SCHEDE.forEach(function (s) {
       var testo = s[1];
@@ -425,8 +526,11 @@
   function segno(id) {
     var s = faseDi(id);
     var f = FASI[s.fase] || ["?", s.fase];
-    return {testo: f[0] + (s.incerto ? "?" : "") + (s.non_giudicabile ? "!" : ""), titolo: f[1] +
-            (s.incerto ? ", con valori incerti" : "") + (s.non_giudicabile ? ", con valori non giudicabili" : ""),
+    return {testo: f[0] + (s.incerto ? "?" : "") + (s.non_giudicabile ? "!" : "") + (s.non_indipendente ? "~" : ""),
+            titolo: f[1] + (s.incerto ? ", con valori incerti" : "") +
+              (s.non_giudicabile ? ", con valori non giudicabili" : "") +
+              (s.fissata && s.fase === "primo_giudizio" ? ", primo giudizio fissato" : "") +
+              (s.non_indipendente ? ", primo giudizio non indipendente" : ""),
             fase: s.fase, incerto: s.incerto || s.non_giudicabile};
   }
 
@@ -458,7 +562,8 @@
     });
     aside.appendChild(el("div", {classe: "filtro"}, "Mostra ", filtro));
     aside.appendChild(el("p", {classe: "legenda", testo: "○ non iniziato · ◔ bozza · ◑ primo giudizio salvato · " +
-                                                     "◕ soluzione vista · ● completo · ? incerto · ! non giudicabile"}));
+                                                     "◕ soluzione vista · ● completo · ? incerto · ! non giudicabile · " +
+                                                     "~ primo giudizio non indipendente"}));
     var gruppo = null, lista = null;
     elencoScheda(vista.scheda).forEach(function (x) {
       var g = x.gruppo || "candidati";
@@ -557,18 +662,60 @@
     }));
   }
 
+  /* Stato di un'unità collegata, come si mostra nel primo passaggio: senza dire perché è collegata (stesso record o
+     stessa scena), che nei casi «stessa istanza?» anticiperebbe la risposta. */
+  function statoCollegata(id) {
+    var w = STATO.unita[id];
+    if (w && w.prima_fissata) {
+      return "primo giudizio fissato";
+    }
+    if (w && w.esposta_senza_primo_giudizio) {
+      return "già esposta: il suo primo giudizio non sarà indipendente";
+    }
+    if (!w || !w.prima) {
+      return "manca il primo giudizio";
+    }
+    return L.bozzaUgualeAPrima(w) ? "primo giudizio salvato" : "modifiche non salvate al primo giudizio";
+  }
+
+  function bloccoCollegate(u, dopo) {
+    var coll = CTX.collegati[u.id] || [];
+    if (!coll.length) {
+      return null;
+    }
+    var b = L.bloccanti(CTX, STATO, u);
+    var lista = el("ul", {});
+    coll.forEach(function (c) {
+      var manca = b.mancanti.indexOf(c.id) >= 0 || b.non_salvate.indexOf(c.id) >= 0;
+      lista.appendChild(el("li", {classe: manca ? "manca" : ""},
+                           el("button", {type: "button", classe: "collegamento", "data-id": c.id, testo: c.id,
+                                         onclick: function () { vai(c.id); }}),
+                           " · " + statoCollegata(c.id) + (dopo ? " · " + L.descriviCollegamento(c) : "")));
+    });
+    return el("div", {classe: "collegate"}, el("h4", {testo: "Unità collegate (" + coll.length + ")"}),
+              el("p", {classe: "aiuto", testo: L.AIUTI.collegate}), lista);
+  }
+
   function sezionePrima(u) {
     var v = L.voce(STATO, u, false);
-    var bloccato = !!(v && v.soluzione_mostrata_il);
+    var fissato = !!(v && v.prima_fissata);
+    var mostrata = !!(v && v.soluzione_mostrata_il);
     var box = el("section", {classe: "passaggio prima"},
                  el("h3", {testo: "1. Primo giudizio, senza la soluzione"}));
+    if (v && v.esposta_senza_primo_giudizio) {
+      box.appendChild(el("p", {classe: "avviso"}, el("strong", {testo: "Primo giudizio non indipendente. "}),
+        "Prima che tu salvassi il primo giudizio di questa unità è stato esposto " +
+        L.descriviEsposizione(v.esposta_senza_primo_giudizio) + ". Puoi compilarlo, ma resterà segnato come non " +
+        "indipendente e sarà fissato al salvataggio."));
+    }
     var msg = el("p", {classe: "messaggio"});
     var rivela = el("button", {type: "button", classe: "rivela", testo: "Mostra soluzione e materiale di confronto"});
     var motivo = el("span", {classe: "aiuto"});
     function aggiornaRivela() {
-      var p = L.puoMostrare(STATO, u);
+      var p = L.puoMostrare(CTX, STATO, u);
       rivela.disabled = !p.ok;
-      motivo.textContent = p.ok ? "Il primo giudizio resterà fissato." : p.motivo;
+      motivo.textContent = p.ok ? "Il primo giudizio di questa unità e quello delle unità collegate resteranno fissati." :
+        p.motivo;
     }
     function modifica(k, nome, valore) {
       var errori = L.aggiornaBozza(STATO, u, k, nome, valore);
@@ -580,51 +727,64 @@
       aggiornaSegno(u.id);
     }
     u.varianti.forEach(function (k) {
-      var b = bloccato ? v.prima.varianti[k] : (v ? v.bozza[k] : {risposta: "", non_riesco: false, leggibilita: L.NON,
-                                                                  note: ""});
+      var b = fissato ? v.prima.varianti[k] : (v ? v.bozza[k] : {risposta: "", non_riesco: false, leggibilita: L.NON,
+                                                                 note: ""});
       var fs = el("fieldset", {classe: "variante"},
                   el("legend", {testo: k ? "Variante " + k + " · " + u.record_per_variante[k] : "Unità " + u.id}));
-      var spunta = el("input", {type: "checkbox", disabled: bloccato});
+      var spunta = el("input", {type: "checkbox", disabled: fissato});
       spunta.checked = b.non_riesco;
       spunta.addEventListener("change", function () { modifica(k, "non_riesco", spunta.checked); });
       fs.appendChild(campo(u.livello === "qa" ? "Risposta" : "Risposta o descrizione (facoltativa)", L.AIUTI.risposta,
-                           areaTesto(b.risposta, function (t) { modifica(k, "risposta", t); }, bloccato)));
+                           areaTesto(b.risposta, function (t) { modifica(k, "risposta", t); }, fissato)));
       fs.appendChild(el("label", {classe: "campo spunta"}, spunta, el("span", {testo: " non riesco a rispondere"}),
                         el("span", {classe: "aiuto", testo: L.AIUTI.non_riesco})));
       fs.appendChild(campo("Leggibilità e rispondibilità (giudizio iniziale)", L.AIUTI.leggibilita,
                            scelta("leggibilita", b.leggibilita, function (x) { modifica(k, "leggibilita", x); },
-                                  bloccato)));
+                                  fissato)));
       fs.appendChild(campo("Note del primo giudizio", L.AIUTI.note_prima,
-                           areaTesto(b.note, function (t) { modifica(k, "note", t); }, bloccato)));
+                           areaTesto(b.note, function (t) { modifica(k, "note", t); }, fissato)));
       box.appendChild(fs);
     });
-    if (bloccato) {
-      box.appendChild(el("p", {classe: "nota", testo: "Primo giudizio salvato il " + quando(v.prima.salvata_il) +
-        "; soluzione mostrata il " + quando(v.soluzione_mostrata_il) + ". Il primo giudizio non si modifica più: i " +
-        "ripensamenti vanno nel giudizio finale, anche nel campo «risposta dopo la soluzione»."}));
+    if (fissato) {
+      box.appendChild(el("p", {classe: "fissato", testo: "Primo giudizio salvato il " + quando(v.prima.salvata_il) +
+        " e " + L.descriviFissazione(v.prima_fissata) + ". Non si modifica più: i ripensamenti vanno nel giudizio " +
+        "finale, anche nel campo «risposta dopo la soluzione»."}));
+    }
+    if (mostrata) {
+      aggiungi(box, bloccoCollegate(u, true));
       return box;
     }
-    box.appendChild(el("div", {classe: "azioni"},
-                       el("button", {type: "button", classe: "primario", testo: "Salva il primo giudizio",
-                                     onclick: function () {
-                                       var errori = L.salvaPrima(STATO, u);
-                                       salvaLocale();
-                                       if (errori.length) {
-                                         messaggio(msg, errori, "errore");
-                                       } else {
-                                         messaggio(msg, ["Primo giudizio salvato. Ora puoi mostrare la soluzione."],
-                                                   "ok");
-                                       }
-                                       aggiornaRivela();
-                                       aggiornaSegno(u.id);
-                                     }})));
+    if (!fissato) {
+      box.appendChild(el("div", {classe: "azioni"},
+                         el("button", {type: "button", classe: "primario salva-prima", testo: "Salva il primo giudizio",
+                                       onclick: function () {
+                                         var w = L.voce(STATO, u, false);
+                                         if (w && w.esposta_senza_primo_giudizio && !conferma("Un record di questa " +
+                                             "unità è già stato esposto: il primo giudizio non sarà indipendente e " +
+                                             "resterà fissato dopo il salvataggio. Salvare?")) {
+                                           return;
+                                         }
+                                         var errori = L.salvaPrima(STATO, u);
+                                         salvaLocale();
+                                         if (errori.length) {
+                                           messaggio(msg, errori, "errore");
+                                           aggiornaRivela();
+                                           aggiornaSegno(u.id);
+                                         } else {
+                                           disegna();
+                                         }
+                                       }})));
+    }
     box.appendChild(msg);
+    aggiungi(box, bloccoCollegate(u, false));
     rivela.addEventListener("click", function () {
-      if (!root.confirm("Dopo aver visto la soluzione il primo giudizio resta fissato e non si modifica più. " +
-                        "Mostrare la soluzione?")) {
+      var coll = (CTX.collegati[u.id] || []).map(function (c) { return c.id; });
+      if (!conferma("Dopo aver visto la soluzione il primo giudizio resta fissato e non si modifica più" +
+                    (coll.length ? ", anche quello delle unità collegate (" + coll.join(", ") + "), perché il " +
+                     "materiale rivela anche le loro risposte" : "") + ". Mostrare la soluzione?")) {
         return;
       }
-      var errori = L.mostraSoluzione(STATO, u);
+      var errori = L.mostraSoluzione(CTX, STATO, u);
       salvaLocale();
       if (errori.length) {
         messaggio(msg, errori, "errore");
@@ -674,6 +834,11 @@
                        [String(i), q.type, q.q, (q.options || []).join(" / "), el("strong", {testo: q.answer}),
                         esiti[i] ? esiti[i][2] : ""].map(function (c) { return el("td", {}, c); })));
     });
+    var altre = (CTX.unitaDi[im.record] || []).filter(function (id) { return id !== im.unita; });
+    if (altre.length) {
+      det.appendChild(el("p", {classe: "nota", testo: "Questo record compare anche in: " + altre.join(", ") +
+                                                     " (primi giudizi fissati prima di mostrare questo materiale)."}));
+    }
     det.appendChild(el("h4", {testo: "Domande del record con le risposte attese (JSON dello shard)"}));
     det.appendChild(t);
     det.appendChild(dettaglio("Specifica della scena (spec)", meta.spec));
@@ -701,7 +866,9 @@
       aggiornaStato(errori);
     }
     var fs = el("fieldset", {classe: "variante"}, el("legend", {testo: "Giudizio finale · " + nome}));
-    fs.appendChild(el("p", {classe: "ricordo"}, "Risposta iniziale (indipendente): ",
+    fs.appendChild(el("p", {classe: "ricordo"},
+                      v.esposta_senza_primo_giudizio ? "Risposta iniziale (NON indipendente): " :
+                        "Risposta iniziale (indipendente): ",
                       el("strong", {testo: p.non_riesco ? "non riesco a rispondere" : (p.risposta || "—")}),
                       " · giudizio iniziale: " + etichetta("leggibilita", p.leggibilita)));
     ["corretta", "coerente_con_annotazioni", "rispondibile_da_immagine"].forEach(function (c) {
@@ -741,13 +908,15 @@
     if (!v || !v.soluzione_mostrata_il) {
       return el("section", {classe: "passaggio dopo nascosto"},
                 el("h3", {testo: "2. Soluzione, materiale di confronto e giudizio finale"}),
-                el("p", {classe: "nota", testo: "Si apre dopo aver salvato il primo giudizio e premuto «Mostra " +
-                  "soluzione». Fino ad allora restano nascosti target, opzioni ausiliarie, esito del checker, motivi " +
-                  "e misure del caso."}));
+                el("p", {classe: "nota", testo: "Si apre dopo aver salvato il primo giudizio di questa unità e delle " +
+                  "unità collegate e premuto «Mostra soluzione». Fino ad allora restano nascosti target, opzioni " +
+                  "ausiliarie, esito del checker, motivi e misure del caso."}));
     }
     var s = SOL[u.id];
     var box = el("section", {classe: "passaggio dopo soluzione"},
                  el("h3", {testo: "2. Soluzione, materiale di confronto e giudizio finale"}));
+    box.appendChild(el("p", {classe: "nota", testo: "Soluzione mostrata il " + quando(v.soluzione_mostrata_il) +
+                                                   "; record esposti: " + CTX.recordDi[u.id].join(", ") + "."}));
     if (s.motivo || s.misura) {
       box.appendChild(el("p", {classe: "motivo"}, el("strong", {testo: "Perché è un caso mirato: "}),
                          (s.motivo || "") + (s.misura ? " (misura " + s.misura + ")" : "")));
@@ -768,7 +937,8 @@
                                                      "domande della scena con le risposte sono nel materiale qui sotto."}));
     }
     u.immagini.forEach(function (im) {
-      box.appendChild(materialeRecord({record: im.record, etichetta: im.etichetta, posizione: u.posizione_qa}));
+      box.appendChild(materialeRecord({record: im.record, etichetta: im.etichetta, posizione: u.posizione_qa,
+                                       unita: u.id}));
     });
     var stato = el("div", {classe: "stato-caso"});
     function aggiornaStato(errori) {
@@ -941,7 +1111,7 @@
   function tabellaRiepilogo(r) {
     var colonne = [["totale", "totale"], ["completo", "completi"], ["in_corso", "in corso"],
                    ["non_iniziato", "non iniziati"], ["incerto", "incerti"], ["non_giudicabile", "non giudicabili"],
-                   ["non_verificabile", "non verificabili"]];
+                   ["non_verificabile", "non verificabili"], ["non_indipendente", "non indipendenti"]];
     function inCorso(c) {
       return (c.bozza || 0) + (c.primo_giudizio || 0) + (c.soluzione_vista || 0) + (c.in_corso || 0);
     }
@@ -960,14 +1130,34 @@
     return t;
   }
 
+  function tabellaEsposizioni() {
+    if (!STATO.esposizioni.length) {
+      return el("p", {classe: "nota", testo: "Nessun record esposto finora."});
+    }
+    var t = el("table", {classe: "esposizioni"}, el("tr", {}, ["quando", "record esposto", "tramite l'unità",
+                                                                "origine"].map(function (h) {
+      return el("th", {testo: h}); })));
+    STATO.esposizioni.slice().sort(function (a, b) { return a.quando < b.quando ? -1 : 1; }).forEach(function (e) {
+      t.appendChild(el("tr", {}, [quando(e.quando), e.record, e.tramite, e.origine].map(function (c) {
+        return el("td", {testo: c}); })));
+    });
+    return t;
+  }
+
   function costruisciRiepilogo() {
-    var r = L.riepilogo(PKG, STATO);
+    var r = L.riepilogo(CTX, STATO);
     var nodo = el("div", {classe: "caso riepilogo"});
     nodo.appendChild(el("h2", {testo: "Riepilogo, salvataggio e restituzione"}));
     nodo.appendChild(tabellaRiepilogo(r));
     nodo.appendChild(el("p", {classe: "nota", testo: "Corrispondenze della decontaminazione esaminate: " +
                                                      (r.decontaminazione.corrispondenze_esaminate || 0) + " su " +
                                                      r.decontaminazione.corrispondenze + "."}));
+    nodo.appendChild(el("h3", {testo: "Record esposti (" + r.esposizioni.record + ") e archivio"}));
+    nodo.appendChild(el("p", {classe: "nota", testo: "Ogni volta che mostri una soluzione si registrano i record esposti, " +
+      "con data e unità; le unità collegate restano con il primo giudizio fissato. Il registro non si cancella, " +
+      "nemmeno importando un file più vecchio. Versioni scartate da importazioni o fissazioni, conservate " +
+      "nell'archivio del file di avanzamento: " + r.esposizioni.archivio + "."}));
+    nodo.appendChild(tabellaEsposizioni());
     var nome = el("input", {type: "text"});
     nome.value = STATO.revisore;
     nome.addEventListener("input", function () {
@@ -981,40 +1171,42 @@
       el("button", {type: "button", classe: "primario", testo: "Scarica il file di avanzamento (JSON)",
                     onclick: scaricaAvanzamento}),
       el("button", {type: "button", testo: "Scarica esiti.tsv", onclick: function () {
-        scarica("esiti_" + marcaTempo() + ".tsv", L.tsvEsiti(PKG, STATO), "text/tab-separated-values");
+        scarica("esiti_" + marcaTempo() + ".tsv", L.tsvEsiti(CTX, STATO), "text/tab-separated-values");
       }}),
       el("button", {type: "button", testo: "Scarica esiti_decontaminazione.tsv", onclick: function () {
-        scarica("esiti_decontaminazione_" + marcaTempo() + ".tsv", L.tsvDecontaminazione(PKG, STATO),
+        scarica("esiti_decontaminazione_" + marcaTempo() + ".tsv", L.tsvDecontaminazione(CTX, STATO),
                 "text/tab-separated-values");
       }})));
     nodo.appendChild(el("p", {classe: "nota", testo: "Il file JSON contiene tutto il lavoro, compresi primo giudizio, " +
-      "risposte dopo la soluzione, esami delle corrispondenze, tempi ed eventi: è la copia da conservare e da " +
-      "restituire. I TSV hanno le colonne dei moduli originali; nelle celle gli a capo sono \\n, le tabulazioni \\t " +
-      "e la barra rovesciata \\\\. Un campo non compilato vale «non_compilato», mai approvazione."}));
+      "risposte dopo la soluzione, esami delle corrispondenze, record esposti, archivio, tempi ed eventi: è la copia " +
+      "da conservare e da restituire. I TSV hanno le colonne dei moduli originali; nelle celle gli a capo sono \\n, " +
+      "le tabulazioni \\t e la barra rovesciata \\\\. Un campo non compilato vale «non_compilato», mai approvazione; " +
+      "una risposta non indipendente vale «non_indipendente», con la risposta nelle note."}));
     var copia = el("textarea", {rows: "6", readonly: true, classe: "copia"});
     nodo.appendChild(el("details", {}, el("summary", {testo: "Se lo scaricamento non funziona: copia il JSON a mano"}),
       el("p", {classe: "nota", testo: "Premi il pulsante, seleziona tutto il testo e incollalo in un file di testo " +
                                       "con estensione .json."}),
       el("button", {type: "button", testo: "Mostra il JSON", onclick: function () {
-        copia.value = L.esportaJSON(PKG, STATO);
+        copia.value = L.esportaJSON(CTX, STATO);
         copia.select();
       }}), copia));
     nodo.appendChild(el("h3", {testo: "Riprendere da un file di avanzamento"}));
     var input = el("input", {type: "file", accept: ".json,application/json"});
-    var conflitti = el("div", {});
+    var conflitti = el("div", {classe: "conflitti"});
     input.addEventListener("change", function () {
       var f = input.files && input.files[0];
       if (!f) {
         return;
       }
       var lettore = new FileReader();
-      lettore.onload = function () { importa(String(lettore.result), msg, conflitti); };
+      lettore.onload = function () { importaTesto(String(lettore.result), msg, conflitti); };
       lettore.onerror = function () { messaggio(msg, ["File non leggibile."], "errore"); };
       lettore.readAsText(f, "utf-8");
       input.value = "";
     });
     nodo.appendChild(campo("Importa il file JSON scaricato in una sessione precedente", "Si controllano pacchetto, " +
-      "versione, impronta e identificativi; le risposte in conflitto non si sovrascrivono mai in silenzio.", input));
+      "versione, impronta e identificativi. Le esposizioni e i primi giudizi fissati non si perdono mai; il lavoro in " +
+      "conflitto non si sovrascrive in silenzio e le versioni scartate restano nell'archivio.", input));
     nodo.appendChild(msg);
     nodo.appendChild(conflitti);
     nodo.appendChild(el("h3", {testo: "Che cosa ricaricare su GitHub"}));
@@ -1027,44 +1219,85 @@
     return nodo;
   }
 
-  function importa(testo, msg, box) {
+  function sintesiUnione(u) {
+    var parti = [u.nuove + " casi aggiunti", u.uguali + " già uguali", u.solo_correnti + " presenti solo nel browser"];
+    if (u.tolte) {
+      parti.push(u.tolte + " tolti (nell'archivio)");
+    }
+    if (u.esposizioni_nuove) {
+      parti.push(u.esposizioni_nuove + " esposizioni aggiunte");
+    }
+    if (u.fissate.length) {
+      parti.push("primi giudizi fissati: " + u.fissate.join(", "));
+    }
+    if (u.non_indipendenti.length) {
+      parti.push("unità non indipendenti: " + u.non_indipendenti.join(", "));
+    }
+    if (u.risolti.length) {
+      parti.push("vale il primo giudizio fissato per " + u.risolti.map(function (x) { return x.id; }).join(", "));
+    }
+    if (u.archiviate) {
+      parti.push(u.archiviate + " versioni scartate conservate nell'archivio");
+    }
+    return parti.join("; ");
+  }
+
+  /* Importa un file di avanzamento. Prima scarica una copia dello stato del browser (se c'è lavoro), poi unisce subito
+     la conoscenza del file (esposizioni, primi giudizi fissati, casi nuovi); il lavoro in conflitto resta quello del
+     browser finché non scegli. Restituisce l'esito dell'unione, o null se il file è rifiutato. */
+  function importaTesto(testo, msg, box) {
+    msg = msg || el("p", {});
+    box = box || el("div", {});
     box.innerHTML = "";
-    var r = L.controllaImport(PKG, testo);
+    var r = L.controllaImport(CTX, testo);
     if (r.errori.length) {
       messaggio(msg, ["File rifiutato: " + r.errori.slice(0, 8).join("; ") +
                       (r.errori.length > 8 ? " e altri " + (r.errori.length - 8) : "")], "errore");
-      return;
+      return null;
     }
-    var c = L.confronta(STATO, r.stato);
-    if (!c.conflitti.length) {
-      STATO = c.unito;
-      salvaLocale();
-      messaggio(msg, ["File importato: " + c.nuove + " casi aggiunti, " + c.uguali + " già uguali, " +
-                      c.solo_correnti + " presenti solo nel browser e conservati."], "ok");
+    var vuoto = !Object.keys(STATO.unita).length && !Object.keys(STATO.decontaminazione).length &&
+      !STATO.esposizioni.length;
+    if (!vuoto) {
+      scarica(PKG.id + "_copia_del_browser_" + marcaTempo() + ".json", L.esportaJSON(CTX, STATO), "application/json");
+    }
+    var u = L.unisci(CTX, STATO, r.stato, "senza_scelta");
+    STATO = u.stato;
+    OPZ.bloccaScrittura = false;
+    salvaLocale();
+    var testa = (r.migrazione ? "File nel formato 1, migrato al formato 2 (" + r.migrazione.esposizioni +
+                 " esposizioni ricavate dalle soluzioni mostrate). " : "") +
+      (vuoto ? "" : "Copia del browser scaricata prima dell'importazione. ");
+    if (!u.conflitti.length) {
+      messaggio(msg, [testa + "File importato: " + sintesiUnione(u) + "."], "ok");
       disegna();
-      return;
+      return u;
     }
-    messaggio(msg, [c.conflitti.length + " casi hanno contenuti diversi nel browser e nel file: niente è stato " +
-                    "importato."], "errore");
-    box.appendChild(el("ul", {}, c.conflitti.slice(0, 50).map(function (x) {
-      return el("li", {testo: x.id + ": nel browser modificato il " + quando(x.corrente) + ", nel file il " +
-                              quando(x.file)});
+    messaggio(msg, [testa + "Importati i casi nuovi e la conoscenza del file (" + sintesiUnione(u) + "). " +
+                    u.conflitti.length + " casi hanno lavoro diverso nel browser e nel file e per ora restano come " +
+                    "nel browser: scegli qui sotto."], "errore");
+    box.appendChild(el("ul", {}, u.conflitti.slice(0, 50).map(function (x) {
+      return el("li", {testo: x.id + " (" + x.parte + "): nel browser modificato il " + quando(x.corrente) +
+                              ", nel file il " + quando(x.file)});
     })));
-    box.appendChild(el("div", {classe: "azioni"},
-      el("button", {type: "button", testo: "Mantieni lo stato del browser (ignora il file)", onclick: function () {
+    function scegli(modo, testoFatto) {
+      return function () {
+        var w = L.unisci(CTX, STATO, r.stato, modo);
+        STATO = w.stato;
+        salvaLocale();
         box.innerHTML = "";
-        messaggio(msg, ["Importazione annullata."], "");
-      }}),
-      el("button", {type: "button", testo: "Sostituisci tutto con il file (prima scarica una copia del browser)",
-                    onclick: function () {
-                      scarica(PKG.id + "_copia_del_browser_" + marcaTempo() + ".json", L.esportaJSON(PKG, STATO),
-                              "application/json");
-                      STATO = r.stato;
-                      salvaLocale();
-                      box.innerHTML = "";
-                      messaggio(msg, ["Stato sostituito con il file; la copia precedente è stata scaricata."], "ok");
-                      disegna();
-                    }})));
+        messaggio(msg, [testoFatto + " " + sintesiUnione(w) + ". Esposizioni e primi giudizi fissati restano."], "ok");
+        disegna();
+      };
+    }
+    box.appendChild(el("div", {classe: "azioni"},
+      el("button", {type: "button", classe: "tieni-browser", testo: "Tieni le versioni del browser (quelle del file " +
+                    "vanno nell'archivio)", onclick: scegli("browser", "Tenute le versioni del browser.")}),
+      el("button", {type: "button", classe: "usa-file", testo: "Usa le versioni del file per i casi in conflitto",
+                    onclick: scegli("file", "Usate le versioni del file per i casi in conflitto.")}),
+      el("button", {type: "button", classe: "sostituisci", testo: "Sostituisci tutto con il file (tranne esposizioni " +
+                    "e primi giudizi fissati)", onclick: scegli("sostituisci", "Stato sostituito con il file, " +
+                    "conservando esposizioni e primi giudizi fissati.")})));
+    return u;
   }
 
   /* ------------------------------------------------------------ disegno */
@@ -1090,13 +1323,23 @@
     }
   }
 
+  /* opzioni: persisti (salvataggio nel browser), memoria (oggetto con getItem e setItem al posto di localStorage),
+     scarica(nome, testo, tipo) e conferma(testo) al posto dello scaricamento e della finestra di conferma del browser:
+     l'autotest le usa per non toccare né il lavoro salvato né la cartella Download. */
   function inizializza(pkg, sol, evi, stato, opzioni) {
     PKG = pkg;
     SOL = sol;
     EVI = evi;
-    IDX = L.indice(pkg);
+    CTX = L.contesto(pkg, evi);
+    IDX = CTX.idx;
     OPZ = opzioni || {persisti: true};
+    ultimoScritto = null;
+    altraScheda = false;
+    esitoSalvataggio = "";
     STATO = stato || caricaLocale();
+    if (stato) {
+      L.applicaEsposizioni(CTX, STATO);
+    }
   }
 
   function avvia() {
@@ -1110,6 +1353,12 @@
     L.TIPI_DIFETTO.forEach(function (t) { lista.appendChild(el("option", {value: t})); });
     document.body.appendChild(lista);
     root.addEventListener("hashchange", daHash);
+    root.addEventListener("storage", function (e) {
+      var mem = memoria();
+      if (mem && e.key === chiaveLocale() && sincronizza(mem)) {
+        disegna();
+      }
+    });
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape") {
         chiudiLente();
@@ -1141,5 +1390,6 @@
 
   root.App = {avvia: avvia, inizializza: inizializza, costruisciVistaUnita: costruisciVistaUnita,
               costruisciVistaDecontam: costruisciVistaDecontam, costruisciRiepilogo: costruisciRiepilogo,
-              stato: function () { return STATO; }};
+              importaTesto: importaTesto, salvaOra: salvaLocale, contesto: function () { return CTX; },
+              stato: function () { return STATO; }, esito: function () { return esitoSalvataggio; }};
 })(window);

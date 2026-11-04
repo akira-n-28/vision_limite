@@ -89,3 +89,12 @@ details.json pre { max-height: 360px; overflow: auto; background: #f2f2f7; paddi
 #lente .scatola-immagine { max-height: none; }
 textarea.copia { font-family: Menlo, monospace; font-size: 11px; }
 @media (max-width: 900px) { #elenco { display: none; } .galleria.doppia, .colonne { display: block; } }
+.collegate { background: #f4f0ff; border: 1px solid #d6ccf5; border-radius: 6px; padding: 6px 10px; margin: 8px 0; font-size: 13px; }
+.collegate h4 { margin: 2px 0; font-size: 13px; }
+.collegate ul { margin: 4px 0; padding-left: 18px; }
+.collegate li.manca { color: #c41e3a; }
+.collegate button { padding: 1px 7px; font-family: Menlo, monospace; font-size: 12px; }
+.avviso { background: #ffe9e9; border: 1px solid #f5b5b5; border-radius: 6px; padding: 6px 10px; margin: 8px 0; font-size: 13px; }
+.fissato { background: #eef5ff; border: 1px solid #bcd4f7; border-radius: 6px; padding: 6px 10px; margin: 8px 0; font-size: 13px; }
+table.esposizioni { border-collapse: collapse; font-size: 12px; margin: 6px 0; }
+table.esposizioni th, table.esposizioni td { border: 1px solid #d2d2d7; padding: 2px 6px; text-align: left; vertical-align: top; font-family: Menlo, monospace; }
