@@ -6,7 +6,12 @@ scripts/synth_decontam.py), su un pannello, un manifest e shard piccoli costruit
 Coprono: domande dei sintetici e della coppia nella scansione; identità dei pixel con un indice del pannello e pHash
 come solo candidato; immagine illeggibile; esito per record con shard, posizione e sha256 dei byte; perimetro con
 tutti i ruoli del pannello; identificativi ricondotti al record (posizione alterata rifiutata, scansione parziale
-accettata solo con --partial); stato per gruppo che non migliora mai; manifest nuovo con split ereditati ed evidenze."""
+accettata solo con --partial); stato per gruppo che non migliora mai; manifest nuovo con split ereditati ed evidenze.
+
+Dal 2026-11-04 anche due derivazioni consecutive (scripts/manifest_check.verify_splits): un'origine con gli split di
+manifest.assign_splits, una versione 2 in cui un gruppo di dev va tutto in quarantena e una versione 3 derivata dalla
+2. Il gruppo resta in dev, la regola si ricalcola sull'origine (sul genitore immediato tornerebbe in train), evidenze
+e motivi si accumulano, e un anello alterato o una riammissione sono rifiutati."""
 from __future__ import annotations
 
 import gzip
@@ -19,6 +24,7 @@ import shutil
 import subprocess
 import sys
 import tarfile
+from collections import defaultdict
 from pathlib import Path
 
 from PIL import Image, ImageDraw
@@ -304,6 +310,114 @@ def test_end_to_end(tmp: Path):
                                                            "nessuna_corrispondenza": 8, "non_verificabile": 1})
     train_keys = (tmp / "manifest-2/keys/train.txt").read_text().split()
     check("manifest: chiavi derivate solo dei record ammessi", train_keys == ["synth-0000006"], train_keys)
+    return fx
+
+
+# ---------------------------------------------------------------- 3. due derivazioni consecutive
+def write_manifest(folder: Path, meta: dict, rows: list[dict]) -> None:
+    folder.mkdir()
+    data = gzip.compress("".join(json.dumps(r, sort_keys=True) + "\n" for r in rows).encode(), mtime=0)
+    (folder / "records.jsonl.gz").write_bytes(data)
+    meta = {**meta, "records": {"file": "records.jsonl.gz", "sha256": hashlib.sha256(data).hexdigest(),
+                                "righe": len(rows)}}
+    (folder / "manifest.json").write_text(json.dumps(meta))
+
+
+def group_info(rows: list[dict]) -> dict:
+    groups = defaultdict(list)
+    for r in rows:
+        groups[r["gruppo"]].append(r)
+    return {g: {"famiglia": rs[0]["famiglia"], "valutazione": any(r["insieme"] != "train" for r in rs),
+                "ammessi": sum(r["stato"] == "ammesso" for r in rs)} for g, rs in groups.items()}
+
+
+def run_checks(mc, folder: Path) -> tuple[list[str], dict]:
+    results = []
+
+    def collect(name, ok, detail=None):
+        results.append((name, bool(ok), detail))
+        return ok
+
+    m = mf.load(folder)
+    info = mc.verify_splits(m, mc.all_records(m), collect)
+    return [n for n, ok, _ in results if not ok], {**info, "controlli": [n for n, _, _ in results]}
+
+
+def test_lineage(tmp: Path, fx: dict):
+    import manifest_check as mc
+
+    base = mf.load(fx["manifest"])
+    rows = [dict(r) for r in mc.all_records(base)]
+    info = group_info(rows)
+    dev_group = mf.sha256_text("G2")  # synth-0000002: candidato pHash nella scansione, in quarantena nella versione 2
+    quota = 0.15  # 7 scene ammesse fuori dalla valutazione: obiettivo di dev 1
+    seed = next(s for s in range(1000) if mf.assign_splits(info, quota, s)[dev_group] == "dev"
+                and mf.assign_splits(info, quota, s + 1) != mf.assign_splits(info, quota, s))
+    split = mf.assign_splits(info, quota, seed)
+    for r in rows:
+        r["split"] = split[r["gruppo"]]
+    admitted = sum(i["ammessi"] for i in info.values() if not i["valutazione"])
+    got = sum(i["ammessi"] for g, i in info.items() if split[g] == "dev")
+    meta = {k: v for k, v in base.meta.items() if k != "records"}
+    meta.update(versione="origine", split={"valori": list(mf.SPLITS), "quota_dev": quota, "seme": seed,
+                                           "dev_per_famiglia": {"coord": {"ammesse_fuori_valutazione": admitted,
+                                                                          "obiettivo": round(quota * admitted),
+                                                                          "dev": got}}})
+    origin = tmp / "catena-1"
+    write_manifest(origin, meta, rows)
+    failed, _ = run_checks(mc, origin)
+    check("catena: l'origine, con gli split di assign_splits, supera le verifiche", not failed, failed)
+    common = ["--index", fx["index"], "--panel", fx["panel"], "--scan", tmp / "scan"]
+    tool = ROOT / "scripts/synth_decontam.py"
+    res2 = run(tool, "manifest", "--manifest", origin, *common, "--out", tmp / "catena-2", "--version", "2")
+    res3 = run(tool, "manifest", "--manifest", tmp / "catena-2", *common, "--out", tmp / "catena-3", "--version", "3")
+    check("catena: versioni 2 e 3 scritte da synth_decontam.py", res2.returncode == 0 and res3.returncode == 0,
+          (res2.stderr + res3.stderr)[-400:])
+    if res2.returncode or res3.returncode:
+        return
+    m2, m3 = mf.load(tmp / "catena-2"), mf.load(tmp / "catena-3")
+    r2 = {r["record"]: r for r in mc.all_records(m2)}
+    r3 = {r["record"]: r for r in mc.all_records(m3)}
+    check("catena: nella versione 2 il gruppo di dev è tutto in quarantena",
+          all(r["split"] == "dev" and r["stato"] == "quarantena" for r in r2.values() if r["gruppo"] == dev_group)
+          and not group_info(list(r2.values()))[dev_group]["ammessi"])
+    check("regressione: ricalcolata sul genitore immediato, la regola riporterebbe il gruppo in train",
+          mf.assign_splits(group_info(list(r2.values())), quota, seed)[dev_group] == "train")
+    failed2, _ = run_checks(mc, tmp / "catena-2")
+    failed3, info3 = run_checks(mc, tmp / "catena-3")
+    check("catena: la versione 2 supera le verifiche degli split", not failed2, failed2)
+    check("catena: la versione 3 supera le verifiche, con la regola ricalcolata sull'origine", not failed3
+          and info3["origine"]["versione"] == "origine" and [c["versione"] for c in info3["catena"]] == ["3", "2", "origine"],
+          (failed3, info3.get("catena")))
+    check("catena: nella versione 3 il gruppo conserva split dev e quarantena",
+          all(r["split"] == "dev" and r["stato"] == "quarantena" for r in r3.values() if r["gruppo"] == dev_group))
+    key = "synth-0000002"
+    check("catena: evidenze e motivi si accumulano (una evidenza e un motivo per derivazione)",
+          sum(e["controllo"] == sd.CHECK for e in r3[key]["evidenze"]) == 2
+          and r3[key]["evidenze"][:-1] == r2[key]["evidenze"] and len(r3[key]["motivo"][sd.CHECK]) == 2
+          and r3[key]["motivo"][sd.CHECK][:1] == r2[key]["motivo"][sd.CHECK])
+    check("catena: il controllo nuovo delle transizioni è eseguito",
+          any("più grave fra quello del genitore" in n for n in info3["controlli"]))
+    # un anello alterato dopo la derivazione: lo sha256 non è più quello registrato
+    raw = (origin / "manifest.json").read_bytes()
+    (origin / "manifest.json").write_bytes(raw + b"\n")
+    failed, _ = run_checks(mc, tmp / "catena-3")
+    (origin / "manifest.json").write_bytes(raw)
+    check("catena: un anello con manifest.json alterato è rifiutato", any("catena" in n for n in failed), failed)
+    # una riammissione nella versione 3: rifiutata rispetto al genitore immediato
+    readmit = tmp / "catena-3-riammesso"
+    meta3 = json.loads((tmp / "catena-3/manifest.json").read_text())
+    rows3 = [dict(r, stato="ammesso") if r["record"] == key else r for r in r3.values()]
+    write_manifest(readmit, {k: v for k, v in meta3.items() if k != "records"}, rows3)
+    failed, _ = run_checks(mc, readmit)
+    check("catena: un record riammesso nella versione 3 è rifiutato",
+          any("torna ammesso" in n for n in failed) and any("più grave" in n for n in failed), failed)
+    # un'evidenza del genitore tolta
+    dropped = tmp / "catena-3-senza-evidenza"
+    rows3 = [dict(r, evidenze=r["evidenze"][1:]) if r["record"] == key else r for r in r3.values()]
+    write_manifest(dropped, {k: v for k, v in meta3.items() if k != "records"}, rows3)
+    failed, _ = run_checks(mc, dropped)
+    check("catena: un'evidenza del genitore tolta è rifiutata", any("conservate" in n for n in failed), failed)
 
 
 if __name__ == "__main__":
@@ -311,7 +425,9 @@ if __name__ == "__main__":
     tmp = ROOT / "outputs" / "tmp" / f"test-synth-decontam-{os.environ.get('SLURM_JOB_ID', os.getpid())}"
     tmp.mkdir(parents=True, exist_ok=True)
     try:
-        test_end_to_end(tmp)
+        fx = test_end_to_end(tmp)
+        if fx:
+            test_lineage(tmp, fx)
     finally:
         shutil.rmtree(tmp)
     print("\nfalliti:", FAILS or "nessuno")

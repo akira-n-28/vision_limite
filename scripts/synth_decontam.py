@@ -36,8 +36,11 @@ Ingressi:
   `quarantena`. Lo stato non migliora mai: un record già escluso o in quarantena per altri motivi resta tale (gravità
   escluso > quarantena > ammesso). Split e gruppi restano quelli della versione precedente;
 - ogni record riceve l'evidenza `decontaminazione_pannello`: esito proprio e del gruppo, controlli eseguiti, conteggi
-  per tipo e fino a MAX_EVIDENCE elementi del pannello con benchmark, ruolo e gruppo, più il riferimento a
-  records.jsonl.gz della scansione con lo sha256. Il manifest registra versioni e sha256 di tutti gli ingressi.
+  per tipo e un'anteprima di al più MAX_EVIDENCE elementi del pannello con benchmark, ruolo e gruppo, più il
+  riferimento a records.jsonl.gz della scansione con lo sha256. L'elenco completo delle corrispondenze sta solo nella
+  scansione: chi le esamina (scripts/synth_gold_sample.py) segue il riferimento e ne verifica hash e identificativi.
+  Il manifest registra versioni e sha256 di tutti gli ingressi. In una derivazione successiva evidenze e motivi del
+  genitore restano, e quelli nuovi si aggiungono.
 
     srun $RUN_PYTHON -u -B scripts/synth_decontam.py verifica --manifest DIR --index DIR --panel DIR --scan DIR \\
         --out DIR [--partial] [--index-sha256 HEX]
@@ -383,8 +386,10 @@ def cmd_manifest(args) -> int:
         rec["evidenze"] = list(r["evidenze"]) + [evidence_of(scan[r["record"]], d, inp["elements"], scan_ref, job)]
         if d["stato_gruppo"]:
             motivo = dict(r["motivo"] or {})
-            motivo[CHECK] = [f"{REASON[d['esito_gruppo']]}: {', '.join(d['cause'][:5])}"
-                             + (f" e altri {len(d['cause']) - 5}" if len(d["cause"]) > 5 else "")]
+            # in una derivazione successiva il motivo si aggiunge a quelli del genitore, non li sostituisce
+            motivo[CHECK] = list(motivo.get(CHECK) or []) + [
+                f"{REASON[d['esito_gruppo']]}: {', '.join(d['cause'][:5])}"
+                + (f" e altri {len(d['cause']) - 5}" if len(d["cause"]) > 5 else "")]
             rec["motivo"] = motivo
         rec["stato"] = d["stato"]
         new.append(rec)

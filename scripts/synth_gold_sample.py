@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Preparazione della verifica delle golden answer dei sintetici v4: inventario dei controlli disponibili e campione
-riproducibile per la revisione visiva (docs/specs/S2_AMMISSIONE_PRIME_FAMIGLIE.md §§1, 2.8, 2.10; S4). Solo in un job
-SLURM CPU. Manifest, shard e uscite dei controlli si leggono soltanto: nessun dato o spiegazione rigenerati, nessuna
-revisione avviata, nessun agente.
+riproducibile per la revisione visiva (docs/specs/S2_AMMISSIONE_PRIME_FAMIGLIE.md §§1, 2.8, 2.10-2.11; S4). Solo in un
+job SLURM CPU. Manifest, shard, scansione e uscite dei controlli si leggono soltanto: nessun dato o spiegazione
+rigenerati, nessuna revisione avviata, nessun agente.
 
 Quattro proprietà, tenute separate in tutti i file:
 1. correttezza matematica della risposta: il target è vero per la scena descritta dalla specifica;
@@ -30,14 +30,41 @@ solo come informazione, il limite superiore esatto al 95% (ipergeometrico) con z
 soglie del checker (testi più bassi, riquadri più vicini alla sovrapposizione, intersezioni più vicine al bordo del
 tratto, grafici più vicini senza incrociarsi, vertici estremi col margine più piccolo, coordinate lette dalle tacche
 vicine); coppie per famiglia; esclusioni per contaminazione accanto al record di valutazione dello stesso gruppo; QA
-delle regole nuove di v4 (intersections, shape_type e label_type con le opzioni); i candidati della decontaminazione
-esterna, con le immagini del pannello se c'è --index.
+delle regole nuove di v4 (intersections, shape_type e label_type con le opzioni).
 
-**Fogli:** ogni unità ha le immagini copiate byte per byte dagli shard (immagini/, sha256 controllato), la domanda e le
-opzioni. Le risposte attese stanno a parte in soluzioni.tsv, per rispondere prima senza vederle (S4 §5); esiti.tsv è il
-modulo vuoto, con una colonna per proprietà.
+**Prompt del primo passaggio** (PROTOCOL). Il revisore vede l'immagine e il prompt, senza target e senza opzioni
+aggiunte:
+- train e dev: il testo dell'utente che costruisce il loader di training (data.synth_qa_sample: da 1 a 5 domande
+  numerate, f1c.pick_questions e f1c.qa_messages), ricostruito anche dalle posizioni del manifest e confrontato; la QA
+  campionata è la domanda numero_nel_prompt. Le opzioni compaiono solo se fanno parte della domanda (shape_type,
+  label_type). Una QA di una scena di train o dev che il loader non sceglie (solo fra i casi mirati delle soglie) non è
+  mai mostrata al modello: si vede come domanda singola, ed è segnalata;
+- test e coppie: ogni QA da sola, col prefisso di f1c.qa_messages per una domanda. È il protocollo del foglio: quello
+  di valutazione di F0 non è fissato. Il loader di training non costruisce il prompt delle coppie (le loro QA sono solo
+  nella coppia), e il job lo verifica.
+Il testo esatto, con il suo sha256 e le domande che contiene, sta in prompts.jsonl; nelle celle TSV gli a capo sono la
+sequenza \\n. Le opzioni sono in opzioni.tsv e i target in soluzioni.tsv, da consultare dopo il primo giudizio.
 
-    srun $RUN_PYTHON -u -B scripts/synth_gold_sample.py --manifest DIR --out DIR [--index DIR] [--seed 0]
+**Coppie:** soluzioni, opzioni ed esiti hanno una riga per variante (a e b, dalla variante dichiarata nel JSON e
+uguale al suffisso della chiave), anche nei casi mirati; il modulo ha in più una riga `coppia` per il contratto.
+
+**Candidati della decontaminazione esterna** (candidati_decontaminazione.tsv, una riga per record, e
+corrispondenze_decontaminazione.tsv, una riga per corrispondenza). L'evidenza del manifest ha solo un'anteprima di al
+più MAX_EVIDENCE elementi: il foglio segue il suo riferimento alla scansione completa (records.jsonl.gz, con lo
+sha256 dell'evidenza e del manifest; summary.json e matches.jsonl con quelli del manifest) e ne prende tutte le
+corrispondenze. Per ogni record verifica chiave, shard, posizione e sha256 del PNG, conteggi e anteprima uguali a quelli
+dell'evidenza; per ogni corrispondenza la voce dell'indice (elemento, posizione dell'immagine e id) e l'elemento del
+pannello (elements.jsonl.gz con lo sha256 del manifest). Riconcilia i conteggi con summary.json e matches.jsonl e
+distingue corrispondenze, coppie record-voce, voci, elementi e immagini distinte. Un dettaglio mancante nella
+scansione o un'immagine del pannello non ritrovata rende il record `incompleto`; un identificativo incoerente ferma il
+job prima di scrivere. Ogni immagine del pannello si copia una volta in immagini/pannello/<sha256>.<estensione>.
+
+**Fogli:** ogni unità ha le immagini copiate byte per byte dagli shard (immagini/, sha256 controllato). esiti.tsv è il
+modulo vuoto, con una colonna per proprietà. Con --previous il job confronta selezione, ranghi, target e immagini con
+un campione precedente (confronto.json) ed esce con errore se la selezione è cambiata.
+
+    srun $RUN_PYTHON -u -B scripts/synth_gold_sample.py --manifest DIR --out DIR [--index DIR] [--review DIR] \\
+        [--previous DIR] [--seed 0]
 """
 from __future__ import annotations
 
@@ -61,18 +88,56 @@ sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "scripts"))
 from limite_vl import manifest as mf  # noqa: E402
 from limite_vl import synth_check as sc  # noqa: E402
-from limite_vl.data import iter_shard  # noqa: E402
-from limite_vl.f1c import pick_questions  # noqa: E402
+from limite_vl.data import SAMPLE_LOADERS, iter_shard  # noqa: E402
+from limite_vl.f1c import pick_questions, qa_messages  # noqa: E402
 from limite_vl.provenance import code_identity, file_entry, sha256_file, write_new_json  # noqa: E402
+from synth_decontam import CHECK, MAX_EVIDENCE  # noqa: E402
 
+SCHEMA = "synth-gold-sample/2"
 AUDIT = "synth-v4-1"  # etichetta dell'estrazione (S2 §2.8)
 FAMILIES = ("coord", "function", "polygon", "shapes")
 SIZES = {"coord": 75, "function": 75, "polygon": 75, "shapes": 75, "test": 50, "coppie": 30}  # proposta S2 §2.8
 EXTREME_TYPES = {"highest": (1, 1), "lowest": (1, -1), "leftmost": (0, -1), "rightmost": (0, 1)}
 NEW_RULES = ("intersections", "shape_type", "label_type")
 COORDS = re.compile(r"^\((-?\d+), (-?\d+)\)$")
-REVIEW_COLUMNS = ("unita", "risposta_revisore", "corretta", "coerente_con_annotazioni", "rispondibile_da_immagine",
-                  "spiegazione", "gravita", "tipo_difetto", "tempo_s", "note")
+REVIEW_COLUMNS = ("unita", "variante", "record", "risposta_revisore", "corretta", "coerente_con_annotazioni",
+                  "rispondibile_da_immagine", "spiegazione", "contratto_coppia", "gravita", "tipo_difetto", "tempo_s",
+                  "note")
+DECONTAM_REVIEW_COLUMNS = ("unita", "record", "stesso_contenuto", "corrispondenze_guardate", "corrispondenza_decisiva",
+                           "note")
+PROMPT_ORIGINS = {
+    "loader": "train o dev: prompt di data.synth_qa_sample per la scena; la QA campionata è la domanda "
+              "numero_nel_prompt",
+    "loader_scena": "caso sulla scena intera di train o dev: le domande che il loader costruisce per la scena (il modello "
+                    "le vede solo se la scena è ammessa)",
+    "domanda_singola_qa_non_scelta": "QA di una scena di train o dev che il loader non sceglie: il modello non la vede "
+                                     "mai in training; qui come domanda singola di qa_messages",
+    "domanda_singola_test": "test: la QA da sola, col prefisso di qa_messages per una domanda",
+    "domanda_singola_coppia": "coppie: la domanda della coppia da sola, uguale per le due varianti, col prefisso di "
+                              "qa_messages per una domanda",
+    "nessuno": "caso sulla scena intera di un record che il loader di training non legge",
+}
+PROTOCOL = {
+    "primo_passaggio": "immagine e prompt (colonna prompt, testo esatto in prompts.jsonl), senza target e senza opzioni "
+                       "aggiunte; si risponde alla QA campionata (numero_nel_prompt)",
+    "train_dev": "il prompt del loader di training (data.synth_qa_sample), con da 1 a 5 domande numerate; le opzioni si "
+                 "vedono solo se sono nel testo della domanda (shape_type, label_type). Ogni prompt esportato è uguale "
+                 "a qa_messages(pick_questions) ricostruito dalle posizioni del manifest",
+    "test": "ogni QA da sola, qa_messages([domanda]): protocollo del foglio, perché quello di valutazione di F0 non è "
+            "fissato (contratto D3). f1c_eval.py, storico, usava lo stesso prefisso e dava un punteggio alle opzioni per "
+            "verosimiglianza, senza mostrarle",
+    "coppie": "la domanda della coppia da sola per ciascuna variante, come nel test; il loader di training non "
+              "costruisce questo prompt, perché le QA delle coppie stanno solo nel campo pair",
+    "dopo_il_primo_giudizio": "opzioni.tsv (opzioni ausiliarie, con opzioni_nel_testo_della_domanda) e soluzioni.tsv "
+                              "(target, esito del checker e stato della scena, per variante)",
+}
+SAME_SAMPLE = ("unita", "strato", "rango", "N", "n", "p_inclusione", "record", "record_id", "insieme", "split",
+               "famiglia", "shard", "indice", "posizione_qa", "ordine_nel_loader", "tipo", "domanda", "immagini_sha256",
+               "qa_sha256")
+SAME_TARGETED = ("unita", "categoria", "motivo", "misura", "record", "record_id", "insieme", "split", "stato",
+                 "famiglia", "posizione_qa", "tipo", "domanda")
+SAME_DECONTAM = ("unita", "rango", "record", "record_id", "insieme", "split", "stato", "famiglia", "esito",
+                 "esito_gruppo", "corrispondenze")
 
 # Controlli deterministici per proprietà e tipo di domanda (S2 §§2.3-2.6). R: per record, I: invariante del renderer
 # sul layout, C: solo un campione; "parziale" segnala che il controllo non è indipendente dal generatore.
@@ -150,6 +215,7 @@ LIMITS = [
     "la riproducibilità dalla chiave usa lo stesso codice del generatore: prova l'integrità, non la correttezza",
     "nessun record è gold_verificato o target_controllato: S2 è una bozza, i tipi non sono promossi e manca la stima "
     "campionaria (S4)",
+    "il prompt di test e coppie è quello del foglio (domanda singola): il protocollo di valutazione di F0 non è fissato",
 ]
 
 
@@ -314,17 +380,383 @@ def populations(records: list[dict], seed: int) -> dict[str, list[dict]]:
     return dict(pops)
 
 
+# ---------------------------------------------------------------- prompt, varianti e celle (pure, collaudate in tests/)
+
+def cell(value) -> str:
+    return str(value).replace("\t", " ").replace("\n", " ")
+
+
+def tsv_text(text: str) -> str:
+    """Testo in una cella TSV: gli a capo come la sequenza \\n (il testo esatto sta in prompts.jsonl)."""
+    return text.replace("\n", "\\n")
+
+
+def options_in_question(q: dict) -> bool:
+    """Tutte le opzioni compaiono, come parole intere, nel testo della domanda (shape_type e label_type di v4; anche
+    domande come "above or below")."""
+    return all(re.search(rf"(?<!\w){re.escape(o)}(?!\w)", q["q"]) for o in q["options"])
+
+
+def loader_prompt(key: str, files: dict[str, bytes]) -> str:
+    """Testo dell'utente che il loader di training costruisce per una scena (data.synth_qa_sample), dopo l'immagine."""
+    sample = SAMPLE_LOADERS["synth_qa"](key, files)
+    user = sample.messages[0]
+    if user["role"] != "user" or [c["type"] for c in user["content"]] != ["image", "text"]:
+        raise ValueError(f"{key}: messaggio dell'utente inatteso dal loader")
+    return user["content"][1]["text"]
+
+
+def prompt_for(r: dict, meta: dict, files: dict[str, bytes] | None, pos) -> dict:
+    """Prompt del primo passaggio per la QA in posizione pos del record (None: la scena intera), con il collegamento
+    fra la QA e il prompt completo (PROMPT_ORIGINS)."""
+    qa_sha = [q["sha256"] for q in r["qa"]]
+    train_like = r["insieme"] == "train" and r["split"] in ("train", "dev")
+    if train_like and meta["qa"]:
+        positions = pick_questions(r["record"], list(range(len(meta["qa"]))))
+        text = loader_prompt(r["record"], files)
+        rebuilt = qa_messages([meta["qa"][p] for p in positions])[0]
+        if text != rebuilt:
+            raise ValueError(f"{r['record']}: prompt del loader diverso da quello ricostruito dalle posizioni")
+        listed = [{"numero": i, "posizione": p, "tipo": meta["qa"][p]["type"], "qa_sha256": qa_sha[p]}
+                  for i, p in enumerate(positions, 1)]
+        delivered = r["stato"] == "ammesso"
+        if pos is None:
+            return {"prompt": text, "origine_prompt": "loader_scena", "numero_nel_prompt": None,
+                    "domande_nel_prompt": listed, "consegnato_dal_loader": delivered}
+        if pos in positions:
+            return {"prompt": text, "origine_prompt": "loader", "numero_nel_prompt": positions.index(pos) + 1,
+                    "domande_nel_prompt": listed, "consegnato_dal_loader": delivered}
+        q = meta["qa"][pos]
+        return {"prompt": qa_messages([q])[0], "origine_prompt": "domanda_singola_qa_non_scelta",
+                "numero_nel_prompt": 1, "domande_nel_prompt": [{"numero": 1, "posizione": pos, "tipo": q["type"],
+                                                                "qa_sha256": qa_sha[pos]}],
+                "consegnato_dal_loader": False}
+    if pos is None:
+        return {"prompt": "", "origine_prompt": "nessuno", "numero_nel_prompt": None, "domande_nel_prompt": [],
+                "consegnato_dal_loader": False}
+    items = list(meta["qa"]) + ([meta["pair"]] if "pair" in meta else [])
+    q = items[pos]
+    return {"prompt": qa_messages([q])[0],
+            "origine_prompt": "domanda_singola_coppia" if r["insieme"] == "coppie" else "domanda_singola_test",
+            "numero_nel_prompt": 1, "domande_nel_prompt": [{"numero": 1, "posizione": pos, "tipo": q["type"],
+                                                            "qa_sha256": qa_sha[pos]}],
+            "consegnato_dal_loader": False}
+
+
+def variant_label(r: dict, meta: dict) -> str:
+    """Variante dichiarata nel JSON della coppia, uguale al suffisso della chiave; "" fuori dalle coppie."""
+    if r["insieme"] != "coppie":
+        return ""
+    v = (meta.get("pair") or {}).get("variant")
+    if v not in ("a", "b") or not r["record"].endswith(f"-{v}"):
+        raise ValueError(f"{r['record']}: variante {v!r} incoerente con la chiave")
+    return v
+
+
+def unit_rows(uid: str, rs: list[dict], metas: dict, qs: list, pos, status_of) -> tuple[list, list, list]:
+    """(soluzioni, opzioni, righe del modulo) di un'unità. Una coppia ha una riga per variante, con etichetta a o b e
+    identificativi propri, e nel modulo una riga `coppia` in più per il contratto; le altre unità una riga."""
+    pair = len(rs) == 2 and all(r["insieme"] == "coppie" for r in rs)
+    labels = [variant_label(r, metas[r["record"]]) for r in rs] if pair else [""] * len(rs)
+    if pair and labels != ["a", "b"]:
+        raise ValueError(f"{uid}: varianti {labels}, attese a e b")
+    sols, opts, form = [], [], []
+    for r, q, v in zip(rs, qs, labels):
+        if q is not None:
+            sols.append({"unita": uid, "variante": v, "record": r["record"], "record_id": r["record_id"],
+                         "posizione_qa": pos, "tipo": q["type"], "risposta": q["answer"],
+                         "esito_checker": status_of(r, pos), "stato": r["stato"],
+                         "stato_scena_sha256": r["stato_scena_sha256"]})
+            opts.append({"unita": uid, "variante": v, "record": r["record"], "posizione_qa": pos, "tipo": q["type"],
+                         "opzioni": " / ".join(q["options"]),
+                         "opzioni_nel_testo_della_domanda": "sì" if options_in_question(q) else "no"})
+        if pair:
+            form.append({"unita": uid, "variante": v, "record": r["record"], "spiegazione": "non_applicabile",
+                         "contratto_coppia": "non_applicabile"})
+    if pair:
+        form.append({"unita": uid, "variante": "coppia", "record": "|".join(r["record"] for r in rs),
+                     "risposta_revisore": "non_applicabile", "spiegazione": "non_applicabile"})
+    else:
+        form.append({"unita": uid, "variante": "", "record": "|".join(r["record"] for r in rs),
+                     "spiegazione": "non_applicabile", "contratto_coppia": "non_applicabile"})
+    return sols, opts, form
+
+
+# ---------------------------------------------------------------- corrispondenze complete della decontaminazione
+
+def last_evidence(r: dict) -> dict | None:
+    """L'evidenza più recente della decontaminazione esterna (una per derivazione)."""
+    found = [e for e in r.get("evidenze") or [] if e.get("controllo") == CHECK]
+    return found[-1] if found else None
+
+
+def element_text(m: dict) -> str:
+    return (f"{m['tipo']} {m['elemento']} pos {m['posizione_immagine']} d={m['distanza']} {m['ruolo']}"
+            + ("" if m["metrica_primaria"] is None else f" metrica_primaria={m['metrica_primaria']}"))
+
+
+def decontam_tables(units: list[dict], scan_rows: dict[str, dict], entries: dict, elements: dict,
+                    panel_files: dict) -> tuple[list[dict], list[dict], list[str]]:
+    """Righe per record e per corrispondenza dei candidati, con tutte le corrispondenze della riga della scansione.
+
+    units: [{"unita", "rango", "records": [r], "evidenza": e}]; scan_rows: chiave -> riga di records.jsonl.gz;
+    entries: (elemento, posizione) -> voce dell'indice; elements: chiave -> elemento del pannello; panel_files:
+    (elemento, posizione) -> {"file", "sha256"} delle immagini ritrovate. Restituisce anche le incoerenze (chiave,
+    shard, posizione, sha256 del PNG, conteggi o anteprima diversi dall'evidenza, voce con un altro id): con una sola il
+    foglio non si scrive. Una riga o un dettaglio mancante, un elemento o una voce assenti, un'immagine non ritrovata
+    rendono il record `incompleto`, senza fermare il job."""
+    rec_rows, match_rows, fatal = [], [], []
+    resolved: dict[str, str] = {}
+
+    def where(path: str) -> str:
+        if path not in resolved:
+            resolved[path] = str(mf.shard_path(path))
+        return resolved[path]
+
+    for u in units:
+        uid, r, e = u["unita"], u["records"][0], u["evidenza"]
+        key, preview = r["record"], e.get("elementi") or []
+        row, missing, details = scan_rows.get(key), [], []
+        total = None
+        if row is None:
+            missing.append("riga della scansione assente")
+        else:
+            why = []
+            if where(row.get("shard", "")) != where(r["shard"]):
+                why.append("shard")
+            if row.get("posizione") != r["indice"]:
+                why.append("posizione")
+            if row.get("byte_sha256") != r["immagini"][0]["sha256"]:
+                why.append("sha256 del PNG")
+            if (row.get("corrispondenze") or {}) != (e.get("corrispondenze") or {}):
+                why.append("conteggi diversi dall'evidenza")
+            details = row.get("dettagli") or []
+            head = [{"tipo": d.get("match"), "elemento": d.get("elemento"), "posizione": d.get("pos"),
+                     "distanza": d.get("distance")} for d in details[:MAX_EVIDENCE]]
+            if [{k: x.get(k) for k in ("tipo", "elemento", "posizione", "distanza")} for x in preview] != head:
+                why.append("anteprima dell'evidenza diversa dalla scansione")
+            if why:
+                fatal.append(f"{key}: {', '.join(why)}")
+            total = sum((row.get("corrispondenze") or {}).values())
+            if row.get("dettagli_completi") is not True or len(details) != total:
+                missing.append(f"dettagli nella scansione {len(details)} su {total}")
+        rows_here, not_found, absent = [], 0, 0
+        for j, d in enumerate(details, 1):
+            el, pos = d.get("elemento"), d.get("pos")
+            entry, info, problems = entries.get((el, pos)), elements.get(el), []
+            absent += info is None or entry is None
+            if info is None:
+                problems.append("elemento assente dal pannello")
+            if entry is None:
+                problems.append("voce dell'indice assente")
+            elif entry.get("id") != d.get("bench_id"):
+                fatal.append(f"{key}: corrispondenza {j} con la voce {entry.get('id')} invece di {d.get('bench_id')}")
+            image = panel_files.get((el, pos))
+            if image is None:
+                problems.append("immagine del pannello non ritrovata")
+                not_found += 1
+            info = info or {}
+            rows_here.append({
+                "corrispondenza": f"{uid}-{j:03d}", "unita": uid, "record": key, "record_id": r["record_id"], "n": j,
+                "di": len(details), "tipo": d.get("match"), "distanza": d.get("distance"),
+                "benchmark": d.get("benchmark"), "elemento": el, "posizione_immagine": pos,
+                "voce_indice": d.get("bench_id"), "ruolo": info.get("ruolo"), "gruppo_pannello": info.get("gruppo"),
+                "metrica_primaria": info.get("metrica_primaria"),
+                "pixel_sha256_pannello": (entry or {}).get("pixel_sha256"),
+                "nell_anteprima_del_manifest": "sì" if j <= len(preview) else "no",
+                "immagine_pannello": (image or {}).get("file", ""),
+                "immagine_pannello_sha256": (image or {}).get("sha256", ""), "problemi": "; ".join(problems)})
+        if not_found:
+            missing.append(f"immagini del pannello non ritrovate {not_found} su {len(details)}")
+        if absent:
+            missing.append(f"voci o elementi del pannello assenti {absent} su {len(details)}")
+        match_rows += rows_here
+        roles = Counter("test_ammesso" if m["ruolo"] == "test" and m["metrica_primaria"] is True else
+                        "test_non_ammesso" if m["ruolo"] == "test" else str(m["ruolo"]) for m in rows_here)
+        files = list(dict.fromkeys(m["immagine_pannello"] for m in rows_here if m["immagine_pannello"]))
+        rec_rows.append({
+            "unita": uid, "rango": u["rango"], "record": key, "record_id": r["record_id"], "insieme": r["insieme"],
+            "split": r["split"], "stato": r["stato"], "famiglia": r["famiglia"], "esito": e["esito"],
+            "esito_gruppo": e["esito_gruppo"], "corrispondenze": json.dumps(e.get("corrispondenze") or {},
+                                                                            sort_keys=True),
+            "corrispondenze_nella_scansione": "" if total is None else total,
+            "corrispondenze_esportate": len(rows_here), "nell_anteprima_del_manifest": len(preview),
+            "voci_del_pannello": len({(m["elemento"], m["posizione_immagine"]) for m in rows_here}),
+            "elementi_del_pannello": len({m["elemento"] for m in rows_here}),
+            "immagini_del_pannello_distinte": len({m["pixel_sha256_pannello"] for m in rows_here
+                                                   if m["pixel_sha256_pannello"]}),
+            "ruoli": ", ".join(f"{k} {v}" for k, v in sorted(roles.items())),
+            "materiale": "completo" if not missing else "incompleto: " + "; ".join(missing),
+            "elementi": "; ".join(element_text(m) for m in rows_here), "immagini_pannello": "|".join(files)})
+    return rec_rows, match_rows, fatal
+
+
+def reconcile(scan_rows: dict[str, dict], summary: dict, matches_lines: list[dict], candidates: set[str],
+              match_rows: list[dict]) -> tuple[list[dict], dict]:
+    """Conteggi della scansione (righe, summary.json, matches.jsonl) contro quelli esportati: (controlli, conteggi)."""
+    checks = []
+
+    def check(name, ok, detail=None):
+        checks.append({"controllo": name, "esito": bool(ok), "dettaglio": detail})
+
+    def key6(k, d):
+        return (k, d.get("match"), d.get("distance"), d.get("benchmark"), d.get("bench_id"), d.get("elemento"),
+                d.get("pos"))
+
+    found = {k for k, row in scan_rows.items() if sum((row.get("corrispondenze") or {}).values())}
+    check("record con corrispondenze nella scansione = candidati del manifest", found == candidates,
+          {"solo_scansione": len(found - candidates), "solo_manifest": len(candidates - found)})
+    total = sum(sum((row.get("corrispondenze") or {}).values()) for row in scan_rows.values())
+    per_bench = Counter(summary.get("matches_per_benchmark") or {})
+    check("corrispondenze della scansione = summary.json", total == sum(per_bench.values()),
+          {"righe": total, "summary": sum(per_bench.values())})
+    details = Counter(key6(k, d) for k, row in scan_rows.items() for d in row.get("dettagli") or [])
+    lines = Counter(key6(m["key"], m) for m in matches_lines)
+    check("matches.jsonl = dettagli di records.jsonl.gz", lines == details,
+          {"matches.jsonl": sum(lines.values()), "dettagli": sum(details.values())})
+    exported = Counter((m["record"], m["tipo"], m["distanza"], m["benchmark"], m["voce_indice"], m["elemento"],
+                        m["posizione_immagine"]) for m in match_rows)
+    wanted = Counter({k: v for k, v in details.items() if k[0] in candidates})
+    check("corrispondenze esportate = dettagli della scansione dei candidati, nessuna omessa", exported == wanted,
+          {"esportate": len(match_rows), "attese": sum(wanted.values())})
+    check("per benchmark e tipo: esportate = summary.json",
+          Counter(f"{m['benchmark']}/{m['tipo']}" for m in match_rows) == per_bench)
+    pairs = {(m["record"], m["elemento"], m["posizione_immagine"]) for m in match_rows}
+    counts = {"record_candidati": len(candidates), "corrispondenze_scansione": total,
+              "corrispondenze_esportate": len(match_rows),
+              "per_tipo": dict(Counter(m["tipo"] for m in match_rows)),
+              "coppie_record_voce_distinte": len(pairs),
+              "duplicati_di_evidenza": len(match_rows) - len(pairs),
+              "voci_del_pannello_distinte": len({(m["elemento"], m["posizione_immagine"]) for m in match_rows}),
+              "elementi_del_pannello_distinti": len({m["elemento"] for m in match_rows}),
+              "immagini_del_pannello_distinte_per_pixel": len({m["pixel_sha256_pannello"] for m in match_rows
+                                                               if m["pixel_sha256_pannello"]}),
+              "file_del_pannello_distinti": len({m["immagine_pannello_sha256"] for m in match_rows
+                                                 if m["immagine_pannello_sha256"]}),
+              "record_oltre_l_anteprima": len({m["record"] for m in match_rows
+                                               if m["nell_anteprima_del_manifest"] == "no"}),
+              "corrispondenze_oltre_l_anteprima": sum(m["nell_anteprima_del_manifest"] == "no" for m in match_rows)}
+    return checks, counts
+
+
+# ---------------------------------------------------------------- confronto con un campione precedente
+
+def read_tsv(path: Path) -> list[dict]:
+    with open(path, encoding="utf-8", newline="") as fh:
+        return list(csv.DictReader(fh, delimiter="\t"))
+
+
+def compare_previous(prev: Path, tables: dict[str, list[dict]], design: dict, seed: int, manifest_sha: str,
+                     out_dir: Path) -> dict:
+    """Selezione, ranghi, target e immagini v4 del campione precedente contro quelli nuovi. `selezione_invariata` è
+    falso se cambia una sola unità, un rango, un record, una posizione, una QA, una risposta o un'immagine v4."""
+    old_report = json.loads((prev / "report.json").read_text(encoding="utf-8"))
+    diffs: dict[str, list] = defaultdict(list)
+
+    def same(name: str, old_rows: list[dict], new_rows: list[dict], fields: tuple) -> int:
+        a = [tuple(row.get(f, "") for f in fields) for row in old_rows]
+        b = [tuple(cell(row.get(f, "")) for f in fields) for row in new_rows]
+        if a != b:
+            diffs[name] += [{"vecchio": x, "nuovo": y} for x, y in zip(a, b) if x != y][:5] or [
+                {"righe_vecchie": len(a), "righe_nuove": len(b)}]
+        return len(a)
+
+    out = {"precedente": str(prev), "report_precedente": file_entry(prev / "report.json")}
+    old_design = old_report["campione"]["strati"]
+    if old_report.get("seme") != seed or old_report.get("audit") != AUDIT:
+        diffs["estrazione"].append({"seme": old_report.get("seme"), "audit": old_report.get("audit")})
+    if old_report["manifest"]["manifest_sha256"] != manifest_sha:
+        diffs["manifest"].append(old_report["manifest"]["manifest_sha256"])
+    if json.loads(json.dumps(design)) != old_design:
+        diffs["strati"].append({"vecchi": old_design, "nuovi": design})
+    old_c, old_m = read_tsv(prev / "campione.tsv"), read_tsv(prev / "mirati.tsv")
+    old_d = read_tsv(prev / "candidati_decontaminazione.tsv")
+    out["unita_campione"] = same("campione", old_c, tables["campione"], SAME_SAMPLE)
+    out["unita_mirate"] = same("mirati", old_m, tables["mirati"], SAME_TARGETED)
+    out["candidati"] = same("candidati_decontaminazione", old_d, tables["candidati"], SAME_DECONTAM)
+    # risposte: il foglio precedente aveva una riga per unità (le coppie casuali come "a: x | b: y", le coppie mirate
+    # solo con la variante a); quello nuovo ne ha una per variante
+    new_sol = defaultdict(list)
+    for s in tables["soluzioni"]:
+        new_sol[s["unita"]].append(s)
+    added_b = 0
+    for row in read_tsv(prev / "soluzioni.tsv"):
+        rows = new_sol.get(row["unita"], [])
+        if row["unita"].startswith("C-") and len(rows) == 2:
+            want = (" | ".join(f"{s['variante']}: {s['risposta']}" for s in rows),
+                    "|".join(s["esito_checker"] for s in rows), "|".join(s["stato_scena_sha256"] for s in rows))
+        else:
+            first = rows[:1] or [{}]
+            want = (first[0].get("risposta"), first[0].get("esito_checker"), first[0].get("stato_scena_sha256"))
+            added_b += len(rows) == 2
+        got = (row["risposta"], row["esito_checker"], row["stato_scena_sha256"])
+        if tuple(cell(x) for x in want) != got:
+            diffs["soluzioni"].append({"unita": row["unita"], "vecchio": got, "nuovo": want})
+    old_units = {row["unita"] for row in read_tsv(prev / "soluzioni.tsv")}
+    out["risposte_confrontate"] = len(old_units)
+    out["unita_con_risposta_nuove"] = sorted(set(new_sol) - old_units)[:10]
+    if set(new_sol) != old_units:
+        diffs["soluzioni"].append({"unita_solo_nuove": len(set(new_sol) - old_units),
+                                   "unita_solo_vecchie": len(old_units - set(new_sol))})
+    out["seconde_varianti_aggiunte"] = added_b
+    # opzioni: prima nel foglio del primo passaggio, ora in opzioni.tsv
+    new_opt = {}
+    for o in tables["opzioni"]:
+        new_opt.setdefault(o["unita"], o["opzioni"])
+    moved = 0
+    for row in old_c + old_m:
+        if row.get("opzioni"):
+            moved += 1
+            if new_opt.get(row["unita"]) != row["opzioni"]:
+                diffs["opzioni"].append({"unita": row["unita"], "vecchie": row["opzioni"],
+                                         "nuove": new_opt.get(row["unita"])})
+    out["opzioni_spostate_in_opzioni.tsv"] = moved
+    # anteprima del foglio precedente: prefisso dell'elenco completo
+    full = {d["unita"]: d["elementi"].split("; ") if d["elementi"] else [] for d in tables["candidati"]}
+    longer, extra = 0, 0
+    for row in old_d:
+        old_list = row["elementi"].split("; ") if row["elementi"] else []
+        new_list = full.get(row["unita"], [])
+        if new_list[:len(old_list)] != old_list:
+            diffs["elementi_candidati"].append({"unita": row["unita"], "vecchi": old_list[:3], "nuovi": new_list[:3]})
+        longer += len(new_list) > len(old_list)
+        extra += max(0, len(new_list) - len(old_list))
+    out["candidati_con_corrispondenze_mancanti_nel_foglio_precedente"] = longer
+    out["corrispondenze_mancanti_nel_foglio_precedente"] = extra
+    # immagini v4: stessi file, stessi byte
+    def v4_images(rows: list[dict]) -> set[str]:
+        return {p for row in rows for p in (row.get("immagini") or "").split("|")
+                if p.startswith("immagini/synth-") and "-pannello-" not in p}
+
+    old_png = v4_images(old_c + old_m + old_d)
+    new_png = v4_images(tables["campione"] + tables["mirati"] + tables["candidati"])
+    if old_png != new_png:
+        diffs["immagini_v4"].append({"solo_vecchie": sorted(old_png - new_png)[:5],
+                                     "solo_nuove": sorted(new_png - old_png)[:5]})
+    bad = [p for p in sorted(old_png & new_png) if sha256_file(prev / p) != sha256_file(out_dir / p)]
+    if bad:
+        diffs["immagini_v4"].append({"byte_diversi": bad[:5]})
+    out["immagini_v4_confrontate"] = len(old_png & new_png)
+    out["differenze"] = dict(diffs)
+    out["selezione_invariata"] = not diffs
+    return out
+
+
+# ---------------------------------------------------------------- job
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--manifest", required=True, type=Path)
     ap.add_argument("--out", required=True, type=Path)
     ap.add_argument("--index", type=Path, help="cartella dell'indice del pannello, per le immagini dei candidati")
     ap.add_argument("--review", type=Path, help="uscita di decontam_review.py per la scansione (review.jsonl)")
+    ap.add_argument("--previous", type=Path, help="campione precedente da confrontare (stessa estrazione)")
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--per-threshold", type=int, default=8)
     ap.add_argument("--pairs-per-family", type=int, default=5)
     ap.add_argument("--contamination", type=int, default=10)
     ap.add_argument("--per-rule", type=int, default=10)
+    ap.add_argument("--workers", type=int, default=4)
     args = ap.parse_args()
     if not os.environ.get("SLURM_JOB_ID"):
         sys.exit("synth_gold_sample.py va eseguito in un job SLURM")
@@ -372,7 +804,7 @@ def main() -> None:
                          "misura": value})
 
     for r in records:  # quarantena per motivi propri della scena; i candidati della decontaminazione stanno sotto
-        if r["stato"] == "quarantena" and set(r["motivo"] or {}) - {"decontaminazione_pannello"}:
+        if r["stato"] == "quarantena" and set(r["motivo"] or {}) - {CHECK}:
             add_target("quarantena", [r], None, "scena", json.dumps(r["motivo"], ensure_ascii=False))
     pairs_by_family = defaultdict(list)
     for u in pops.get("coppie", []):
@@ -404,12 +836,13 @@ def main() -> None:
     # candidati della decontaminazione esterna: tutti, in un foglio a parte (non sono casi delle golden answer)
     decontam = []
     for r in records:
-        for e in r.get("evidenze") or []:
-            if e.get("controllo") == "decontaminazione_pannello" and e.get("esito") in ("candidato",
-                                                                                         "corrispondenza_confermata"):
-                decontam.append({"rango": rank({"audit": AUDIT, "seme": args.seed, "decontaminazione": r["record_id"]}),
-                                 "records": [r], "evidenza": e})
+        e = last_evidence(r)
+        if e is not None and e.get("esito") in ("candidato", "corrispondenza_confermata"):
+            decontam.append({"rango": rank({"audit": AUDIT, "seme": args.seed, "decontaminazione": r["record_id"]}),
+                             "records": [r], "evidenza": e})
     decontam.sort(key=lambda x: x["rango"])
+    for n, u in enumerate(decontam, 1):
+        u["unita"] = f"D-{n:03d}"
     review = {}
     if args.review:  # somiglianza dei pixel di decontam_review.py, solo per ordinare la verifica
         with open(args.review / "review.jsonl", encoding="utf-8") as fh:
@@ -417,12 +850,52 @@ def main() -> None:
                 row = json.loads(line)
                 review[row["key"]] = row.get("image") or {}
 
+    # ---- scansione completa, seguendo il riferimento delle evidenze
+    dmeta = m.meta.get("decontaminazione") or {}
+    if any(not (u["evidenza"].get("rif") or {}).get("file") for u in decontam):
+        sys.exit("evidenza della decontaminazione senza riferimento alla scansione")
+    refs = {(u["evidenza"]["rif"]["file"], u["evidenza"]["rif"]["sha256"]) for u in decontam}
+    scan_rows, scan_info, matches_lines, summary = {}, {}, [], {}
+    if decontam:
+        if len(refs) != 1:
+            sys.exit(f"le evidenze citano {len(refs)} scansioni diverse: {sorted(refs)[:3]}")
+        (ref_file, ref_sha), = refs
+        scan_path = Path(ref_file) if Path(ref_file).is_absolute() else ROOT / ref_file
+        declared = dmeta.get("scansione") or {}
+        for name in ("records", "summary", "matches"):
+            entry = declared.get(name) or {}
+            if not entry.get("path") or sha256_file(entry["path"]) != entry.get("sha256"):
+                sys.exit(f"scansione: {name} assente o con sha256 diverso da quello del manifest ({entry.get('path')})")
+        if Path(declared["records"]["path"]).resolve() != scan_path.resolve() \
+                or declared["records"]["sha256"] != ref_sha or sha256_file(scan_path) != ref_sha:
+            sys.exit(f"{scan_path}: il riferimento delle evidenze non è il records.jsonl.gz del manifest o ha un altro "
+                     "sha256")
+        summary = json.loads(Path(declared["summary"]["path"]).read_text(encoding="utf-8"))
+        if summary.get("files", {}).get("records.jsonl.gz", {}).get("sha256") != ref_sha:
+            sys.exit("summary.json della scansione non registra lo sha256 di records.jsonl.gz delle evidenze")
+        with gzip.open(scan_path, "rt", encoding="utf-8") as fh:
+            for line in fh:
+                if line.strip():
+                    row = json.loads(line)
+                    if row["key"] in scan_rows:
+                        sys.exit(f"{row['key']}: riga ripetuta nella scansione")
+                    scan_rows[row["key"]] = {k: row.get(k) for k in ("key", "shard", "posizione", "byte_sha256",
+                                                                      "corrispondenze", "dettagli",
+                                                                      "dettagli_completi")}
+        with open(declared["matches"]["path"], encoding="utf-8") as fh:
+            matches_lines = [json.loads(line) for line in fh if line.strip()]
+        if len(scan_rows) != summary.get("samples") or set(scan_rows) != set(by_key):
+            sys.exit(f"scansione: {len(scan_rows)} righe, summary {summary.get('samples')}, manifest {len(by_key)}")
+        scan_info = {"records": file_entry(scan_path, ref_sha), "summary": declared["summary"],
+                     "matches": declared["matches"], "job": summary.get("job_id"), "code": summary.get("code"),
+                     "max_lines": summary.get("max_lines"), "radius": summary.get("radius")}
+
     # ---- lettura degli shard: margini sulle scene ammesse di train e dev, testi delle unità, immagini
     wanted = {r["record"] for u in sample + targeted + decontam for r in u["records"]}
     k = args.per_threshold
     near = {name: Best(k) for name in ("soglia_testo_basso", "soglia_riquadri_vicini", "soglia_intersezione_bordo",
                                        "soglia_grafici_vicini", "soglia_vertice_estremo", "coordinate_dalle_tacche")}
-    metas, images, seen = {}, {}, 0
+    metas, images, raws, seen = {}, {}, {}, 0
     for s in m.meta["shards"]:
         for index, (key, files) in enumerate(iter_shard(mf.shard_path(s["percorso"]))):
             r = by_key.get(key)
@@ -434,7 +907,7 @@ def main() -> None:
             seen += 1
             meta = json.loads(files["json"])
             if key in wanted:
-                metas[key], images[key] = meta, files["png"]
+                metas[key], images[key], raws[key] = meta, files["png"], files["json"]
             if r["stato"] != "ammesso" or r["split"] not in ("train", "dev") or r["insieme"] != "train":
                 continue
             layout = meta["layout"]
@@ -489,29 +962,56 @@ def main() -> None:
         for s in m.meta["shards"]:
             for key, files in iter_shard(mf.shard_path(s["percorso"])):
                 if key in need:
-                    if hashlib.sha256(files["png"]).hexdigest() != by_key[key]["immagini"][0]["sha256"]:
-                        sys.exit(f"{key}: PNG diverso da quello del manifest")
-                    metas[key], images[key] = json.loads(files["json"]), files["png"]
+                    if hashlib.sha256(files["png"]).hexdigest() != by_key[key]["immagini"][0]["sha256"] \
+                            or hashlib.sha256(files["json"]).hexdigest() != by_key[key]["json_sha256"]:
+                        sys.exit(f"{key}: JSON o PNG diversi da quelli del manifest")
+                    metas[key], images[key], raws[key] = json.loads(files["json"]), files["png"], files["json"]
 
-    # ---- pannello: immagini dei candidati della decontaminazione
-    panel_images, panel_errors = {}, []
+    # ---- pannello: voci e immagini di tutte le corrispondenze dei candidati
+    entries, elements, panel_bytes, panel_errors, panel_info = {}, {}, {}, [], {}
+    needed = {(d.get("elemento"), d.get("pos")) for u in decontam
+              for d in (scan_rows.get(u["records"][0]["record"]) or {}).get("dettagli") or []}
+    if decontam:
+        el_entry = (dmeta.get("pannello") or {}).get("elements") or {}
+        if not el_entry.get("path") or sha256_file(el_entry["path"]) != el_entry.get("sha256"):
+            sys.exit(f"elementi del pannello assenti o con sha256 diverso da quello del manifest ({el_entry.get('path')})")
+        with gzip.open(el_entry["path"], "rt", encoding="utf-8") as fh:
+            for line in fh:
+                if line.strip():
+                    e = json.loads(line)
+                    elements[e["chiave"]] = {k: e.get(k) for k in ("ruolo", "gruppo", "metrica_primaria")}
+        panel_info["elements"] = el_entry
     if args.index and decontam:
         import panel_index
 
-        loaded = json.loads((args.index / "index.json").read_text(encoding="utf-8"))
-        wanted_el = {(x["elemento"], x["posizione"]): None for u in decontam for x in u["evidenza"]["elementi"]}
+        idx_entry = dmeta.get("indice") or {}
+        index_path = args.index / "index.json"
+        if sha256_file(index_path) != idx_entry.get("sha256"):
+            sys.exit(f"{index_path}: sha256 diverso dall'indice registrato nel manifest")
+        loaded = json.loads(index_path.read_text(encoding="utf-8"))
+        for it in loaded["items"]:
+            if "item" in it and it.get("pos") is not None:
+                where = (f"{it['benchmark']}/{it['item']}", it["pos"])
+                if where in needed:
+                    if where in entries:
+                        sys.exit(f"{where}: due voci dell'indice per la stessa immagine")
+                    entries[where] = it
         # tutte le voci degli elementi citati: resolve_file confronta il numero di immagini dell'elemento con le voci
-        elements = {el for el, _ in wanted_el}
-        subset = [it for it in loaded["items"] if f"{it['benchmark']}/{it['item']}" in elements
+        cited = {el for el, _ in needed}
+        subset = [it for it in loaded["items"] if f"{it['benchmark']}/{it.get('item')}" in cited
                   and it.get("pos") is not None]
-        out_bytes, panel_errors = panel_index.resolve_entries(subset, loaded["convenzione_immagini"], 4)
+        out_bytes, panel_errors = panel_index.resolve_entries(subset, loaded["convenzione_immagini"], args.workers)
         for it, data in zip(subset, out_bytes):
-            if data and (f"{it['benchmark']}/{it['item']}", it["pos"]) in wanted_el:
-                panel_images[(f"{it['benchmark']}/{it['item']}", it["pos"])] = data
+            where = (f"{it['benchmark']}/{it['item']}", it["pos"])
+            if data and where in needed:
+                panel_bytes[where] = data
+        panel_info.update(index=file_entry(index_path, idx_entry.get("sha256")), voci_necessarie=len(needed),
+                          voci_trovate=len(entries), immagini_ritrovate=len(panel_bytes))
 
     # ---- scrittura
     args.out.mkdir(parents=True)
     (args.out / "immagini").mkdir()
+    (args.out / "immagini" / "pannello").mkdir()
     written = {}
 
     def image_file(key: str) -> str:
@@ -522,6 +1022,19 @@ def main() -> None:
                 sys.exit(f"{path}: copia diversa dal PNG del manifest")
             written[key] = f"immagini/{key}.png"
         return written[key]
+
+    panel_files = {}
+    if panel_bytes:
+        from PIL import Image
+
+        for where, data in sorted(panel_bytes.items()):
+            digest = hashlib.sha256(data).hexdigest()
+            with Image.open(io.BytesIO(data)) as im:
+                ext = (im.format or "bin").lower().replace("jpeg", "jpg")
+            path = args.out / "immagini" / "pannello" / f"{digest}.{ext}"
+            if not path.exists():
+                path.write_bytes(data)  # i byte della sorgente, come li legge l'indice
+            panel_files[where] = {"file": f"immagini/pannello/{path.name}", "sha256": digest}
 
     def qa_of(r: dict, pos) -> dict | None:
         meta = metas[r["record"]]
@@ -537,71 +1050,88 @@ def main() -> None:
         qs = checker.get(r["record"]) or []
         return qs[pos][2] if pos is not None and pos < len(qs) else ""
 
-    rows, mrows, solutions = [], [], []
+    prompts, prompt_stats = [], Counter()
+
+    def prompt_cols(uid: str, rs: list[dict], pos) -> dict:
+        ps = [prompt_for(r, metas[r["record"]], {"json": raws[r["record"]], "png": images[r["record"]]}, pos)
+              for r in rs if r["insieme"] == "coppie" or r is rs[0]]
+        p = ps[0]
+        if any(x["prompt"] != p["prompt"] for x in ps):
+            sys.exit(f"{uid}: le due varianti della coppia hanno prompt diversi")
+        digest = mf.sha256_text(p["prompt"]) if p["prompt"] else ""
+        prompt_stats[p["origine_prompt"]] += 1
+        prompts.append({"unita": uid, "record": [r["record"] for r in rs], "posizione_qa": pos, **p,
+                        "prompt_sha256": digest or None})
+        return {"prompt": tsv_text(p["prompt"]), "prompt_sha256": digest, "origine_prompt": p["origine_prompt"],
+                "numero_nel_prompt": "" if p["numero_nel_prompt"] is None else p["numero_nel_prompt"],
+                "domande_nel_prompt": len(p["domande_nel_prompt"]),
+                "consegnato_dal_loader": "sì" if p["consegnato_dal_loader"] else "no"}
+
+    rows, mrows, solutions, options, form = [], [], [], [], []
     for u in sample:
         rs = u["records"]
         qs = [qa_of(r, u["posizione"]) for r in rs]
+        pc = prompt_cols(u["unita"], rs, u["posizione"])
+        if pc["origine_prompt"] == "loader" and pc["numero_nel_prompt"] != u["ordine_nel_loader"] + 1:
+            sys.exit(f"{u['unita']}: numero nel prompt {pc['numero_nel_prompt']}, ordine nel loader {u['ordine_nel_loader']}")
         rows.append({"unita": u["unita"], "strato": u["strato"], "rango": u["rango"], "N": u["N"], "n": u["n"],
                      "p_inclusione": f"{u['n']}/{u['N']}", "record": "|".join(r["record"] for r in rs),
                      "record_id": "|".join(r["record_id"] for r in rs), "insieme": rs[0]["insieme"],
                      "split": rs[0]["split"], "famiglia": rs[0]["famiglia"],
                      "shard": "|".join(r["shard"] for r in rs), "indice": "|".join(str(r["indice"]) for r in rs),
                      "posizione_qa": u["posizione"], "ordine_nel_loader": u["ordine_nel_loader"], "tipo": u["tipo"],
-                     "domanda": qs[0]["q"], "opzioni": " / ".join(qs[0]["options"]),
+                     "domanda": qs[0]["q"], **pc,
                      "immagini": "|".join(image_file(r["record"]) for r in rs),
                      "immagini_sha256": "|".join(r["immagini"][0]["sha256"] for r in rs),
                      "qa_sha256": u["qa_sha256"]})
-        solutions.append({"unita": u["unita"], "risposta": " | ".join(f"{r['record'][-1] if len(rs) > 1 else ''}"
-                                                                      f"{': ' if len(rs) > 1 else ''}{q['answer']}"
-                                                                      for r, q in zip(rs, qs)),
-                          "esito_checker": "|".join(status_of(r, u["posizione"]) for r in rs),
-                          "stato_scena_sha256": "|".join(r["stato_scena_sha256"] for r in rs)})
+        sols, opts, frm = unit_rows(u["unita"], rs, metas, qs, u["posizione"], status_of)
+        solutions += sols
+        options += opts
+        form += frm
     counters = Counter()
     for u in targeted:
         counters[u["categoria"]] += 1
         uid = f"M-{u['categoria']}-{counters[u['categoria']]:03d}"
         rs = u["records"]
-        q = qa_of(rs[0], u["posizione"])
+        qs = [qa_of(r, u["posizione"]) for r in rs] if u["posizione"] is not None else [None] * len(rs)
+        q = qs[0]
+        pc = prompt_cols(uid, rs, u["posizione"])
         mrows.append({"unita": uid, "categoria": u["categoria"], "motivo": u["motivo"],
                       "misura": "" if u["misura"] is None else round(u["misura"], 4),
                       "record": "|".join(r["record"] for r in rs), "record_id": "|".join(r["record_id"] for r in rs),
                       "insieme": "|".join(r["insieme"] for r in rs), "split": "|".join(r["split"] for r in rs),
                       "stato": "|".join(r["stato"] for r in rs), "famiglia": rs[0]["famiglia"],
                       "posizione_qa": "" if u["posizione"] is None else u["posizione"], "tipo": u["tipo"],
-                      "domanda": q["q"] if q else "scena intera: leggibilità e univocità dell'immagine",
-                      "opzioni": " / ".join(q["options"]) if q else "",
+                      "domanda": q["q"] if q else "scena intera: leggibilità e univocità dell'immagine", **pc,
                       "immagini": "|".join(image_file(r["record"]) for r in rs)})
-        if q is not None:
-            solutions.append({"unita": uid, "risposta": q["answer"], "esito_checker": status_of(rs[0], u["posizione"]),
-                              "stato_scena_sha256": rs[0]["stato_scena_sha256"]})
-    drows = []
-    for n, u in enumerate(decontam, 1):
-        uid, (r, e) = f"D-{n:03d}", (u["records"][0], u["evidenza"])
-        extra = []
-        for j, x in enumerate(e["elementi"]):
-            data = panel_images.get((x["elemento"], x["posizione"]))
-            if data:
-                from PIL import Image
+        sols, opts, frm = unit_rows(uid, rs, metas, qs, u["posizione"], status_of)
+        solutions += sols
+        options += opts
+        form += frm
+    # il loader di training non costruisce il prompt delle coppie (le loro QA sono solo nel campo pair)
+    pair_loader = None
+    first_pair = next((r for u in sample for r in u["records"] if r["insieme"] == "coppie"), None)
+    if first_pair is not None:
+        try:
+            loader_prompt(first_pair["record"], {"json": raws[first_pair["record"]], "png": images[first_pair["record"]]})
+            pair_loader = f"{first_pair['record']}: il loader costruisce un prompt"
+        except ValueError as exc:
+            pair_loader = f"{first_pair['record']}: ValueError del loader ({exc})"
 
-                with Image.open(io.BytesIO(data)) as im:
-                    ext = (im.format or "bin").lower().replace("jpeg", "jpg")
-                path = args.out / "immagini" / f"{uid}-pannello-{j}.{ext}"
-                path.write_bytes(data)  # i byte della sorgente, come li legge l'indice
-                extra.append(f"immagini/{path.name}")
-        im_rev = review.get(r["record"]) or {}
-        drows.append({"unita": uid, "rango": u["rango"], "record": r["record"], "record_id": r["record_id"],
-                      "insieme": r["insieme"], "split": r["split"], "stato": r["stato"], "famiglia": r["famiglia"],
-                      "esito": e["esito"], "esito_gruppo": e["esito_gruppo"],
-                      "corrispondenze": json.dumps(e["corrispondenze"], sort_keys=True),
-                      "elementi": "; ".join(f"{x['tipo']} {x['elemento']} pos {x['posizione']} d={x['distanza']} "
-                                            f"{x['ruolo']}" + ("" if x["metrica_primaria"] is None else
-                                                               f" metrica_primaria={x['metrica_primaria']}")
-                                            for x in e["elementi"]),
-                      "somiglianza_pixel": im_rev.get("sim", ""), "rapporto_aspetto": im_rev.get("aspect_ratio", ""),
-                      "elemento_piu_simile": f"{im_rev.get('benchmark') or ''}/{im_rev.get('bench_id') or ''}"
-                      if im_rev else "",
-                      "immagini": "|".join([image_file(r["record"]), *extra]),
-                      "domanda": "stessa immagine o stesso contenuto di un elemento del pannello?"})
+    # ---- candidati della decontaminazione: tutte le corrispondenze
+    drows, dmatches, fatal = decontam_tables(decontam, scan_rows, entries, elements, panel_files)
+    if fatal:
+        sys.exit(f"{len(fatal)} incoerenze fra manifest e scansione, foglio non scritto: {fatal[:5]}")
+    recon_checks, recon = reconcile(scan_rows, summary, matches_lines, {u["records"][0]["record"] for u in decontam},
+                                    dmatches) if decontam else ([], {})
+    for row in drows:
+        im_rev = review.get(row["record"]) or {}
+        row.update({"somiglianza_pixel": im_rev.get("sim", ""), "rapporto_aspetto": im_rev.get("aspect_ratio", ""),
+                    "elemento_piu_simile": f"{im_rev.get('benchmark') or ''}/{im_rev.get('bench_id') or ''}"
+                    if im_rev else "",
+                    "immagini": "|".join([image_file(row["record"]), *filter(None, row.pop("immagini_pannello")
+                                                                             .split("|"))]),
+                    "domanda": "stessa immagine o stesso contenuto di un elemento del pannello?"})
 
     def write_tsv(name: str, table: list[dict], columns=None) -> dict:
         path = args.out / name
@@ -610,7 +1140,7 @@ def main() -> None:
             w = csv.DictWriter(fh, fieldnames=columns, delimiter="\t", lineterminator="\n")
             w.writeheader()
             for row in table:
-                w.writerow({c: str(row.get(c, "")).replace("\t", " ").replace("\n", " ") for c in columns})
+                w.writerow({c: cell(row.get(c, "")) for c in columns})
         return {**file_entry(path), "righe": len(table)}
 
     # ---- inventario
@@ -632,17 +1162,31 @@ def main() -> None:
                           "coerenza_annotazioni_immagine": COMMON["coerenza"],
                           "rispondibilita_da_immagine_e_domanda": risp + "; C: revisione visiva",
                           "spiegazione": COMMON["spiegazione"], "gold": "nessuno: record candidato"})
+    prompt_path = args.out / "prompts.jsonl"
+    prompt_path.write_text("".join(json.dumps(p, ensure_ascii=False, sort_keys=True) + "\n" for p in prompts),
+                           encoding="utf-8")
     files = {"campione.tsv": write_tsv("campione.tsv", rows), "mirati.tsv": write_tsv("mirati.tsv", mrows),
+             "prompts.jsonl": {**file_entry(prompt_path), "righe": len(prompts)},
+             "opzioni.tsv": write_tsv("opzioni.tsv", options),
              "soluzioni.tsv": write_tsv("soluzioni.tsv", solutions),
-             "esiti.tsv": write_tsv("esiti.tsv", [{"unita": x["unita"], "spiegazione": "non_applicabile"}
-                                                  for x in rows + mrows], REVIEW_COLUMNS),
+             "esiti.tsv": write_tsv("esiti.tsv", form, REVIEW_COLUMNS),
              "inventario.tsv": write_tsv("inventario.tsv", inventory),
              "candidati_decontaminazione.tsv": write_tsv("candidati_decontaminazione.tsv", drows),
-             "esiti_decontaminazione.tsv": write_tsv("esiti_decontaminazione.tsv", [{"unita": x["unita"]} for x in drows],
-                                                     ("unita", "stesso_contenuto", "elemento_guardato", "note"))}
+             "corrispondenze_decontaminazione.tsv": write_tsv("corrispondenze_decontaminazione.tsv", dmatches),
+             "esiti_decontaminazione.tsv": write_tsv("esiti_decontaminazione.tsv",
+                                                     [{"unita": x["unita"], "record": x["record"]} for x in drows],
+                                                     DECONTAM_REVIEW_COLUMNS)}
+    comparison = None
+    if args.previous:
+        comparison = compare_previous(args.previous, {"campione": rows, "mirati": mrows, "candidati": drows,
+                                                      "soluzioni": solutions, "opzioni": options},
+                                      design, args.seed, m.manifest_sha256, args.out)
+        write_new_json(args.out / "confronto.json", comparison)
+        files["confronto.json"] = file_entry(args.out / "confronto.json")
     review_entry = file_entry(args.review / "review.jsonl") if args.review else None
+    incomplete = [x["unita"] for x in drows if x["materiale"] != "completo"]
     report = {
-        "schema": "synth-gold-sample/1", "job_id": os.environ.get("SLURM_JOB_ID"), "code": code_identity(),
+        "schema": SCHEMA, "job_id": os.environ.get("SLURM_JOB_ID"), "code": code_identity(),
         "manifest": {"path": str(args.manifest), "versione": m.meta.get("versione"), "manifest_sha256": m.manifest_sha256,
                      "records_sha256": m.meta["records"]["sha256"]},
         "checker": file_entry(cand_entry["path"]), "audit": AUDIT, "seme": args.seed,
@@ -650,6 +1194,10 @@ def main() -> None:
                       "coerenza_annotazioni_immagine": "il PNG mostra ciò che dicono specifica e layout",
                       "rispondibilita_da_immagine_e_domanda": "l'informazione serve visibile, leggibile e univoca",
                       "spiegazione": COMMON["spiegazione"]},
+        "protocollo": {**PROTOCOL, "origini_del_prompt": PROMPT_ORIGINS, "prompt_per_origine": dict(prompt_stats),
+                       "loader_di_training_sulle_coppie": pair_loader,
+                       "opzioni_nel_testo_della_domanda": dict(Counter(
+                           f"{o['tipo']}: {o['opzioni_nel_testo_della_domanda']}" for o in options))},
         "campione": {"strati": design, "regola": "le n unità col digest più piccolo di {audit, seme, record_id, "
                                                  "posizione, qa} (coppie: {audit, seme, coppia}); un n più piccolo, "
                                                  "fissato prima di guardare, è il prefisso in ordine di rango",
@@ -658,21 +1206,38 @@ def main() -> None:
                                     "errori, e resta condizionato alla sensibilità del revisore (S4 §4)"},
         "mirati": {"categorie": dict(counters), "unita_totali": len(mrows),
                    "nota": "casi diagnostici scelti per regola, non stimano un tasso"},
+        "soluzioni": {"righe": len(solutions), "per_variante": dict(Counter(s["variante"] or "-" for s in solutions)),
+                      "modulo": dict(Counter(f["variante"] or "-" for f in form))},
         "candidati_decontaminazione": {
             "record": len(drows), "esiti": dict(Counter(x["esito"] for x in drows)),
             "per_insieme_split_stato": dict(Counter(f"{x['insieme']}/{x['split']}/{x['stato']}" for x in drows)),
-            "revisione_pixel": review_entry,
-            "nota": "tutti i record con un candidato della decontaminazione esterna, con le immagini del pannello "
-                    "citate nell'evidenza; la somiglianza dei pixel (decontam_review.py) serve solo a ordinare la "
-                    "verifica visiva, non risolve un candidato"},
-        "immagini_copiate": len(written), "immagini_pannello": len(panel_images), "errori_pannello": panel_errors[:20],
+            "scansione": scan_info, "pannello": panel_info, "riconciliazione": recon_checks, "conteggi": recon,
+            "materiale_incompleto": incomplete, "revisione_pixel": review_entry,
+            "nota": "tutte le corrispondenze della scansione completa, non solo l'anteprima dell'evidenza del manifest; "
+                    "la somiglianza dei pixel (decontam_review.py) serve solo a ordinare la verifica visiva, non "
+                    "risolve un candidato"},
+        "immagini_copiate": len(written), "immagini_pannello": len({f["sha256"] for f in panel_files.values()}),
+        "errori_pannello": panel_errors[:20], "confronto": comparison,
         "limiti": LIMITS, "inventario": inventory, "files": files, "seconds": round(time.time() - t0, 1)}
     write_new_json(args.out / "report.json", report)
-    print(json.dumps({"strati": design, "mirati": dict(counters), "candidati_decontaminazione": len(drows),
-                      "immagini": len(written), "immagini_pannello": len(panel_images),
-                      "errori_pannello": len(panel_errors), "seconds": report["seconds"]}, ensure_ascii=False))
+    print(json.dumps({"strati": design, "mirati": dict(counters), "prompt": dict(prompt_stats),
+                      "soluzioni": report["soluzioni"], "candidati_decontaminazione": len(drows),
+                      "corrispondenze": recon, "riconciliazione_fallita": [c["controllo"] for c in recon_checks
+                                                                          if not c["esito"]],
+                      "materiale_incompleto": len(incomplete), "immagini": len(written),
+                      "immagini_pannello": report["immagini_pannello"], "errori_pannello": len(panel_errors),
+                      "selezione_invariata": None if comparison is None else comparison["selezione_invariata"],
+                      "seconds": report["seconds"]}, ensure_ascii=False))
+    problems = []
     if panel_errors:
-        sys.exit(f"{len(panel_errors)} immagini del pannello non ritrovate esattamente, per esempio {panel_errors[:3]}")
+        problems.append(f"{len(panel_errors)} immagini del pannello non ritrovate esattamente, per esempio "
+                        f"{panel_errors[:3]}")
+    if any(not c["esito"] for c in recon_checks):
+        problems.append("riconciliazione fallita: " + "; ".join(c["controllo"] for c in recon_checks if not c["esito"]))
+    if comparison is not None and not comparison["selezione_invariata"]:
+        problems.append(f"selezione diversa dal campione precedente: {sorted(comparison['differenze'])}")
+    if problems:
+        sys.exit(" | ".join(problems))
 
 
 if __name__ == "__main__":
