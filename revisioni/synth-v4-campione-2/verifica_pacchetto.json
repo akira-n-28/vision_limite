@@ -1,0 +1,199 @@
+{
+ "schema": "synth-v4-revisione-pacchetto/1-verifica",
+ "job_id": "30559",
+ "code": {
+  "commit": "5a4b4bbec14c03a92d8f3e532ca3850503639951",
+  "dirty": true,
+  "diff_sha256": "44583fa0cb885b3346bac15bec601481d0d27b50c9e9ca0ab7229e2423a4a4ab",
+  "untracked": [
+   "revisioni/synth-v4-campione-2/SHA256SUMS",
+   "revisioni/synth-v4-campione-2/dati/",
+   "revisioni/synth-v4-campione-2/immagini/",
+   "revisioni/synth-v4-campione-2/moduli/",
+   "revisioni/synth-v4-campione-2/pacchetto.json",
+   "revisioni/synth-v4-campione-2/verifica_pacchetto.json"
+  ]
+ },
+ "pacchetto": "/home/prignano/vision_limite/revisioni/synth-v4-campione-2",
+ "impronta": "18a8926f99c8874bf75d1613e5db1e6cdc8bbd65772a2d0d93b41283b20da48f",
+ "controlli": [
+  {
+   "controllo": "campione-2: file con gli sha256 del suo report.json",
+   "esito": true,
+   "dettaglio": "ff4f79a49a14"
+  },
+  {
+   "controllo": "pacchetto: sorgente = campione-2 (sha256 di report.json, manifest)",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "impronta del pacchetto ricalcolata da pacchetto.js, soluzioni.js ed evidenze.js",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "conteggi: 380 unità casuali, 175 mirate, 264 candidati, 755 corrispondenze, 655 righe del modulo",
+   "esito": true,
+   "dettaglio": {
+    "campione": 380,
+    "mirati": 175,
+    "decontaminazione": 264,
+    "corrispondenze": 755,
+    "righe_esiti": 655
+   }
+  },
+  {
+   "controllo": "campione: n per strato uguale al disegno di campione-2",
+   "esito": true,
+   "dettaglio": {
+    "coord": 75,
+    "function": 75,
+    "polygon": 75,
+    "shapes": 75,
+    "test": 50,
+    "coppie": 30
+   }
+  },
+  {
+   "controllo": "mirati: casi per categoria uguali a campione-2",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "campione: stesse unità nello stesso ordine, con rango, record, posizione, tipo, domanda e digest",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "mirati: stessi casi nello stesso ordine",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "identificativi unici",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "prompt esatti (con gli a capo) e numero della domanda uguali a prompts.jsonl",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "controllo": "prompt con più domande: a capo veri, non la sequenza \\n",
+   "esito": true,
+   "dettaglio": 545
+  },
+  {
+   "controllo": "primo passaggio: nessun target, opzione ausiliaria, esito del checker, motivo o misura in pacchetto.js",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "controllo": "soluzioni: risposte, esiti del checker e stati uguali a soluzioni.tsv (righe per variante)",
+   "esito": true,
+   "dettaglio": {
+    "unita": 462,
+    "righe": 512
+   }
+  },
+  {
+   "controllo": "opzioni: uguali a opzioni.tsv",
+   "esito": true,
+   "dettaglio": 512
+  },
+  {
+   "controllo": "motivi e misure dei casi mirati solo in soluzioni.js, uguali a mirati.tsv",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "coppie: 50 unità con varianti a e b, soluzioni per entrambe e righe a, b e coppia nel modulo",
+   "esito": true,
+   "dettaglio": 50
+  },
+  {
+   "controllo": "modulo: righe di esiti.tsv e di esiti_decontaminazione.tsv nell'ordine originale",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "decontaminazione: tutte le corrispondenze con record, elemento, posizione, voce e immagine",
+   "esito": true,
+   "dettaglio": 755
+  },
+  {
+   "controllo": "decontaminazione: candidati nello stesso ordine e con gli stessi esiti",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "evidenze: testo JSON dei record selezionati con lo sha256 del manifest, e riga del checker",
+   "esito": true,
+   "dettaglio": 607
+  },
+  {
+   "controllo": "immagini: ogni immagine citata presente, con byte identici a campione-2",
+   "esito": true,
+   "dettaglio": {
+    "immagini": 972,
+    "diverse": []
+   }
+  },
+  {
+   "controllo": "immagini: nessun file in più",
+   "esito": true,
+   "dettaglio": 972
+  },
+  {
+   "controllo": "moduli: file originali di campione-2, byte per byte",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "SHA256SUMS: ogni file generato ha lo sha256 elencato",
+   "esito": true,
+   "dettaglio": {
+    "file": 988,
+    "diversi": []
+   }
+  },
+  {
+   "controllo": "index.html: carica dati, logica e interfaccia nell'ordine, file presenti",
+   "esito": true,
+   "dettaglio": [
+    "dati/pacchetto.js",
+    "dati/soluzioni.js",
+    "dati/evidenze.js",
+    "logica.js",
+    "app.js"
+   ]
+  },
+  {
+   "controllo": "verifica.html: file presenti",
+   "esito": true,
+   "dettaglio": [
+    "dati/pacchetto.js",
+    "dati/soluzioni.js",
+    "dati/evidenze.js",
+    "logica.js",
+    "app.js",
+    "test.js"
+   ]
+  },
+  {
+   "controllo": "interfaccia: nessuna richiesta di rete né caricamento con fetch",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "controllo": "JavaScript: commenti, stringhe, espressioni regolari e parentesi bilanciate (controllo lessicale, non esecuzione)",
+   "esito": true,
+   "dettaglio": 3
+  }
+ ],
+ "falliti": [],
+ "nota": "verifica statica dei dati e dei riferimenti; l'interfaccia non è provata in un browser",
+ "seconds": 6.5
+}

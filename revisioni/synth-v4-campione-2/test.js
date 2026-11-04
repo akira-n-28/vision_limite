@@ -1,13 +1,20 @@
 /* Autotest di verifica.html: logica e interfaccia sui dati veri del pacchetto, senza toccare lo stato salvato nel
-   browser (App.inizializza con persisti: false; nessun uso di localStorage). */
+   browser (App.inizializza con persisti: false; nessun uso di localStorage). Senza DOM, cioè fuori da un browser, le
+   parti che chiedono il DOM o le immagini risultano saltate, non superate. */
 (function (root) {
   "use strict";
   var L = root.Logica, P = root.PACCHETTO, S = root.SOLUZIONI, E = root.EVIDENZE, App = root.App;
   var righe = [];
-  var tabella = document.getElementById("risultati");
+  var conDom = typeof document !== "undefined";
+  var tabella = conDom ? document.getElementById("risultati") : null;
+  root.RISULTATI_TEST = righe;
 
   function verifica(nome, cond, dettaglio) {
     righe.push({nome: nome, ok: !!cond, dettaglio: dettaglio === undefined ? "" : String(dettaglio)});
+  }
+
+  function salta(nome, motivo) {
+    righe.push({nome: nome, ok: null, dettaglio: motivo});
   }
 
   function prova(nome, fn) {
@@ -19,13 +26,16 @@
   }
 
   function disegna() {
+    if (!conDom) {
+      return;
+    }
     tabella.innerHTML = "";
     var falliti = 0;
     righe.forEach(function (r) {
       var tr = document.createElement("tr");
       var a = document.createElement("td");
-      a.textContent = r.ok ? "ok" : "FALLITO";
-      a.className = r.ok ? "ok" : "fail";
+      a.textContent = r.ok === null ? "saltato" : r.ok ? "ok" : "FALLITO";
+      a.className = r.ok === false ? "fail" : "ok";
       var b = document.createElement("td");
       b.textContent = r.nome;
       var c = document.createElement("td");
@@ -34,7 +44,7 @@
       tr.appendChild(b);
       tr.appendChild(c);
       tabella.appendChild(tr);
-      falliti += r.ok ? 0 : 1;
+      falliti += r.ok === false ? 1 : 0;
     });
     document.getElementById("sintesi").textContent = (falliti ? falliti + " controlli FALLITI su " : "Tutti i ") +
       righe.length + (falliti ? "" : " controlli superati") + " · " + navigator.userAgent;
@@ -248,7 +258,7 @@
       modifica(x);
       verifica("importazione rifiutata: " + nome, L.controllaImport(P, JSON.stringify(x)).errori.length > 0);
     }
-    rifiuta("impronta di un altro pacchetto", function (x) { x.pacchetto.impronta = "0".repeat(64); });
+    rifiuta("impronta di un altro pacchetto", function (x) { x.pacchetto.impronta = new Array(65).join("0"); });
     rifiuta("versione diversa", function (x) { x.pacchetto.versione = "0"; });
     rifiuta("schema diverso", function (x) { x.schema = "altro/1"; });
     rifiuta("unità sconosciuta", function (x) { x.unita["C-coord-999"] = x.unita[u.id]; });
@@ -319,6 +329,10 @@
   });
 
   /* ------------------------------------------------------------ 7. interfaccia (DOM) */
+  if (!conDom) {
+    salta("interfaccia (DOM) e immagini", "fuori dal browser: si provano aprendo verifica.html");
+    return;
+  }
   prova("interfaccia", function () {
     var st = L.nuovoStato(P);
     App.inizializza(P, S, E, st, {persisti: false});

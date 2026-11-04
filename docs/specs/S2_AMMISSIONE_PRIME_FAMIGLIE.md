@@ -1274,6 +1274,96 @@ manifest 24 KiB.
 I 743 gruppi esclusi dal pannello possono restare esclusi: risolverli tutti non è un prerequisito per avanzare
 (`docs/PANNELLO_VALUTAZIONE.md` §7, punto 2).
 
+### 2.12 Pacchetto offline per la revisione umana (job 30557-30559, 2026-11-04)
+
+L'utente fa la revisione sul proprio portatile: scarica il pacchetto da GitHub, compila gli esiti e li ricarica in
+`risultati/`. Il pacchetto è `revisioni/synth-v4-campione-2/`, tracciato in git; le istruzioni sono nel suo
+`LEGGIMI.md`. Non è una piattaforma di audit: è una pagina statica senza framework, backend o servizi esterni. Si apre
+`index.html` con un doppio clic da `file://`; i dati sono file `.js` caricati con `<script>`, senza `fetch`.
+
+**Contenuto**, ricavato da `campione-2` senza rigenerare nulla e senza `compare_previous` (`scripts/review_package.py`,
+codice `5a4b4bb`):
+- le stesse 380 unità casuali e 175 casi mirati, nello stesso ordine, e i 264 candidati con tutte le 755
+  corrispondenze. Restano identici rango, identificativi, prompt esatto, numero della domanda campionata, risposte
+  attese e immagini;
+- **primo passaggio** (`dati/pacchetto.js`): unità, prompt e immagini, senza target, opzioni ausiliarie, esiti del
+  checker, motivi o misure. La verifica lo controlla sulle chiavi;
+- **secondo passaggio** (`dati/soluzioni.js`, `dati/evidenze.js`):
+  - risposte, opzioni dal JSON del record, esito del checker e stato della scena, per variante;
+  - per i 607 record delle unità, il testo esatto del JSON dello shard (specifica, QA e layout), con lo sha256 del
+    manifest, e la riga del checker. Si leggono solo quelli dei record selezionati, dagli artefatti esistenti;
+- 870 PNG v4 e 102 immagini del pannello copiati byte per byte, i moduli originali di `campione-2` in `moduli/`,
+  `pacchetto.json` (impronta `18a8926f…`, sha256 di `report.json` di `campione-2`, del manifest, del file del checker e
+  degli shard) e `SHA256SUMS`, che si controlla sul Mac con `shasum -a 256 -c`.
+
+Su disco: `dati/` 6,1 MB, immagini 9,8 MB, moduli 1,7 MB; circa 18 MB in git.
+
+**Interfaccia** (`index.html`, `app.js`, `logica.js`, `stile.css`):
+- **immagini:** al 100% dei pixel, ingrandibili a 200-400% con pixel netti, adattabili e a schermo intero;
+- **prompt:** con gli a capo veri, e la domanda campionata evidenziata col suo numero;
+- **navigazione:** avanti e indietro, prossimo da completare, filtro per stato; avanzamento distinto per campione
+  casuale, casi mirati e decontaminazione, per strato o categoria;
+- **primo giudizio:** risposta libera o "non riesco a rispondere", giudizio iniziale di leggibilità e note. La
+  soluzione si mostra solo dopo averlo salvato e senza modifiche pendenti; l'ora resta registrata e da quel momento il
+  primo giudizio non si modifica più, anche dopo una ripresa. Un ripensamento va nel campo "risposta dopo la
+  soluzione", segnato come non indipendente;
+- **giudizio finale:** correttezza, coerenza con le annotazioni, rispondibilità, gravità, tipo di difetto e note, per
+  QA o variante, più il contratto della coppia. I valori distinguono incerto, non giudicabile, non verificabile, non
+  applicabile e non ancora compilato; nessun campo vuoto vale come approvazione;
+- **coppie:** varianti a e b affiancate, con risposte e giudizi distinti;
+- **decontaminazione:**
+  - il record accanto a tutte le immagini candidate, con gli identificativi delle corrispondenze;
+  - la somiglianza dei pixel solo come orientamento;
+  - un esame per corrispondenza;
+  - "sì" solo con una corrispondenza decisiva, "no" solo con tutte esaminate come contenuto diverso e materiale
+    completo;
+  - un cambio successivo annulla il "no". Nessun esito cambia ammissioni, quarantene o gruppi;
+- **salvataggio:**
+  - nel browser come comodità; la copia che conta è il file di avanzamento JSON, con primo giudizio, ora della
+    soluzione, giudizi, esami, tempi ed eventi;
+  - l'importazione controlla schema, pacchetto, versione, impronta, identificativi, record e valori, e non
+    sovrascrive in silenzio i casi in conflitto;
+  - i TSV hanno le colonne e le righe dei moduli originali, con gli a capo come `\n`.
+
+**Verifiche** (job CPU via `slurm/review_package.sbatch`):
+
+| Job | Che cosa | Esito |
+| --- | --- | --- |
+| 30557 | costruzione e verifica statica | 25 s; 27 controlli su 27 |
+| 30558 | verifica ripetuta, più l'esecuzione della logica con `jjs` | verifica 27 su 27; `jjs` (Nashorn, JDK 8) non esiste su `lagrange0`, c'è solo sul frontend, dove non si eseguono programmi: passo tolto |
+| 30559 | verifica con il controllo lessicale aggiunto ai file JS | 28 su 28, in 9 s |
+
+La verifica statica controlla:
+- conteggi, ordine e campi contro `campione-2`;
+- prompt, soluzioni e opzioni contro `prompts.jsonl`, `soluzioni.tsv` e `opzioni.tsv`;
+- motivi solo nel secondo passaggio, e le coppie con a, b e `coppia`;
+- tutte le corrispondenze;
+- sha256 dei JSON dei record, delle immagini, dei moduli e di `SHA256SUMS`;
+- riferimenti degli script e nessuna richiesta di rete;
+- commenti, stringhe, regex e parentesi bilanciate nei file JS.
+
+**Non è stato provato in un browser**, e il JavaScript non è stato eseguito. Non c'è un motore JavaScript nei job né
+nei venv. L'unico browser disponibile è il Firefox snap del frontend, che sul frontend non si esegue e che scriverebbe
+il profilo in `~/snap/`, fuori dalla cartella del progetto.
+
+Per questo il pacchetto contiene `verifica.html` (`test.js`), un autotest da aprire sul Mac prima di iniziare. Gira sui
+dati veri e prova:
+- primo giudizio separato dalla soluzione;
+- coppie e casi sulla scena intera;
+- esportazione e reimportazione con caratteri speciali e note su più righe;
+- importazioni rifiutate e conflitti;
+- regole della decontaminazione;
+- TSV;
+- costruzione delle pagine;
+- caricamento di tutte le 972 immagini.
+
+Finché non dà "tutti i controlli superati" sul browser del revisore, l'interfaccia resta non collaudata.
+
+**Restituzione:** il file di avanzamento JSON (obbligatorio) e i due TSV (facoltativi) vanno in
+`revisioni/synth-v4-campione-2/risultati/`; il resto del pacchetto non si modifica. Sul cluster i file si verificheranno
+contro pacchetto, versione e impronta prima di qualsiasi uso; nessun esito diventa automaticamente un cambio del
+manifest o un gold.
+
 ## 3. MAVIS-Geometry (`f1_mavis.py`, `f1_schema.py`, shard `9c80fff3-caption`)
 
 La verità viene da `diagram_generation`, confermata dalla didascalia (`mavis_gen.compare`: 0 segnalazioni su 199.050,

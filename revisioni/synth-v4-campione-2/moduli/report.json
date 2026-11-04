@@ -1,0 +1,871 @@
+{
+ "schema": "synth-gold-sample/2",
+ "job_id": "30556",
+ "code": {
+  "commit": "6328a29510ac978177619cd5cdb179a980813039",
+  "dirty": true,
+  "diff_sha256": "8386185095e7c1c3bb716f9acaf34cbc43da88e85247ba4999fdfdad490a01f5",
+  "untracked": []
+ },
+ "manifest": {
+  "path": "/home/prignano/vision_limite/data/manifests/synth-v4-candidato-2",
+  "versione": "2",
+  "manifest_sha256": "9a8104cdea4b56ef333e7d1e9629d7cfd638ccd1a6be18336137c717ae2d824e",
+  "records_sha256": "5863b06a305141ea5f1c90e75138109dedbffe7d4f23c5e6a322572a89a4d3a0"
+ },
+ "checker": {
+  "path": "/home/prignano/vision_limite/outputs/synth_candidate/v4-run1/records.jsonl",
+  "bytes": 61656922,
+  "sha256": "241126a5f82e7d7052df435550016986c69f7796c0c34775aae3eb0565e6cee1"
+ },
+ "audit": "synth-v4-1",
+ "seme": 0,
+ "proprieta": {
+  "correttezza_matematica": "il target è vero per la scena descritta dalla specifica",
+  "coerenza_annotazioni_immagine": "il PNG mostra ciò che dicono specifica e layout",
+  "rispondibilita_da_immagine_e_domanda": "l'informazione serve visibile, leggibile e univoca",
+  "spiegazione": "non applicabile: i record v4 hanno risposte brevi, senza spiegazioni"
+ },
+ "protocollo": {
+  "primo_passaggio": "immagine e prompt (colonna prompt, testo esatto in prompts.jsonl), senza target e senza opzioni aggiunte; si risponde alla QA campionata (numero_nel_prompt)",
+  "train_dev": "il prompt del loader di training (data.synth_qa_sample), con da 1 a 5 domande numerate; le opzioni si vedono solo se sono nel testo della domanda (shape_type, label_type). Ogni prompt esportato è uguale a qa_messages(pick_questions) ricostruito dalle posizioni del manifest",
+  "test": "ogni QA da sola, qa_messages([domanda]): protocollo del foglio, perché quello di valutazione di F0 non è fissato (contratto D3). f1c_eval.py, storico, usava lo stesso prefisso e dava un punteggio alle opzioni per verosimiglianza, senza mostrarle",
+  "coppie": "la domanda della coppia da sola per ciascuna variante, come nel test; il loader di training non costruisce questo prompt, perché le QA delle coppie stanno solo nel campo pair",
+  "dopo_il_primo_giudizio": "opzioni.tsv (opzioni ausiliarie, con opzioni_nel_testo_della_domanda) e soluzioni.tsv (target, esito del checker e stato della scena, per variante)",
+  "origini_del_prompt": {
+   "loader": "train o dev: prompt di data.synth_qa_sample per la scena; la QA campionata è la domanda numero_nel_prompt",
+   "loader_scena": "caso sulla scena intera di train o dev: le domande che il loader costruisce per la scena (il modello le vede solo se la scena è ammessa)",
+   "domanda_singola_qa_non_scelta": "QA di una scena di train o dev che il loader non sceglie: il modello non la vede mai in training; qui come domanda singola di qa_messages",
+   "domanda_singola_test": "test: la QA da sola, col prefisso di qa_messages per una domanda",
+   "domanda_singola_coppia": "coppie: la domanda della coppia da sola, uguale per le due varianti, col prefisso di qa_messages per una domanda",
+   "nessuno": "caso sulla scena intera di un record che il loader di training non legge"
+  },
+  "prompt_per_origine": {
+   "loader": 337,
+   "domanda_singola_test": 50,
+   "domanda_singola_coppia": 50,
+   "loader_scena": 83,
+   "nessuno": 10,
+   "domanda_singola_qa_non_scelta": 25
+  },
+  "loader_di_training_sulle_coppie": "synth-pair-00140-a: ValueError del loader (synth-pair-00140-a: nessuna domanda)",
+  "opzioni_nel_testo_della_domanda": {
+   "side_y: sì": 19,
+   "pair_lr: sì": 31,
+   "pair_ud: sì": 22,
+   "exists: no": 78,
+   "coords: no": 14,
+   "side_x: sì": 21,
+   "quadrant: no": 12,
+   "count: no": 53,
+   "line_on: no": 1,
+   "vertex_ud: sì": 9,
+   "intercept: sì": 22,
+   "slope: sì": 36,
+   "opens: sì": 10,
+   "vertex_lr: sì": 4,
+   "intersections: no": 29,
+   "side_len: no": 41,
+   "shape_type: sì": 16,
+   "leftmost: no": 9,
+   "rightmost: no": 13,
+   "lowest: no": 6,
+   "right_vertex: no": 1,
+   "highest: no": 5,
+   "m_side: no": 3,
+   "count_type: no": 16,
+   "label_type: sì": 29,
+   "has_type: no": 12
+  }
+ },
+ "campione": {
+  "strati": {
+   "coord": {
+    "N": 45056,
+    "n": 75,
+    "p_inclusione": 0.001665,
+    "unita": "QA",
+    "limite_superiore_95_con_zero_errori": 0.039106889204545456
+   },
+   "function": {
+    "N": 35961,
+    "n": 75,
+    "p_inclusione": 0.002086,
+    "unita": "QA",
+    "limite_superiore_95_con_zero_errori": 0.039097911626484246
+   },
+   "polygon": {
+    "N": 44941,
+    "n": 75,
+    "p_inclusione": 0.001669,
+    "unita": "QA",
+    "limite_superiore_95_con_zero_errori": 0.039117954651654394
+   },
+   "shapes": {
+    "N": 44614,
+    "n": 75,
+    "p_inclusione": 0.001681,
+    "unita": "QA",
+    "limite_superiore_95_con_zero_errori": 0.03911328282601874
+   },
+   "test": {
+    "N": 4019,
+    "n": 50,
+    "p_inclusione": 0.012441,
+    "unita": "QA",
+    "limite_superiore_95_con_zero_errori": 0.05772580243841752
+   },
+   "coppie": {
+    "N": 292,
+    "n": 30,
+    "p_inclusione": 0.10274,
+    "unita": "coppia",
+    "limite_superiore_95_con_zero_errori": 0.08904109589041095
+   }
+  },
+  "regola": "le n unità col digest più piccolo di {audit, seme, record_id, posizione, qa} (coppie: {audit, seme, coppia}); un n più piccolo, fissato prima di guardare, è il prefisso in ordine di rango",
+  "unita_totali": 380,
+  "nota_limite": "informativo: vale con 0 errori osservati, incerti e non giudicabili contati come errori, e resta condizionato alla sensibilità del revisore (S4 §4)"
+ },
+ "mirati": {
+  "categorie": {
+   "quarantena": 67,
+   "coppie_per_famiglia": 20,
+   "esclusioni_contaminazione": 10,
+   "regole_nuove_v4": 30,
+   "soglia_testo_basso": 8,
+   "soglia_riquadri_vicini": 8,
+   "soglia_intersezione_bordo": 8,
+   "soglia_grafici_vicini": 8,
+   "soglia_vertice_estremo": 8,
+   "coordinate_dalle_tacche": 8
+  },
+  "unita_totali": 175,
+  "nota": "casi diagnostici scelti per regola, non stimano un tasso"
+ },
+ "soluzioni": {
+  "righe": 512,
+  "per_variante": {
+   "-": 412,
+   "a": 50,
+   "b": 50
+  },
+  "modulo": {
+   "-": 505,
+   "a": 50,
+   "b": 50,
+   "coppia": 50
+  }
+ },
+ "candidati_decontaminazione": {
+  "record": 264,
+  "esiti": {
+   "candidato": 264
+  },
+  "per_insieme_split_stato": {
+   "train/train/quarantena": 191,
+   "train/test/escluso": 61,
+   "coppie/test/quarantena": 5,
+   "test/test/quarantena": 1,
+   "train/dev/quarantena": 6
+  },
+  "scansione": {
+   "records": {
+    "path": "/home/prignano/vision_limite/data/decontam/pannello-v3/synth-v4/records.jsonl.gz",
+    "bytes": 6240397,
+    "sha256": "38554b53a69cbe4c2aa373c286b775ba41663abf3d06cb040502970780382574"
+   },
+   "summary": {
+    "path": "/home/prignano/vision_limite/data/decontam/pannello-v3/synth-v4/summary.json",
+    "bytes": 2417,
+    "sha256": "335b3a2a6be2ca4a61ea73a2cbb9344847ba2956d813087f1574fe8e141877dc"
+   },
+   "matches": {
+    "path": "/home/prignano/vision_limite/data/decontam/pannello-v3/synth-v4/matches.jsonl",
+    "bytes": 179690,
+    "sha256": "a8183494f9ef273750f435bdc320fd8beb7fa3590050231314d5d8dd011cad73"
+   },
+   "job": "30518",
+   "code": {
+    "commit": "fe85a97f0f31ca277cd7c68c843b557614f1c72d",
+    "dirty": true,
+    "diff_sha256": "6323d97cb5e33b477165aadfce75ccd1f592c48f8805eae0ebe56b6c58d0162c",
+    "untracked": []
+   },
+   "max_lines": 200,
+   "radius": 4
+  },
+  "pannello": {
+   "elements": {
+    "path": "/home/prignano/vision_limite/data/panel/pannello-v3/elements.jsonl.gz",
+    "bytes": 3365594,
+    "sha256": "dacbea54dc2fb60ff5722f0a3d3f75afa07ce52d4d3ee68c02ae65d5f6e2f9bb"
+   },
+   "index": {
+    "path": "/home/prignano/vision_limite/data/decontam/pannello-v3/index.json",
+    "bytes": 71127636,
+    "sha256": "02fb3cbfc36cbfd17bba92e4511c18a5760d330bc0145855fff2e7aa5130d127"
+   },
+   "voci_necessarie": 133,
+   "voci_trovate": 133,
+   "immagini_ritrovate": 133
+  },
+  "riconciliazione": [
+   {
+    "controllo": "record con corrispondenze nella scansione = candidati del manifest",
+    "esito": true,
+    "dettaglio": {
+     "solo_scansione": 0,
+     "solo_manifest": 0
+    }
+   },
+   {
+    "controllo": "corrispondenze della scansione = summary.json",
+    "esito": true,
+    "dettaglio": {
+     "righe": 755,
+     "summary": 755
+    }
+   },
+   {
+    "controllo": "matches.jsonl = dettagli di records.jsonl.gz",
+    "esito": true,
+    "dettaglio": {
+     "matches.jsonl": 755,
+     "dettagli": 755
+    }
+   },
+   {
+    "controllo": "corrispondenze esportate = dettagli della scansione dei candidati, nessuna omessa",
+    "esito": true,
+    "dettaglio": {
+     "esportate": 755,
+     "attese": 755
+    }
+   },
+   {
+    "controllo": "per benchmark e tipo: esportate = summary.json",
+    "esito": true,
+    "dettaglio": null
+   }
+  ],
+  "conteggi": {
+   "record_candidati": 264,
+   "corrispondenze_scansione": 755,
+   "corrispondenze_esportate": 755,
+   "per_tipo": {
+    "image": 755
+   },
+   "coppie_record_voce_distinte": 755,
+   "duplicati_di_evidenza": 0,
+   "voci_del_pannello_distinte": 133,
+   "elementi_del_pannello_distinti": 133,
+   "immagini_del_pannello_distinte_per_pixel": 102,
+   "file_del_pannello_distinti": 102,
+   "record_oltre_l_anteprima": 3,
+   "corrispondenze_oltre_l_anteprima": 18
+  },
+  "materiale_incompleto": [],
+  "revisione_pixel": {
+   "path": "/home/prignano/vision_limite/outputs/decontam_review/campione-1/synth-v4/review.jsonl",
+   "bytes": 52443,
+   "sha256": "3c56730ad7a2e807eedd31b686669e0990de7fa6bfaa1d4900f9c80a5e631324"
+  },
+  "nota": "tutte le corrispondenze della scansione completa, non solo l'anteprima dell'evidenza del manifest; la somiglianza dei pixel (decontam_review.py) serve solo a ordinare la verifica visiva, non risolve un candidato"
+ },
+ "immagini_copiate": 870,
+ "immagini_pannello": 102,
+ "errori_pannello": [],
+ "confronto": {
+  "precedente": "/home/prignano/vision_limite/outputs/synth_gold_review/campione-1",
+  "report_precedente": {
+   "path": "/home/prignano/vision_limite/outputs/synth_gold_review/campione-1/report.json",
+   "bytes": 39151,
+   "sha256": "ee10d398ceefef1dca80de6ad6ac711f686f07368b1df11d12c5193e69256f8e"
+  },
+  "unita_campione": 380,
+  "unita_mirate": 175,
+  "candidati": 264,
+  "risposte_confrontate": 462,
+  "unita_con_risposta_nuove": [],
+  "seconde_varianti_aggiunte": 20,
+  "opzioni_spostate_in_opzioni.tsv": 462,
+  "candidati_con_corrispondenze_mancanti_nel_foglio_precedente": 3,
+  "corrispondenze_mancanti_nel_foglio_precedente": 18,
+  "immagini_v4_confrontate": 870,
+  "differenze": {},
+  "selezione_invariata": true
+ },
+ "limiti": [
+  "il checker legge il layout, non i pixel: non vede un grafico che attraversa un'etichetta di tacca né vicinanze ambigue senza sovrapposizione dei riquadri (S2 §2.6)",
+  "indipendenza parziale: per function le formule vengono dalla specifica; predicati, contratto delle coppie e definizione di stato sono scritti dallo stesso progetto",
+  "la soglia di 10 px per l'altezza dei testi è una proposta, misurata sul layout alla risoluzione del PNG",
+  "la riproducibilità dalla chiave usa lo stesso codice del generatore: prova l'integrità, non la correttezza",
+  "nessun record è gold_verificato o target_controllato: S2 è una bozza, i tipi non sono promossi e manca la stima campionaria (S4)",
+  "il prompt di test e coppie è quello del foglio (domanda singola): il protocollo di valutazione di F0 non è fissato"
+ ],
+ "inventario": [
+  {
+   "famiglia": "coord",
+   "tipo": "coords",
+   "unita": "scena",
+   "qa": 31710,
+   "qa_scene_ammesse": 31458,
+   "checker": "ok 31710",
+   "correttezza_matematica": "R parziale (generatore e checker dello stesso progetto): valore letto dalle etichette delle tacche o dalle tacche vicine con scala univoca (axis_value), confrontato con la posizione del marcatore",
+   "coerenza_annotazioni_immagine": "R parziale: il layout porta lo sha256 del PNG dello stesso render (digest_corrispondente su 60.900 record) e la scena si riottiene dalla chiave con byte identici; i pixel non sono letti, quindi che il PNG mostri ciò che dice il layout dipende dal renderer (C: revisione visiva)",
+   "rispondibilita_da_immagine_e_domanda": "I: etichetta o tacche vicine leggibili; testi non sovrapposti; C: revisione visiva",
+   "spiegazione": "non applicabile: i record v4 hanno risposte brevi, senza spiegazioni",
+   "gold": "nessuno: record candidato"
+  },
+  {
+   "famiglia": "coord",
+   "tipo": "count",
+   "unita": "scena",
+   "qa": 15075,
+   "qa_scene_ammesse": 15008,
+   "checker": "ok 15075",
+   "correttezza_matematica": "R parziale (generatore e checker dello stesso progetto): etichette dei punti nel layout",
+   "coerenza_annotazioni_immagine": "R parziale: il layout porta lo sha256 del PNG dello stesso render (digest_corrispondente su 60.900 record) e la scena si riottiene dalla chiave con byte identici; i pixel non sono letti, quindi che il PNG mostri ciò che dice il layout dipende dal renderer (C: revisione visiva)",
+   "rispondibilita_da_immagine_e_domanda": "I: testi non sovrapposti, alti >= 10 px; C: revisione visiva",
+   "spiegazione": "non applicabile: i record v4 hanno risposte brevi, senza spiegazioni",
+   "gold": "nessuno: record candidato"
+  },
+  {
+   "famiglia": "coord",
+   "tipo": "exists",
+   "unita": "scena",
+   "qa": 30150,
+   "qa_scene_ammesse": 30016,
+   "checker": "ok 30150",
+   "correttezza_matematica": "R parziale (generatore e checker dello stesso progetto): testi delle etichette nel layout",
+   "coerenza_annotazioni_immagine": "R parziale: il layout porta lo sha256 del PNG dello stesso render (digest_corrispondente su 60.900 record) e la scena si riottiene dalla chiave con byte identici; i pixel non sono letti, quindi che il PNG mostri ciò che dice il layout dipende dal renderer (C: revisione visiva)",
+   "rispondibilita_da_immagine_e_domanda": "I: testi non sovrapposti, alti >= 10 px; C: revisione visiva",
+   "spiegazione": "non applicabile: i record v4 hanno risposte brevi, senza spiegazioni",
+   "gold": "nessuno: record candidato"
+  },
+  {
+   "famiglia": "coord",
+   "tipo": "line_on",
+   "unita": "scena",
+   "qa": 3835,
+   "qa_scene_ammesse": 3808,
+   "checker": "ok 3835",
+   "correttezza_matematica": "R parziale (generatore e checker dello stesso progetto): distanza fra marcatore e retta disegnata (sotto 0.05 sì, oltre 0.5 no)",
+   "coerenza_annotazioni_immagine": "R parziale: il layout porta lo sha256 del PNG dello stesso render (digest_corrispondente su 60.900 record) e la scena si riottiene dalla chiave con byte identici; i pixel non sono letti, quindi che il PNG mostri ciò che dice il layout dipende dal renderer (C: revisione visiva)",
+   "rispondibilita_da_immagine_e_domanda": "I: casi fra 0.05 e 0.5 non ammessi; C: revisione visiva",
+   "spiegazione": "non applicabile: i record v4 hanno risposte brevi, senza spiegazioni",
+   "gold": "nessuno: record candidato"
+  },
+  {
+   "famiglia": "coord",
+   "tipo": "pair_lr",
+   "unita": "scena",
+   "qa": 122796,
+   "qa_scene_ammesse": 122054,
+   "checker": "ok 122796",
+   "correttezza_matematica": "R parziale (generatore e checker dello stesso progetto): confronto dei centri disegnati",
+   "coerenza_annotazioni_immagine": "R parziale: il layout porta lo sha256 del PNG dello stesso render (digest_corrispondente su 60.900 record) e la scena si riottiene dalla chiave con byte identici; i pixel non sono letti, quindi che il PNG mostri ciò che dice il layout dipende dal renderer (C: revisione visiva)",
+   "rispondibilita_da_immagine_e_domanda": "I: scarto >= 0.5; C: revisione visiva",
+   "spiegazione": "non applicabile: i record v4 hanno risposte brevi, senza spiegazioni",
+   "gold": "nessuno: record candidato"
+  },
+  {
+   "famiglia": "coord",
+   "tipo": "pair_ud",
+   "unita": "scena",
+   "qa": 122186,
+   "qa_scene_ammesse": 121450,
+   "checker": "ok 122186",
+   "correttezza_matematica": "R parziale (generatore e checker dello stesso progetto): confronto dei centri disegnati",
+   "coerenza_annotazioni_immagine": "R parziale: il layout porta lo sha256 del PNG dello stesso render (digest_corrispondente su 60.900 record) e la scena si riottiene dalla chiave con byte identici; i pixel non sono letti, quindi che il PNG mostri ciò che dice il layout dipende dal renderer (C: revisione visiva)",
+   "rispondibilita_da_immagine_e_domanda": "I: scarto >= 0.5; C: revisione visiva",
+   "spiegazione": "non applicabile: i record v4 hanno risposte brevi, senza spiegazioni",
+   "gold": "nessuno: record candidato"
+  },
+  {
+   "famiglia": "coord",
+   "tipo": "quadrant",
+   "unita": "scena",
+   "qa": 52738,
+   "qa_scene_ammesse": 52478,
+   "checker": "ok 52738",
+   "correttezza_matematica": "R parziale (generatore e checker dello stesso progetto): segni ricalcolati dai centri dei marcatori disegnati",
+   "coerenza_annotazioni_immagine": "R parziale: il layout porta lo sha256 del PNG dello stesso render (digest_corrispondente su 60.900 record) e la scena si riottiene dalla chiave con byte identici; i pixel non sono letti, quindi che il PNG mostri ciò che dice il layout dipende dal renderer (C: revisione visiva)",
+   "rispondibilita_da_immagine_e_domanda": "I: distanza dagli assi >= SIDE 0.5; testi non sovrapposti e alti >= 10 px; C: revisione visiva",
+   "spiegazione": "non applicabile: i record v4 hanno risposte brevi, senza spiegazioni",
+   "gold": "nessuno: record candidato"
+  },
+  {
+   "famiglia": "coord",
+   "tipo": "side_x",
+   "unita": "coppia",
+   "qa": 70,
+   "qa_scene_ammesse": 70,
+   "checker": "ok 70",
+   "correttezza_matematica": "R parziale (generatore e checker dello stesso progetto): come il tipo di domanda, su entrambe le immagini; contratto della coppia (synth_candidate): stessa domanda e opzioni, risposte diverse, un solo dettaglio cambiato",
+   "coerenza_annotazioni_immagine": "R parziale: il layout porta lo sha256 del PNG dello stesso render (digest_corrispondente su 60.900 record) e la scena si riottiene dalla chiave con byte identici; i pixel non sono letti, quindi che il PNG mostri ciò che dice il layout dipende dal renderer (C: revisione visiva)",
+   "rispondibilita_da_immagine_e_domanda": "I: come il tipo di domanda; C: revisione visiva",
+   "spiegazione": "non applicabile: i record v4 hanno risposte brevi, senza spiegazioni",
+   "gold": "nessuno: record candidato"
+  },
+  {
+   "famiglia": "coord",
+   "tipo": "side_x",
+   "unita": "scena",
+   "qa": 52738,
+   "qa_scene_ammesse": 52478,
+   "checker": "ok 52738",
+   "correttezza_matematica": "R parziale (generatore e checker dello stesso progetto): segno ricalcolato dal centro del marcatore",
+   "coerenza_annotazioni_immagine": "R parziale: il layout porta lo sha256 del PNG dello stesso render (digest_corrispondente su 60.900 record) e la scena si riottiene dalla chiave con byte identici; i pixel non sono letti, quindi che il PNG mostri ciò che dice il layout dipende dal renderer (C: revisione visiva)",
+   "rispondibilita_da_immagine_e_domanda": "I: distanza dall'asse >= 0.5; testi leggibili; C: revisione visiva",
+   "spiegazione": "non applicabile: i record v4 hanno risposte brevi, senza spiegazioni",
+   "gold": "nessuno: record candidato"
+  },
+  {
+   "famiglia": "coord",
+   "tipo": "side_y",
+   "unita": "coppia",
+   "qa": 80,
+   "qa_scene_ammesse": 80,
+   "checker": "ok 80",
+   "correttezza_matematica": "R parziale (generatore e checker dello stesso progetto): come il tipo di domanda, su entrambe le immagini; contratto della coppia (synth_candidate): stessa domanda e opzioni, risposte diverse, un solo dettaglio cambiato",
+   "coerenza_annotazioni_immagine": "R parziale: il layout porta lo sha256 del PNG dello stesso render (digest_corrispondente su 60.900 record) e la scena si riottiene dalla chiave con byte identici; i pixel non sono letti, quindi che il PNG mostri ciò che dice il layout dipende dal renderer (C: revisione visiva)",
+   "rispondibilita_da_immagine_e_domanda": "I: come il tipo di domanda; C: revisione visiva",
+   "spiegazione": "non applicabile: i record v4 hanno risposte brevi, senza spiegazioni",
+   "gold": "nessuno: record candidato"
+  },
+  {
+   "famiglia": "coord",
+   "tipo": "side_y",
+   "unita": "scena",
+   "qa": 52738,
+   "qa_scene_ammesse": 52478,
+   "checker": "ok 52738",
+   "correttezza_matematica": "R parziale (generatore e checker dello stesso progetto): segno ricalcolato dal centro del marcatore",
+   "coerenza_annotazioni_immagine": "R parziale: il layout porta lo sha256 del PNG dello stesso render (digest_corrispondente su 60.900 record) e la scena si riottiene dalla chiave con byte identici; i pixel non sono letti, quindi che il PNG mostri ciò che dice il layout dipende dal renderer (C: revisione visiva)",
+   "rispondibilita_da_immagine_e_domanda": "I: distanza dall'asse >= 0.5; testi leggibili; C: revisione visiva",
+   "spiegazione": "non applicabile: i record v4 hanno risposte brevi, senza spiegazioni",
+   "gold": "nessuno: record candidato"
+  },
+  {
+   "famiglia": "function",
+   "tipo": "exists",
+   "unita": "scena",
+   "qa": 30150,
+   "qa_scene_ammesse": 24372,
+   "checker": "ok 30150",
+   "correttezza_matematica": "R parziale (generatore e checker dello stesso progetto): nomi dei grafici nel layout",
+   "coerenza_annotazioni_immagine": "R parziale: il layout porta lo sha256 del PNG dello stesso render (digest_corrispondente su 60.900 record) e la scena si riottiene dalla chiave con byte identici; i pixel non sono letti, quindi che il PNG mostri ciò che dice il layout dipende dal renderer (C: revisione visiva)",
+   "rispondibilita_da_immagine_e_domanda": "I: testi non sovrapposti; C: revisione visiva",
+   "spiegazione": "non applicabile: i record v4 hanno risposte brevi, senza spiegazioni",
+   "gold": "nessuno: record candidato"
+  },
+  {
+   "famiglia": "function",
+   "tipo": "intercept",
+   "unita": "scena",
+   "qa": 22571,
+   "qa_scene_ammesse": 19649,
+   "checker": "ok 22571",
+   "correttezza_matematica": "R parziale (generatore e checker dello stesso progetto): valore in x = 0 se il grafico incontra l'asse y nel tratto disegnato (parziale)",
+   "coerenza_annotazioni_immagine": "R parziale: il layout porta lo sha256 del PNG dello stesso render (digest_corrispondente su 60.900 record) e la scena si riottiene dalla chiave con byte identici; i pixel non sono letti, quindi che il PNG mostri ciò che dice il layout dipende dal renderer (C: revisione visiva)",
+   "rispondibilita_da_immagine_e_domanda": "I: |f(0)| >= 0.5; C: revisione visiva",
+   "spiegazione": "non applicabile: i record v4 hanno risposte brevi, senza spiegazioni",
+   "gold": "nessuno: record candidato"
+  },
+  {
+   "famiglia": "function",
+   "tipo": "intersections",
+   "unita": "scena",
+   "qa": 6462,
+   "qa_scene_ammesse": 6437,
+   "checker": "ok 6462",
+   "correttezza_matematica": "R parziale (generatore e checker dello stesso progetto): conteggio geometrico delle intersezioni nei tratti disegnati di entrambi i grafici (visible_intersections; parziale: formule dalla specifica)",
+   "coerenza_annotazioni_immagine": "R parziale: il layout porta lo sha256 del PNG dello stesso render (digest_corrispondente su 60.900 record) e la scena si riottiene dalla chiave con byte identici; i pixel non sono letti, quindi che il PNG mostri ciò che dice il layout dipende dal renderer (C: revisione visiva)",
+   "rispondibilita_da_immagine_e_domanda": "I: nessuna intersezione a meno di EDGE 0.4 dal bordo del tratto, niente tangenze o radici vicine, grafici non più vicini di 0.25 senza incrociarsi; C: revisione visiva",
+   "spiegazione": "non applicabile: i record v4 hanno risposte brevi, senza spiegazioni",
+   "gold": "nessuno: record candidato"
+  },
+  {
+   "famiglia": "function",
+   "tipo": "opens",
+   "unita": "coppia",
+   "qa": 44,
+   "qa_scene_ammesse": 44,
+   "checker": "ok 44",
+   "correttezza_matematica": "R parziale (generatore e checker dello stesso progetto): come il tipo di domanda, su entrambe le immagini; contratto della coppia (synth_candidate): stessa domanda e opzioni, risposte diverse, un solo dettaglio cambiato",
+   "coerenza_annotazioni_immagine": "R parziale: il layout porta lo sha256 del PNG dello stesso render (digest_corrispondente su 60.900 record) e la scena si riottiene dalla chiave con byte identici; i pixel non sono letti, quindi che il PNG mostri ciò che dice il layout dipende dal renderer (C: revisione visiva)",
+   "rispondibilita_da_immagine_e_domanda": "I: come il tipo di domanda; C: revisione visiva",
+   "spiegazione": "non applicabile: i record v4 hanno risposte brevi, senza spiegazioni",
+   "gold": "nessuno: record candidato"
+  },
+  {
+   "famiglia": "function",
+   "tipo": "opens",
+   "unita": "scena",
+   "qa": 8989,
+   "qa_scene_ammesse": 8736,
+   "checker": "ok 8989",
+   "correttezza_matematica": "R parziale (generatore e checker dello stesso progetto): dalle formule della specifica e dal tratto disegnato (parziale: formule dalla specifica)",
+   "coerenza_annotazioni_immagine": "R parziale: il layout porta lo sha256 del PNG dello stesso render (digest_corrispondente su 60.900 record) e la scena si riottiene dalla chiave con byte identici; i pixel non sono letti, quindi che il PNG mostri ciò che dice il layout dipende dal renderer (C: revisione visiva)",
+   "rispondibilita_da_immagine_e_domanda": "I: vertice nel tratto disegnato; C: revisione visiva",
+   "spiegazione": "non applicabile: i record v4 hanno risposte brevi, senza spiegazioni",
+   "gold": "nessuno: record candidato"
+  },
+  {
+   "famiglia": "function",
+   "tipo": "slope",
+   "unita": "coppia",
+   "qa": 106,
+   "qa_scene_ammesse": 96,
+   "checker": "ok 106",
+   "correttezza_matematica": "R parziale (generatore e checker dello stesso progetto): come il tipo di domanda, su entrambe le immagini; contratto della coppia (synth_candidate): stessa domanda e opzioni, risposte diverse, un solo dettaglio cambiato",
+   "coerenza_annotazioni_immagine": "R parziale: il layout porta lo sha256 del PNG dello stesso render (digest_corrispondente su 60.900 record) e la scena si riottiene dalla chiave con byte identici; i pixel non sono letti, quindi che il PNG mostri ciò che dice il layout dipende dal renderer (C: revisione visiva)",
+   "rispondibilita_da_immagine_e_domanda": "I: come il tipo di domanda; C: revisione visiva",
+   "spiegazione": "non applicabile: i record v4 hanno risposte brevi, senza spiegazioni",
+   "gold": "nessuno: record candidato"
+  },
+  {
+   "famiglia": "function",
+   "tipo": "slope",
+   "unita": "scena",
+   "qa": 13582,
+   "qa_scene_ammesse": 10913,
+   "checker": "ok 13582",
+   "correttezza_matematica": "R parziale (generatore e checker dello stesso progetto): valori agli estremi del tratto disegnato più lungo (parziale)",
+   "coerenza_annotazioni_immagine": "R parziale: il layout porta lo sha256 del PNG dello stesso render (digest_corrispondente su 60.900 record) e la scena si riottiene dalla chiave con byte identici; i pixel non sono letti, quindi che il PNG mostri ciò che dice il layout dipende dal renderer (C: revisione visiva)",
+   "rispondibilita_da_immagine_e_domanda": "I: tratto disegnato; C: revisione visiva",
+   "spiegazione": "non applicabile: i record v4 hanno risposte brevi, senza spiegazioni",
+   "gold": "nessuno: record candidato"
+  },
+  {
+   "famiglia": "function",
+   "tipo": "vertex_lr",
+   "unita": "scena",
+   "qa": 7442,
+   "qa_scene_ammesse": 7229,
+   "checker": "ok 7442",
+   "correttezza_matematica": "R parziale (generatore e checker dello stesso progetto): formule della specifica, vertice nel tratto disegnato (parziale)",
+   "coerenza_annotazioni_immagine": "R parziale: il layout porta lo sha256 del PNG dello stesso render (digest_corrispondente su 60.900 record) e la scena si riottiene dalla chiave con byte identici; i pixel non sono letti, quindi che il PNG mostri ciò che dice il layout dipende dal renderer (C: revisione visiva)",
+   "rispondibilita_da_immagine_e_domanda": "I: |h| >= 0.5; C: revisione visiva",
+   "spiegazione": "non applicabile: i record v4 hanno risposte brevi, senza spiegazioni",
+   "gold": "nessuno: record candidato"
+  },
+  {
+   "famiglia": "function",
+   "tipo": "vertex_ud",
+   "unita": "scena",
+   "qa": 8989,
+   "qa_scene_ammesse": 8736,
+   "checker": "ok 8989",
+   "correttezza_matematica": "R parziale (generatore e checker dello stesso progetto): formule della specifica, vertice nel tratto disegnato (parziale)",
+   "coerenza_annotazioni_immagine": "R parziale: il layout porta lo sha256 del PNG dello stesso render (digest_corrispondente su 60.900 record) e la scena si riottiene dalla chiave con byte identici; i pixel non sono letti, quindi che il PNG mostri ciò che dice il layout dipende dal renderer (C: revisione visiva)",
+   "rispondibilita_da_immagine_e_domanda": "I: |k| >= 0.5; C: revisione visiva",
+   "spiegazione": "non applicabile: i record v4 hanno risposte brevi, senza spiegazioni",
+   "gold": "nessuno: record candidato"
+  },
+  {
+   "famiglia": "polygon",
+   "tipo": "angle_val",
+   "unita": "scena",
+   "qa": 3026,
+   "qa_scene_ammesse": 3017,
+   "checker": "ok 3026",
+   "correttezza_matematica": "R parziale (generatore e checker dello stesso progetto): arco al vertice nominato; valore scritto coerente con l'angolo disegnato entro 0.6 gradi",
+   "coerenza_annotazioni_immagine": "R parziale: il layout porta lo sha256 del PNG dello stesso render (digest_corrispondente su 60.900 record) e la scena si riottiene dalla chiave con byte identici; i pixel non sono letti, quindi che il PNG mostri ciò che dice il layout dipende dal renderer (C: revisione visiva)",
+   "rispondibilita_da_immagine_e_domanda": "I: arco e valore presenti, non sovrapposti; C: revisione visiva",
+   "spiegazione": "non applicabile: i record v4 hanno risposte brevi, senza spiegazioni",
+   "gold": "nessuno: record candidato"
+  },
+  {
+   "famiglia": "polygon",
+   "tipo": "count",
+   "unita": "scena",
+   "qa": 15075,
+   "qa_scene_ammesse": 15040,
+   "checker": "ok 15075",
+   "correttezza_matematica": "R parziale (generatore e checker dello stesso progetto): numero delle misure scritte nel layout",
+   "coerenza_annotazioni_immagine": "R parziale: il layout porta lo sha256 del PNG dello stesso render (digest_corrispondente su 60.900 record) e la scena si riottiene dalla chiave con byte identici; i pixel non sono letti, quindi che il PNG mostri ciò che dice il layout dipende dal renderer (C: revisione visiva)",
+   "rispondibilita_da_immagine_e_domanda": "I: testi non sovrapposti; C: revisione visiva",
+   "spiegazione": "non applicabile: i record v4 hanno risposte brevi, senza spiegazioni",
+   "gold": "nessuno: record candidato"
+  },
+  {
+   "famiglia": "polygon",
+   "tipo": "exists",
+   "unita": "scena",
+   "qa": 30150,
+   "qa_scene_ammesse": 30080,
+   "checker": "ok 30150",
+   "correttezza_matematica": "R parziale (generatore e checker dello stesso progetto): etichette dei vertici e del punto nel layout",
+   "coerenza_annotazioni_immagine": "R parziale: il layout porta lo sha256 del PNG dello stesso render (digest_corrispondente su 60.900 record) e la scena si riottiene dalla chiave con byte identici; i pixel non sono letti, quindi che il PNG mostri ciò che dice il layout dipende dal renderer (C: revisione visiva)",
+   "rispondibilita_da_immagine_e_domanda": "I: testi non sovrapposti; C: revisione visiva",
+   "spiegazione": "non applicabile: i record v4 hanno risposte brevi, senza spiegazioni",
+   "gold": "nessuno: record candidato"
+  },
+  {
+   "famiglia": "polygon",
+   "tipo": "highest",
+   "unita": "scena",
+   "qa": 9367,
+   "qa_scene_ammesse": 9339,
+   "checker": "ok 9367",
+   "correttezza_matematica": "R parziale (generatore e checker dello stesso progetto): ordine dei vertici disegnati",
+   "coerenza_annotazioni_immagine": "R parziale: il layout porta lo sha256 del PNG dello stesso render (digest_corrispondente su 60.900 record) e la scena si riottiene dalla chiave con byte identici; i pixel non sono letti, quindi che il PNG mostri ciò che dice il layout dipende dal renderer (C: revisione visiva)",
+   "rispondibilita_da_immagine_e_domanda": "I: margine >= EXTREME 0.15 del lato del riquadro; C: revisione visiva",
+   "spiegazione": "non applicabile: i record v4 hanno risposte brevi, senza spiegazioni",
+   "gold": "nessuno: record candidato"
+  },
+  {
+   "famiglia": "polygon",
+   "tipo": "leftmost",
+   "unita": "scena",
+   "qa": 9919,
+   "qa_scene_ammesse": 9894,
+   "checker": "ok 9919",
+   "correttezza_matematica": "R parziale (generatore e checker dello stesso progetto): ordine dei vertici disegnati",
+   "coerenza_annotazioni_immagine": "R parziale: il layout porta lo sha256 del PNG dello stesso render (digest_corrispondente su 60.900 record) e la scena si riottiene dalla chiave con byte identici; i pixel non sono letti, quindi che il PNG mostri ciò che dice il layout dipende dal renderer (C: revisione visiva)",
+   "rispondibilita_da_immagine_e_domanda": "I: margine >= 0.15; C: revisione visiva",
+   "spiegazione": "non applicabile: i record v4 hanno risposte brevi, senza spiegazioni",
+   "gold": "nessuno: record candidato"
+  },
+  {
+   "famiglia": "polygon",
+   "tipo": "lowest",
+   "unita": "scena",
+   "qa": 5902,
+   "qa_scene_ammesse": 5896,
+   "checker": "ok 5902",
+   "correttezza_matematica": "R parziale (generatore e checker dello stesso progetto): ordine dei vertici disegnati",
+   "coerenza_annotazioni_immagine": "R parziale: il layout porta lo sha256 del PNG dello stesso render (digest_corrispondente su 60.900 record) e la scena si riottiene dalla chiave con byte identici; i pixel non sono letti, quindi che il PNG mostri ciò che dice il layout dipende dal renderer (C: revisione visiva)",
+   "rispondibilita_da_immagine_e_domanda": "I: margine >= 0.15; C: revisione visiva",
+   "spiegazione": "non applicabile: i record v4 hanno risposte brevi, senza spiegazioni",
+   "gold": "nessuno: record candidato"
+  },
+  {
+   "famiglia": "polygon",
+   "tipo": "m_side",
+   "unita": "scena",
+   "qa": 6585,
+   "qa_scene_ammesse": 6575,
+   "checker": "ok 6585",
+   "correttezza_matematica": "R parziale (generatore e checker dello stesso progetto): il punto sta su un solo lato disegnato (entro 0.05)",
+   "coerenza_annotazioni_immagine": "R parziale: il layout porta lo sha256 del PNG dello stesso render (digest_corrispondente su 60.900 record) e la scena si riottiene dalla chiave con byte identici; i pixel non sono letti, quindi che il PNG mostri ciò che dice il layout dipende dal renderer (C: revisione visiva)",
+   "rispondibilita_da_immagine_e_domanda": "I: etichetta del punto non sovrapposta; C: revisione visiva",
+   "spiegazione": "non applicabile: i record v4 hanno risposte brevi, senza spiegazioni",
+   "gold": "nessuno: record candidato"
+  },
+  {
+   "famiglia": "polygon",
+   "tipo": "right_vertex",
+   "unita": "scena",
+   "qa": 2137,
+   "qa_scene_ammesse": 2124,
+   "checker": "ok 2137",
+   "correttezza_matematica": "R parziale (generatore e checker dello stesso progetto): segno dell'angolo retto su un angolo disegnato di 90 +- 0.5 gradi",
+   "coerenza_annotazioni_immagine": "R parziale: il layout porta lo sha256 del PNG dello stesso render (digest_corrispondente su 60.900 record) e la scena si riottiene dalla chiave con byte identici; i pixel non sono letti, quindi che il PNG mostri ciò che dice il layout dipende dal renderer (C: revisione visiva)",
+   "rispondibilita_da_immagine_e_domanda": "I: segno presente; C: revisione visiva",
+   "spiegazione": "non applicabile: i record v4 hanno risposte brevi, senza spiegazioni",
+   "gold": "nessuno: record candidato"
+  },
+  {
+   "famiglia": "polygon",
+   "tipo": "rightmost",
+   "unita": "scena",
+   "qa": 9888,
+   "qa_scene_ammesse": 9868,
+   "checker": "ok 9888",
+   "correttezza_matematica": "R parziale (generatore e checker dello stesso progetto): ordine dei vertici disegnati",
+   "coerenza_annotazioni_immagine": "R parziale: il layout porta lo sha256 del PNG dello stesso render (digest_corrispondente su 60.900 record) e la scena si riottiene dalla chiave con byte identici; i pixel non sono letti, quindi che il PNG mostri ciò che dice il layout dipende dal renderer (C: revisione visiva)",
+   "rispondibilita_da_immagine_e_domanda": "I: margine >= 0.15; C: revisione visiva",
+   "spiegazione": "non applicabile: i record v4 hanno risposte brevi, senza spiegazioni",
+   "gold": "nessuno: record candidato"
+  },
+  {
+   "famiglia": "polygon",
+   "tipo": "shape_type",
+   "unita": "scena",
+   "qa": 12911,
+   "qa_scene_ammesse": 12883,
+   "checker": "ok 12911",
+   "correttezza_matematica": "R parziale (generatore e checker dello stesso progetto): classi da predicati sui vertici disegnati (triangle_classes, quad_classes); esattamente un'opzione vera",
+   "coerenza_annotazioni_immagine": "R parziale: il layout porta lo sha256 del PNG dello stesso render (digest_corrispondente su 60.900 record) e la scena si riottiene dalla chiave con byte identici; i pixel non sono letti, quindi che il PNG mostri ciò che dice il layout dipende dal renderer (C: revisione visiva)",
+   "rispondibilita_da_immagine_e_domanda": "I: opzioni nel testo della domanda; C: revisione visiva",
+   "spiegazione": "non applicabile: i record v4 hanno risposte brevi, senza spiegazioni",
+   "gold": "nessuno: record candidato"
+  },
+  {
+   "famiglia": "polygon",
+   "tipo": "side_len",
+   "unita": "coppia",
+   "qa": 150,
+   "qa_scene_ammesse": 148,
+   "checker": "ok 150",
+   "correttezza_matematica": "R parziale (generatore e checker dello stesso progetto): come il tipo di domanda, su entrambe le immagini; contratto della coppia (synth_candidate): stessa domanda e opzioni, risposte diverse, un solo dettaglio cambiato",
+   "coerenza_annotazioni_immagine": "R parziale: il layout porta lo sha256 del PNG dello stesso render (digest_corrispondente su 60.900 record) e la scena si riottiene dalla chiave con byte identici; i pixel non sono letti, quindi che il PNG mostri ciò che dice il layout dipende dal renderer (C: revisione visiva)",
+   "rispondibilita_da_immagine_e_domanda": "I: come il tipo di domanda; C: revisione visiva",
+   "spiegazione": "non applicabile: i record v4 hanno risposte brevi, senza spiegazioni",
+   "gold": "nessuno: record candidato"
+  },
+  {
+   "famiglia": "polygon",
+   "tipo": "side_len",
+   "unita": "scena",
+   "qa": 30209,
+   "qa_scene_ammesse": 30133,
+   "checker": "ok 30209",
+   "correttezza_matematica": "R parziale (generatore e checker dello stesso progetto): misura scritta più vicina al lato; coerente con la lunghezza disegnata entro il 2%",
+   "coerenza_annotazioni_immagine": "R parziale: il layout porta lo sha256 del PNG dello stesso render (digest_corrispondente su 60.900 record) e la scena si riottiene dalla chiave con byte identici; i pixel non sono letti, quindi che il PNG mostri ciò che dice il layout dipende dal renderer (C: revisione visiva)",
+   "rispondibilita_da_immagine_e_domanda": "I: una sola misura vicina al lato; testi non sovrapposti; C: revisione visiva",
+   "spiegazione": "non applicabile: i record v4 hanno risposte brevi, senza spiegazioni",
+   "gold": "nessuno: record candidato"
+  },
+  {
+   "famiglia": "shapes",
+   "tipo": "count",
+   "unita": "coppia",
+   "qa": 150,
+   "qa_scene_ammesse": 146,
+   "checker": "ok 150",
+   "correttezza_matematica": "R parziale (generatore e checker dello stesso progetto): come il tipo di domanda, su entrambe le immagini; contratto della coppia (synth_candidate): stessa domanda e opzioni, risposte diverse, un solo dettaglio cambiato",
+   "coerenza_annotazioni_immagine": "R parziale: il layout porta lo sha256 del PNG dello stesso render (digest_corrispondente su 60.900 record) e la scena si riottiene dalla chiave con byte identici; i pixel non sono letti, quindi che il PNG mostri ciò che dice il layout dipende dal renderer (C: revisione visiva)",
+   "rispondibilita_da_immagine_e_domanda": "I: come il tipo di domanda; C: revisione visiva",
+   "spiegazione": "non applicabile: i record v4 hanno risposte brevi, senza spiegazioni",
+   "gold": "nessuno: record candidato"
+  },
+  {
+   "famiglia": "shapes",
+   "tipo": "count",
+   "unita": "scena",
+   "qa": 15075,
+   "qa_scene_ammesse": 14923,
+   "checker": "ok 15075",
+   "correttezza_matematica": "R parziale (generatore e checker dello stesso progetto): figure riconosciute dalle patch del layout",
+   "coerenza_annotazioni_immagine": "R parziale: il layout porta lo sha256 del PNG dello stesso render (digest_corrispondente su 60.900 record) e la scena si riottiene dalla chiave con byte identici; i pixel non sono letti, quindi che il PNG mostri ciò che dice il layout dipende dal renderer (C: revisione visiva)",
+   "rispondibilita_da_immagine_e_domanda": "I: figure non sovrapposte e dentro gli assi (violazioni bloccanti); C: revisione visiva",
+   "spiegazione": "non applicabile: i record v4 hanno risposte brevi, senza spiegazioni",
+   "gold": "nessuno: record candidato"
+  },
+  {
+   "famiglia": "shapes",
+   "tipo": "count_type",
+   "unita": "scena",
+   "qa": 15075,
+   "qa_scene_ammesse": 14923,
+   "checker": "ok 15075",
+   "correttezza_matematica": "R parziale (generatore e checker dello stesso progetto): conteggio per tipo dalle patch; 'rettangoli' con un quadrato presente non ammesso",
+   "coerenza_annotazioni_immagine": "R parziale: il layout porta lo sha256 del PNG dello stesso render (digest_corrispondente su 60.900 record) e la scena si riottiene dalla chiave con byte identici; i pixel non sono letti, quindi che il PNG mostri ciò che dice il layout dipende dal renderer (C: revisione visiva)",
+   "rispondibilita_da_immagine_e_domanda": "I: come count; C: revisione visiva",
+   "spiegazione": "non applicabile: i record v4 hanno risposte brevi, senza spiegazioni",
+   "gold": "nessuno: record candidato"
+  },
+  {
+   "famiglia": "shapes",
+   "tipo": "exists",
+   "unita": "scena",
+   "qa": 30150,
+   "qa_scene_ammesse": 29846,
+   "checker": "ok 30150",
+   "correttezza_matematica": "R parziale (generatore e checker dello stesso progetto): etichette delle figure nel layout",
+   "coerenza_annotazioni_immagine": "R parziale: il layout porta lo sha256 del PNG dello stesso render (digest_corrispondente su 60.900 record) e la scena si riottiene dalla chiave con byte identici; i pixel non sono letti, quindi che il PNG mostri ciò che dice il layout dipende dal renderer (C: revisione visiva)",
+   "rispondibilita_da_immagine_e_domanda": "I: testi non sovrapposti; C: revisione visiva",
+   "spiegazione": "non applicabile: i record v4 hanno risposte brevi, senza spiegazioni",
+   "gold": "nessuno: record candidato"
+  },
+  {
+   "famiglia": "shapes",
+   "tipo": "has_type",
+   "unita": "scena",
+   "qa": 28852,
+   "qa_scene_ammesse": 28548,
+   "checker": "ok 28852",
+   "correttezza_matematica": "R parziale (generatore e checker dello stesso progetto): tipi dalle patch (quadrato dalle misure; un quadrato è anche un rettangolo)",
+   "coerenza_annotazioni_immagine": "R parziale: il layout porta lo sha256 del PNG dello stesso render (digest_corrispondente su 60.900 record) e la scena si riottiene dalla chiave con byte identici; i pixel non sono letti, quindi che il PNG mostri ciò che dice il layout dipende dal renderer (C: revisione visiva)",
+   "rispondibilita_da_immagine_e_domanda": "I: come count; C: revisione visiva",
+   "spiegazione": "non applicabile: i record v4 hanno risposte brevi, senza spiegazioni",
+   "gold": "nessuno: record candidato"
+  },
+  {
+   "famiglia": "shapes",
+   "tipo": "label_type",
+   "unita": "scena",
+   "qa": 37237,
+   "qa_scene_ammesse": 37076,
+   "checker": "ok 37237",
+   "correttezza_matematica": "R parziale (generatore e checker dello stesso progetto): figura che contiene l'etichetta, classe più specifica; esattamente un'opzione vera",
+   "coerenza_annotazioni_immagine": "R parziale: il layout porta lo sha256 del PNG dello stesso render (digest_corrispondente su 60.900 record) e la scena si riottiene dalla chiave con byte identici; i pixel non sono letti, quindi che il PNG mostri ciò che dice il layout dipende dal renderer (C: revisione visiva)",
+   "rispondibilita_da_immagine_e_domanda": "I: etichetta dentro una sola figura; C: revisione visiva",
+   "spiegazione": "non applicabile: i record v4 hanno risposte brevi, senza spiegazioni",
+   "gold": "nessuno: record candidato"
+  }
+ ],
+ "files": {
+  "campione.tsv": {
+   "path": "/home/prignano/vision_limite/outputs/synth_gold_review/campione-2/campione.tsv",
+   "bytes": 291832,
+   "sha256": "f9669d81ad0ae9863a7f8ee8716ff41651da504f3ca941db716af5c577a10620",
+   "righe": 380
+  },
+  "mirati.tsv": {
+   "path": "/home/prignano/vision_limite/outputs/synth_gold_review/campione-2/mirati.tsv",
+   "bytes": 99703,
+   "sha256": "823f431235fa2249f73c66d5788053b62b87d93f9584666bd54866793dfb1b26",
+   "righe": 175
+  },
+  "prompts.jsonl": {
+   "path": "/home/prignano/vision_limite/outputs/synth_gold_review/campione-2/prompts.jsonl",
+   "bytes": 473762,
+   "sha256": "c46fc7d0604490518a69c8268a1bf6ee156c50a9f580f030e592b1e44b203737",
+   "righe": 555
+  },
+  "opzioni.tsv": {
+   "path": "/home/prignano/vision_limite/outputs/synth_gold_review/campione-2/opzioni.tsv",
+   "bytes": 32615,
+   "sha256": "edb29b38b188f084d8ee1fa348c03f37042e897a21bcdeb2ec4ad95b358cff26",
+   "righe": 512
+  },
+  "soluzioni.tsv": {
+   "path": "/home/prignano/vision_limite/outputs/synth_gold_review/campione-2/soluzioni.tsv",
+   "bytes": 96716,
+   "sha256": "ef7d55b2a73a6834f9ea85240ea19bb37585137f61889aa3e0b4bec1918b138b",
+   "righe": 512
+  },
+  "esiti.tsv": {
+   "path": "/home/prignano/vision_limite/outputs/synth_gold_review/campione-2/esiti.tsv",
+   "bytes": 49458,
+   "sha256": "4f28a3a3118171df05f0d6aaebc69e014e802f8c310b17ccc33d0d8c46cec409",
+   "righe": 655
+  },
+  "inventario.tsv": {
+   "path": "/home/prignano/vision_limite/outputs/synth_gold_review/campione-2/inventario.tsv",
+   "bytes": 23098,
+   "sha256": "731c865f4270a9617b60ae6840146c1fb1b9dc68566793541ac830cfcc649c31",
+   "righe": 38
+  },
+  "candidati_decontaminazione.tsv": {
+   "path": "/home/prignano/vision_limite/outputs/synth_gold_review/campione-2/candidati_decontaminazione.tsv",
+   "bytes": 214592,
+   "sha256": "37a8222bd9f85a954fa6160d3651206e8de44f3c9d79178d28e0e56a09a0697f",
+   "righe": 264
+  },
+  "corrispondenze_decontaminazione.tsv": {
+   "path": "/home/prignano/vision_limite/outputs/synth_gold_review/campione-2/corrispondenze_decontaminazione.tsv",
+   "bytes": 360880,
+   "sha256": "1648346adf77977a19d9345dfb1f3426c5c23984a352eca33461b9690eea693c",
+   "righe": 755
+  },
+  "esiti_decontaminazione.tsv": {
+   "path": "/home/prignano/vision_limite/outputs/synth_gold_review/campione-2/esiti_decontaminazione.tsv",
+   "bytes": 6447,
+   "sha256": "111604bc3f4c58b435bd4e2eab403c98f661eb0fd170d001beb371395efbd66c",
+   "righe": 264
+  },
+  "confronto.json": {
+   "path": "/home/prignano/vision_limite/outputs/synth_gold_review/campione-2/confronto.json",
+   "bytes": 709,
+   "sha256": "3be8c8b5161c8eb8b80acff3a6a1131c43cdc8c22f43e5acaa029902b4902a0e"
+  }
+ },
+ "seconds": 66.6
+}

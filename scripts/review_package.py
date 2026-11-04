@@ -363,6 +363,79 @@ def build(args) -> None:
 
 # ---------------------------------------------------------------- verifica
 
+REGEX_BEFORE = set("(,=:[!&|?{};+-*%<>~^") | {"", "return", "typeof"}
+
+
+def js_lexical(text: str) -> str | None:
+    """Controllo lessicale minimo di un file JavaScript: commenti e stringhe chiusi, espressioni regolari riconosciute
+    dal token precedente, parentesi tonde, quadre e graffe bilanciate. Non è un parser e non esegue il codice: un errore
+    di sintassi d'altro tipo (una virgola mancante) non si vede. Restituisce il primo problema o None."""
+    pairs, stack, i, n, prev = {")": "(", "]": "[", "}": "{"}, [], 0, len(text), ""
+
+    def where(k: int) -> str:
+        return f"riga {text.count(chr(10), 0, k) + 1}"
+
+    while i < n:
+        ch = text[i]
+        if ch in " \t\r\n":
+            i += 1
+        elif text.startswith("//", i):
+            j = text.find("\n", i)
+            i = n if j < 0 else j
+        elif text.startswith("/*", i):
+            j = text.find("*/", i + 2)
+            if j < 0:
+                return f"commento non chiuso ({where(i)})"
+            i = j + 2
+        elif ch in "\"'`":
+            j = i + 1
+            while j < n and text[j] != ch:
+                if text[j] == "\\":
+                    j += 1
+                elif text[j] == "\n" and ch != "`":
+                    return f"stringa non chiusa ({where(i)})"
+                j += 1
+            if j >= n:
+                return f"stringa non chiusa ({where(i)})"
+            i, prev = j + 1, "stringa"
+        elif ch == "/" and prev in REGEX_BEFORE:
+            j, in_class = i + 1, False
+            while j < n:
+                c = text[j]
+                if c == "\\":
+                    j += 2
+                    continue
+                if c == "\n":
+                    return f"espressione regolare non chiusa ({where(i)})"
+                if c == "[":
+                    in_class = True
+                elif c == "]":
+                    in_class = False
+                elif c == "/" and not in_class:
+                    break
+                j += 1
+            i = j + 1
+            while i < n and text[i].isalpha():
+                i += 1
+            prev = "regex"
+        elif ch in "([{":
+            stack.append((ch, i))
+            i, prev = i + 1, ch
+        elif ch in ")]}":
+            if not stack or stack[-1][0] != pairs[ch]:
+                return f"{ch} non atteso ({where(i)})"
+            stack.pop()
+            i, prev = i + 1, ch
+        elif ch.isalnum() or ch in "_$":
+            j = i
+            while j < n and (text[j].isalnum() or text[j] in "_$"):
+                j += 1
+            i, prev = j, text[i:j]
+        else:
+            i, prev = i + 1, ch
+    return f"{stack[-1][0]} non chiuso ({where(stack[-1][1])})" if stack else None
+
+
 def verify(args) -> int:
     pkg_dir, src = args.pacchetto, args.campione
     checks: list[dict] = []
@@ -516,6 +589,10 @@ def verify(args) -> int:
             if pat in text:
                 net.append(f"{name}: {pat}")
     check("interfaccia: nessuna richiesta di rete né caricamento con fetch", not net, net)
+    lexical = {name: js_lexical((pkg_dir / name).read_text(encoding="utf-8")) for name in ("app.js", "logica.js",
+                                                                                         "test.js")}
+    check("JavaScript: commenti, stringhe, espressioni regolari e parentesi bilanciate (controllo lessicale, non "
+          "esecuzione)", not any(lexical.values()), {k: v for k, v in lexical.items() if v} or len(lexical))
     failed = [x["controllo"] for x in checks if not x["esito"]]
     out = {"schema": SCHEMA + "-verifica", "job_id": os.environ.get("SLURM_JOB_ID"), "code": code_identity(),
            "pacchetto": str(pkg_dir), "impronta": pkg["impronta"], "controlli": checks, "falliti": failed,

@@ -294,6 +294,7 @@ C3 e C4 seguono D3.
 | 30522 (2026-11-02) | `slurm/synth_gold_sample.sbatch campione-1`: `decontam_review.py` sui candidati e `synth_gold_sample.py` sul manifest v2 | 5 min 4 s. Somiglianza dei pixel dei 264 candidati sempre sotto 0,80. Campione di 380 unità e 175 casi mirati, foglio dei candidati con 131 immagini del pannello, inventario dei controlli per proprietà (S2 §2.10) | che il materiale per la revisione è pronto e riproducibile. Nessuna revisione e nessuna stima |
 | 30523 (2026-11-02) | `slurm/tests_cpu.sbatch` su `87c4108` | 27 file, 1.052 controlli, nessun fallimento, stderr vuoto, 10 min 54 s. Nuovi: `tests/test_panel.py` +11, `test_synth_decontam.py` 31, `test_synth_gold.py` 20 | che le modifiche di questo lotto superano le regressioni scritte e che i 990 controlli precedenti non cambiano |
 | 30555 (2026-11-04) | `slurm/tests_cpu.sbatch` su `6328a29` | 27 file, 1.086 controlli, nessun fallimento, stderr vuoto, 10 min 2 s. Nuovi: `test_synth_gold.py` +22 (prompt del loader con e senza opzioni incorporate, coppia con risposte diverse, undicesima corrispondenza, riconciliazione), `test_synth_decontam.py` +12 (due derivazioni consecutive) | che le quattro correzioni superano le regressioni scritte e che i controlli precedenti non cambiano |
+| 30557-30559 (2026-11-04) | `slurm/review_package.sbatch campione-2 synth-v4-campione-2` (30557), poi con `verifica` (30558, 30559) | Pacchetto offline `revisioni/synth-v4-campione-2` (S2 §2.12): 380 + 175 unità, 264 candidati con 755 corrispondenze, 972 immagini con sha256 identici; verifica statica 28 su 28 con il controllo lessicale dei file JS. `jjs` non c'è su `lagrange0` (30558) | che i dati del pacchetto sono quelli di `campione-2` e completi. Non prova l'interfaccia in un browser né esegue il JavaScript: il collaudo è `verifica.html` sul portatile |
 | 30556 (2026-11-04) | `slurm/synth_gold_sample.sbatch campione-2 campione-1 campione-1`, dopo il 30555 | 4 min. Test mirati; `manifest_check` di `synth-v4-candidato-2` col validatore corretto, 44 su 44 con la catena 2 → 1; fogli `campione-2`: 755 corrispondenze su 755 riconciliate (18 oltre l'anteprima, in 3 record), 102 immagini del pannello, prompt del loader per 337 unità, soluzioni per variante; selezione identica a `campione-1` (S2 §2.11) | che i fogli sono completi e riproducibili con la stessa estrazione. Nessuna revisione e nessuna stima |
 
 Calcoli di sola libreria standard sul frontend, il 2026-10-28, a supporto delle specifiche (non sono collaudi):
@@ -485,7 +486,9 @@ dettagli in S2 §§2.9-2.10):
   - le coppie hanno soluzioni ed esiti per variante;
   - `manifest_check` verifica gli split risalendo la catena delle derivazioni fino alla versione che li assegnò.
 
-  I fogli da usare sono quelli di `campione-2`.
+  I fogli da usare sono quelli di `campione-2`. Per la revisione sul portatile c'è il pacchetto offline
+  `revisioni/synth-v4-campione-2` (job 30557-30559, S2 §2.12), con l'autotest `verifica.html`; gli esiti tornano in
+  `revisioni/synth-v4-campione-2/risultati/`.
 - **Stato.** Ancora incompleto per gli esperimenti: mancano l'audit visivo, la verifica dei candidati, le varianti e il
   contratto. Decontaminazione superata, golden answer verificate e dati pronti per F0 sono tre condizioni diverse, e
   nessuna delle ultime due è raggiunta.

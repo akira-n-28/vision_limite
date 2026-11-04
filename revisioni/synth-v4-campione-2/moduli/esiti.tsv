@@ -1,0 +1,656 @@
+unita	variante	record	risposta_revisore	corretta	coerente_con_annotazioni	rispondibile_da_immagine	spiegazione	contratto_coppia	gravita	tipo_difetto	tempo_s	note
+C-coord-001		synth-0050652					non_applicabile	non_applicabile				
+C-coord-002		synth-0029076					non_applicabile	non_applicabile				
+C-coord-003		synth-0012892					non_applicabile	non_applicabile				
+C-coord-004		synth-0028024					non_applicabile	non_applicabile				
+C-coord-005		synth-0051480					non_applicabile	non_applicabile				
+C-coord-006		synth-0029824					non_applicabile	non_applicabile				
+C-coord-007		synth-0002376					non_applicabile	non_applicabile				
+C-coord-008		synth-0045252					non_applicabile	non_applicabile				
+C-coord-009		synth-0026564					non_applicabile	non_applicabile				
+C-coord-010		synth-0002528					non_applicabile	non_applicabile				
+C-coord-011		synth-0052672					non_applicabile	non_applicabile				
+C-coord-012		synth-0028364					non_applicabile	non_applicabile				
+C-coord-013		synth-0016192					non_applicabile	non_applicabile				
+C-coord-014		synth-0003180					non_applicabile	non_applicabile				
+C-coord-015		synth-0024384					non_applicabile	non_applicabile				
+C-coord-016		synth-0015848					non_applicabile	non_applicabile				
+C-coord-017		synth-0007344					non_applicabile	non_applicabile				
+C-coord-018		synth-0035284					non_applicabile	non_applicabile				
+C-coord-019		synth-0002144					non_applicabile	non_applicabile				
+C-coord-020		synth-0010532					non_applicabile	non_applicabile				
+C-coord-021		synth-0023428					non_applicabile	non_applicabile				
+C-coord-022		synth-0001376					non_applicabile	non_applicabile				
+C-coord-023		synth-0058632					non_applicabile	non_applicabile				
+C-coord-024		synth-0044584					non_applicabile	non_applicabile				
+C-coord-025		synth-0054392					non_applicabile	non_applicabile				
+C-coord-026		synth-0039480					non_applicabile	non_applicabile				
+C-coord-027		synth-0002252					non_applicabile	non_applicabile				
+C-coord-028		synth-0048516					non_applicabile	non_applicabile				
+C-coord-029		synth-0015896					non_applicabile	non_applicabile				
+C-coord-030		synth-0029624					non_applicabile	non_applicabile				
+C-coord-031		synth-0020192					non_applicabile	non_applicabile				
+C-coord-032		synth-0022920					non_applicabile	non_applicabile				
+C-coord-033		synth-0050848					non_applicabile	non_applicabile				
+C-coord-034		synth-0033824					non_applicabile	non_applicabile				
+C-coord-035		synth-0045092					non_applicabile	non_applicabile				
+C-coord-036		synth-0045420					non_applicabile	non_applicabile				
+C-coord-037		synth-0013396					non_applicabile	non_applicabile				
+C-coord-038		synth-0001548					non_applicabile	non_applicabile				
+C-coord-039		synth-0037616					non_applicabile	non_applicabile				
+C-coord-040		synth-0056612					non_applicabile	non_applicabile				
+C-coord-041		synth-0019140					non_applicabile	non_applicabile				
+C-coord-042		synth-0042884					non_applicabile	non_applicabile				
+C-coord-043		synth-0007012					non_applicabile	non_applicabile				
+C-coord-044		synth-0054052					non_applicabile	non_applicabile				
+C-coord-045		synth-0011380					non_applicabile	non_applicabile				
+C-coord-046		synth-0043988					non_applicabile	non_applicabile				
+C-coord-047		synth-0014908					non_applicabile	non_applicabile				
+C-coord-048		synth-0056836					non_applicabile	non_applicabile				
+C-coord-049		synth-0049432					non_applicabile	non_applicabile				
+C-coord-050		synth-0006584					non_applicabile	non_applicabile				
+C-coord-051		synth-0033560					non_applicabile	non_applicabile				
+C-coord-052		synth-0050828					non_applicabile	non_applicabile				
+C-coord-053		synth-0051620					non_applicabile	non_applicabile				
+C-coord-054		synth-0021648					non_applicabile	non_applicabile				
+C-coord-055		synth-0038572					non_applicabile	non_applicabile				
+C-coord-056		synth-0030972					non_applicabile	non_applicabile				
+C-coord-057		synth-0039436					non_applicabile	non_applicabile				
+C-coord-058		synth-0059852					non_applicabile	non_applicabile				
+C-coord-059		synth-0023228					non_applicabile	non_applicabile				
+C-coord-060		synth-0012204					non_applicabile	non_applicabile				
+C-coord-061		synth-0036168					non_applicabile	non_applicabile				
+C-coord-062		synth-0022408					non_applicabile	non_applicabile				
+C-coord-063		synth-0023388					non_applicabile	non_applicabile				
+C-coord-064		synth-0059504					non_applicabile	non_applicabile				
+C-coord-065		synth-0058308					non_applicabile	non_applicabile				
+C-coord-066		synth-0007768					non_applicabile	non_applicabile				
+C-coord-067		synth-0008212					non_applicabile	non_applicabile				
+C-coord-068		synth-0025668					non_applicabile	non_applicabile				
+C-coord-069		synth-0019544					non_applicabile	non_applicabile				
+C-coord-070		synth-0046368					non_applicabile	non_applicabile				
+C-coord-071		synth-0012920					non_applicabile	non_applicabile				
+C-coord-072		synth-0011964					non_applicabile	non_applicabile				
+C-coord-073		synth-0035408					non_applicabile	non_applicabile				
+C-coord-074		synth-0056764					non_applicabile	non_applicabile				
+C-coord-075		synth-0049456					non_applicabile	non_applicabile				
+C-function-001		synth-0036834					non_applicabile	non_applicabile				
+C-function-002		synth-0052878					non_applicabile	non_applicabile				
+C-function-003		synth-0031350					non_applicabile	non_applicabile				
+C-function-004		synth-0015034					non_applicabile	non_applicabile				
+C-function-005		synth-0019094					non_applicabile	non_applicabile				
+C-function-006		synth-0033146					non_applicabile	non_applicabile				
+C-function-007		synth-0059770					non_applicabile	non_applicabile				
+C-function-008		synth-0046822					non_applicabile	non_applicabile				
+C-function-009		synth-0041574					non_applicabile	non_applicabile				
+C-function-010		synth-0026578					non_applicabile	non_applicabile				
+C-function-011		synth-0051002					non_applicabile	non_applicabile				
+C-function-012		synth-0051850					non_applicabile	non_applicabile				
+C-function-013		synth-0018886					non_applicabile	non_applicabile				
+C-function-014		synth-0020138					non_applicabile	non_applicabile				
+C-function-015		synth-0059350					non_applicabile	non_applicabile				
+C-function-016		synth-0018190					non_applicabile	non_applicabile				
+C-function-017		synth-0031702					non_applicabile	non_applicabile				
+C-function-018		synth-0029514					non_applicabile	non_applicabile				
+C-function-019		synth-0047326					non_applicabile	non_applicabile				
+C-function-020		synth-0032614					non_applicabile	non_applicabile				
+C-function-021		synth-0046914					non_applicabile	non_applicabile				
+C-function-022		synth-0011802					non_applicabile	non_applicabile				
+C-function-023		synth-0058910					non_applicabile	non_applicabile				
+C-function-024		synth-0005050					non_applicabile	non_applicabile				
+C-function-025		synth-0015370					non_applicabile	non_applicabile				
+C-function-026		synth-0029378					non_applicabile	non_applicabile				
+C-function-027		synth-0006178					non_applicabile	non_applicabile				
+C-function-028		synth-0019706					non_applicabile	non_applicabile				
+C-function-029		synth-0013070					non_applicabile	non_applicabile				
+C-function-030		synth-0038538					non_applicabile	non_applicabile				
+C-function-031		synth-0050226					non_applicabile	non_applicabile				
+C-function-032		synth-0041294					non_applicabile	non_applicabile				
+C-function-033		synth-0008694					non_applicabile	non_applicabile				
+C-function-034		synth-0025774					non_applicabile	non_applicabile				
+C-function-035		synth-0003062					non_applicabile	non_applicabile				
+C-function-036		synth-0030298					non_applicabile	non_applicabile				
+C-function-037		synth-0003430					non_applicabile	non_applicabile				
+C-function-038		synth-0035358					non_applicabile	non_applicabile				
+C-function-039		synth-0029730					non_applicabile	non_applicabile				
+C-function-040		synth-0034194					non_applicabile	non_applicabile				
+C-function-041		synth-0005118					non_applicabile	non_applicabile				
+C-function-042		synth-0055146					non_applicabile	non_applicabile				
+C-function-043		synth-0044378					non_applicabile	non_applicabile				
+C-function-044		synth-0034966					non_applicabile	non_applicabile				
+C-function-045		synth-0031262					non_applicabile	non_applicabile				
+C-function-046		synth-0045802					non_applicabile	non_applicabile				
+C-function-047		synth-0050246					non_applicabile	non_applicabile				
+C-function-048		synth-0022310					non_applicabile	non_applicabile				
+C-function-049		synth-0042190					non_applicabile	non_applicabile				
+C-function-050		synth-0010910					non_applicabile	non_applicabile				
+C-function-051		synth-0050086					non_applicabile	non_applicabile				
+C-function-052		synth-0013638					non_applicabile	non_applicabile				
+C-function-053		synth-0025458					non_applicabile	non_applicabile				
+C-function-054		synth-0052826					non_applicabile	non_applicabile				
+C-function-055		synth-0012114					non_applicabile	non_applicabile				
+C-function-056		synth-0019786					non_applicabile	non_applicabile				
+C-function-057		synth-0034362					non_applicabile	non_applicabile				
+C-function-058		synth-0009582					non_applicabile	non_applicabile				
+C-function-059		synth-0040802					non_applicabile	non_applicabile				
+C-function-060		synth-0001070					non_applicabile	non_applicabile				
+C-function-061		synth-0034726					non_applicabile	non_applicabile				
+C-function-062		synth-0046950					non_applicabile	non_applicabile				
+C-function-063		synth-0004250					non_applicabile	non_applicabile				
+C-function-064		synth-0018382					non_applicabile	non_applicabile				
+C-function-065		synth-0048438					non_applicabile	non_applicabile				
+C-function-066		synth-0034078					non_applicabile	non_applicabile				
+C-function-067		synth-0059830					non_applicabile	non_applicabile				
+C-function-068		synth-0007698					non_applicabile	non_applicabile				
+C-function-069		synth-0039794					non_applicabile	non_applicabile				
+C-function-070		synth-0029962					non_applicabile	non_applicabile				
+C-function-071		synth-0035070					non_applicabile	non_applicabile				
+C-function-072		synth-0003582					non_applicabile	non_applicabile				
+C-function-073		synth-0036602					non_applicabile	non_applicabile				
+C-function-074		synth-0011854					non_applicabile	non_applicabile				
+C-function-075		synth-0008850					non_applicabile	non_applicabile				
+C-polygon-001		synth-0018253					non_applicabile	non_applicabile				
+C-polygon-002		synth-0013749					non_applicabile	non_applicabile				
+C-polygon-003		synth-0039537					non_applicabile	non_applicabile				
+C-polygon-004		synth-0056465					non_applicabile	non_applicabile				
+C-polygon-005		synth-0058549					non_applicabile	non_applicabile				
+C-polygon-006		synth-0052609					non_applicabile	non_applicabile				
+C-polygon-007		synth-0051301					non_applicabile	non_applicabile				
+C-polygon-008		synth-0040937					non_applicabile	non_applicabile				
+C-polygon-009		synth-0020129					non_applicabile	non_applicabile				
+C-polygon-010		synth-0042045					non_applicabile	non_applicabile				
+C-polygon-011		synth-0043781					non_applicabile	non_applicabile				
+C-polygon-012		synth-0045661					non_applicabile	non_applicabile				
+C-polygon-013		synth-0009497					non_applicabile	non_applicabile				
+C-polygon-014		synth-0036573					non_applicabile	non_applicabile				
+C-polygon-015		synth-0045049					non_applicabile	non_applicabile				
+C-polygon-016		synth-0035541					non_applicabile	non_applicabile				
+C-polygon-017		synth-0046477					non_applicabile	non_applicabile				
+C-polygon-018		synth-0003137					non_applicabile	non_applicabile				
+C-polygon-019		synth-0020353					non_applicabile	non_applicabile				
+C-polygon-020		synth-0039041					non_applicabile	non_applicabile				
+C-polygon-021		synth-0011177					non_applicabile	non_applicabile				
+C-polygon-022		synth-0043833					non_applicabile	non_applicabile				
+C-polygon-023		synth-0040129					non_applicabile	non_applicabile				
+C-polygon-024		synth-0023297					non_applicabile	non_applicabile				
+C-polygon-025		synth-0001581					non_applicabile	non_applicabile				
+C-polygon-026		synth-0022709					non_applicabile	non_applicabile				
+C-polygon-027		synth-0055793					non_applicabile	non_applicabile				
+C-polygon-028		synth-0001997					non_applicabile	non_applicabile				
+C-polygon-029		synth-0044489					non_applicabile	non_applicabile				
+C-polygon-030		synth-0046801					non_applicabile	non_applicabile				
+C-polygon-031		synth-0002993					non_applicabile	non_applicabile				
+C-polygon-032		synth-0042893					non_applicabile	non_applicabile				
+C-polygon-033		synth-0035065					non_applicabile	non_applicabile				
+C-polygon-034		synth-0000929					non_applicabile	non_applicabile				
+C-polygon-035		synth-0013193					non_applicabile	non_applicabile				
+C-polygon-036		synth-0055033					non_applicabile	non_applicabile				
+C-polygon-037		synth-0031017					non_applicabile	non_applicabile				
+C-polygon-038		synth-0020721					non_applicabile	non_applicabile				
+C-polygon-039		synth-0012233					non_applicabile	non_applicabile				
+C-polygon-040		synth-0053897					non_applicabile	non_applicabile				
+C-polygon-041		synth-0032297					non_applicabile	non_applicabile				
+C-polygon-042		synth-0005589					non_applicabile	non_applicabile				
+C-polygon-043		synth-0051929					non_applicabile	non_applicabile				
+C-polygon-044		synth-0007581					non_applicabile	non_applicabile				
+C-polygon-045		synth-0018637					non_applicabile	non_applicabile				
+C-polygon-046		synth-0005553					non_applicabile	non_applicabile				
+C-polygon-047		synth-0002641					non_applicabile	non_applicabile				
+C-polygon-048		synth-0035561					non_applicabile	non_applicabile				
+C-polygon-049		synth-0000613					non_applicabile	non_applicabile				
+C-polygon-050		synth-0046897					non_applicabile	non_applicabile				
+C-polygon-051		synth-0051573					non_applicabile	non_applicabile				
+C-polygon-052		synth-0028605					non_applicabile	non_applicabile				
+C-polygon-053		synth-0027277					non_applicabile	non_applicabile				
+C-polygon-054		synth-0054717					non_applicabile	non_applicabile				
+C-polygon-055		synth-0031953					non_applicabile	non_applicabile				
+C-polygon-056		synth-0042057					non_applicabile	non_applicabile				
+C-polygon-057		synth-0057493					non_applicabile	non_applicabile				
+C-polygon-058		synth-0033797					non_applicabile	non_applicabile				
+C-polygon-059		synth-0012201					non_applicabile	non_applicabile				
+C-polygon-060		synth-0047621					non_applicabile	non_applicabile				
+C-polygon-061		synth-0017369					non_applicabile	non_applicabile				
+C-polygon-062		synth-0018345					non_applicabile	non_applicabile				
+C-polygon-063		synth-0059441					non_applicabile	non_applicabile				
+C-polygon-064		synth-0046653					non_applicabile	non_applicabile				
+C-polygon-065		synth-0013977					non_applicabile	non_applicabile				
+C-polygon-066		synth-0014297					non_applicabile	non_applicabile				
+C-polygon-067		synth-0009245					non_applicabile	non_applicabile				
+C-polygon-068		synth-0051065					non_applicabile	non_applicabile				
+C-polygon-069		synth-0051277					non_applicabile	non_applicabile				
+C-polygon-070		synth-0012009					non_applicabile	non_applicabile				
+C-polygon-071		synth-0004185					non_applicabile	non_applicabile				
+C-polygon-072		synth-0018733					non_applicabile	non_applicabile				
+C-polygon-073		synth-0042309					non_applicabile	non_applicabile				
+C-polygon-074		synth-0053061					non_applicabile	non_applicabile				
+C-polygon-075		synth-0038349					non_applicabile	non_applicabile				
+C-shapes-001		synth-0028943					non_applicabile	non_applicabile				
+C-shapes-002		synth-0025115					non_applicabile	non_applicabile				
+C-shapes-003		synth-0004239					non_applicabile	non_applicabile				
+C-shapes-004		synth-0026047					non_applicabile	non_applicabile				
+C-shapes-005		synth-0057347					non_applicabile	non_applicabile				
+C-shapes-006		synth-0026523					non_applicabile	non_applicabile				
+C-shapes-007		synth-0052655					non_applicabile	non_applicabile				
+C-shapes-008		synth-0001143					non_applicabile	non_applicabile				
+C-shapes-009		synth-0055331					non_applicabile	non_applicabile				
+C-shapes-010		synth-0048487					non_applicabile	non_applicabile				
+C-shapes-011		synth-0051455					non_applicabile	non_applicabile				
+C-shapes-012		synth-0021915					non_applicabile	non_applicabile				
+C-shapes-013		synth-0016967					non_applicabile	non_applicabile				
+C-shapes-014		synth-0055523					non_applicabile	non_applicabile				
+C-shapes-015		synth-0006411					non_applicabile	non_applicabile				
+C-shapes-016		synth-0034855					non_applicabile	non_applicabile				
+C-shapes-017		synth-0046335					non_applicabile	non_applicabile				
+C-shapes-018		synth-0028747					non_applicabile	non_applicabile				
+C-shapes-019		synth-0035979					non_applicabile	non_applicabile				
+C-shapes-020		synth-0036087					non_applicabile	non_applicabile				
+C-shapes-021		synth-0035855					non_applicabile	non_applicabile				
+C-shapes-022		synth-0037731					non_applicabile	non_applicabile				
+C-shapes-023		synth-0017395					non_applicabile	non_applicabile				
+C-shapes-024		synth-0043991					non_applicabile	non_applicabile				
+C-shapes-025		synth-0009583					non_applicabile	non_applicabile				
+C-shapes-026		synth-0053063					non_applicabile	non_applicabile				
+C-shapes-027		synth-0040975					non_applicabile	non_applicabile				
+C-shapes-028		synth-0029467					non_applicabile	non_applicabile				
+C-shapes-029		synth-0020703					non_applicabile	non_applicabile				
+C-shapes-030		synth-0049691					non_applicabile	non_applicabile				
+C-shapes-031		synth-0019351					non_applicabile	non_applicabile				
+C-shapes-032		synth-0002667					non_applicabile	non_applicabile				
+C-shapes-033		synth-0044327					non_applicabile	non_applicabile				
+C-shapes-034		synth-0036007					non_applicabile	non_applicabile				
+C-shapes-035		synth-0047707					non_applicabile	non_applicabile				
+C-shapes-036		synth-0054835					non_applicabile	non_applicabile				
+C-shapes-037		synth-0011971					non_applicabile	non_applicabile				
+C-shapes-038		synth-0053687					non_applicabile	non_applicabile				
+C-shapes-039		synth-0047435					non_applicabile	non_applicabile				
+C-shapes-040		synth-0022215					non_applicabile	non_applicabile				
+C-shapes-041		synth-0041695					non_applicabile	non_applicabile				
+C-shapes-042		synth-0054995					non_applicabile	non_applicabile				
+C-shapes-043		synth-0031863					non_applicabile	non_applicabile				
+C-shapes-044		synth-0017335					non_applicabile	non_applicabile				
+C-shapes-045		synth-0034883					non_applicabile	non_applicabile				
+C-shapes-046		synth-0001687					non_applicabile	non_applicabile				
+C-shapes-047		synth-0058587					non_applicabile	non_applicabile				
+C-shapes-048		synth-0040439					non_applicabile	non_applicabile				
+C-shapes-049		synth-0039923					non_applicabile	non_applicabile				
+C-shapes-050		synth-0050215					non_applicabile	non_applicabile				
+C-shapes-051		synth-0034787					non_applicabile	non_applicabile				
+C-shapes-052		synth-0005519					non_applicabile	non_applicabile				
+C-shapes-053		synth-0021647					non_applicabile	non_applicabile				
+C-shapes-054		synth-0031627					non_applicabile	non_applicabile				
+C-shapes-055		synth-0020379					non_applicabile	non_applicabile				
+C-shapes-056		synth-0001671					non_applicabile	non_applicabile				
+C-shapes-057		synth-0026679					non_applicabile	non_applicabile				
+C-shapes-058		synth-0038803					non_applicabile	non_applicabile				
+C-shapes-059		synth-0049707					non_applicabile	non_applicabile				
+C-shapes-060		synth-0030691					non_applicabile	non_applicabile				
+C-shapes-061		synth-0056211					non_applicabile	non_applicabile				
+C-shapes-062		synth-0011635					non_applicabile	non_applicabile				
+C-shapes-063		synth-0019643					non_applicabile	non_applicabile				
+C-shapes-064		synth-0037691					non_applicabile	non_applicabile				
+C-shapes-065		synth-0051535					non_applicabile	non_applicabile				
+C-shapes-066		synth-0022387					non_applicabile	non_applicabile				
+C-shapes-067		synth-0025059					non_applicabile	non_applicabile				
+C-shapes-068		synth-0033423					non_applicabile	non_applicabile				
+C-shapes-069		synth-0007911					non_applicabile	non_applicabile				
+C-shapes-070		synth-0021019					non_applicabile	non_applicabile				
+C-shapes-071		synth-0034327					non_applicabile	non_applicabile				
+C-shapes-072		synth-0022855					non_applicabile	non_applicabile				
+C-shapes-073		synth-0051071					non_applicabile	non_applicabile				
+C-shapes-074		synth-0051255					non_applicabile	non_applicabile				
+C-shapes-075		synth-0049727					non_applicabile	non_applicabile				
+C-test-001		synth-test-00271					non_applicabile	non_applicabile				
+C-test-002		synth-test-00152					non_applicabile	non_applicabile				
+C-test-003		synth-test-00100					non_applicabile	non_applicabile				
+C-test-004		synth-test-00264					non_applicabile	non_applicabile				
+C-test-005		synth-test-00248					non_applicabile	non_applicabile				
+C-test-006		synth-test-00216					non_applicabile	non_applicabile				
+C-test-007		synth-test-00184					non_applicabile	non_applicabile				
+C-test-008		synth-test-00038					non_applicabile	non_applicabile				
+C-test-009		synth-test-00175					non_applicabile	non_applicabile				
+C-test-010		synth-test-00288					non_applicabile	non_applicabile				
+C-test-011		synth-test-00265					non_applicabile	non_applicabile				
+C-test-012		synth-test-00038					non_applicabile	non_applicabile				
+C-test-013		synth-test-00201					non_applicabile	non_applicabile				
+C-test-014		synth-test-00032					non_applicabile	non_applicabile				
+C-test-015		synth-test-00045					non_applicabile	non_applicabile				
+C-test-016		synth-test-00248					non_applicabile	non_applicabile				
+C-test-017		synth-test-00285					non_applicabile	non_applicabile				
+C-test-018		synth-test-00057					non_applicabile	non_applicabile				
+C-test-019		synth-test-00004					non_applicabile	non_applicabile				
+C-test-020		synth-test-00272					non_applicabile	non_applicabile				
+C-test-021		synth-test-00091					non_applicabile	non_applicabile				
+C-test-022		synth-test-00004					non_applicabile	non_applicabile				
+C-test-023		synth-test-00088					non_applicabile	non_applicabile				
+C-test-024		synth-test-00033					non_applicabile	non_applicabile				
+C-test-025		synth-test-00240					non_applicabile	non_applicabile				
+C-test-026		synth-test-00048					non_applicabile	non_applicabile				
+C-test-027		synth-test-00286					non_applicabile	non_applicabile				
+C-test-028		synth-test-00220					non_applicabile	non_applicabile				
+C-test-029		synth-test-00192					non_applicabile	non_applicabile				
+C-test-030		synth-test-00156					non_applicabile	non_applicabile				
+C-test-031		synth-test-00260					non_applicabile	non_applicabile				
+C-test-032		synth-test-00149					non_applicabile	non_applicabile				
+C-test-033		synth-test-00104					non_applicabile	non_applicabile				
+C-test-034		synth-test-00296					non_applicabile	non_applicabile				
+C-test-035		synth-test-00096					non_applicabile	non_applicabile				
+C-test-036		synth-test-00040					non_applicabile	non_applicabile				
+C-test-037		synth-test-00172					non_applicabile	non_applicabile				
+C-test-038		synth-test-00131					non_applicabile	non_applicabile				
+C-test-039		synth-test-00251					non_applicabile	non_applicabile				
+C-test-040		synth-test-00220					non_applicabile	non_applicabile				
+C-test-041		synth-test-00020					non_applicabile	non_applicabile				
+C-test-042		synth-test-00160					non_applicabile	non_applicabile				
+C-test-043		synth-test-00247					non_applicabile	non_applicabile				
+C-test-044		synth-test-00244					non_applicabile	non_applicabile				
+C-test-045		synth-test-00127					non_applicabile	non_applicabile				
+C-test-046		synth-test-00220					non_applicabile	non_applicabile				
+C-test-047		synth-test-00060					non_applicabile	non_applicabile				
+C-test-048		synth-test-00201					non_applicabile	non_applicabile				
+C-test-049		synth-test-00124					non_applicabile	non_applicabile				
+C-test-050		synth-test-00014					non_applicabile	non_applicabile				
+C-coppie-001	a	synth-pair-00140-a					non_applicabile	non_applicabile				
+C-coppie-001	b	synth-pair-00140-b					non_applicabile	non_applicabile				
+C-coppie-001	coppia	synth-pair-00140-a|synth-pair-00140-b	non_applicabile				non_applicabile					
+C-coppie-002	a	synth-pair-00109-a					non_applicabile	non_applicabile				
+C-coppie-002	b	synth-pair-00109-b					non_applicabile	non_applicabile				
+C-coppie-002	coppia	synth-pair-00109-a|synth-pair-00109-b	non_applicabile				non_applicabile					
+C-coppie-003	a	synth-pair-00171-a					non_applicabile	non_applicabile				
+C-coppie-003	b	synth-pair-00171-b					non_applicabile	non_applicabile				
+C-coppie-003	coppia	synth-pair-00171-a|synth-pair-00171-b	non_applicabile				non_applicabile					
+C-coppie-004	a	synth-pair-00208-a					non_applicabile	non_applicabile				
+C-coppie-004	b	synth-pair-00208-b					non_applicabile	non_applicabile				
+C-coppie-004	coppia	synth-pair-00208-a|synth-pair-00208-b	non_applicabile				non_applicabile					
+C-coppie-005	a	synth-pair-00060-a					non_applicabile	non_applicabile				
+C-coppie-005	b	synth-pair-00060-b					non_applicabile	non_applicabile				
+C-coppie-005	coppia	synth-pair-00060-a|synth-pair-00060-b	non_applicabile				non_applicabile					
+C-coppie-006	a	synth-pair-00075-a					non_applicabile	non_applicabile				
+C-coppie-006	b	synth-pair-00075-b					non_applicabile	non_applicabile				
+C-coppie-006	coppia	synth-pair-00075-a|synth-pair-00075-b	non_applicabile				non_applicabile					
+C-coppie-007	a	synth-pair-00221-a					non_applicabile	non_applicabile				
+C-coppie-007	b	synth-pair-00221-b					non_applicabile	non_applicabile				
+C-coppie-007	coppia	synth-pair-00221-a|synth-pair-00221-b	non_applicabile				non_applicabile					
+C-coppie-008	a	synth-pair-00006-a					non_applicabile	non_applicabile				
+C-coppie-008	b	synth-pair-00006-b					non_applicabile	non_applicabile				
+C-coppie-008	coppia	synth-pair-00006-a|synth-pair-00006-b	non_applicabile				non_applicabile					
+C-coppie-009	a	synth-pair-00291-a					non_applicabile	non_applicabile				
+C-coppie-009	b	synth-pair-00291-b					non_applicabile	non_applicabile				
+C-coppie-009	coppia	synth-pair-00291-a|synth-pair-00291-b	non_applicabile				non_applicabile					
+C-coppie-010	a	synth-pair-00072-a					non_applicabile	non_applicabile				
+C-coppie-010	b	synth-pair-00072-b					non_applicabile	non_applicabile				
+C-coppie-010	coppia	synth-pair-00072-a|synth-pair-00072-b	non_applicabile				non_applicabile					
+C-coppie-011	a	synth-pair-00154-a					non_applicabile	non_applicabile				
+C-coppie-011	b	synth-pair-00154-b					non_applicabile	non_applicabile				
+C-coppie-011	coppia	synth-pair-00154-a|synth-pair-00154-b	non_applicabile				non_applicabile					
+C-coppie-012	a	synth-pair-00271-a					non_applicabile	non_applicabile				
+C-coppie-012	b	synth-pair-00271-b					non_applicabile	non_applicabile				
+C-coppie-012	coppia	synth-pair-00271-a|synth-pair-00271-b	non_applicabile				non_applicabile					
+C-coppie-013	a	synth-pair-00094-a					non_applicabile	non_applicabile				
+C-coppie-013	b	synth-pair-00094-b					non_applicabile	non_applicabile				
+C-coppie-013	coppia	synth-pair-00094-a|synth-pair-00094-b	non_applicabile				non_applicabile					
+C-coppie-014	a	synth-pair-00263-a					non_applicabile	non_applicabile				
+C-coppie-014	b	synth-pair-00263-b					non_applicabile	non_applicabile				
+C-coppie-014	coppia	synth-pair-00263-a|synth-pair-00263-b	non_applicabile				non_applicabile					
+C-coppie-015	a	synth-pair-00245-a					non_applicabile	non_applicabile				
+C-coppie-015	b	synth-pair-00245-b					non_applicabile	non_applicabile				
+C-coppie-015	coppia	synth-pair-00245-a|synth-pair-00245-b	non_applicabile				non_applicabile					
+C-coppie-016	a	synth-pair-00081-a					non_applicabile	non_applicabile				
+C-coppie-016	b	synth-pair-00081-b					non_applicabile	non_applicabile				
+C-coppie-016	coppia	synth-pair-00081-a|synth-pair-00081-b	non_applicabile				non_applicabile					
+C-coppie-017	a	synth-pair-00158-a					non_applicabile	non_applicabile				
+C-coppie-017	b	synth-pair-00158-b					non_applicabile	non_applicabile				
+C-coppie-017	coppia	synth-pair-00158-a|synth-pair-00158-b	non_applicabile				non_applicabile					
+C-coppie-018	a	synth-pair-00273-a					non_applicabile	non_applicabile				
+C-coppie-018	b	synth-pair-00273-b					non_applicabile	non_applicabile				
+C-coppie-018	coppia	synth-pair-00273-a|synth-pair-00273-b	non_applicabile				non_applicabile					
+C-coppie-019	a	synth-pair-00139-a					non_applicabile	non_applicabile				
+C-coppie-019	b	synth-pair-00139-b					non_applicabile	non_applicabile				
+C-coppie-019	coppia	synth-pair-00139-a|synth-pair-00139-b	non_applicabile				non_applicabile					
+C-coppie-020	a	synth-pair-00143-a					non_applicabile	non_applicabile				
+C-coppie-020	b	synth-pair-00143-b					non_applicabile	non_applicabile				
+C-coppie-020	coppia	synth-pair-00143-a|synth-pair-00143-b	non_applicabile				non_applicabile					
+C-coppie-021	a	synth-pair-00145-a					non_applicabile	non_applicabile				
+C-coppie-021	b	synth-pair-00145-b					non_applicabile	non_applicabile				
+C-coppie-021	coppia	synth-pair-00145-a|synth-pair-00145-b	non_applicabile				non_applicabile					
+C-coppie-022	a	synth-pair-00130-a					non_applicabile	non_applicabile				
+C-coppie-022	b	synth-pair-00130-b					non_applicabile	non_applicabile				
+C-coppie-022	coppia	synth-pair-00130-a|synth-pair-00130-b	non_applicabile				non_applicabile					
+C-coppie-023	a	synth-pair-00163-a					non_applicabile	non_applicabile				
+C-coppie-023	b	synth-pair-00163-b					non_applicabile	non_applicabile				
+C-coppie-023	coppia	synth-pair-00163-a|synth-pair-00163-b	non_applicabile				non_applicabile					
+C-coppie-024	a	synth-pair-00157-a					non_applicabile	non_applicabile				
+C-coppie-024	b	synth-pair-00157-b					non_applicabile	non_applicabile				
+C-coppie-024	coppia	synth-pair-00157-a|synth-pair-00157-b	non_applicabile				non_applicabile					
+C-coppie-025	a	synth-pair-00114-a					non_applicabile	non_applicabile				
+C-coppie-025	b	synth-pair-00114-b					non_applicabile	non_applicabile				
+C-coppie-025	coppia	synth-pair-00114-a|synth-pair-00114-b	non_applicabile				non_applicabile					
+C-coppie-026	a	synth-pair-00040-a					non_applicabile	non_applicabile				
+C-coppie-026	b	synth-pair-00040-b					non_applicabile	non_applicabile				
+C-coppie-026	coppia	synth-pair-00040-a|synth-pair-00040-b	non_applicabile				non_applicabile					
+C-coppie-027	a	synth-pair-00278-a					non_applicabile	non_applicabile				
+C-coppie-027	b	synth-pair-00278-b					non_applicabile	non_applicabile				
+C-coppie-027	coppia	synth-pair-00278-a|synth-pair-00278-b	non_applicabile				non_applicabile					
+C-coppie-028	a	synth-pair-00251-a					non_applicabile	non_applicabile				
+C-coppie-028	b	synth-pair-00251-b					non_applicabile	non_applicabile				
+C-coppie-028	coppia	synth-pair-00251-a|synth-pair-00251-b	non_applicabile				non_applicabile					
+C-coppie-029	a	synth-pair-00088-a					non_applicabile	non_applicabile				
+C-coppie-029	b	synth-pair-00088-b					non_applicabile	non_applicabile				
+C-coppie-029	coppia	synth-pair-00088-a|synth-pair-00088-b	non_applicabile				non_applicabile					
+C-coppie-030	a	synth-pair-00277-a					non_applicabile	non_applicabile				
+C-coppie-030	b	synth-pair-00277-b					non_applicabile	non_applicabile				
+C-coppie-030	coppia	synth-pair-00277-a|synth-pair-00277-b	non_applicabile				non_applicabile					
+M-quarantena-001		synth-0001536					non_applicabile	non_applicabile				
+M-quarantena-002		synth-0001776					non_applicabile	non_applicabile				
+M-quarantena-003		synth-0003364					non_applicabile	non_applicabile				
+M-quarantena-004		synth-0004682					non_applicabile	non_applicabile				
+M-quarantena-005		synth-0005100					non_applicabile	non_applicabile				
+M-quarantena-006		synth-0005940					non_applicabile	non_applicabile				
+M-quarantena-007		synth-0008056					non_applicabile	non_applicabile				
+M-quarantena-008		synth-0008380					non_applicabile	non_applicabile				
+M-quarantena-009		synth-0010448					non_applicabile	non_applicabile				
+M-quarantena-010		synth-0010604					non_applicabile	non_applicabile				
+M-quarantena-011		synth-0011772					non_applicabile	non_applicabile				
+M-quarantena-012		synth-0012376					non_applicabile	non_applicabile				
+M-quarantena-013		synth-0015860					non_applicabile	non_applicabile				
+M-quarantena-014		synth-0017844					non_applicabile	non_applicabile				
+M-quarantena-015		synth-0018520					non_applicabile	non_applicabile				
+M-quarantena-016		synth-0018636					non_applicabile	non_applicabile				
+M-quarantena-017		synth-0018736					non_applicabile	non_applicabile				
+M-quarantena-018		synth-0018744					non_applicabile	non_applicabile				
+M-quarantena-019		synth-0018756					non_applicabile	non_applicabile				
+M-quarantena-020		synth-0019480					non_applicabile	non_applicabile				
+M-quarantena-021		synth-0019904					non_applicabile	non_applicabile				
+M-quarantena-022		synth-0020420					non_applicabile	non_applicabile				
+M-quarantena-023		synth-0021048					non_applicabile	non_applicabile				
+M-quarantena-024		synth-0022020					non_applicabile	non_applicabile				
+M-quarantena-025		synth-0022688					non_applicabile	non_applicabile				
+M-quarantena-026		synth-0022848					non_applicabile	non_applicabile				
+M-quarantena-027		synth-0023052					non_applicabile	non_applicabile				
+M-quarantena-028		synth-0024320					non_applicabile	non_applicabile				
+M-quarantena-029		synth-0024800					non_applicabile	non_applicabile				
+M-quarantena-030		synth-0024890					non_applicabile	non_applicabile				
+M-quarantena-031		synth-0025660					non_applicabile	non_applicabile				
+M-quarantena-032		synth-0026224					non_applicabile	non_applicabile				
+M-quarantena-033		synth-0027352					non_applicabile	non_applicabile				
+M-quarantena-034		synth-0027624					non_applicabile	non_applicabile				
+M-quarantena-035		synth-0029208					non_applicabile	non_applicabile				
+M-quarantena-036		synth-0030984					non_applicabile	non_applicabile				
+M-quarantena-037		synth-0031164					non_applicabile	non_applicabile				
+M-quarantena-038		synth-0031520					non_applicabile	non_applicabile				
+M-quarantena-039		synth-0031584					non_applicabile	non_applicabile				
+M-quarantena-040		synth-0032100					non_applicabile	non_applicabile				
+M-quarantena-041		synth-0032152					non_applicabile	non_applicabile				
+M-quarantena-042		synth-0032488					non_applicabile	non_applicabile				
+M-quarantena-043		synth-0033172					non_applicabile	non_applicabile				
+M-quarantena-044		synth-0033324					non_applicabile	non_applicabile				
+M-quarantena-045		synth-0034184					non_applicabile	non_applicabile				
+M-quarantena-046		synth-0035864					non_applicabile	non_applicabile				
+M-quarantena-047		synth-0036196					non_applicabile	non_applicabile				
+M-quarantena-048		synth-0036652					non_applicabile	non_applicabile				
+M-quarantena-049		synth-0036716					non_applicabile	non_applicabile				
+M-quarantena-050		synth-0038964					non_applicabile	non_applicabile				
+M-quarantena-051		synth-0043128					non_applicabile	non_applicabile				
+M-quarantena-052		synth-0044384					non_applicabile	non_applicabile				
+M-quarantena-053		synth-0045280					non_applicabile	non_applicabile				
+M-quarantena-054		synth-0045848					non_applicabile	non_applicabile				
+M-quarantena-055		synth-0046360					non_applicabile	non_applicabile				
+M-quarantena-056		synth-0046704					non_applicabile	non_applicabile				
+M-quarantena-057		synth-0047232					non_applicabile	non_applicabile				
+M-quarantena-058		synth-0047600					non_applicabile	non_applicabile				
+M-quarantena-059		synth-0048520					non_applicabile	non_applicabile				
+M-quarantena-060		synth-0050060					non_applicabile	non_applicabile				
+M-quarantena-061		synth-0050276					non_applicabile	non_applicabile				
+M-quarantena-062		synth-0050540					non_applicabile	non_applicabile				
+M-quarantena-063		synth-0050956					non_applicabile	non_applicabile				
+M-quarantena-064		synth-0051036					non_applicabile	non_applicabile				
+M-quarantena-065		synth-0053732					non_applicabile	non_applicabile				
+M-quarantena-066		synth-0054752					non_applicabile	non_applicabile				
+M-quarantena-067		synth-0055244					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-001	a	synth-pair-00000-a					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-001	b	synth-pair-00000-b					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-001	coppia	synth-pair-00000-a|synth-pair-00000-b	non_applicabile				non_applicabile					
+M-coppie_per_famiglia-002	a	synth-pair-00100-a					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-002	b	synth-pair-00100-b					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-002	coppia	synth-pair-00100-a|synth-pair-00100-b	non_applicabile				non_applicabile					
+M-coppie_per_famiglia-003	a	synth-pair-00244-a					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-003	b	synth-pair-00244-b					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-003	coppia	synth-pair-00244-a|synth-pair-00244-b	non_applicabile				non_applicabile					
+M-coppie_per_famiglia-004	a	synth-pair-00204-a					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-004	b	synth-pair-00204-b					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-004	coppia	synth-pair-00204-a|synth-pair-00204-b	non_applicabile				non_applicabile					
+M-coppie_per_famiglia-005	a	synth-pair-00200-a					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-005	b	synth-pair-00200-b					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-005	coppia	synth-pair-00200-a|synth-pair-00200-b	non_applicabile				non_applicabile					
+M-coppie_per_famiglia-006	a	synth-pair-00274-a					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-006	b	synth-pair-00274-b					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-006	coppia	synth-pair-00274-a|synth-pair-00274-b	non_applicabile				non_applicabile					
+M-coppie_per_famiglia-007	a	synth-pair-00270-a					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-007	b	synth-pair-00270-b					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-007	coppia	synth-pair-00270-a|synth-pair-00270-b	non_applicabile				non_applicabile					
+M-coppie_per_famiglia-008	a	synth-pair-00182-a					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-008	b	synth-pair-00182-b					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-008	coppia	synth-pair-00182-a|synth-pair-00182-b	non_applicabile				non_applicabile					
+M-coppie_per_famiglia-009	a	synth-pair-00170-a					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-009	b	synth-pair-00170-b					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-009	coppia	synth-pair-00170-a|synth-pair-00170-b	non_applicabile				non_applicabile					
+M-coppie_per_famiglia-010	a	synth-pair-00262-a					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-010	b	synth-pair-00262-b					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-010	coppia	synth-pair-00262-a|synth-pair-00262-b	non_applicabile				non_applicabile					
+M-coppie_per_famiglia-011	a	synth-pair-00053-a					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-011	b	synth-pair-00053-b					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-011	coppia	synth-pair-00053-a|synth-pair-00053-b	non_applicabile				non_applicabile					
+M-coppie_per_famiglia-012	a	synth-pair-00193-a					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-012	b	synth-pair-00193-b					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-012	coppia	synth-pair-00193-a|synth-pair-00193-b	non_applicabile				non_applicabile					
+M-coppie_per_famiglia-013	a	synth-pair-00101-a					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-013	b	synth-pair-00101-b					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-013	coppia	synth-pair-00101-a|synth-pair-00101-b	non_applicabile				non_applicabile					
+M-coppie_per_famiglia-014	a	synth-pair-00045-a					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-014	b	synth-pair-00045-b					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-014	coppia	synth-pair-00045-a|synth-pair-00045-b	non_applicabile				non_applicabile					
+M-coppie_per_famiglia-015	a	synth-pair-00153-a					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-015	b	synth-pair-00153-b					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-015	coppia	synth-pair-00153-a|synth-pair-00153-b	non_applicabile				non_applicabile					
+M-coppie_per_famiglia-016	a	synth-pair-00035-a					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-016	b	synth-pair-00035-b					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-016	coppia	synth-pair-00035-a|synth-pair-00035-b	non_applicabile				non_applicabile					
+M-coppie_per_famiglia-017	a	synth-pair-00159-a					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-017	b	synth-pair-00159-b					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-017	coppia	synth-pair-00159-a|synth-pair-00159-b	non_applicabile				non_applicabile					
+M-coppie_per_famiglia-018	a	synth-pair-00299-a					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-018	b	synth-pair-00299-b					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-018	coppia	synth-pair-00299-a|synth-pair-00299-b	non_applicabile				non_applicabile					
+M-coppie_per_famiglia-019	a	synth-pair-00231-a					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-019	b	synth-pair-00231-b					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-019	coppia	synth-pair-00231-a|synth-pair-00231-b	non_applicabile				non_applicabile					
+M-coppie_per_famiglia-020	a	synth-pair-00219-a					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-020	b	synth-pair-00219-b					non_applicabile	non_applicabile				
+M-coppie_per_famiglia-020	coppia	synth-pair-00219-a|synth-pair-00219-b	non_applicabile				non_applicabile					
+M-esclusioni_contaminazione-001		synth-0040146|synth-pair-00002-a					non_applicabile	non_applicabile				
+M-esclusioni_contaminazione-002		synth-0022918|synth-pair-00134-b					non_applicabile	non_applicabile				
+M-esclusioni_contaminazione-003		synth-0049946|synth-pair-00050-b					non_applicabile	non_applicabile				
+M-esclusioni_contaminazione-004		synth-0012190|synth-pair-00158-a					non_applicabile	non_applicabile				
+M-esclusioni_contaminazione-005		synth-0033446|synth-pair-00178-a					non_applicabile	non_applicabile				
+M-esclusioni_contaminazione-006		synth-0056410|synth-pair-00202-b					non_applicabile	non_applicabile				
+M-esclusioni_contaminazione-007		synth-0011982|synth-pair-00134-a					non_applicabile	non_applicabile				
+M-esclusioni_contaminazione-008		synth-0016086|synth-pair-00002-b					non_applicabile	non_applicabile				
+M-esclusioni_contaminazione-009		synth-0045138|synth-pair-00066-a					non_applicabile	non_applicabile				
+M-esclusioni_contaminazione-010		synth-0003898|synth-test-00134					non_applicabile	non_applicabile				
+M-regole_nuove_v4-001		synth-0026430					non_applicabile	non_applicabile				
+M-regole_nuove_v4-002		synth-0017898					non_applicabile	non_applicabile				
+M-regole_nuove_v4-003		synth-0007398					non_applicabile	non_applicabile				
+M-regole_nuove_v4-004		synth-0016634					non_applicabile	non_applicabile				
+M-regole_nuove_v4-005		synth-0012594					non_applicabile	non_applicabile				
+M-regole_nuove_v4-006		synth-0002366					non_applicabile	non_applicabile				
+M-regole_nuove_v4-007		synth-0015302					non_applicabile	non_applicabile				
+M-regole_nuove_v4-008		synth-0047350					non_applicabile	non_applicabile				
+M-regole_nuove_v4-009		synth-0045962					non_applicabile	non_applicabile				
+M-regole_nuove_v4-010		synth-0040298					non_applicabile	non_applicabile				
+M-regole_nuove_v4-011		synth-0008293					non_applicabile	non_applicabile				
+M-regole_nuove_v4-012		synth-0013421					non_applicabile	non_applicabile				
+M-regole_nuove_v4-013		synth-0034569					non_applicabile	non_applicabile				
+M-regole_nuove_v4-014		synth-0016157					non_applicabile	non_applicabile				
+M-regole_nuove_v4-015		synth-0034757					non_applicabile	non_applicabile				
+M-regole_nuove_v4-016		synth-0040045					non_applicabile	non_applicabile				
+M-regole_nuove_v4-017		synth-0042525					non_applicabile	non_applicabile				
+M-regole_nuove_v4-018		synth-0039085					non_applicabile	non_applicabile				
+M-regole_nuove_v4-019		synth-0042785					non_applicabile	non_applicabile				
+M-regole_nuove_v4-020		synth-0001445					non_applicabile	non_applicabile				
+M-regole_nuove_v4-021		synth-0013327					non_applicabile	non_applicabile				
+M-regole_nuove_v4-022		synth-0044191					non_applicabile	non_applicabile				
+M-regole_nuove_v4-023		synth-0053695					non_applicabile	non_applicabile				
+M-regole_nuove_v4-024		synth-0026587					non_applicabile	non_applicabile				
+M-regole_nuove_v4-025		synth-0052719					non_applicabile	non_applicabile				
+M-regole_nuove_v4-026		synth-0052871					non_applicabile	non_applicabile				
+M-regole_nuove_v4-027		synth-0059615					non_applicabile	non_applicabile				
+M-regole_nuove_v4-028		synth-0017551					non_applicabile	non_applicabile				
+M-regole_nuove_v4-029		synth-0042195					non_applicabile	non_applicabile				
+M-regole_nuove_v4-030		synth-0058207					non_applicabile	non_applicabile				
+M-soglia_testo_basso-001		synth-0051300					non_applicabile	non_applicabile				
+M-soglia_testo_basso-002		synth-0050800					non_applicabile	non_applicabile				
+M-soglia_testo_basso-003		synth-0004388					non_applicabile	non_applicabile				
+M-soglia_testo_basso-004		synth-0030580					non_applicabile	non_applicabile				
+M-soglia_testo_basso-005		synth-0038820					non_applicabile	non_applicabile				
+M-soglia_testo_basso-006		synth-0006312					non_applicabile	non_applicabile				
+M-soglia_testo_basso-007		synth-0051656					non_applicabile	non_applicabile				
+M-soglia_testo_basso-008		synth-0032124					non_applicabile	non_applicabile				
+M-soglia_riquadri_vicini-001		synth-0042220					non_applicabile	non_applicabile				
+M-soglia_riquadri_vicini-002		synth-0036028					non_applicabile	non_applicabile				
+M-soglia_riquadri_vicini-003		synth-0042576					non_applicabile	non_applicabile				
+M-soglia_riquadri_vicini-004		synth-0054628					non_applicabile	non_applicabile				
+M-soglia_riquadri_vicini-005		synth-0005324					non_applicabile	non_applicabile				
+M-soglia_riquadri_vicini-006		synth-0028076					non_applicabile	non_applicabile				
+M-soglia_riquadri_vicini-007		synth-0041544					non_applicabile	non_applicabile				
+M-soglia_riquadri_vicini-008		synth-0024436					non_applicabile	non_applicabile				
+M-soglia_intersezione_bordo-001		synth-0041230					non_applicabile	non_applicabile				
+M-soglia_intersezione_bordo-002		synth-0023090					non_applicabile	non_applicabile				
+M-soglia_intersezione_bordo-003		synth-0049786					non_applicabile	non_applicabile				
+M-soglia_intersezione_bordo-004		synth-0045006					non_applicabile	non_applicabile				
+M-soglia_intersezione_bordo-005		synth-0035738					non_applicabile	non_applicabile				
+M-soglia_intersezione_bordo-006		synth-0017582					non_applicabile	non_applicabile				
+M-soglia_intersezione_bordo-007		synth-0037982					non_applicabile	non_applicabile				
+M-soglia_intersezione_bordo-008		synth-0051938					non_applicabile	non_applicabile				
+M-soglia_grafici_vicini-001		synth-0010434					non_applicabile	non_applicabile				
+M-soglia_grafici_vicini-002		synth-0055214					non_applicabile	non_applicabile				
+M-soglia_grafici_vicini-003		synth-0040450					non_applicabile	non_applicabile				
+M-soglia_grafici_vicini-004		synth-0008742					non_applicabile	non_applicabile				
+M-soglia_grafici_vicini-005		synth-0044382					non_applicabile	non_applicabile				
+M-soglia_grafici_vicini-006		synth-0050770					non_applicabile	non_applicabile				
+M-soglia_grafici_vicini-007		synth-0018366					non_applicabile	non_applicabile				
+M-soglia_grafici_vicini-008		synth-0012062					non_applicabile	non_applicabile				
+M-soglia_vertice_estremo-001		synth-0037401					non_applicabile	non_applicabile				
+M-soglia_vertice_estremo-002		synth-0034205					non_applicabile	non_applicabile				
+M-soglia_vertice_estremo-003		synth-0056085					non_applicabile	non_applicabile				
+M-soglia_vertice_estremo-004		synth-0006337					non_applicabile	non_applicabile				
+M-soglia_vertice_estremo-005		synth-0039949					non_applicabile	non_applicabile				
+M-soglia_vertice_estremo-006		synth-0056045					non_applicabile	non_applicabile				
+M-soglia_vertice_estremo-007		synth-0059545					non_applicabile	non_applicabile				
+M-soglia_vertice_estremo-008		synth-0059545					non_applicabile	non_applicabile				
+M-coordinate_dalle_tacche-001		synth-0047656					non_applicabile	non_applicabile				
+M-coordinate_dalle_tacche-002		synth-0010920					non_applicabile	non_applicabile				
+M-coordinate_dalle_tacche-003		synth-0022576					non_applicabile	non_applicabile				
+M-coordinate_dalle_tacche-004		synth-0020160					non_applicabile	non_applicabile				
+M-coordinate_dalle_tacche-005		synth-0040760					non_applicabile	non_applicabile				
+M-coordinate_dalle_tacche-006		synth-0038376					non_applicabile	non_applicabile				
+M-coordinate_dalle_tacche-007		synth-0046540					non_applicabile	non_applicabile				
+M-coordinate_dalle_tacche-008		synth-0008712					non_applicabile	non_applicabile				

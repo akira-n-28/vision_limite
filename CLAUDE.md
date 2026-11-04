@@ -413,6 +413,10 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
   - I fogli per l'audit delle golden answer sono in `outputs/synth_gold_review/campione-2` (job 30556, S2 §2.11), con la
     stessa selezione di `campione-1` (job 30522, S2 §2.10). Contengono tutte le 755 corrispondenze dei candidati, il
     prompt del loader nel primo passaggio e le soluzioni per variante delle coppie. L'audit non è eseguito.
+  - La revisione umana la fa l'utente sul portatile, col pacchetto offline `revisioni/synth-v4-campione-2` (tracciato in
+    git, S2 §2.12; job 30557-30559). Gli esiti tornano in `revisioni/synth-v4-campione-2/risultati/`, da verificare
+    contro impronta e identificativi prima di qualsiasi uso. L'interfaccia non è provata in un browser: nei job non c'è
+    un motore JavaScript, e il primo collaudo è `verifica.html` sul portatile.
   - Ancora incompleto per gli esperimenti: mancano audit visivo, verifica dei candidati, varianti e contratto. La
     config della famiglia `synth` richiede ancora la lista v3 vuota di `data_lists.REQUIRED`.
 

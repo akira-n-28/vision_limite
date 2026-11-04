@@ -262,7 +262,12 @@
     }
     if (obj[campo] !== valore) {
       obj[campo] = valore;
-      evento(v, "giudizio_finale", parte + "/" + campo);
+      if (typeof obj[campo] === "string" && (campo === "note" || campo === "tipo_difetto"
+                                             || campo === "risposta_dopo_soluzione")) {
+        v.aggiornato_il = ora();  // testo libero: niente evento a ogni tasto
+      } else {
+        evento(v, "giudizio_finale", parte + "/" + campo + "=" + valore);
+      }
     }
     return [];
   }
@@ -443,7 +448,11 @@
       return {errori: ["valore non ammesso: " + valore], avvisi: []};
     }
     c[campo] = campo === "esame" ? valore : String(valore);
-    evento(v, "corrispondenza", idCorr + "/" + campo);
+    if (campo === "esame") {
+      evento(v, "corrispondenza", idCorr + "=" + valore);
+    } else {
+      v.aggiornato_il = ora();
+    }
     var avvisi = [];
     if (v.esito === "no" && puoEscludere(d, v).length) {
       v.esito = NON;
@@ -477,10 +486,12 @@
       v.decisiva = valore;
     } else if (campo === "note") {
       v.note = String(valore);
+      v.aggiornato_il = ora();
+      return [];
     } else {
       return ["campo sconosciuto: " + campo];
     }
-    evento(v, "esito", campo);
+    evento(v, "esito", campo + "=" + valore);
     return [];
   }
 

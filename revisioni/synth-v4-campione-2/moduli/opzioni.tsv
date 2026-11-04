@@ -1,0 +1,513 @@
+unita	variante	record	posizione_qa	tipo	opzioni	opzioni_nel_testo_della_domanda
+C-coord-001		synth-0050652	6	side_y	left / right	sì
+C-coord-002		synth-0029076	32	pair_lr	left / right	sì
+C-coord-003		synth-0012892	21	pair_ud	above / below	sì
+C-coord-004		synth-0028024	35	exists	yes / no	no
+C-coord-005		synth-0051480	3	coords	(3, -4) / (4, 3) / (-4, 3) / (-4, -3)	no
+C-coord-006		synth-0029824	9	side_x	above / below	sì
+C-coord-007		synth-0002376	26	pair_ud	above / below	sì
+C-coord-008		synth-0045252	1	side_x	above / below	sì
+C-coord-009		synth-0026564	8	pair_lr	left / right	sì
+C-coord-010		synth-0002528	30	pair_ud	above / below	sì
+C-coord-011		synth-0052672	4	quadrant	first / second / third / fourth	no
+C-coord-012		synth-0028364	13	exists	yes / no	no
+C-coord-013		synth-0016192	6	quadrant	first / second / third / fourth	no
+C-coord-014		synth-0003180	47	pair_lr	left / right	sì
+C-coord-015		synth-0024384	11	exists	yes / no	no
+C-coord-016		synth-0015848	0	quadrant	first / second / third / fourth	no
+C-coord-017		synth-0007344	21	pair_lr	left / right	sì
+C-coord-018		synth-0035284	0	quadrant	first / second / third / fourth	no
+C-coord-019		synth-0002144	15	pair_lr	left / right	sì
+C-coord-020		synth-0010532	12	pair_lr	left / right	sì
+C-coord-021		synth-0023428	1	side_x	above / below	sì
+C-coord-022		synth-0001376	10	count	1 / 2 / 3 / 4 / 5 / 6	no
+C-coord-023		synth-0058632	2	side_y	left / right	sì
+C-coord-024		synth-0044584	12	quadrant	first / second / third / fourth	no
+C-coord-025		synth-0054392	7	coords	(4, 2) / (-2, 4) / (4, -2) / (-4, -2)	no
+C-coord-026		synth-0039480	11	side_y	left / right	sì
+C-coord-027		synth-0002252	49	pair_lr	left / right	sì
+C-coord-028		synth-0048516	12	count	1 / 2 / 3 / 4 / 5 / 6	no
+C-coord-029		synth-0015896	25	pair_lr	left / right	sì
+C-coord-030		synth-0029624	12	pair_lr	left / right	sì
+C-coord-031		synth-0020192	11	coords	(-5, 4) / (-5, -4) / (5, -4) / (-4, -5)	no
+C-coord-032		synth-0022920	25	line_on	yes / no	no
+C-coord-033		synth-0050848	30	pair_ud	above / below	sì
+C-coord-034		synth-0033824	13	exists	yes / no	no
+C-coord-035		synth-0045092	29	pair_ud	above / below	sì
+C-coord-036		synth-0045420	24	pair_lr	left / right	sì
+C-coord-037		synth-0013396	0	quadrant	first / second / third / fourth	no
+C-coord-038		synth-0001548	14	exists	yes / no	no
+C-coord-039		synth-0037616	3	quadrant	first / second / third / fourth	no
+C-coord-040		synth-0056612	8	pair_lr	left / right	sì
+C-coord-041		synth-0019140	10	side_y	left / right	sì
+C-coord-042		synth-0042884	43	pair_lr	left / right	sì
+C-coord-043		synth-0007012	10	side_y	left / right	sì
+C-coord-044		synth-0054052	5	side_x	above / below	sì
+C-coord-045		synth-0011380	21	pair_ud	above / below	sì
+C-coord-046		synth-0043988	9	pair_ud	above / below	sì
+C-coord-047		synth-0014908	9	pair_ud	above / below	sì
+C-coord-048		synth-0056836	25	pair_lr	left / right	sì
+C-coord-049		synth-0049432	6	side_y	left / right	sì
+C-coord-050		synth-0006584	7	pair_lr	left / right	sì
+C-coord-051		synth-0033560	4	quadrant	first / second / third / fourth	no
+C-coord-052		synth-0050828	27	pair_lr	left / right	sì
+C-coord-053		synth-0051620	20	pair_ud	above / below	sì
+C-coord-054		synth-0021648	3	coords	(4, -4) / (-2, -4) / (-4, -4) / (-4, 4)	no
+C-coord-055		synth-0038572	24	pair_ud	above / below	sì
+C-coord-056		synth-0030972	16	pair_lr	left / right	sì
+C-coord-057		synth-0039436	9	pair_ud	above / below	sì
+C-coord-058		synth-0059852	19	count	1 / 2 / 3 / 4 / 5 / 6	no
+C-coord-059		synth-0023228	8	count	1 / 2 / 3 / 4 / 5 / 6	no
+C-coord-060		synth-0012204	11	exists	yes / no	no
+C-coord-061		synth-0036168	12	pair_lr	left / right	sì
+C-coord-062		synth-0022408	3	quadrant	first / second / third / fourth	no
+C-coord-063		synth-0023388	33	exists	yes / no	no
+C-coord-064		synth-0059504	35	pair_lr	left / right	sì
+C-coord-065		synth-0058308	29	pair_lr	left / right	sì
+C-coord-066		synth-0007768	1	side_x	above / below	sì
+C-coord-067		synth-0008212	12	pair_ud	above / below	sì
+C-coord-068		synth-0025668	42	pair_lr	left / right	sì
+C-coord-069		synth-0019544	17	pair_ud	above / below	sì
+C-coord-070		synth-0046368	35	pair_ud	above / below	sì
+C-coord-071		synth-0012920	3	coords	(6, 5) / (5, 6) / (-5, 6) / (5, -6)	no
+C-coord-072		synth-0011964	20	pair_lr	left / right	sì
+C-coord-073		synth-0035408	9	exists	yes / no	no
+C-coord-074		synth-0056764	44	pair_lr	left / right	sì
+C-coord-075		synth-0049456	8	pair_lr	left / right	sì
+C-function-001		synth-0036834	1	vertex_ud	above / below	sì
+C-function-002		synth-0052878	1	vertex_ud	above / below	sì
+C-function-003		synth-0031350	5	exists	yes / no	no
+C-function-004		synth-0015034	3	intercept	above / below	sì
+C-function-005		synth-0019094	4	slope	increasing / decreasing	sì
+C-function-006		synth-0033146	1	vertex_ud	above / below	sì
+C-function-007		synth-0059770	2	slope	increasing / decreasing	sì
+C-function-008		synth-0046822	3	exists	yes / no	no
+C-function-009		synth-0041574	1	intercept	above / below	sì
+C-function-010		synth-0026578	1	intercept	above / below	sì
+C-function-011		synth-0051002	8	exists	yes / no	no
+C-function-012		synth-0051850	6	exists	yes / no	no
+C-function-013		synth-0018886	3	intercept	above / below	sì
+C-function-014		synth-0020138	4	exists	yes / no	no
+C-function-015		synth-0059350	2	slope	increasing / decreasing	sì
+C-function-016		synth-0018190	1	vertex_ud	above / below	sì
+C-function-017		synth-0031702	0	slope	increasing / decreasing	sì
+C-function-018		synth-0029514	6	intercept	above / below	sì
+C-function-019		synth-0047326	1	intercept	above / below	sì
+C-function-020		synth-0032614	7	exists	yes / no	no
+C-function-021		synth-0046914	4	exists	yes / no	no
+C-function-022		synth-0011802	0	opens	upward / downward	sì
+C-function-023		synth-0058910	3	exists	yes / no	no
+C-function-024		synth-0005050	0	opens	upward / downward	sì
+C-function-025		synth-0015370	1	intercept	above / below	sì
+C-function-026		synth-0029378	2	intercept	above / below	sì
+C-function-027		synth-0006178	3	exists	yes / no	no
+C-function-028		synth-0019706	1	intercept	above / below	sì
+C-function-029		synth-0013070	4	opens	upward / downward	sì
+C-function-030		synth-0038538	3	intercept	above / below	sì
+C-function-031		synth-0050226	2	slope	increasing / decreasing	sì
+C-function-032		synth-0041294	2	vertex_lr	left / right	sì
+C-function-033		synth-0008694	3	intercept	above / below	sì
+C-function-034		synth-0025774	4	slope	increasing / decreasing	sì
+C-function-035		synth-0003062	1	vertex_ud	above / below	sì
+C-function-036		synth-0030298	1	vertex_ud	above / below	sì
+C-function-037		synth-0003430	2	vertex_lr	left / right	sì
+C-function-038		synth-0035358	3	intercept	above / below	sì
+C-function-039		synth-0029730	7	exists	yes / no	no
+C-function-040		synth-0034194	3	exists	yes / no	no
+C-function-041		synth-0005118	7	exists	yes / no	no
+C-function-042		synth-0055146	5	intercept	above / below	sì
+C-function-043		synth-0044378	4	exists	yes / no	no
+C-function-044		synth-0034966	0	opens	upward / downward	sì
+C-function-045		synth-0031262	4	intersections	0 / 1 / 2	no
+C-function-046		synth-0045802	3	intercept	above / below	sì
+C-function-047		synth-0050246	4	intercept	above / below	sì
+C-function-048		synth-0022310	1	vertex_ud	above / below	sì
+C-function-049		synth-0042190	3	exists	yes / no	no
+C-function-050		synth-0010910	0	opens	upward / downward	sì
+C-function-051		synth-0050086	3	intercept	above / below	sì
+C-function-052		synth-0013638	2	slope	increasing / decreasing	sì
+C-function-053		synth-0025458	1	intercept	above / below	sì
+C-function-054		synth-0052826	2	slope	increasing / decreasing	sì
+C-function-055		synth-0012114	3	exists	yes / no	no
+C-function-056		synth-0019786	1	intercept	above / below	sì
+C-function-057		synth-0034362	0	slope	increasing / decreasing	sì
+C-function-058		synth-0009582	3	intercept	above / below	sì
+C-function-059		synth-0040802	0	slope	increasing / decreasing	sì
+C-function-060		synth-0001070	4	intersections	0 / 1 / 2	no
+C-function-061		synth-0034726	0	slope	increasing / decreasing	sì
+C-function-062		synth-0046950	2	slope	increasing / decreasing	sì
+C-function-063		synth-0004250	1	vertex_ud	above / below	sì
+C-function-064		synth-0018382	6	intersections	0 / 1 / 2	no
+C-function-065		synth-0048438	2	vertex_lr	left / right	sì
+C-function-066		synth-0034078	0	slope	increasing / decreasing	sì
+C-function-067		synth-0059830	6	exists	yes / no	no
+C-function-068		synth-0007698	0	opens	upward / downward	sì
+C-function-069		synth-0039794	0	slope	increasing / decreasing	sì
+C-function-070		synth-0029962	2	exists	yes / no	no
+C-function-071		synth-0035070	2	vertex_lr	left / right	sì
+C-function-072		synth-0003582	3	exists	yes / no	no
+C-function-073		synth-0036602	1	intercept	above / below	sì
+C-function-074		synth-0011854	1	vertex_ud	above / below	sì
+C-function-075		synth-0008850	1	intercept	above / below	sì
+C-polygon-001		synth-0018253	5	exists	yes / no	no
+C-polygon-002		synth-0013749	1	side_len	4 / 6 / 3 / 1	no
+C-polygon-003		synth-0039537	9	exists	yes / no	no
+C-polygon-004		synth-0056465	5	shape_type	right triangle / isosceles triangle / equilateral triangle	sì
+C-polygon-005		synth-0058549	1	side_len	4.1 / 3 / 6.4 / 7.4	no
+C-polygon-006		synth-0052609	1	side_len	6 / 10 / 4.7 / 5	no
+C-polygon-007		synth-0051301	10	exists	yes / no	no
+C-polygon-008		synth-0040937	2	leftmost	L / M / N / P	no
+C-polygon-009		synth-0020129	5	leftmost	M / N / P	no
+C-polygon-010		synth-0042045	8	exists	yes / no	no
+C-polygon-011		synth-0043781	0	side_len	6 / 5 / 7.0 / 10	no
+C-polygon-012		synth-0045661	0	side_len	4 / 6 / 1 / 3	no
+C-polygon-013		synth-0009497	4	rightmost	N / P / Q / R	no
+C-polygon-014		synth-0036573	2	lowest	P / Q / R	no
+C-polygon-015		synth-0045049	0	side_len	52 / 24 / 26 / 27	no
+C-polygon-016		synth-0035541	2	lowest	S / T / U / V	no
+C-polygon-017		synth-0046477	2	right_vertex	H / K / L	no
+C-polygon-018		synth-0003137	3	shape_type	square / rectangle / parallelogram / trapezoid	sì
+C-polygon-019		synth-0020353	9	exists	yes / no	no
+C-polygon-020		synth-0039041	6	shape_type	square / rectangle / parallelogram / trapezoid	sì
+C-polygon-021		synth-0011177	6	rightmost	R / S / T	no
+C-polygon-022		synth-0043833	9	count	1 / 2 / 3 / 4	no
+C-polygon-023		synth-0040129	9	exists	yes / no	no
+C-polygon-024		synth-0023297	1	side_len	11.6 / 5.8 / 9 / 6.8	no
+C-polygon-025		synth-0001581	4	shape_type	square / rectangle / parallelogram / trapezoid	sì
+C-polygon-026		synth-0022709	1	side_len	7 / 5.6 / 9.2 / 4.6	no
+C-polygon-027		synth-0055793	5	exists	yes / no	no
+C-polygon-028		synth-0001997	2	rightmost	K / L / M / N	no
+C-polygon-029		synth-0044489	3	count	1 / 2 / 3 / 4	no
+C-polygon-030		synth-0046801	6	rightmost	H / K / L / M	no
+C-polygon-031		synth-0002993	3	highest	N / P / Q / R	no
+C-polygon-032		synth-0042893	0	side_len	5.2 / 8.4 / 9.0 / 4.2	no
+C-polygon-033		synth-0035065	9	exists	yes / no	no
+C-polygon-034		synth-0000929	6	rightmost	S / T / U / V	no
+C-polygon-035		synth-0013193	4	leftmost	C / D / E	no
+C-polygon-036		synth-0055033	5	shape_type	right triangle / isosceles triangle / equilateral triangle	sì
+C-polygon-037		synth-0031017	5	count	1 / 2 / 3 / 4	no
+C-polygon-038		synth-0020721	3	highest	B / C / D	no
+C-polygon-039		synth-0012233	5	rightmost	Q / R / S	no
+C-polygon-040		synth-0053897	1	side_len	4 / 5.6 / 5 / 3.2	no
+C-polygon-041		synth-0032297	6	m_side	TU / UV / VT	no
+C-polygon-042		synth-0005589	4	exists	yes / no	no
+C-polygon-043		synth-0051929	1	leftmost	C / D / E / F	no
+C-polygon-044		synth-0007581	4	exists	yes / no	no
+C-polygon-045		synth-0018637	4	exists	yes / no	no
+C-polygon-046		synth-0005553	2	count	1 / 2 / 3 / 4	no
+C-polygon-047		synth-0002641	4	rightmost	M / N / P / Q	no
+C-polygon-048		synth-0035561	5	m_side	FG / GH / HF	no
+C-polygon-049		synth-0000613	1	side_len	8.1 / 12.8 / 10.1 / 11.8	no
+C-polygon-050		synth-0046897	0	side_len	7 / 12 / 4 / 6	no
+C-polygon-051		synth-0051573	5	leftmost	P / Q / R	no
+C-polygon-052		synth-0028605	6	count	1 / 2 / 3	no
+C-polygon-053		synth-0027277	6	count	1 / 2 / 3 / 4	no
+C-polygon-054		synth-0054717	8	count	1 / 2 / 3	no
+C-polygon-055		synth-0031953	9	exists	yes / no	no
+C-polygon-056		synth-0042057	1	rightmost	P / Q / R / S	no
+C-polygon-057		synth-0057493	7	m_side	UV / VW / WU	no
+C-polygon-058		synth-0033797	6	count	1 / 2 / 3	no
+C-polygon-059		synth-0012201	6	rightmost	L / M / N	no
+C-polygon-060		synth-0047621	6	exists	yes / no	no
+C-polygon-061		synth-0017369	4	count	1 / 2 / 3 / 4	no
+C-polygon-062		synth-0018345	8	count	1 / 2 / 3	no
+C-polygon-063		synth-0059441	5	shape_type	square / rectangle / parallelogram / trapezoid	sì
+C-polygon-064		synth-0046653	6	exists	yes / no	no
+C-polygon-065		synth-0013977	4	lowest	K / L / M / N	no
+C-polygon-066		synth-0014297	6	exists	yes / no	no
+C-polygon-067		synth-0009245	4	count	1 / 2 / 3 / 4	no
+C-polygon-068		synth-0051065	1	side_len	10 / 20 / 4.7 / 11	no
+C-polygon-069		synth-0051277	3	rightmost	G / H / K / L	no
+C-polygon-070		synth-0012009	5	lowest	N / P / Q	no
+C-polygon-071		synth-0004185	6	exists	yes / no	no
+C-polygon-072		synth-0018733	2	side_len	8 / 4 / 5 / 2	no
+C-polygon-073		synth-0042309	10	exists	yes / no	no
+C-polygon-074		synth-0053061	8	exists	yes / no	no
+C-polygon-075		synth-0038349	7	count	1 / 2 / 3	no
+C-shapes-001		synth-0028943	0	count	1 / 2 / 3 / 4 / 5	no
+C-shapes-002		synth-0025115	6	exists	yes / no	no
+C-shapes-003		synth-0004239	9	exists	yes / no	no
+C-shapes-004		synth-0026047	3	count_type	0 / 1 / 2 / 3 / 4	no
+C-shapes-005		synth-0057347	3	count_type	0 / 1 / 2 / 3 / 4	no
+C-shapes-006		synth-0026523	2	count_type	0 / 1 / 2 / 3 / 4	no
+C-shapes-007		synth-0052655	7	exists	yes / no	no
+C-shapes-008		synth-0001143	4	label_type	circle / triangle / square / rectangle	sì
+C-shapes-009		synth-0055331	2	has_type	yes / no	no
+C-shapes-010		synth-0048487	5	exists	yes / no	no
+C-shapes-011		synth-0051455	6	exists	yes / no	no
+C-shapes-012		synth-0021915	2	has_type	yes / no	no
+C-shapes-013		synth-0016967	0	count	1 / 2 / 3 / 4 / 5	no
+C-shapes-014		synth-0055523	4	label_type	circle / triangle / square / rectangle	sì
+C-shapes-015		synth-0006411	6	exists	yes / no	no
+C-shapes-016		synth-0034855	2	has_type	yes / no	no
+C-shapes-017		synth-0046335	1	has_type	yes / no	no
+C-shapes-018		synth-0028747	5	exists	yes / no	no
+C-shapes-019		synth-0035979	6	exists	yes / no	no
+C-shapes-020		synth-0036087	3	count_type	0 / 1 / 2 / 3 / 4	no
+C-shapes-021		synth-0035855	4	label_type	circle / triangle / square / rectangle	sì
+C-shapes-022		synth-0037731	0	count	1 / 2 / 3 / 4 / 5	no
+C-shapes-023		synth-0017395	6	label_type	circle / triangle / square / rectangle	sì
+C-shapes-024		synth-0043991	2	has_type	yes / no	no
+C-shapes-025		synth-0009583	6	exists	yes / no	no
+C-shapes-026		synth-0053063	5	exists	yes / no	no
+C-shapes-027		synth-0040975	7	label_type	circle / triangle / square / rectangle	sì
+C-shapes-028		synth-0029467	6	label_type	circle / triangle / square / rectangle	sì
+C-shapes-029		synth-0020703	2	has_type	yes / no	no
+C-shapes-030		synth-0049691	6	exists	yes / no	no
+C-shapes-031		synth-0019351	2	has_type	yes / no	no
+C-shapes-032		synth-0002667	9	exists	yes / no	no
+C-shapes-033		synth-0044327	4	label_type	circle / triangle / square / rectangle	sì
+C-shapes-034		synth-0036007	6	label_type	circle / triangle / square / rectangle	sì
+C-shapes-035		synth-0047707	6	exists	yes / no	no
+C-shapes-036		synth-0054835	7	exists	yes / no	no
+C-shapes-037		synth-0011971	5	label_type	circle / triangle / square / rectangle	sì
+C-shapes-038		synth-0053687	6	exists	yes / no	no
+C-shapes-039		synth-0047435	0	count	1 / 2 / 3 / 4 / 5	no
+C-shapes-040		synth-0022215	2	has_type	yes / no	no
+C-shapes-041		synth-0041695	7	exists	yes / no	no
+C-shapes-042		synth-0054995	3	count_type	0 / 1 / 2 / 3 / 4	no
+C-shapes-043		synth-0031863	3	count_type	0 / 1 / 2 / 3 / 4	no
+C-shapes-044		synth-0017335	4	label_type	circle / triangle / square / rectangle	sì
+C-shapes-045		synth-0034883	3	count_type	0 / 1 / 2 / 3 / 4	no
+C-shapes-046		synth-0001687	1	has_type	yes / no	no
+C-shapes-047		synth-0058587	8	exists	yes / no	no
+C-shapes-048		synth-0040439	3	label_type	circle / triangle / square / rectangle	sì
+C-shapes-049		synth-0039923	5	label_type	circle / triangle / square / rectangle	sì
+C-shapes-050		synth-0050215	5	exists	yes / no	no
+C-shapes-051		synth-0034787	7	label_type	circle / triangle / square / rectangle	sì
+C-shapes-052		synth-0005519	3	count_type	0 / 1 / 2 / 3 / 4	no
+C-shapes-053		synth-0021647	9	exists	yes / no	no
+C-shapes-054		synth-0031627	2	has_type	yes / no	no
+C-shapes-055		synth-0020379	0	count	1 / 2 / 3 / 4 / 5	no
+C-shapes-056		synth-0001671	8	exists	yes / no	no
+C-shapes-057		synth-0026679	5	exists	yes / no	no
+C-shapes-058		synth-0038803	6	exists	yes / no	no
+C-shapes-059		synth-0049707	6	exists	yes / no	no
+C-shapes-060		synth-0030691	3	count_type	0 / 1 / 2 / 3 / 4	no
+C-shapes-061		synth-0056211	1	has_type	yes / no	no
+C-shapes-062		synth-0011635	4	label_type	circle / triangle / square / rectangle	sì
+C-shapes-063		synth-0019643	6	label_type	circle / triangle / square / rectangle	sì
+C-shapes-064		synth-0037691	4	label_type	circle / triangle / square / rectangle	sì
+C-shapes-065		synth-0051535	3	count_type	0 / 1 / 2 / 3 / 4	no
+C-shapes-066		synth-0022387	2	count_type	0 / 1 / 2 / 3 / 4	no
+C-shapes-067		synth-0025059	7	exists	yes / no	no
+C-shapes-068		synth-0033423	0	count	1 / 2 / 3 / 4 / 5	no
+C-shapes-069		synth-0007911	7	exists	yes / no	no
+C-shapes-070		synth-0021019	8	exists	yes / no	no
+C-shapes-071		synth-0034327	8	exists	yes / no	no
+C-shapes-072		synth-0022855	3	count_type	0 / 1 / 2 / 3 / 4	no
+C-shapes-073		synth-0051071	4	label_type	circle / triangle / square / rectangle	sì
+C-shapes-074		synth-0051255	2	count_type	0 / 1 / 2 / 3 / 4	no
+C-shapes-075		synth-0049727	3	count_type	0 / 1 / 2 / 3 / 4	no
+C-test-001		synth-test-00271	3	count_type	0 / 1 / 2 / 3 / 4	no
+C-test-002		synth-test-00152	15	coords	(2, 4) / (-2, 4) / (4, -2) / (-2, -4)	no
+C-test-003		synth-test-00100	12	quadrant	first / second / third / fourth	no
+C-test-004		synth-test-00264	18	pair_ud	above / below	sì
+C-test-005		synth-test-00248	9	quadrant	first / second / third / fourth	no
+C-test-006		synth-test-00216	20	pair_ud	above / below	sì
+C-test-007		synth-test-00184	22	pair_ud	above / below	sì
+C-test-008		synth-test-00038	1	intercept	above / below	sì
+C-test-009		synth-test-00175	2	has_type	yes / no	no
+C-test-010		synth-test-00288	40	pair_lr	left / right	sì
+C-test-011		synth-test-00265	9	exists	yes / no	no
+C-test-012		synth-test-00038	0	slope	increasing / decreasing	sì
+C-test-013		synth-test-00201	7	rightmost	Q / R / S	no
+C-test-014		synth-test-00032	19	pair_ud	above / below	sì
+C-test-015		synth-test-00045	3	leftmost	H / K / L / M	no
+C-test-016		synth-test-00248	2	side_y	left / right	sì
+C-test-017		synth-test-00285	7	exists	yes / no	no
+C-test-018		synth-test-00057	3	leftmost	P / Q / R	no
+C-test-019		synth-test-00004	24	pair_lr	left / right	sì
+C-test-020		synth-test-00272	13	pair_ud	above / below	sì
+C-test-021		synth-test-00091	6	exists	yes / no	no
+C-test-022		synth-test-00004	37	pair_lr	left / right	sì
+C-test-023		synth-test-00088	58	exists	yes / no	no
+C-test-024		synth-test-00033	0	side_len	16 / 8 / 9 / 6	no
+C-test-025		synth-test-00240	9	pair_ud	above / below	sì
+C-test-026		synth-test-00048	18	pair_lr	left / right	sì
+C-test-027		synth-test-00286	2	exists	yes / no	no
+C-test-028		synth-test-00220	17	side_x	above / below	sì
+C-test-029		synth-test-00192	0	quadrant	first / second / third / fourth	no
+C-test-030		synth-test-00156	1	side_x	above / below	sì
+C-test-031		synth-test-00260	28	pair_ud	above / below	sì
+C-test-032		synth-test-00149	3	highest	G / H / K	no
+C-test-033		synth-test-00104	19	pair_lr	left / right	sì
+C-test-034		synth-test-00296	38	count	1 / 2 / 3 / 4 / 5 / 6	no
+C-test-035		synth-test-00096	5	side_x	above / below	sì
+C-test-036		synth-test-00040	9	side_x	above / below	sì
+C-test-037		synth-test-00172	16	pair_lr	left / right	sì
+C-test-038		synth-test-00131	5	label_type	circle / triangle / square / rectangle	sì
+C-test-039		synth-test-00251	0	count	1 / 2 / 3 / 4 / 5	no
+C-test-040		synth-test-00220	37	pair_ud	above / below	sì
+C-test-041		synth-test-00020	20	exists	yes / no	no
+C-test-042		synth-test-00160	10	pair_lr	left / right	sì
+C-test-043		synth-test-00247	4	label_type	circle / triangle / square / rectangle	sì
+C-test-044		synth-test-00244	54	count	1 / 2 / 3 / 4 / 5 / 6	no
+C-test-045		synth-test-00127	3	count_type	0 / 1 / 2 / 3 / 4	no
+C-test-046		synth-test-00220	40	pair_lr	left / right	sì
+C-test-047		synth-test-00060	6	side_y	left / right	sì
+C-test-048		synth-test-00201	10	exists	yes / no	no
+C-test-049		synth-test-00124	2	side_y	left / right	sì
+C-test-050		synth-test-00014	0	slope	increasing / decreasing	sì
+C-coppie-001	a	synth-pair-00140-a	0	side_x	above / below	sì
+C-coppie-001	b	synth-pair-00140-b	0	side_x	above / below	sì
+C-coppie-002	a	synth-pair-00109-a	0	side_len	9 / 11	no
+C-coppie-002	b	synth-pair-00109-b	0	side_len	9 / 11	no
+C-coppie-003	a	synth-pair-00171-a	0	count	1 / 2 / 3 / 4 / 5	no
+C-coppie-003	b	synth-pair-00171-b	0	count	1 / 2 / 3 / 4 / 5	no
+C-coppie-004	a	synth-pair-00208-a	0	side_x	above / below	sì
+C-coppie-004	b	synth-pair-00208-b	0	side_x	above / below	sì
+C-coppie-005	a	synth-pair-00060-a	0	side_y	left / right	sì
+C-coppie-005	b	synth-pair-00060-b	0	side_y	left / right	sì
+C-coppie-006	a	synth-pair-00075-a	0	count	1 / 2 / 3 / 4 / 5	no
+C-coppie-006	b	synth-pair-00075-b	0	count	1 / 2 / 3 / 4 / 5	no
+C-coppie-007	a	synth-pair-00221-a	0	side_len	8.5 / 11.5	no
+C-coppie-007	b	synth-pair-00221-b	0	side_len	8.5 / 11.5	no
+C-coppie-008	a	synth-pair-00006-a	0	opens	upward / downward	sì
+C-coppie-008	b	synth-pair-00006-b	0	opens	upward / downward	sì
+C-coppie-009	a	synth-pair-00291-a	0	count	1 / 2 / 3 / 4 / 5	no
+C-coppie-009	b	synth-pair-00291-b	0	count	1 / 2 / 3 / 4 / 5	no
+C-coppie-010	a	synth-pair-00072-a	0	side_y	left / right	sì
+C-coppie-010	b	synth-pair-00072-b	0	side_y	left / right	sì
+C-coppie-011	a	synth-pair-00154-a	0	slope	increasing / decreasing	sì
+C-coppie-011	b	synth-pair-00154-b	0	slope	increasing / decreasing	sì
+C-coppie-012	a	synth-pair-00271-a	0	count	1 / 2 / 3 / 4 / 5	no
+C-coppie-012	b	synth-pair-00271-b	0	count	1 / 2 / 3 / 4 / 5	no
+C-coppie-013	a	synth-pair-00094-a	0	slope	increasing / decreasing	sì
+C-coppie-013	b	synth-pair-00094-b	0	slope	increasing / decreasing	sì
+C-coppie-014	a	synth-pair-00263-a	0	count	1 / 2 / 3 / 4 / 5	no
+C-coppie-014	b	synth-pair-00263-b	0	count	1 / 2 / 3 / 4 / 5	no
+C-coppie-015	a	synth-pair-00245-a	0	side_len	10.4 / 12.4	no
+C-coppie-015	b	synth-pair-00245-b	0	side_len	10.4 / 12.4	no
+C-coppie-016	a	synth-pair-00081-a	0	side_len	8 / 12	no
+C-coppie-016	b	synth-pair-00081-b	0	side_len	8 / 12	no
+C-coppie-017	a	synth-pair-00158-a	0	slope	increasing / decreasing	sì
+C-coppie-017	b	synth-pair-00158-b	0	slope	increasing / decreasing	sì
+C-coppie-018	a	synth-pair-00273-a	0	side_len	12.4 / 15.4	no
+C-coppie-018	b	synth-pair-00273-b	0	side_len	12.4 / 15.4	no
+C-coppie-019	a	synth-pair-00139-a	0	count	1 / 2 / 3 / 4 / 5	no
+C-coppie-019	b	synth-pair-00139-b	0	count	1 / 2 / 3 / 4 / 5	no
+C-coppie-020	a	synth-pair-00143-a	0	count	1 / 2 / 3 / 4 / 5	no
+C-coppie-020	b	synth-pair-00143-b	0	count	1 / 2 / 3 / 4 / 5	no
+C-coppie-021	a	synth-pair-00145-a	0	side_len	6 / 9	no
+C-coppie-021	b	synth-pair-00145-b	0	side_len	6 / 9	no
+C-coppie-022	a	synth-pair-00130-a	0	slope	increasing / decreasing	sì
+C-coppie-022	b	synth-pair-00130-b	0	slope	increasing / decreasing	sì
+C-coppie-023	a	synth-pair-00163-a	0	count	1 / 2 / 3 / 4 / 5	no
+C-coppie-023	b	synth-pair-00163-b	0	count	1 / 2 / 3 / 4 / 5	no
+C-coppie-024	a	synth-pair-00157-a	0	side_len	6 / 8	no
+C-coppie-024	b	synth-pair-00157-b	0	side_len	6 / 8	no
+C-coppie-025	a	synth-pair-00114-a	0	opens	upward / downward	sì
+C-coppie-025	b	synth-pair-00114-b	0	opens	upward / downward	sì
+C-coppie-026	a	synth-pair-00040-a	0	side_x	above / below	sì
+C-coppie-026	b	synth-pair-00040-b	0	side_x	above / below	sì
+C-coppie-027	a	synth-pair-00278-a	0	slope	increasing / decreasing	sì
+C-coppie-027	b	synth-pair-00278-b	0	slope	increasing / decreasing	sì
+C-coppie-028	a	synth-pair-00251-a	0	count	1 / 2 / 3 / 4 / 5	no
+C-coppie-028	b	synth-pair-00251-b	0	count	1 / 2 / 3 / 4 / 5	no
+C-coppie-029	a	synth-pair-00088-a	0	side_y	left / right	sì
+C-coppie-029	b	synth-pair-00088-b	0	side_y	left / right	sì
+C-coppie-030	a	synth-pair-00277-a	0	side_len	8 / 10	no
+C-coppie-030	b	synth-pair-00277-b	0	side_len	8 / 10	no
+M-coppie_per_famiglia-001	a	synth-pair-00000-a	0	side_x	above / below	sì
+M-coppie_per_famiglia-001	b	synth-pair-00000-b	0	side_x	above / below	sì
+M-coppie_per_famiglia-002	a	synth-pair-00100-a	0	side_x	above / below	sì
+M-coppie_per_famiglia-002	b	synth-pair-00100-b	0	side_x	above / below	sì
+M-coppie_per_famiglia-003	a	synth-pair-00244-a	0	side_y	left / right	sì
+M-coppie_per_famiglia-003	b	synth-pair-00244-b	0	side_y	left / right	sì
+M-coppie_per_famiglia-004	a	synth-pair-00204-a	0	side_x	above / below	sì
+M-coppie_per_famiglia-004	b	synth-pair-00204-b	0	side_x	above / below	sì
+M-coppie_per_famiglia-005	a	synth-pair-00200-a	0	side_y	left / right	sì
+M-coppie_per_famiglia-005	b	synth-pair-00200-b	0	side_y	left / right	sì
+M-coppie_per_famiglia-006	a	synth-pair-00274-a	0	slope	increasing / decreasing	sì
+M-coppie_per_famiglia-006	b	synth-pair-00274-b	0	slope	increasing / decreasing	sì
+M-coppie_per_famiglia-007	a	synth-pair-00270-a	0	slope	increasing / decreasing	sì
+M-coppie_per_famiglia-007	b	synth-pair-00270-b	0	slope	increasing / decreasing	sì
+M-coppie_per_famiglia-008	a	synth-pair-00182-a	0	slope	increasing / decreasing	sì
+M-coppie_per_famiglia-008	b	synth-pair-00182-b	0	slope	increasing / decreasing	sì
+M-coppie_per_famiglia-009	a	synth-pair-00170-a	0	slope	increasing / decreasing	sì
+M-coppie_per_famiglia-009	b	synth-pair-00170-b	0	slope	increasing / decreasing	sì
+M-coppie_per_famiglia-010	a	synth-pair-00262-a	0	slope	increasing / decreasing	sì
+M-coppie_per_famiglia-010	b	synth-pair-00262-b	0	slope	increasing / decreasing	sì
+M-coppie_per_famiglia-011	a	synth-pair-00053-a	0	side_len	7.6 / 10.6	no
+M-coppie_per_famiglia-011	b	synth-pair-00053-b	0	side_len	7.6 / 10.6	no
+M-coppie_per_famiglia-012	a	synth-pair-00193-a	0	side_len	5 / 9	no
+M-coppie_per_famiglia-012	b	synth-pair-00193-b	0	side_len	5 / 9	no
+M-coppie_per_famiglia-013	a	synth-pair-00101-a	0	side_len	6.3 / 8.3	no
+M-coppie_per_famiglia-013	b	synth-pair-00101-b	0	side_len	6.3 / 8.3	no
+M-coppie_per_famiglia-014	a	synth-pair-00045-a	0	side_len	11.6 / 15.6	no
+M-coppie_per_famiglia-014	b	synth-pair-00045-b	0	side_len	11.6 / 15.6	no
+M-coppie_per_famiglia-015	a	synth-pair-00153-a	0	side_len	8 / 11	no
+M-coppie_per_famiglia-015	b	synth-pair-00153-b	0	side_len	8 / 11	no
+M-coppie_per_famiglia-016	a	synth-pair-00035-a	0	count	1 / 2 / 3 / 4 / 5	no
+M-coppie_per_famiglia-016	b	synth-pair-00035-b	0	count	1 / 2 / 3 / 4 / 5	no
+M-coppie_per_famiglia-017	a	synth-pair-00159-a	0	count	1 / 2 / 3 / 4 / 5	no
+M-coppie_per_famiglia-017	b	synth-pair-00159-b	0	count	1 / 2 / 3 / 4 / 5	no
+M-coppie_per_famiglia-018	a	synth-pair-00299-a	0	count	1 / 2 / 3 / 4 / 5	no
+M-coppie_per_famiglia-018	b	synth-pair-00299-b	0	count	1 / 2 / 3 / 4 / 5	no
+M-coppie_per_famiglia-019	a	synth-pair-00231-a	0	count	1 / 2 / 3 / 4 / 5	no
+M-coppie_per_famiglia-019	b	synth-pair-00231-b	0	count	1 / 2 / 3 / 4 / 5	no
+M-coppie_per_famiglia-020	a	synth-pair-00219-a	0	count	1 / 2 / 3 / 4 / 5	no
+M-coppie_per_famiglia-020	b	synth-pair-00219-b	0	count	1 / 2 / 3 / 4 / 5	no
+M-regole_nuove_v4-001		synth-0026430	6	intersections	0 / 1 / 2	no
+M-regole_nuove_v4-002		synth-0017898	7	intersections	0 / 1 / 2	no
+M-regole_nuove_v4-003		synth-0007398	6	intersections	0 / 1 / 2	no
+M-regole_nuove_v4-004		synth-0016634	4	intersections	0 / 1 / 2	no
+M-regole_nuove_v4-005		synth-0012594	6	intersections	0 / 1 / 2	no
+M-regole_nuove_v4-006		synth-0002366	6	intersections	0 / 1 / 2	no
+M-regole_nuove_v4-007		synth-0015302	6	intersections	0 / 1 / 2	no
+M-regole_nuove_v4-008		synth-0047350	4	intersections	0 / 1 / 2	no
+M-regole_nuove_v4-009		synth-0045962	6	intersections	0 / 1 / 2	no
+M-regole_nuove_v4-010		synth-0040298	4	intersections	0 / 1 / 2	no
+M-regole_nuove_v4-011		synth-0008293	3	shape_type	square / rectangle / parallelogram / trapezoid	sì
+M-regole_nuove_v4-012		synth-0013421	3	shape_type	square / rectangle / parallelogram / trapezoid	sì
+M-regole_nuove_v4-013		synth-0034569	4	shape_type	right triangle / isosceles triangle / equilateral triangle	sì
+M-regole_nuove_v4-014		synth-0016157	5	shape_type	right triangle / isosceles triangle / equilateral triangle	sì
+M-regole_nuove_v4-015		synth-0034757	5	shape_type	right triangle / isosceles triangle / equilateral triangle	sì
+M-regole_nuove_v4-016		synth-0040045	7	shape_type	right triangle / isosceles triangle / equilateral triangle	sì
+M-regole_nuove_v4-017		synth-0042525	5	shape_type	square / rectangle / parallelogram / trapezoid	sì
+M-regole_nuove_v4-018		synth-0039085	6	shape_type	square / rectangle / parallelogram / trapezoid	sì
+M-regole_nuove_v4-019		synth-0042785	4	shape_type	square / rectangle / parallelogram / trapezoid	sì
+M-regole_nuove_v4-020		synth-0001445	8	shape_type	right triangle / isosceles triangle / equilateral triangle	sì
+M-regole_nuove_v4-021		synth-0013327	4	label_type	circle / triangle / square / rectangle	sì
+M-regole_nuove_v4-022		synth-0044191	4	label_type	circle / triangle / square / rectangle	sì
+M-regole_nuove_v4-023		synth-0053695	5	label_type	circle / triangle / square / rectangle	sì
+M-regole_nuove_v4-024		synth-0026587	6	label_type	circle / triangle / square / rectangle	sì
+M-regole_nuove_v4-025		synth-0052719	7	label_type	circle / triangle / square / rectangle	sì
+M-regole_nuove_v4-026		synth-0052871	4	label_type	circle / triangle / square / rectangle	sì
+M-regole_nuove_v4-027		synth-0059615	7	label_type	circle / triangle / square / rectangle	sì
+M-regole_nuove_v4-028		synth-0017551	3	label_type	circle / triangle / square / rectangle	sì
+M-regole_nuove_v4-029		synth-0042195	4	label_type	circle / triangle / square / rectangle	sì
+M-regole_nuove_v4-030		synth-0058207	4	label_type	circle / triangle / square / rectangle	sì
+M-soglia_intersezione_bordo-001		synth-0041230	6	intersections	0 / 1 / 2	no
+M-soglia_intersezione_bordo-002		synth-0023090	6	intersections	0 / 1 / 2	no
+M-soglia_intersezione_bordo-003		synth-0049786	6	intersections	0 / 1 / 2	no
+M-soglia_intersezione_bordo-004		synth-0045006	6	intersections	0 / 1 / 2	no
+M-soglia_intersezione_bordo-005		synth-0035738	6	intersections	0 / 1 / 2	no
+M-soglia_intersezione_bordo-006		synth-0017582	6	intersections	0 / 1 / 2	no
+M-soglia_intersezione_bordo-007		synth-0037982	6	intersections	0 / 1 / 2	no
+M-soglia_intersezione_bordo-008		synth-0051938	6	intersections	0 / 1 / 2	no
+M-soglia_grafici_vicini-001		synth-0010434	8	intersections	0 / 1 / 2	no
+M-soglia_grafici_vicini-002		synth-0055214	8	intersections	0 / 1 / 2	no
+M-soglia_grafici_vicini-003		synth-0040450	6	intersections	0 / 1 / 2	no
+M-soglia_grafici_vicini-004		synth-0008742	6	intersections	0 / 1 / 2	no
+M-soglia_grafici_vicini-005		synth-0044382	6	intersections	0 / 1 / 2	no
+M-soglia_grafici_vicini-006		synth-0050770	6	intersections	0 / 1 / 2	no
+M-soglia_grafici_vicini-007		synth-0018366	6	intersections	0 / 1 / 2	no
+M-soglia_grafici_vicini-008		synth-0012062	6	intersections	0 / 1 / 2	no
+M-soglia_vertice_estremo-001		synth-0037401	5	lowest	P / Q / R	no
+M-soglia_vertice_estremo-002		synth-0034205	3	lowest	K / L / M	no
+M-soglia_vertice_estremo-003		synth-0056085	3	highest	F / G / H / K	no
+M-soglia_vertice_estremo-004		synth-0006337	3	leftmost	P / Q / R	no
+M-soglia_vertice_estremo-005		synth-0039949	6	rightmost	S / T / U	no
+M-soglia_vertice_estremo-006		synth-0056045	2	highest	Q / R / S / T	no
+M-soglia_vertice_estremo-007		synth-0059545	2	leftmost	P / Q / R / S	no
+M-soglia_vertice_estremo-008		synth-0059545	3	rightmost	P / Q / R / S	no
+M-coordinate_dalle_tacche-001		synth-0047656	11	coords	(-5, 5) / (5, -5) / (-5, -5) / (5, 5)	no
+M-coordinate_dalle_tacche-002		synth-0010920	11	coords	(-3, 4) / (-4, -3) / (3, -4) / (-3, -4)	no
+M-coordinate_dalle_tacche-003		synth-0022576	11	coords	(-7, -5) / (7, -5) / (-7, 5) / (-5, -7)	no
+M-coordinate_dalle_tacche-004		synth-0020160	11	coords	(-4, 5) / (-4, -5) / (4, -5) / (-5, -4)	no
+M-coordinate_dalle_tacche-005		synth-0040760	11	coords	(-3, -3) / (3, 3) / (3, -3) / (-3, 3)	no
+M-coordinate_dalle_tacche-006		synth-0038376	11	coords	(4, -5) / (-4, 5) / (-4, -5) / (-5, -4)	no
+M-coordinate_dalle_tacche-007		synth-0046540	11	coords	(-7, 3) / (3, 7) / (-3, -7) / (3, -7)	no
+M-coordinate_dalle_tacche-008		synth-0008712	11	coords	(-8, 5) / (5, -8) / (8, 5) / (-8, -5)	no

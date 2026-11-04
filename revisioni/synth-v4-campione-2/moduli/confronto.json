@@ -1,0 +1,20 @@
+{
+ "precedente": "/home/prignano/vision_limite/outputs/synth_gold_review/campione-1",
+ "report_precedente": {
+  "path": "/home/prignano/vision_limite/outputs/synth_gold_review/campione-1/report.json",
+  "bytes": 39151,
+  "sha256": "ee10d398ceefef1dca80de6ad6ac711f686f07368b1df11d12c5193e69256f8e"
+ },
+ "unita_campione": 380,
+ "unita_mirate": 175,
+ "candidati": 264,
+ "risposte_confrontate": 462,
+ "unita_con_risposta_nuove": [],
+ "seconde_varianti_aggiunte": 20,
+ "opzioni_spostate_in_opzioni.tsv": 462,
+ "candidati_con_corrispondenze_mancanti_nel_foglio_precedente": 3,
+ "corrispondenze_mancanti_nel_foglio_precedente": 18,
+ "immagini_v4_confrontate": 870,
+ "differenze": {},
+ "selezione_invariata": true
+}
