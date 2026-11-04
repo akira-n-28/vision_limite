@@ -1,17 +1,12 @@
 {
  "schema": "synth-v4-revisione-pacchetto/1-verifica",
- "job_id": "30559",
+ "job_id": "30566",
  "code": {
-  "commit": "5a4b4bbec14c03a92d8f3e532ca3850503639951",
+  "commit": "742a734f40834da0170faa77ea2216e2a5482e0b",
   "dirty": true,
-  "diff_sha256": "44583fa0cb885b3346bac15bec601481d0d27b50c9e9ca0ab7229e2423a4a4ab",
+  "diff_sha256": "f5f63c596da40957db7560b8ec717346ebd2a49f32924cac4cdb01642da6812a",
   "untracked": [
-   "revisioni/synth-v4-campione-2/SHA256SUMS",
-   "revisioni/synth-v4-campione-2/dati/",
-   "revisioni/synth-v4-campione-2/immagini/",
-   "revisioni/synth-v4-campione-2/moduli/",
-   "revisioni/synth-v4-campione-2/pacchetto.json",
-   "revisioni/synth-v4-campione-2/verifica_pacchetto.json"
+   "revisioni/synth-v4-campione-2/verifica_js.json"
   ]
  },
  "pacchetto": "/home/prignano/vision_limite/revisioni/synth-v4-campione-2",
@@ -134,6 +129,98 @@
    "dettaglio": 607
   },
   {
+   "controllo": "collegamenti fra unità per record e per stato della scena (specifica senza chiave, versione e stile, come in logica.js): stessa partizione dello stato registrato nel manifest",
+   "esito": true,
+   "dettaglio": {
+    "partizione_uguale_al_manifest": true,
+    "record": 607,
+    "record_con_piu_unita": 7,
+    "unita_su_record_condivisi": 15,
+    "scene_con_piu_record": 13,
+    "record_in_scene_condivise": 28,
+    "unita_con_collegamenti": 23,
+    "max_collegate_per_unita": 3,
+    "componenti": {
+     "1": 532,
+     "2": 8,
+     "3": 1,
+     "4": 1
+    },
+    "esempi_record": {
+     "synth-0059545": [
+      "M-soglia_vertice_estremo-007",
+      "M-soglia_vertice_estremo-008"
+     ],
+     "synth-pair-00158-a": [
+      "C-coppie-017",
+      "M-esclusioni_contaminazione-004"
+     ],
+     "synth-test-00004": [
+      "C-test-019",
+      "C-test-022"
+     ],
+     "synth-test-00038": [
+      "C-test-008",
+      "C-test-012"
+     ],
+     "synth-test-00201": [
+      "C-test-013",
+      "C-test-048"
+     ]
+    },
+    "esempi_scene": [
+     {
+      "synth-0026578": [
+       "C-function-010"
+      ],
+      "synth-0003582": [
+       "C-function-072"
+      ]
+     },
+     {
+      "synth-0042190": [
+       "C-function-049"
+      ],
+      "synth-0008850": [
+       "C-function-075"
+      ]
+     },
+     {
+      "synth-test-00038": [
+       "C-test-008",
+       "C-test-012"
+      ],
+      "synth-test-00014": [
+       "C-test-050"
+      ],
+      "synth-pair-00094-a": [
+       "C-coppie-013"
+      ]
+     },
+     {
+      "synth-test-00286": [
+       "C-test-027"
+      ],
+      "synth-0056410": [
+       "M-esclusioni_contaminazione-006"
+      ],
+      "synth-pair-00202-b": [
+       "M-esclusioni_contaminazione-006"
+      ]
+     },
+     {
+      "synth-pair-00158-a": [
+       "C-coppie-017",
+       "M-esclusioni_contaminazione-004"
+      ],
+      "synth-0012190": [
+       "M-esclusioni_contaminazione-004"
+      ]
+     }
+    ]
+   }
+  },
+  {
    "controllo": "immagini: ogni immagine citata presente, con byte identici a campione-2",
    "esito": true,
    "dettaglio": {
@@ -195,5 +282,5 @@
  ],
  "falliti": [],
  "nota": "verifica statica dei dati e dei riferimenti; l'interfaccia non è provata in un browser",
- "seconds": 6.5
+ "seconds": 6.6
 }

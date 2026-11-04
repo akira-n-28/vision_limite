@@ -1,0 +1,1194 @@
+{
+ "schema": "synth-v4-revisione-pacchetto/1-esecuzione-js",
+ "job_id": "30566",
+ "code": {
+  "commit": "742a734f40834da0170faa77ea2216e2a5482e0b",
+  "dirty": true,
+  "diff_sha256": "5fc91cad5ffa6d98fbf95a81afeec299ba39f1e4ec6963bc954995812d66d950",
+  "untracked": [
+   "revisioni/synth-v4-campione-2/verifica_js.json"
+  ]
+ },
+ "pacchetto": "/home/prignano/vision_limite/revisioni/synth-v4-campione-2",
+ "impronta": "18a8926f99c8874bf75d1613e5db1e6cdc8bbd65772a2d0d93b41283b20da48f",
+ "motore": {
+  "libreria": "/lib/x86_64-linux-gnu/libduktape.so.207",
+  "sha256": "5733ea32f7c50e962e08b26b02f0656851525f3aa06f8b826459e27fa8711199"
+ },
+ "nota": "logica e interfaccia eseguite con Duktape, senza DOM e su un DOM simulato; non è una prova in un browser (disegno, eventi veri, immagini e localStorage si provano con verifica.html)",
+ "segreti_cercati": 184,
+ "esecuzioni": [
+  {
+   "dom": null,
+   "file": {
+    "dati/pacchetto.js": {
+     "sha256": "d4592b11d63cee7243ea6196ebfb290f7fc02fbd1d1a116a033a71658fa6b192",
+     "secondi": 0.14
+    },
+    "dati/soluzioni.js": {
+     "sha256": "af355e714e93741e918f64a96896caeb7d26c56b222b2645a0ccfb734159b13e",
+     "secondi": 0.01
+    },
+    "dati/evidenze.js": {
+     "sha256": "aa445ad538ab732b14816a41428ba982fbf9bf0696d611e6ee8144d07372c053",
+     "secondi": 0.11
+    },
+    "logica.js": {
+     "sha256": "bdbb3536c25b5479c960de0a3177bacb2dc8d83867c3e98b6db4764728acec80",
+     "secondi": 0.01
+    },
+    "app.js": {
+     "sha256": "e82e5446dc46eac0ff3dc29b4fe7ad58b9fee1c43e7fdde100577c871c656a45",
+     "secondi": 0.01
+    },
+    "test.js": {
+     "sha256": "9be3f3d250289f4ae2594cfb8dc441670bc75fceb618150b10b1b7b22a1d189a",
+     "secondi": 1.19
+    }
+   },
+   "errore": null,
+   "righe": [
+    {
+     "nome": "dati e script caricati",
+     "ok": true,
+     "dettaglio": "synth-v4-campione-2 v1 · impronta 18a8926f99c8874b"
+    },
+    {
+     "nome": "380 unità casuali, 175 casi mirati, 264 candidati, 755 corrispondenze",
+     "ok": true,
+     "dettaglio": "380, 175, 264, 755"
+    },
+    {
+     "nome": "righe dei moduli: 655 in esiti, 264 in esiti_decontaminazione",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "unità per strato uguali al disegno",
+     "ok": true,
+     "dettaglio": "{\"coord\":75,\"function\":75,\"polygon\":75,\"shapes\":75,\"test\":50,\"coppie\":30}"
+    },
+    {
+     "nome": "identificativi unici",
+     "ok": true,
+     "dettaglio": "0"
+    },
+    {
+     "nome": "ogni unità ha le sue soluzioni (nascoste) e ogni record il suo materiale",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "JSON dei record leggibili",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "prompt con più domande: la riga della domanda campionata si ritrova una volta",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "la domanda campionata è nel prompt",
+     "ok": true,
+     "dettaglio": "0"
+    },
+    {
+     "nome": "primo passaggio: nessun target, opzione, esito del checker o motivo nei dati delle unità",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "50 coppie con varianti a e b e soluzioni per entrambe",
+     "ok": true,
+     "dettaglio": "50"
+    },
+    {
+     "nome": "collegamenti: record mostrati da più unità e scene uguali fra record diversi",
+     "ok": true,
+     "dettaglio": "7 record condivisi, 13 scene con più record, 23 unità collegate"
+    },
+    {
+     "nome": "ogni record del pacchetto ha lo stato della scena (dal JSON del record)",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "collegamenti reciproci",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "unità sullo stesso record collegate fra loro",
+     "ok": true,
+     "dettaglio": "C-test-008 e C-test-012 (synth-test-00038)"
+    },
+    {
+     "nome": "unità su record con la stessa scena collegate fra loro",
+     "ok": true,
+     "dettaglio": "13 scene"
+    },
+    {
+     "nome": "coppie: la soluzione espone i record di entrambe le varianti",
+     "ok": true,
+     "dettaglio": "C-coppie-001"
+    },
+    {
+     "nome": "la soluzione non si mostra senza un primo giudizio salvato",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "il primo giudizio vuoto non si salva",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "il primo giudizio completo si salva",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "con modifiche non salvate la soluzione resta nascosta",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "dopo il salvataggio la soluzione si mostra",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "dopo la soluzione il primo giudizio non si modifica",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "dopo la soluzione: fase soluzione_vista finché il giudizio finale è incompleto",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "gravità grave senza tipo di difetto: incompleto",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "giudizio finale compilato: completo",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "un valore incerto si segnala",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "il giudizio finale non si compila prima della soluzione",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "\"non riesco a rispondere\" vale come risposta",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "nel TSV: non_riesco_a_rispondere",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "stesso record: senza il primo giudizio dell'altra unità la soluzione non si mostra",
+     "ok": true,
+     "dettaglio": "C-test-008 → C-test-012, C-test-050, C-coppie-013"
+    },
+    {
+     "nome": "stesso record: una bozza non salvata dell'altra unità non basta",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "stesso record: modifiche non salvate dell'altra unità bloccano la soluzione",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "stesso record: con i primi giudizi delle unità collegate salvati la soluzione si mostra",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "stesso record: alla rivelazione il primo giudizio dell'altra unità resta fissato, con provenienza",
+     "ok": true,
+     "dettaglio": "C-test-012"
+    },
+    {
+     "nome": "stesso record: l'esposizione è registrata (record, quando, tramite)",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "stesso record: il primo giudizio fissato non si modifica e non si risalva",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "stesso record: l'altra unità resta indipendente (salvata prima) e con la soluzione da mostrare",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "stesso record: la sua soluzione si mostra poi normalmente",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "stesso record: nel TSV la risposta resta quella indipendente",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "coppia: il primo giudizio chiede entrambe le varianti",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "coppia: con a e b il primo giudizio si salva",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "coppia: la soluzione espone i record di a e di b",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "coppia: risposte e giudizi distinti per a e b",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "coppia: righe a, b e coppia nel TSV, con risposte e contratto",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "coppia: completa con i giudizi di a, b e del contratto",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "coppia collegata: la soluzione aspetta i primi giudizi delle unità collegate a uno dei suoi record",
+     "ok": true,
+     "dettaglio": "C-coppie-013 → C-test-008, C-test-012, C-test-050"
+    },
+    {
+     "nome": "coppia collegata: alla rivelazione le unità collegate restano fissate tramite la coppia",
+     "ok": true,
+     "dettaglio": "C-test-008, C-test-012, C-test-050"
+    },
+    {
+     "nome": "caso mirato con più record: la soluzione li espone tutti e fissa le unità collegate a ciascuno",
+     "ok": true,
+     "dettaglio": "M-esclusioni_contaminazione-001 · 2 record"
+    },
+    {
+     "nome": "caso sulla scena intera: basta il giudizio iniziale",
+     "ok": true,
+     "dettaglio": "M-quarantena-001"
+    },
+    {
+     "nome": "il file esportato si reimporta senza errori",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "reimportato identico: risposte, note su più righe, caratteri speciali, giudizi, coppie, esposizioni, primi giudizi fissati, decontaminazione",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "celle TSV: niente tabulazioni o a capo, e si rileggono uguali",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "esiti.tsv: intestazione dei moduli e 655 righe da 13 colonne",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "esiti.tsv: risposta e note con i caratteri speciali conservati",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "esiti.tsv: un'unità non toccata è non_compilato, non approvata",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "esiti_decontaminazione.tsv: intestazione e 264 righe da 6 colonne",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "importazione rifiutata: impronta di un altro pacchetto",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "importazione rifiutata: versione diversa",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "importazione rifiutata: formato sconosciuto",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "importazione rifiutata: unità sconosciuta",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "importazione rifiutata: record diverso",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "importazione rifiutata: valore non ammesso",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "importazione rifiutata: soluzione mostrata senza primo giudizio",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "importazione rifiutata: esposizione con record e unità che non si corrispondono",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "importazione rifiutata: formato 2 senza il registro delle esposizioni",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "importazione rifiutata: primo giudizio fissato non valido",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "un file non JSON è rifiutato",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "formato 1: si importa con una migrazione esplicita, la soluzione mostrata diventa un'esposizione",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "formato 1: esposizione senza primo giudizio registrata, il giudizio successivo non è indipendente",
+     "ok": true,
+     "dettaglio": "C-test-012"
+    },
+    {
+     "nome": "formato 1: il primo giudizio salvato dopo l'esposizione resta fissato e non indipendente",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "formato 1: nel TSV la risposta non indipendente non va nella colonna della risposta",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "formato 1: primo giudizio salvato dopo la soluzione dell'altra unità: fissato e non indipendente",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "formato 1: primo giudizio salvato prima: fissato e indipendente, risposta conservata",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "formato 1 senza soluzioni mostrate: nessuna esposizione e lavoro conservato",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "file vecchio (senza_scelta): esposizione, soluzione mostrata e primi giudizi fissati restano",
+     "ok": true,
+     "dettaglio": "0 conflitti"
+    },
+    {
+     "nome": "file vecchio (browser): esposizione, soluzione mostrata e primi giudizi fissati restano",
+     "ok": true,
+     "dettaglio": "0 conflitti"
+    },
+    {
+     "nome": "file vecchio (file): esposizione, soluzione mostrata e primi giudizi fissati restano",
+     "ok": true,
+     "dettaglio": "0 conflitti"
+    },
+    {
+     "nome": "file vecchio (sostituisci): esposizione, soluzione mostrata e primi giudizi fissati restano",
+     "ok": true,
+     "dettaglio": "0 conflitti"
+    },
+    {
+     "nome": "file più recente con un'esposizione in uno stato vecchio: esposizione e blocchi si importano anche tenendo il browser",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "primo giudizio diverso salvato dopo l'esposizione: vale quello fissato, l'altro va nell'archivio come non indipendente",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "conflitto: risposte diverse per la stessa unità non si uniscono senza una scelta",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "conflitto: la versione scartata resta nell'archivio, sia tenendo il browser sia usando il file",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "solo il tempo diverso: nessun conflitto, si tiene il tempo maggiore",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "stato vuoto: il file si importa per intero",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "sostituzione: le voci solo nel browser e non fissate vanno nell'archivio, non si perdono",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "«no» rifiutato con corrispondenze non esaminate",
+     "ok": true,
+     "dettaglio": "D-001"
+    },
+    {
+     "nome": "«no» rifiutato se ne resta una non esaminata",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "«no» ammesso con tutte esaminate come contenuto diverso e materiale completo",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "cambiare un esame dopo il «no» annulla il «no»",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "«sì» senza la corrispondenza decisiva resta incompleto",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "«sì» con la corrispondenza decisiva esaminata come stesso contenuto: completo, le altre restano distinte",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "una decisiva non esaminata come stesso contenuto è un errore",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "TSV: esito incompleto segnalato, corrispondenze guardate elencate",
+     "ok": true,
+     "dettaglio": "D-001"
+    },
+    {
+     "nome": "materiale incompleto: il «no» non è ammesso",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "la somiglianza dei pixel non compila nessun giudizio",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "interfaccia (DOM), ripresa nel browser e immagini",
+     "ok": null,
+     "dettaglio": "fuori dal browser: si provano aprendo verifica.html"
+    },
+    {
+     "nome": "output dell'autotest senza risposte attese, opzioni ausiliarie o annotazioni risolutive",
+     "ok": true,
+     "dettaglio": "184 stringhe del secondo passaggio cercate, nessuna trovata"
+    }
+   ],
+   "collegati": null,
+   "versione_duktape": "20700",
+   "righe_con_soluzioni": [],
+   "collegamenti_uguali_a_python": true,
+   "superati": 97,
+   "falliti": [],
+   "saltati": [
+    "interfaccia (DOM), ripresa nel browser e immagini"
+   ]
+  },
+  {
+   "dom": "scripts/review_package_dom.js",
+   "file": {
+    "scripts/review_package_dom.js": {
+     "sha256": "6d354fe8f0306692c9b2f91427dea76be373898dccd11b6c0ec5808265f23483"
+    },
+    "dati/pacchetto.js": {
+     "sha256": "d4592b11d63cee7243ea6196ebfb290f7fc02fbd1d1a116a033a71658fa6b192",
+     "secondi": 0.14
+    },
+    "dati/soluzioni.js": {
+     "sha256": "af355e714e93741e918f64a96896caeb7d26c56b222b2645a0ccfb734159b13e",
+     "secondi": 0.02
+    },
+    "dati/evidenze.js": {
+     "sha256": "aa445ad538ab732b14816a41428ba982fbf9bf0696d611e6ee8144d07372c053",
+     "secondi": 0.11
+    },
+    "logica.js": {
+     "sha256": "bdbb3536c25b5479c960de0a3177bacb2dc8d83867c3e98b6db4764728acec80",
+     "secondi": 0.01
+    },
+    "app.js": {
+     "sha256": "e82e5446dc46eac0ff3dc29b4fe7ad58b9fee1c43e7fdde100577c871c656a45",
+     "secondi": 0.01
+    },
+    "test.js": {
+     "sha256": "9be3f3d250289f4ae2594cfb8dc441670bc75fceb618150b10b1b7b22a1d189a",
+     "secondi": 1.55
+    }
+   },
+   "errore": null,
+   "righe": [
+    {
+     "nome": "dati e script caricati",
+     "ok": true,
+     "dettaglio": "synth-v4-campione-2 v1 · impronta 18a8926f99c8874b · DOM simulato"
+    },
+    {
+     "nome": "380 unità casuali, 175 casi mirati, 264 candidati, 755 corrispondenze",
+     "ok": true,
+     "dettaglio": "380, 175, 264, 755"
+    },
+    {
+     "nome": "righe dei moduli: 655 in esiti, 264 in esiti_decontaminazione",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "unità per strato uguali al disegno",
+     "ok": true,
+     "dettaglio": "{\"coord\":75,\"function\":75,\"polygon\":75,\"shapes\":75,\"test\":50,\"coppie\":30}"
+    },
+    {
+     "nome": "identificativi unici",
+     "ok": true,
+     "dettaglio": "0"
+    },
+    {
+     "nome": "ogni unità ha le sue soluzioni (nascoste) e ogni record il suo materiale",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "JSON dei record leggibili",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "prompt con più domande: la riga della domanda campionata si ritrova una volta",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "la domanda campionata è nel prompt",
+     "ok": true,
+     "dettaglio": "0"
+    },
+    {
+     "nome": "primo passaggio: nessun target, opzione, esito del checker o motivo nei dati delle unità",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "50 coppie con varianti a e b e soluzioni per entrambe",
+     "ok": true,
+     "dettaglio": "50"
+    },
+    {
+     "nome": "collegamenti: record mostrati da più unità e scene uguali fra record diversi",
+     "ok": true,
+     "dettaglio": "7 record condivisi, 13 scene con più record, 23 unità collegate"
+    },
+    {
+     "nome": "ogni record del pacchetto ha lo stato della scena (dal JSON del record)",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "collegamenti reciproci",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "unità sullo stesso record collegate fra loro",
+     "ok": true,
+     "dettaglio": "C-test-008 e C-test-012 (synth-test-00038)"
+    },
+    {
+     "nome": "unità su record con la stessa scena collegate fra loro",
+     "ok": true,
+     "dettaglio": "13 scene"
+    },
+    {
+     "nome": "coppie: la soluzione espone i record di entrambe le varianti",
+     "ok": true,
+     "dettaglio": "C-coppie-001"
+    },
+    {
+     "nome": "la soluzione non si mostra senza un primo giudizio salvato",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "il primo giudizio vuoto non si salva",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "il primo giudizio completo si salva",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "con modifiche non salvate la soluzione resta nascosta",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "dopo il salvataggio la soluzione si mostra",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "dopo la soluzione il primo giudizio non si modifica",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "dopo la soluzione: fase soluzione_vista finché il giudizio finale è incompleto",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "gravità grave senza tipo di difetto: incompleto",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "giudizio finale compilato: completo",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "un valore incerto si segnala",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "il giudizio finale non si compila prima della soluzione",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "\"non riesco a rispondere\" vale come risposta",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "nel TSV: non_riesco_a_rispondere",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "stesso record: senza il primo giudizio dell'altra unità la soluzione non si mostra",
+     "ok": true,
+     "dettaglio": "C-test-008 → C-test-012, C-test-050, C-coppie-013"
+    },
+    {
+     "nome": "stesso record: una bozza non salvata dell'altra unità non basta",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "stesso record: modifiche non salvate dell'altra unità bloccano la soluzione",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "stesso record: con i primi giudizi delle unità collegate salvati la soluzione si mostra",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "stesso record: alla rivelazione il primo giudizio dell'altra unità resta fissato, con provenienza",
+     "ok": true,
+     "dettaglio": "C-test-012"
+    },
+    {
+     "nome": "stesso record: l'esposizione è registrata (record, quando, tramite)",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "stesso record: il primo giudizio fissato non si modifica e non si risalva",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "stesso record: l'altra unità resta indipendente (salvata prima) e con la soluzione da mostrare",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "stesso record: la sua soluzione si mostra poi normalmente",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "stesso record: nel TSV la risposta resta quella indipendente",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "coppia: il primo giudizio chiede entrambe le varianti",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "coppia: con a e b il primo giudizio si salva",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "coppia: la soluzione espone i record di a e di b",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "coppia: risposte e giudizi distinti per a e b",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "coppia: righe a, b e coppia nel TSV, con risposte e contratto",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "coppia: completa con i giudizi di a, b e del contratto",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "coppia collegata: la soluzione aspetta i primi giudizi delle unità collegate a uno dei suoi record",
+     "ok": true,
+     "dettaglio": "C-coppie-013 → C-test-008, C-test-012, C-test-050"
+    },
+    {
+     "nome": "coppia collegata: alla rivelazione le unità collegate restano fissate tramite la coppia",
+     "ok": true,
+     "dettaglio": "C-test-008, C-test-012, C-test-050"
+    },
+    {
+     "nome": "caso mirato con più record: la soluzione li espone tutti e fissa le unità collegate a ciascuno",
+     "ok": true,
+     "dettaglio": "M-esclusioni_contaminazione-001 · 2 record"
+    },
+    {
+     "nome": "caso sulla scena intera: basta il giudizio iniziale",
+     "ok": true,
+     "dettaglio": "M-quarantena-001"
+    },
+    {
+     "nome": "il file esportato si reimporta senza errori",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "reimportato identico: risposte, note su più righe, caratteri speciali, giudizi, coppie, esposizioni, primi giudizi fissati, decontaminazione",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "celle TSV: niente tabulazioni o a capo, e si rileggono uguali",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "esiti.tsv: intestazione dei moduli e 655 righe da 13 colonne",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "esiti.tsv: risposta e note con i caratteri speciali conservati",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "esiti.tsv: un'unità non toccata è non_compilato, non approvata",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "esiti_decontaminazione.tsv: intestazione e 264 righe da 6 colonne",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "importazione rifiutata: impronta di un altro pacchetto",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "importazione rifiutata: versione diversa",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "importazione rifiutata: formato sconosciuto",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "importazione rifiutata: unità sconosciuta",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "importazione rifiutata: record diverso",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "importazione rifiutata: valore non ammesso",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "importazione rifiutata: soluzione mostrata senza primo giudizio",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "importazione rifiutata: esposizione con record e unità che non si corrispondono",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "importazione rifiutata: formato 2 senza il registro delle esposizioni",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "importazione rifiutata: primo giudizio fissato non valido",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "un file non JSON è rifiutato",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "formato 1: si importa con una migrazione esplicita, la soluzione mostrata diventa un'esposizione",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "formato 1: esposizione senza primo giudizio registrata, il giudizio successivo non è indipendente",
+     "ok": true,
+     "dettaglio": "C-test-012"
+    },
+    {
+     "nome": "formato 1: il primo giudizio salvato dopo l'esposizione resta fissato e non indipendente",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "formato 1: nel TSV la risposta non indipendente non va nella colonna della risposta",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "formato 1: primo giudizio salvato dopo la soluzione dell'altra unità: fissato e non indipendente",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "formato 1: primo giudizio salvato prima: fissato e indipendente, risposta conservata",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "formato 1 senza soluzioni mostrate: nessuna esposizione e lavoro conservato",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "file vecchio (senza_scelta): esposizione, soluzione mostrata e primi giudizi fissati restano",
+     "ok": true,
+     "dettaglio": "0 conflitti"
+    },
+    {
+     "nome": "file vecchio (browser): esposizione, soluzione mostrata e primi giudizi fissati restano",
+     "ok": true,
+     "dettaglio": "0 conflitti"
+    },
+    {
+     "nome": "file vecchio (file): esposizione, soluzione mostrata e primi giudizi fissati restano",
+     "ok": true,
+     "dettaglio": "0 conflitti"
+    },
+    {
+     "nome": "file vecchio (sostituisci): esposizione, soluzione mostrata e primi giudizi fissati restano",
+     "ok": true,
+     "dettaglio": "0 conflitti"
+    },
+    {
+     "nome": "file più recente con un'esposizione in uno stato vecchio: esposizione e blocchi si importano anche tenendo il browser",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "primo giudizio diverso salvato dopo l'esposizione: vale quello fissato, l'altro va nell'archivio come non indipendente",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "conflitto: risposte diverse per la stessa unità non si uniscono senza una scelta",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "conflitto: la versione scartata resta nell'archivio, sia tenendo il browser sia usando il file",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "solo il tempo diverso: nessun conflitto, si tiene il tempo maggiore",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "stato vuoto: il file si importa per intero",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "sostituzione: le voci solo nel browser e non fissate vanno nell'archivio, non si perdono",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "«no» rifiutato con corrispondenze non esaminate",
+     "ok": true,
+     "dettaglio": "D-001"
+    },
+    {
+     "nome": "«no» rifiutato se ne resta una non esaminata",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "«no» ammesso con tutte esaminate come contenuto diverso e materiale completo",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "cambiare un esame dopo il «no» annulla il «no»",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "«sì» senza la corrispondenza decisiva resta incompleto",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "«sì» con la corrispondenza decisiva esaminata come stesso contenuto: completo, le altre restano distinte",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "una decisiva non esaminata come stesso contenuto è un errore",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "TSV: esito incompleto segnalato, corrispondenze guardate elencate",
+     "ok": true,
+     "dettaglio": "D-001"
+    },
+    {
+     "nome": "materiale incompleto: il «no» non è ammesso",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "la somiglianza dei pixel non compila nessun giudizio",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "prima del giudizio: nessuna soluzione, opzione ausiliaria o materiale nella pagina",
+     "ok": true,
+     "dettaglio": "C-coord-005"
+    },
+    {
+     "nome": "il controllo dell'output riconosce un target reale (prova interna, il target non si stampa)",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "il prompt è esatto, con gli a capo",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "primo giudizio salvato: il pulsante della soluzione è attivo",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "dopo il clic: soluzione e materiale visibili, primo giudizio bloccato",
+     "ok": true,
+     "dettaglio": "C-coord-005"
+    },
+    {
+     "nome": "coppia: due immagini e due moduli del primo giudizio (a e b)",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "decontaminazione: record accanto a tutte le immagini candidate, con gli identificativi",
+     "ok": true,
+     "dettaglio": "D-009 · 18"
+    },
+    {
+     "nome": "riepilogo costruito, con il registro dei record esposti",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "unità collegate: elencate con un pulsante per raggiungerle e la soluzione bloccata",
+     "ok": true,
+     "dettaglio": "C-test-008 → C-test-012, C-test-050, C-coppie-013"
+    },
+    {
+     "nome": "unità collegate: nel primo passaggio non si dice, unità per unità, se il legame è lo stesso record o la stessa scena, né quale record",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "unità collegate: il clic mostra la soluzione e fissa i loro primi giudizi",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "unità collegate: dopo la soluzione si dice il legame (stesso record o stessa scena) con i record",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "unità collegata: campi del primo giudizio bloccati, provenienza mostrata, nessun pulsante di salvataggio",
+     "ok": true,
+     "dettaglio": "C-test-012"
+    },
+    {
+     "nome": "importare un file vecchio: copia del browser scaricata prima, esposizione e blocchi restano",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "importare un file vecchio: il lavoro in conflitto non si sovrascrive senza una scelta",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "«Sostituisci tutto con il file»: vale il file nei conflitti, ma esposizione e primi giudizi fissati restano e la versione del browser va nell'archivio",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "ripresa: lo stato salvato nel browser si ricarica con esposizioni e blocchi",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "ripresa: uno stato vecchio scritto da un'altra scheda non cancella l'esposizione al salvataggio",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "ripresa: un'esposizione scritta da un'altra scheda si unisce allo stato in memoria",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "ripresa dal formato 1: migrazione esplicita, copia del formato 1 conservata nel browser",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "ripresa: uno stato salvato illeggibile non si perde (copia di riserva) e lo si segnala",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "immagini: tutte caricate dalla cartella",
+     "ok": null,
+     "dettaglio": "DOM simulato: le immagini si caricano solo in un browser; presenza e sha256 sono controllati da review_package.py verifica"
+    },
+    {
+     "nome": "output dell'autotest senza risposte attese, opzioni ausiliarie o annotazioni risolutive",
+     "ok": true,
+     "dettaglio": "184 stringhe del secondo passaggio cercate, nessuna trovata"
+    }
+   ],
+   "collegati": null,
+   "versione_duktape": "20700",
+   "timer_rimasti": 0,
+   "righe_con_soluzioni": [],
+   "collegamenti_uguali_a_python": true,
+   "superati": 118,
+   "falliti": [],
+   "saltati": [
+    "immagini: tutte caricate dalla cartella"
+   ]
+  }
+ ],
+ "seconds": 4.2
+}
