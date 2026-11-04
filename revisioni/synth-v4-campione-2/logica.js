@@ -459,13 +459,36 @@
     return out;
   }
 
-  /* Applica le esposizioni registrate allo stato, in ordine di tempo, e ne ricava quelle implicite nelle soluzioni
-     mostrate (stati del formato 1). Per ogni unità colpita dalla prima esposizione che la riguarda:
-     - primo giudizio salvato prima dell'esposizione: resta fissato (indipendente);
-     - nessun primo giudizio, o salvato dopo: esposta_senza_primo_giudizio (non indipendente); se c'è, si fissa.
-     Una bozza diversa dal primo giudizio fissato va nell'archivio e la bozza torna uguale al primo giudizio. */
+  /* Prima esposizione registrata che riguarda ciascuna unità: {quando, tramite, record, collegamento}. */
+  function primeEsposizioni(ctx, stato) {
+    var prime = {};
+    stato.esposizioni.slice().sort(function (a, b) {
+      return a.quando < b.quando ? -1 : a.quando > b.quando ? 1 : chiaveEsposizione(a) < chiaveEsposizione(b) ? -1 : 1;
+    }).forEach(function (e) {
+      (ctx.colpiteDi[e.record] || []).forEach(function (c) {
+        if (!prime[c.id]) {
+          prime[c.id] = {quando: e.quando, tramite: e.tramite, record: [e.record],
+                         collegamento: c.id === e.tramite ? "stessa_unita" : c.collegamento};
+        }
+      });
+    });
+    return prime;
+  }
+
+  /* Applica le esposizioni registrate allo stato e ne ricava quelle implicite nelle soluzioni mostrate (stati del
+     formato 1). Blocco e indipendenza sono due cose distinte:
+     - indipendenza: per ogni unità conta la prima esposizione che la riguarda (registro, o l'esposizione già annotata
+       nell'unità se è più antica), anche quando il primo giudizio è già fissato. Primo giudizio salvato non dopo
+       quell'esposizione: indipendente. Nessun primo giudizio, o salvato dopo: esposta_senza_primo_giudizio, con la
+       provenienza della prima esposizione;
+     - blocco: un primo giudizio salvato e colpito da un'esposizione resta fissato. Il contenuto non cambia mai; la
+       provenienza del blocco (prima_fissata) passa all'evento più antico che lo avrebbe fissato: l'esposizione, se il
+       giudizio è indipendente, altrimenti il salvataggio stesso.
+     Ogni cambio di classificazione o di provenienza è un evento dell'unità. Una bozza diversa dal primo giudizio fissato
+     va nell'archivio e la bozza torna uguale al primo giudizio. Applicata due volte, la seconda non cambia nulla. */
   function applicaEsposizioni(ctx, stato) {
-    var out = {fissate: [], esposte: [], archiviate: 0, derivate: 0};
+    var out = {fissate: [], esposte: [], riclassificate: [], indipendenti: [], provenienze: [], archiviate: 0,
+               derivate: 0};
     Object.keys(stato.unita).forEach(function (id) {
       var v = stato.unita[id];
       if (!v.soluzione_mostrata_il || !ctx.recordDi[id]) {
@@ -482,38 +505,49 @@
                            record: ctx.recordDi[id].slice(), collegamento: "stessa_unita"};
       }
     });
-    var ordinate = stato.esposizioni.slice().sort(function (a, b) {
-      return a.quando < b.quando ? -1 : a.quando > b.quando ? 1 : chiaveEsposizione(a) < chiaveEsposizione(b) ? -1 : 1;
+    var prime = primeEsposizioni(ctx, stato);
+    var ids = Object.keys(prime);
+    Object.keys(stato.unita).forEach(function (id) {
+      if (stato.unita[id].esposta_senza_primo_giudizio && !prime[id]) {
+        ids.push(id);
+      }
     });
-    ordinate.forEach(function (e) {
-      (ctx.colpiteDi[e.record] || []).forEach(function (c) {
-        var unit = ctx.idx.unita[c.id];
-        var v = voce(stato, unit, true);
-        var info = {quando: e.quando, tramite: e.tramite, record: [e.record],
-                    collegamento: c.id === e.tramite ? "stessa_unita" : c.collegamento};
-        if (v.prima_fissata) {
-          return;
+    ids.forEach(function (id) {
+      var v = voce(stato, ctx.idx.unita[id], true);
+      var annotata = v.esposta_senza_primo_giudizio;
+      var e = prime[id] && !(annotata && annotata.quando < prime[id].quando) ? prime[id] : copia(annotata);
+      var indipendente = !!v.prima && v.prima.salvata_il <= e.quando;
+      if (indipendente) {
+        if (annotata) {  // annotazione smentita dalle date: il giudizio è stato salvato prima di ogni esposizione
+          v.esposta_senza_primo_giudizio = null;
+          evento(v, "riclassificata_indipendente", "primo giudizio salvato il " + v.prima.salvata_il +
+                 ", non dopo la prima esposizione (" + descriviEsposizione(e) + ")");
+          out.indipendenti.push(id);
         }
-        if (v.prima && v.prima.salvata_il <= e.quando && !v.esposta_senza_primo_giudizio) {
-          v.prima_fissata = {quando: e.quando, motivo: "record_esposto", tramite: e.tramite, record: [e.record],
-                             collegamento: info.collegamento};
-          evento(v, "primo_giudizio_fissato", descriviFissazione(v.prima_fissata));
-          out.fissate.push(c.id);
-          return;
-        }
-        if (!v.esposta_senza_primo_giudizio) {
-          v.esposta_senza_primo_giudizio = info;
-          evento(v, "esposta_senza_primo_giudizio", descriviEsposizione(info));
-          out.esposte.push(c.id);
-        }
-        if (v.prima) {  // salvato dopo l'esposizione: non indipendente, e fissato da quel salvataggio
-          var x = v.esposta_senza_primo_giudizio;
-          v.prima_fissata = {quando: v.prima.salvata_il, motivo: "record_gia_esposto", tramite: x.tramite,
-                             record: x.record.slice(), collegamento: x.collegamento};
-          evento(v, "primo_giudizio_fissato", descriviFissazione(v.prima_fissata));
-          out.fissate.push(c.id);
-        }
-      });
+      } else if (!annotata || canonico(annotata) !== canonico(e)) {
+        v.esposta_senza_primo_giudizio = copia(e);
+        evento(v, annotata ? "esposizione_precedente_aggiornata" : "esposta_senza_primo_giudizio",
+               descriviEsposizione(e) + (v.prima ? "; primo giudizio salvato dopo, il " + v.prima.salvata_il : ""));
+        (annotata || v.prima_fissata ? out.riclassificate : out.esposte).push(id);
+      }
+      if (!v.prima) {
+        return;
+      }
+      var propria = e.tramite === id;
+      var blocco = indipendente ?
+        {quando: e.quando, motivo: propria ? "soluzione_mostrata" : "record_esposto", tramite: e.tramite,
+         record: propria ? ctx.recordDi[id].slice() : e.record.slice(), collegamento: e.collegamento} :
+        {quando: v.prima.salvata_il, motivo: "record_gia_esposto", tramite: e.tramite, record: e.record.slice(),
+         collegamento: e.collegamento};
+      if (!v.prima_fissata) {
+        v.prima_fissata = blocco;
+        evento(v, "primo_giudizio_fissato", descriviFissazione(blocco));
+        out.fissate.push(id);
+      } else if (blocco.quando < v.prima_fissata.quando) {  // stesso contenuto, bloccato da prima
+        v.prima_fissata = blocco;
+        evento(v, "provenienza_del_blocco_aggiornata", descriviFissazione(blocco));
+        out.provenienze.push(id);
+      }
     });
     Object.keys(stato.unita).forEach(function (id) {
       var v = stato.unita[id];
@@ -1174,15 +1208,24 @@
       });
     }
     var eff = applicaEsposizioni(ctx, stato);
+    var riconciliazione = null;
     if (formato === 1) {
       migrazione = {da: SCHEMA_V1, a: SCHEMA_STATO, quando: ora(),
                     note: "soluzioni già mostrate trasformate in esposizioni dei loro record; unità collegate fissate " +
-                          "o segnate come non indipendenti",
-                    esposizioni: stato.esposizioni.length, fissate: eff.fissate, non_indipendenti: eff.esposte,
-                    bozze_archiviate: eff.archiviate};
+                          "o segnate come non indipendenti, anche se la loro soluzione era già stata mostrata",
+                    esposizioni: stato.esposizioni.length, fissate: eff.fissate,
+                    non_indipendenti: eff.esposte.concat(eff.riclassificate), bozze_archiviate: eff.archiviate};
       stato.migrazioni.push(migrazione);
+    } else if (eff.riclassificate.length || eff.indipendenti.length || eff.provenienze.length) {
+      /* stato del formato 2 scritto prima della correzione di 9ea9af1, che non riclassificava le unità già fissate */
+      riconciliazione = {da: SCHEMA_STATO, a: SCHEMA_STATO, quando: ora(),
+                         note: "indipendenza riclassificata dalle date: primo giudizio salvato rispetto alla prima " +
+                               "esposizione, anche per le unità già fissate",
+                         non_indipendenti: eff.riclassificate.concat(eff.esposte), indipendenti: eff.indipendenti,
+                         provenienze_aggiornate: eff.provenienze};
+      stato.migrazioni.push(riconciliazione);
     }
-    return {errori: [], stato: stato, migrazione: migrazione};
+    return {errori: [], stato: stato, migrazione: migrazione, riconciliazione: riconciliazione};
   }
 
   /* ------------------------------------------------------------ unione di due stati */
@@ -1195,9 +1238,21 @@
     return canonico(c);
   }
 
+  /* Tempo massimo, ultima modifica più recente, cronologia unita: gli eventi delle due versioni, senza doppioni, in
+     ordine di tempo (a parità di tempo, prima quelli della versione corrente). */
   function unisciContatori(destinazione, a, b) {
     destinazione.tempo_ms = Math.max(a.tempo_ms, b.tempo_ms);
-    destinazione.eventi = copia(b.eventi.length > a.eventi.length ? b.eventi : a.eventi);
+    var visti = {}, eventi = [];
+    a.eventi.concat(b.eventi).forEach(function (e, i) {
+      var k = canonico(e);
+      if (!visti[k]) {
+        visti[k] = true;
+        eventi.push({e: e, i: i});
+      }
+    });
+    destinazione.eventi = eventi.sort(function (x, y) {
+      return x.e.quando < y.e.quando ? -1 : x.e.quando > y.e.quando ? 1 : x.i - y.i;
+    }).map(function (x) { return copia(x.e); });
     destinazione.aggiornato_il = a.aggiornato_il > b.aggiornato_il ? a.aggiornato_il : b.aggiornato_il;
   }
 
@@ -1281,7 +1336,7 @@
       if (fa && fb) {
         var m = copia(a);
         m.prima_fissata = primaDi(a.prima_fissata, b.prima_fissata);
-        m.esposta_senza_primo_giudizio = primaDi(a.esposta_senza_primo_giudizio, b.esposta_senza_primo_giudizio);
+        // indipendenza ricalcolata da applicaEsposizioni sulle esposizioni unite, con un evento se cambia
         m.soluzione_mostrata_il = !a.soluzione_mostrata_il ? b.soluzione_mostrata_il : !b.soluzione_mostrata_il ?
           a.soluzione_mostrata_il : (b.soluzione_mostrata_il < a.soluzione_mostrata_il ? b.soluzione_mostrata_il :
                                      a.soluzione_mostrata_il);
@@ -1302,7 +1357,7 @@
       if (fa || fb) {
         var fis = fa ? a : b, alt = fa ? b : a;
         var nuova = copia(fis);
-        nuova.esposta_senza_primo_giudizio = primaDi(fis.esposta_senza_primo_giudizio, alt.esposta_senza_primo_giudizio);
+        // l'indipendenza non si copia dall'altra versione: la ricalcola applicaEsposizioni dalle esposizioni unite
         unisciContatori(nuova, a, b);
         st.unita[id] = nuova;
         if (aggiungeLavoro(alt, fis, unit)) {
@@ -1372,7 +1427,9 @@
     }
     var eff = applicaEsposizioni(ctx, st);
     out.fissate = eff.fissate;
-    out.non_indipendenti = eff.esposte;
+    out.non_indipendenti = eff.esposte.concat(eff.riclassificate);
+    out.indipendenti = eff.indipendenti;
+    out.provenienze = eff.provenienze;
     out.archiviate = st.archivio.length - archivioPrima;
     return out;
   }

@@ -107,7 +107,16 @@ vecchio, né sostituendo lo stato, né riaprendo la pagina.
 Se un record risulta esposto prima che un'unità collegata avesse un primo giudizio salvato, l'unità è segnata **non
 indipendente** (`~` nell'elenco, avviso rosso nella pagina). Può succedere solo con lavoro fatto altrove, per esempio
 importando un file di avanzamento del formato 1 in cui una soluzione era già stata mostrata. Puoi compilarne il primo
-giudizio, che resta fissato al salvataggio. Nel TSV la colonna `risposta_revisore` vale `non_indipendente`, e la
+giudizio, che resta fissato al salvataggio.
+
+L'indipendenza dipende solo dalle date: conta se il primo giudizio è stato salvato prima o dopo la prima esposizione
+che riguarda l'unità. Vale anche per un'unità con la soluzione già mostrata e il primo giudizio già fissato.
+- Se un'importazione o un'unione porta alla luce un'esposizione più antica, l'unità diventa non indipendente, con un
+  evento nella sua cronologia. Risposta e blocco restano quelli originali.
+- Un giudizio salvato prima di ogni esposizione resta indipendente.
+- Uno stato salvato con la versione `9ea9af1` dell'interfaccia può classificare come indipendente un'unità esposta
+  prima del suo primo giudizio. Si riclassifica da solo all'apertura o all'importazione, con un messaggio; nel browser
+  resta una copia dello stato precedente. Nel TSV la colonna `risposta_revisore` vale `non_indipendente`, e la
 risposta con il motivo va nelle note: una risposta data dopo l'esposizione non conta mai come indipendente.
 
 Nel giudizio finale, per ogni QA o variante:

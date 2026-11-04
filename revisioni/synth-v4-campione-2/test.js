@@ -579,6 +579,123 @@
              && L.canonico(rs.stato.unita[lu.id].prima) === L.canonico(semplice.unita[lu.id].prima));
   });
 
+  /* ------------------------------------------------------------ 7b. indipendenza delle unità già fissate */
+  var T09 = "2026-11-05T09:00:00.000Z", T0930 = "2026-11-05T09:30:00.000Z", T10 = "2026-11-05T10:00:00.000Z",
+      T11 = "2026-11-05T11:00:00.000Z", T12 = "2026-11-05T12:00:00.000Z";
+
+  /* stato del formato 1 con orari scelti: [{u, risposta, salvata, mostrata}] */
+  function statoV1(voci) {
+    var st = L.nuovoStato(P);
+    voci.forEach(function (x) {
+      riempiPrima(st, x.u, x.risposta);
+      st.unita[x.u.id].prima.salvata_il = x.salvata;
+      if (x.mostrata) {
+        st.unita[x.u.id].soluzione_mostrata_il = x.mostrata;
+      }
+    });
+    return JSON.stringify(formato1(st));
+  }
+
+  function nonIndipendenti(st, sezione, gruppo) {
+    return P[sezione].filter(function (u) {
+      return (!gruppo || u.gruppo === gruppo) && L.statoUnita(u, st.unita[u.id]).non_indipendente; }).length;
+  }
+
+  var difettoso = null;  // stato del formato 2 come lo scriveva la migrazione di 9ea9af1 (serve anche alla ripresa)
+  prova("indipendenza delle unità già fissate", function () {
+    if (!U1) {
+      return;
+    }
+    var k2 = U2.varianti[0], risposta2 = "due" + (k2 ? "-" + k2 : "");
+    // 1. A mostrata alle 10, B salvata alle 11 e mostrata alle 12 (formato 1)
+    var r1 = L.controllaImport(C, statoV1([{u: U1, risposta: "uno", salvata: T09, mostrata: T10},
+                                           {u: U2, risposta: "due", salvata: T11, mostrata: T12}]));
+    var b = r1.stato && r1.stato.unita[U2.id], a = r1.stato && r1.stato.unita[U1.id];
+    verifica("formato 1, entrambe le soluzioni mostrate: B salvata dopo l'esposizione tramite A è non indipendente",
+             !r1.errori.length && !!b.esposta_senza_primo_giudizio && b.esposta_senza_primo_giudizio.quando === T10
+             && b.esposta_senza_primo_giudizio.tramite === U1.id
+             && b.esposta_senza_primo_giudizio.record.indexOf(recordComune) >= 0
+             && r1.migrazione.non_indipendenti.indexOf(U2.id) >= 0, U1.id + " → " + U2.id);
+    verifica("formato 1, entrambe mostrate: blocco di B dal suo salvataggio, risposta e ora della soluzione invariate",
+             b.prima_fissata.motivo === "record_gia_esposto" && b.prima_fissata.quando === T11
+             && b.prima_fissata.tramite === U1.id && b.prima.salvata_il === T11 && b.soluzione_mostrata_il === T12
+             && b.prima.varianti[k2].risposta === risposta2);
+    verifica("formato 1, entrambe mostrate: A, salvata prima della propria soluzione, resta indipendente",
+             !a.esposta_senza_primo_giudizio && a.prima_fissata.quando === T10
+             && a.prima_fissata.motivo === "soluzione_mostrata");
+    // 5. coerenza fra stato, riepilogo, TSV e blocco
+    var s = L.statoUnita(U2, b), rp = L.riepilogo(C, r1.stato), riga = rigaTsv(r1.stato, U2.id, k2);
+    verifica("coerenza: stato dell'unità, riepilogo per sezione e per gruppo e TSV dicono non indipendente",
+             s.non_indipendente && s.fissata && s.fase === "soluzione_vista"
+             && rp[U2.sezione].non_indipendente === nonIndipendenti(r1.stato, U2.sezione)
+             && rp[U2.sezione].gruppi[U2.gruppo].non_indipendente === nonIndipendenti(r1.stato, U2.sezione, U2.gruppo)
+             && nonIndipendenti(r1.stato, U2.sezione, U2.gruppo) >= 1 && riga[3] === "non_indipendente"
+             && L.leggiCella(riga[12]).indexOf("risposta: " + risposta2) >= 0
+             && L.leggiCella(riga[12]).indexOf("tramite " + U1.id) >= 0);
+    verifica("coerenza: la risposta originale resta e non si modifica né si risalva",
+             L.aggiornaBozza(r1.stato, U2, k2, "risposta", "cambio").length > 0 && L.salvaPrima(r1.stato, U2).length > 0
+             && r1.stato.unita[U2.id].prima.varianti[k2].risposta === risposta2
+             && r1.stato.unita[U2.id].bozza[k2].risposta === risposta2);
+    var di = L.copia(r1.stato), eff = L.applicaEsposizioni(C, di);
+    var ritorno = L.controllaImport(C, L.esportaJSON(C, r1.stato));
+    verifica("coerenza: riapplicare le esposizioni o esportare e reimportare non cambia la classificazione",
+             !eff.fissate.length && !eff.esposte.length && !(eff.riclassificate || []).length && !(eff.indipendenti || []).length
+             && !(eff.provenienze || []).length && !ritorno.riconciliazione
+             && L.canonico(ritorno.stato.unita[U2.id]) === L.canonico(r1.stato.unita[U2.id]));
+    // 2. il caso opposto: B salvata alle 9:30, prima dell'esposizione delle 10
+    var r2 = L.controllaImport(C, statoV1([{u: U1, risposta: "uno", salvata: T09, mostrata: T10},
+                                           {u: U2, risposta: "due", salvata: T0930, mostrata: T12}]));
+    var b2 = r2.stato.unita[U2.id];
+    verifica("formato 1, caso opposto: B salvata prima dell'esposizione resta indipendente, blocco dalle 10 tramite A",
+             !b2.esposta_senza_primo_giudizio && b2.prima_fissata.quando === T10
+             && b2.prima_fissata.motivo === "record_esposto" && b2.prima_fissata.tramite === U1.id
+             && b2.soluzione_mostrata_il === T12 && !L.statoUnita(U2, b2).non_indipendente
+             && rigaTsv(r2.stato, U2.id, k2)[3] === risposta2);
+    var smentita = L.copia(r2.stato);
+    smentita.unita[U2.id].esposta_senza_primo_giudizio = {quando: T10, tramite: U1.id, record: [recordComune],
+                                                         collegamento: "stesso_record"};
+    var r2b = L.controllaImport(C, L.esportaJSON(C, smentita));
+    verifica("un'annotazione «non indipendente» smentita dalle date (salvata alle 9:30, esposta alle 10) torna " +
+             "indipendente, con un evento", !r2b.stato.unita[U2.id].esposta_senza_primo_giudizio
+             && !!r2b.riconciliazione && r2b.riconciliazione.indipendenti.indexOf(U2.id) >= 0
+             && r2b.stato.unita[U2.id].eventi.some(function (x) { return x.azione === "riclassificata_indipendente"; }));
+    // 3. un'esposizione precedente emersa dall'unione, per un'unità già fissata
+    var S0 = L.controllaImport(C, statoV1([{u: U1, risposta: "uno", salvata: T09, mostrata: null},
+                                           {u: U2, risposta: "due", salvata: T11, mostrata: T12}])).stato;
+    var F0 = L.controllaImport(C, statoV1([{u: U1, risposta: "uno", salvata: T09, mostrata: T10}])).stato;
+    verifica("unione, premessa: nello stato corrente B è fissata e indipendente (nessuna esposizione prima delle 12)",
+             !!S0.unita[U2.id].prima_fissata && !S0.unita[U2.id].esposta_senza_primo_giudizio);
+    var eventiPrima = S0.unita[U2.id].eventi.length;
+    [["senza_scelta", S0, F0], ["browser", S0, F0], ["file", S0, F0], ["sostituisci", S0, F0],
+     ["senza_scelta, file come corrente", F0, S0]].forEach(function (caso) {
+      var m = L.unisci(C, caso[1], caso[2], caso[0].split(",")[0]);
+      var w = m.stato.unita[U2.id];
+      verifica("unione (" + caso[0] + "): l'esposizione delle 10 tramite A rende B non indipendente; risposta, " +
+               "blocco, soluzione mostrata, esposizioni e cronologia conservati",
+               !!w.esposta_senza_primo_giudizio && w.esposta_senza_primo_giudizio.quando === T10
+               && w.prima_fissata.quando === T11 && w.prima_fissata.motivo === "record_gia_esposto"
+               && w.prima.varianti[k2].risposta === risposta2 && w.soluzione_mostrata_il === T12
+               && esposto(m.stato, recordComune, U1.id) && esposto(m.stato, recordComune, U2.id)
+               && (caso[1] !== S0 || w.eventi.length > eventiPrima)
+               && m.non_indipendenti.indexOf(U2.id) >= 0 && rigaTsv(m.stato, U2.id, k2)[3] === "non_indipendente");
+    });
+    // 4. stato del formato 2 scritto dalla migrazione difettosa
+    difettoso = L.copia(r1.stato);
+    difettoso.unita[U2.id].esposta_senza_primo_giudizio = null;
+    difettoso.unita[U2.id].prima_fissata = {quando: T12, motivo: "soluzione_mostrata", tramite: U2.id,
+                                            record: C.recordDi[U2.id].slice(), collegamento: "stessa_unita"};
+    difettoso.unita[U2.id].eventi = difettoso.unita[U2.id].eventi.filter(function (x) {
+      return x.azione !== "esposta_senza_primo_giudizio" && x.azione !== "primo_giudizio_fissato"; });
+    var r4 = L.controllaImport(C, L.esportaJSON(C, difettoso));
+    var b4 = r4.stato && r4.stato.unita[U2.id];
+    verifica("formato 2 con la classificazione errata di 9ea9af1: riconciliato all'importazione e registrato",
+             !r4.errori.length && !!r4.riconciliazione && r4.riconciliazione.non_indipendenti.indexOf(U2.id) >= 0
+             && b4.esposta_senza_primo_giudizio.quando === T10 && b4.prima_fissata.quando === T11
+             && b4.prima.varianti[k2].risposta === risposta2 && b4.soluzione_mostrata_il === T12
+             && r4.stato.migrazioni.some(function (x) { return x.da === L.SCHEMA_STATO && x.a === L.SCHEMA_STATO; })
+             && rigaTsv(r4.stato, U2.id, k2)[3] === "non_indipendente");
+  });
+
   /* ------------------------------------------------------------ 8. unione: file vecchi, file nuovi, conflitti */
   prova("unione", function () {
     if (!U1) {
@@ -866,6 +983,34 @@
     var riserve = Object.keys(mem4.dati).filter(function (k) { return k.indexOf(chiave + ":riserva:non-caricato:") === 0; });
     verifica("ripresa: uno stato salvato illeggibile non si perde (copia di riserva) e lo si segnala",
              riserve.length === 1 && mem4.dati[riserve[0]] === "{non valido" && esito4.indexOf("non è valido") >= 0);
+    App.inizializza(P, S, E, L.nuovoStato(P), opzioniProva(null));
+  });
+
+  prova("interfaccia: indipendenza riclassificata", function () {
+    if (!U1 || !difettoso) {
+      return;
+    }
+    var testo = L.esportaJSON(C, difettoso);
+    var mem5 = memoriaFinta();
+    mem5.setItem(chiave, testo);
+    App.inizializza(P, S, E, null, opzioniProva(mem5));
+    var esito5 = App.esito(), w = App.stato().unita[U2.id];
+    var copie = Object.keys(mem5.dati).filter(function (k) {
+      return k.indexOf(chiave + ":riserva:prima-della-riclassificazione:") === 0; });
+    verifica("ripresa di uno stato del formato 2 classificato male: riclassificato, annunciato, stato precedente " +
+             "conservato nel browser", !!w.esposta_senza_primo_giudizio && w.esposta_senza_primo_giudizio.quando === T10
+             && esito5.indexOf("ricalcolata") >= 0 && copie.length === 1 && mem5.dati[copie[0]] === testo);
+    App.salvaOra();
+    var salvato = L.controllaImport(C, mem5.getItem(chiave));
+    verifica("ripresa: dopo il salvataggio lo stato del browser è riconciliato e stabile",
+             !!salvato.stato.unita[U2.id].esposta_senza_primo_giudizio && !salvato.riconciliazione);
+    var nodo = App.costruisciVistaUnita(U2);
+    verifica("pagina dell'unità riclassificata: avviso, risposta iniziale segnata NON indipendente, campi bloccati",
+             !!nodo.querySelector(".prima p.avviso") && !!nodo.querySelector(".ricordo")
+             && nodo.querySelector(".ricordo").textContent.indexOf("NON indipendente") >= 0
+             && Array.prototype.every.call(nodo.querySelectorAll(".prima textarea, .prima select, .prima input"),
+                                           function (x) { return x.disabled; })
+             && !nodo.querySelector("button.salva-prima"), U2.id);
     App.inizializza(P, S, E, L.nuovoStato(P), opzioniProva(null));
   });
 

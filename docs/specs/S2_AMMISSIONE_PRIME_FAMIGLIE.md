@@ -1394,6 +1394,40 @@ autotest e formato del file di avanzamento.
 4. **Formato.** Il file di avanzamento passa a `synth-v4-revisione-avanzamento/2`. Il formato 1 si legge con una
    migrazione esplicita, registrata in `migrazioni` e annunciata: le soluzioni mostrate diventano esposizioni, e le
    unità collegate sono fissate (salvate prima) o non indipendenti. Nel browser resta una copia del formato 1.
+5. **Indipendenza delle unità già fissate** (revisione dell'utente fino a `9ea9af1`; job 30568-30571). In `9ea9af1`,
+   `applicaEsposizioni` dava `prima_fissata` alle unità con la soluzione mostrata e poi le saltava. Si perdeva così
+   un'esposizione precedente. Esempio di un salvataggio del formato 1, con A e B sullo stesso record:
+   - la soluzione di A è mostrata alle 10;
+   - B è salvata alle 11 e mostrata alle 12;
+   - B risultava fissata alle 12 e indipendente.
+
+   Lo stesso valeva quando un'unione portava un'esposizione più antica per un'unità già fissata, perché `unisci`
+   copiava l'annotazione dell'altra versione senza riclassificare.
+
+   Ora blocco e indipendenza sono separati:
+   - l'indipendenza confronta, per ogni unità anche già fissata, l'ora del salvataggio con la prima esposizione che la
+     riguarda, nel registro o già annotata;
+   - il contenuto e il blocco non cambiano. La provenienza del blocco passa all'evento più antico: l'esposizione se il
+     giudizio è indipendente, altrimenti il suo salvataggio;
+   - ogni cambio è un evento, e `unisci` unisce le cronologie delle due versioni;
+   - un'annotazione smentita dalle date torna indipendente.
+
+   Gli stati del formato 2 scritti da `9ea9af1` si riconciliano all'importazione e alla ripresa: la riconciliazione
+   finisce in `migrazioni` e nel messaggio, e nel browser resta una copia dello stato precedente.
+
+   Test nuovi, eseguiti con Duktape, tutti superati:
+   - formato 1 con entrambe le soluzioni mostrate;
+   - caso opposto, con B salvata alle 9:30: indipendente;
+   - annotazione smentita dalle date;
+   - esposizione più antica emersa dall'unione, nei cinque modi;
+   - formato 2 classificato male;
+   - coerenza fra stato, riepilogo, TSV e blocco;
+   - ripresa nel browser e pagina dell'unità.
+
+   Senza DOM 112 superati e 0 falliti, su DOM simulato 136 e 0 (job 30568, 30569). Prova contraria: lo stesso autotest
+   con il `logica.js` di `9ea9af1` (job 30570, `slurm/review_package.sbatch … regressione 9ea9af1`, rapporto in
+   `outputs/review_package/regressione-9ea9af1/`) fallisce esattamente nei controlli nuovi, 11 senza DOM e 14 su DOM
+   simulato, e supera tutti gli altri.
 
 **Esecuzione del JavaScript.** Una sonda di sola lettura su `lagrange0` (`slurm/js_engine_probe.sbatch`, job 30562) ha
 trovato tre candidati:

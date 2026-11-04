@@ -253,6 +253,10 @@
                          (kv ? "; copia del formato 1 in " + kv : "") + ".";
     } else {
       esitoSalvataggio = "Ripreso il lavoro salvato in questo browser (" + quando(r.stato.aggiornato_il) + ").";
+      if (r.riconciliazione) {
+        var kr = riserva(mem, "prima-della-riclassificazione", testo);
+        esitoSalvataggio += " " + testoRiconciliazione(r) + (kr ? "Copia dello stato precedente in " + kr + "." : "");
+      }
     }
     ultimoScritto = testo;  // lo stato in memoria viene da questo testo: non serve riunirlo al primo salvataggio
     return r.stato;
@@ -704,9 +708,11 @@
                  el("h3", {testo: "1. Primo giudizio, senza la soluzione"}));
     if (v && v.esposta_senza_primo_giudizio) {
       box.appendChild(el("p", {classe: "avviso"}, el("strong", {testo: "Primo giudizio non indipendente. "}),
-        "Prima che tu salvassi il primo giudizio di questa unità è stato esposto " +
-        L.descriviEsposizione(v.esposta_senza_primo_giudizio) + ". Puoi compilarlo, ma resterà segnato come non " +
-        "indipendente e sarà fissato al salvataggio."));
+        "Prima che il primo giudizio di questa unità fosse salvato è stato esposto " +
+        L.descriviEsposizione(v.esposta_senza_primo_giudizio) + ". " + (v.prima ?
+          "Il primo giudizio è stato salvato dopo, il " + quando(v.prima.salvata_il) + ": resta com'è e fissato, ma " +
+          "non conta come indipendente." :
+          "Puoi compilarlo, ma resterà segnato come non indipendente e sarà fissato al salvataggio.")));
     }
     var msg = el("p", {classe: "messaggio"});
     var rivela = el("button", {type: "button", classe: "rivela", testo: "Mostra soluzione e materiale di confronto"});
@@ -1233,6 +1239,9 @@
     if (u.non_indipendenti.length) {
       parti.push("unità non indipendenti: " + u.non_indipendenti.join(", "));
     }
+    if (u.indipendenti && u.indipendenti.length) {
+      parti.push("unità indipendenti (salvate prima di ogni esposizione): " + u.indipendenti.join(", "));
+    }
     if (u.risolti.length) {
       parti.push("vale il primo giudizio fissato per " + u.risolti.map(function (x) { return x.id; }).join(", "));
     }
@@ -1240,6 +1249,18 @@
       parti.push(u.archiviate + " versioni scartate conservate nell'archivio");
     }
     return parti.join("; ");
+  }
+
+  /* Messaggio per uno stato del formato 2 scritto prima della correzione di 9ea9af1 e riclassificato all'importazione. */
+  function testoRiconciliazione(r) {
+    var x = r.riconciliazione;
+    if (!x) {
+      return "";
+    }
+    return "Indipendenza dei primi giudizi ricalcolata dalle date di salvataggio e di esposizione" +
+      (x.non_indipendenti.length ? "; non indipendenti: " + x.non_indipendenti.join(", ") : "") +
+      (x.indipendenti.length ? "; indipendenti: " + x.indipendenti.join(", ") : "") +
+      " (risposte e blocchi invariati). ";
   }
 
   /* Importa un file di avanzamento. Prima scarica una copia dello stato del browser (se c'è lavoro), poi unisce subito
@@ -1265,7 +1286,7 @@
     OPZ.bloccaScrittura = false;
     salvaLocale();
     var testa = (r.migrazione ? "File nel formato 1, migrato al formato 2 (" + r.migrazione.esposizioni +
-                 " esposizioni ricavate dalle soluzioni mostrate). " : "") +
+                 " esposizioni ricavate dalle soluzioni mostrate). " : "") + testoRiconciliazione(r) +
       (vuoto ? "" : "Copia del browser scaricata prima dell'importazione. ");
     if (!u.conflitti.length) {
       messaggio(msg, [testa + "File importato: " + sintesiUnione(u) + "."], "ok");

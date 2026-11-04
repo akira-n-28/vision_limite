@@ -264,7 +264,7 @@ slurm/stream_stats.sbatch	launcher	da adeguare	launcher di uno strumento da adeg
 slurm/synth_candidate.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
 slurm/synth_decontam.sbatch	launcher	corrente	decontaminazione esterna dei sintetici v4 contro pannello-v3: controllo limitato (test mirati, shard di test, verifica parziale) o completo (scansione, verifica, manifest derivato, manifest_check); job 30517-30518	-
 slurm/synth_eval_reuse.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
-slurm/review_package.sbatch	launcher	corrente	costruzione, verifica statica ed esecuzione del JavaScript con Duktape del pacchetto di revisione offline (scripts/review_package.py); con «verifica» senza costruzione; job 30557-30566	-
+slurm/review_package.sbatch	launcher	corrente	costruzione, verifica statica ed esecuzione del JavaScript con Duktape del pacchetto di revisione offline (scripts/review_package.py); con «verifica» senza costruzione; con «regressione COMMIT» l'autotest attuale con il logica.js di COMMIT, per provare che le regressioni rilevano un difetto corretto (rapporto in outputs/review_package/); job 30557-30571	-
 slurm/synth_gold_sample.sbatch	launcher	corrente	test, somiglianza dei pixel dei candidati (decontam_review.py) e campione per la verifica delle golden answer (synth_gold_sample.py); job 30522. Con NOME REVISIONE PRECEDENTE: fogli nuovi dagli artefatti esistenti, manifest_check in sola lettura e confronto col campione precedente (job 30556)	-
 slurm/synth_manifest.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
 slurm/synth_render.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-

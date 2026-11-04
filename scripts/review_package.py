@@ -778,7 +778,7 @@ def secrets_of(units: list[dict], sol: dict) -> list[str]:
     return sorted(out)
 
 
-def run_once(lib: str, pkg_dir: Path, dom: Path | None) -> dict:
+def run_once(lib: str, pkg_dir: Path, dom: Path | None, overrides: dict | None = None) -> dict:
     duk = Duktape(lib)
     res = {"dom": str(dom) if dom else None, "file": {}, "errore": None, "righe": None, "collegati": None}
     try:
@@ -789,7 +789,7 @@ def run_once(lib: str, pkg_dir: Path, dom: Path | None) -> dict:
         else:
             duk.eval("var window = this;", "prelude")
         for name in JS_FILES:
-            path = pkg_dir / name
+            path = (overrides or {}).get(name, pkg_dir / name)
             t1 = time.time()
             duk.eval(path.read_text(encoding="utf-8"), name)
             res["file"][name] = {"sha256": sha256_file(path), "secondi": round(time.time() - t1, 2)}
@@ -820,15 +820,22 @@ def run_js(args) -> int:
     _, _, _, linked = links_map(units, ev)
     expected_links = {k: sorted(v) for k, v in linked.items()}
     secrets = secrets_of(units, sol)
+    overrides = {}
+    for item in args.sostituisci:
+        name, _, path = item.partition("=")
+        if name not in JS_FILES or not Path(path).is_file():
+            raise Failed(f"--sostituisci {item}: atteso NOME=FILE con NOME fra {JS_FILES} e FILE esistente")
+        overrides[name] = Path(path)
     out = {"schema": SCHEMA + "-esecuzione-js", "job_id": os.environ.get("SLURM_JOB_ID"), "code": code_identity(),
            "pacchetto": str(pkg_dir), "impronta": pkg["impronta"],
+           "sostituiti": {k: {"file": str(v), "sha256": sha256_file(v)} for k, v in overrides.items()},
            "motore": {"libreria": args.libreria, "sha256": sha256_file(Path(args.libreria))},
            "nota": "logica e interfaccia eseguite con Duktape, senza DOM e su un DOM simulato; non è una prova in un "
                    "browser (disegno, eventi veri, immagini e localStorage si provano con verifica.html)",
            "segreti_cercati": len(secrets), "esecuzioni": []}
     failed = False
     for dom in [None] + ([args.dom] if args.dom else []):
-        res = run_once(args.libreria, pkg_dir, dom)
+        res = run_once(args.libreria, pkg_dir, dom, overrides)
         label = "DOM simulato" if dom else "senza DOM"
         print(f"== esecuzione {label}", flush=True)
         rows = res["righe"]
@@ -877,6 +884,9 @@ def main() -> None:
     j.add_argument("--report", required=True, type=Path)
     j.add_argument("--dom", type=Path, help="DOM simulato da caricare prima dei dati (scripts/review_package_dom.js)")
     j.add_argument("--libreria", default=DUKTAPE)
+    j.add_argument("--sostituisci", action="append", default=[], metavar="NOME=FILE",
+                   help="esegue FILE al posto del file NOME del pacchetto (es. logica.js di un commit precedente, per "
+                        "provare che le regressioni lo rilevano)")
     args = ap.parse_args()
     if not os.environ.get("SLURM_JOB_ID"):
         sys.exit("review_package.py va eseguito in un job SLURM")
