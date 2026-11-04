@@ -1,16 +1,15 @@
 {
  "schema": "synth-v4-revisione-pacchetto/1-esecuzione-js",
- "job_id": "30566",
+ "job_id": "30571",
  "code": {
-  "commit": "742a734f40834da0170faa77ea2216e2a5482e0b",
+  "commit": "665a3be9cf1af09754db5be01eb8f99af36da3cf",
   "dirty": true,
-  "diff_sha256": "5fc91cad5ffa6d98fbf95a81afeec299ba39f1e4ec6963bc954995812d66d950",
-  "untracked": [
-   "revisioni/synth-v4-campione-2/verifica_js.json"
-  ]
+  "diff_sha256": "929c16a02bdfc5af6d8ccc46860965fb269d191440b5438aca7f1c0552258d44",
+  "untracked": []
  },
  "pacchetto": "/home/prignano/vision_limite/revisioni/synth-v4-campione-2",
  "impronta": "18a8926f99c8874bf75d1613e5db1e6cdc8bbd65772a2d0d93b41283b20da48f",
+ "sostituiti": {},
  "motore": {
   "libreria": "/lib/x86_64-linux-gnu/libduktape.so.207",
   "sha256": "5733ea32f7c50e962e08b26b02f0656851525f3aa06f8b826459e27fa8711199"
@@ -34,16 +33,16 @@
      "secondi": 0.11
     },
     "logica.js": {
-     "sha256": "bdbb3536c25b5479c960de0a3177bacb2dc8d83867c3e98b6db4764728acec80",
+     "sha256": "906b6e47ea92a11d757473dd02de35377e0f8cdb006033c1ebdddf6ff481e653",
      "secondi": 0.01
     },
     "app.js": {
-     "sha256": "e82e5446dc46eac0ff3dc29b4fe7ad58b9fee1c43e7fdde100577c871c656a45",
+     "sha256": "0b1f78bd41ec0da4a90c880a207ca389c2f773eb6ea1476faa9bcd774cbad131",
      "secondi": 0.01
     },
     "test.js": {
-     "sha256": "9be3f3d250289f4ae2594cfb8dc441670bc75fceb618150b10b1b7b22a1d189a",
-     "secondi": 1.19
+     "sha256": "b7b4f2253452ce793d751ca5318b2d50a1edc619b6a2419208a090b2f0444180",
+     "secondi": 1.62
     }
    },
    "errore": null,
@@ -424,6 +423,81 @@
      "dettaglio": ""
     },
     {
+     "nome": "formato 1, entrambe le soluzioni mostrate: B salvata dopo l'esposizione tramite A è non indipendente",
+     "ok": true,
+     "dettaglio": "C-test-008 → C-test-012"
+    },
+    {
+     "nome": "formato 1, entrambe mostrate: blocco di B dal suo salvataggio, risposta e ora della soluzione invariate",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "formato 1, entrambe mostrate: A, salvata prima della propria soluzione, resta indipendente",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "coerenza: stato dell'unità, riepilogo per sezione e per gruppo e TSV dicono non indipendente",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "coerenza: la risposta originale resta e non si modifica né si risalva",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "coerenza: riapplicare le esposizioni o esportare e reimportare non cambia la classificazione",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "formato 1, caso opposto: B salvata prima dell'esposizione resta indipendente, blocco dalle 10 tramite A",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "un'annotazione «non indipendente» smentita dalle date (salvata alle 9:30, esposta alle 10) torna indipendente, con un evento",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "unione, premessa: nello stato corrente B è fissata e indipendente (nessuna esposizione prima delle 12)",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "unione (senza_scelta): l'esposizione delle 10 tramite A rende B non indipendente; risposta, blocco, soluzione mostrata, esposizioni e cronologia conservati",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "unione (browser): l'esposizione delle 10 tramite A rende B non indipendente; risposta, blocco, soluzione mostrata, esposizioni e cronologia conservati",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "unione (file): l'esposizione delle 10 tramite A rende B non indipendente; risposta, blocco, soluzione mostrata, esposizioni e cronologia conservati",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "unione (sostituisci): l'esposizione delle 10 tramite A rende B non indipendente; risposta, blocco, soluzione mostrata, esposizioni e cronologia conservati",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "unione (senza_scelta, file come corrente): l'esposizione delle 10 tramite A rende B non indipendente; risposta, blocco, soluzione mostrata, esposizioni e cronologia conservati",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "formato 2 con la classificazione errata di 9ea9af1: riconciliato all'importazione e registrato",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
      "nome": "file vecchio (senza_scelta): esposizione, soluzione mostrata e primi giudizi fissati restano",
      "ok": true,
      "dettaglio": "0 conflitti"
@@ -543,7 +617,7 @@
    "versione_duktape": "20700",
    "righe_con_soluzioni": [],
    "collegamenti_uguali_a_python": true,
-   "superati": 97,
+   "superati": 112,
    "falliti": [],
    "saltati": [
     "interfaccia (DOM), ripresa nel browser e immagini"
@@ -568,16 +642,16 @@
      "secondi": 0.11
     },
     "logica.js": {
-     "sha256": "bdbb3536c25b5479c960de0a3177bacb2dc8d83867c3e98b6db4764728acec80",
+     "sha256": "906b6e47ea92a11d757473dd02de35377e0f8cdb006033c1ebdddf6ff481e653",
      "secondi": 0.01
     },
     "app.js": {
-     "sha256": "e82e5446dc46eac0ff3dc29b4fe7ad58b9fee1c43e7fdde100577c871c656a45",
+     "sha256": "0b1f78bd41ec0da4a90c880a207ca389c2f773eb6ea1476faa9bcd774cbad131",
      "secondi": 0.01
     },
     "test.js": {
-     "sha256": "9be3f3d250289f4ae2594cfb8dc441670bc75fceb618150b10b1b7b22a1d189a",
-     "secondi": 1.55
+     "sha256": "b7b4f2253452ce793d751ca5318b2d50a1edc619b6a2419208a090b2f0444180",
+     "secondi": 1.98
     }
    },
    "errore": null,
@@ -958,6 +1032,81 @@
      "dettaglio": ""
     },
     {
+     "nome": "formato 1, entrambe le soluzioni mostrate: B salvata dopo l'esposizione tramite A è non indipendente",
+     "ok": true,
+     "dettaglio": "C-test-008 → C-test-012"
+    },
+    {
+     "nome": "formato 1, entrambe mostrate: blocco di B dal suo salvataggio, risposta e ora della soluzione invariate",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "formato 1, entrambe mostrate: A, salvata prima della propria soluzione, resta indipendente",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "coerenza: stato dell'unità, riepilogo per sezione e per gruppo e TSV dicono non indipendente",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "coerenza: la risposta originale resta e non si modifica né si risalva",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "coerenza: riapplicare le esposizioni o esportare e reimportare non cambia la classificazione",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "formato 1, caso opposto: B salvata prima dell'esposizione resta indipendente, blocco dalle 10 tramite A",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "un'annotazione «non indipendente» smentita dalle date (salvata alle 9:30, esposta alle 10) torna indipendente, con un evento",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "unione, premessa: nello stato corrente B è fissata e indipendente (nessuna esposizione prima delle 12)",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "unione (senza_scelta): l'esposizione delle 10 tramite A rende B non indipendente; risposta, blocco, soluzione mostrata, esposizioni e cronologia conservati",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "unione (browser): l'esposizione delle 10 tramite A rende B non indipendente; risposta, blocco, soluzione mostrata, esposizioni e cronologia conservati",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "unione (file): l'esposizione delle 10 tramite A rende B non indipendente; risposta, blocco, soluzione mostrata, esposizioni e cronologia conservati",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "unione (sostituisci): l'esposizione delle 10 tramite A rende B non indipendente; risposta, blocco, soluzione mostrata, esposizioni e cronologia conservati",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "unione (senza_scelta, file come corrente): l'esposizione delle 10 tramite A rende B non indipendente; risposta, blocco, soluzione mostrata, esposizioni e cronologia conservati",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "formato 2 con la classificazione errata di 9ea9af1: riconciliato all'importazione e registrato",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
      "nome": "file vecchio (senza_scelta): esposizione, soluzione mostrata e primi giudizi fissati restano",
      "ok": true,
      "dettaglio": "0 conflitti"
@@ -1168,6 +1317,21 @@
      "dettaglio": ""
     },
     {
+     "nome": "ripresa di uno stato del formato 2 classificato male: riclassificato, annunciato, stato precedente conservato nel browser",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "ripresa: dopo il salvataggio lo stato del browser è riconciliato e stabile",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "pagina dell'unità riclassificata: avviso, risposta iniziale segnata NON indipendente, campi bloccati",
+     "ok": true,
+     "dettaglio": "C-test-012"
+    },
+    {
      "nome": "immagini: tutte caricate dalla cartella",
      "ok": null,
      "dettaglio": "DOM simulato: le immagini si caricano solo in un browser; presenza e sha256 sono controllati da review_package.py verifica"
@@ -1183,12 +1347,12 @@
    "timer_rimasti": 0,
    "righe_con_soluzioni": [],
    "collegamenti_uguali_a_python": true,
-   "superati": 118,
+   "superati": 136,
    "falliti": [],
    "saltati": [
     "immagini: tutte caricate dalla cartella"
    ]
   }
  ],
- "seconds": 4.2
+ "seconds": 4.9
 }

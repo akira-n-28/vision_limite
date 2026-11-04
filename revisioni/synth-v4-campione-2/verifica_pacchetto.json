@@ -1,13 +1,11 @@
 {
  "schema": "synth-v4-revisione-pacchetto/1-verifica",
- "job_id": "30566",
+ "job_id": "30571",
  "code": {
-  "commit": "742a734f40834da0170faa77ea2216e2a5482e0b",
+  "commit": "665a3be9cf1af09754db5be01eb8f99af36da3cf",
   "dirty": true,
-  "diff_sha256": "f5f63c596da40957db7560b8ec717346ebd2a49f32924cac4cdb01642da6812a",
-  "untracked": [
-   "revisioni/synth-v4-campione-2/verifica_js.json"
-  ]
+  "diff_sha256": "b32906c0ea309ac873d240f9cfa2d57e8d8b43408cfbf2cc1d7625fcbaf30a97",
+  "untracked": []
  },
  "pacchetto": "/home/prignano/vision_limite/revisioni/synth-v4-campione-2",
  "impronta": "18a8926f99c8874bf75d1613e5db1e6cdc8bbd65772a2d0d93b41283b20da48f",
@@ -282,5 +280,5 @@
  ],
  "falliti": [],
  "nota": "verifica statica dei dati e dei riferimenti; l'interfaccia non è provata in un browser",
- "seconds": 6.6
+ "seconds": 6.5
 }
