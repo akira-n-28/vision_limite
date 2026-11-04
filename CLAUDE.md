@@ -407,9 +407,12 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
   - Esiti: 0 pixel identici, 0 candidati testuali; 264 record con candidati pHash, tutti con somiglianza dei pixel
     sotto 0,80. I candidati vanno in quarantena per gruppo, senza riammissioni.
   - Ammessi: train 53.997, dev 2.864, test 296, coppie 584. Quarantena 367, esclusi 2.792. Split e gruppi ereditati.
-  - Ogni record ha l'evidenza `decontaminazione_pannello`; `manifest_check.py` verifica anche le versioni derivate.
-  - Il campione per l'audit delle golden answer è preparato in `outputs/synth_gold_review/campione-1` (job 30522, S2
-    §2.10), ma l'audit non è eseguito.
+  - Ogni record ha l'evidenza `decontaminazione_pannello`, con un'anteprima di 10 corrispondenze; l'elenco completo sta
+    nella scansione. `manifest_check.py` verifica anche le versioni derivate, separando il genitore immediato
+    dall'assegnazione originale, che ritrova risalendo la catena `ereditato_da` con gli sha256 (job 30556, S2 §2.11).
+  - I fogli per l'audit delle golden answer sono in `outputs/synth_gold_review/campione-2` (job 30556, S2 §2.11), con la
+    stessa selezione di `campione-1` (job 30522, S2 §2.10). Contengono tutte le 755 corrispondenze dei candidati, il
+    prompt del loader nel primo passaggio e le soluzioni per variante delle coppie. L'audit non è eseguito.
   - Ancora incompleto per gli esperimenti: mancano audit visivo, verifica dei candidati, varianti e contratto. La
     config della famiglia `synth` richiede ancora la lista v3 vuota di `data_lists.REQUIRED`.
 
@@ -440,7 +443,7 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
     raggruppa per documento UCSF, MUIRBench per coppia rispondibile/non rispondibile.
   - **Candidati ed evidenze:** solo somiglianze, tenute separate dai legami.
     - Nel test ci sono 1.300 evidenze dirette, 191 forti. L'inammissibilità alla metrica primaria vale per gruppo: 743
-      gruppi.
+      gruppi. Possono restare esclusi: risolverli tutti non è un prerequisito per avanzare (utente, 2026-11-04).
     - Il confronto pHash è completo, senza troncamenti.
     - Il test utilizzabile è il campo `metrica_primaria` di `elements.jsonl.gz`. Anche il confronto fra versioni
       (`compare_panels`) lo usa quando c'è; la regola di v2 vale solo per i formati precedenti (job 30517).

@@ -467,6 +467,10 @@ Unioni per tipo di legame:
 2. Irrisolti: approvare la regola di §3.1 e la verifica visiva, senza agenti. La regola vale per gruppo: i gruppi
    inammissibili restano nel test, fuori dalla metrica primaria, finché la verifica non li risolve. La verifica si fa
    per gruppo, a partire dai 191 candidati forti; i gruppi inammissibili sono 743.
+
+   I 743 gruppi possono restare esclusi (chiarimento dell'utente del 2026-11-04). Risolverli tutti non è un
+   prerequisito per avanzare: la metrica primaria usa solo il test utilizzabile (`metrica_primaria`). La verifica serve
+   solo a recuperare elementi di test, e si fa quando un gruppo blocca un compito preciso.
 3. Metriche (D4):
    - MUIRBench con e senza `Ordered_Pages` e `Video`;
    - OCRBench con e senza le componenti manoscritte;
@@ -528,7 +532,8 @@ verificato a vista.
 
 **Limiti e lavoro residuo:**
 - verifica visiva dei 743 gruppi inammissibili, a partire dai 191 candidati forti, senza agenti; l'esito va in
-  `pannello-v4`;
+  `pannello-v4`. È facoltativa: i gruppi possono restare esclusi dalla metrica primaria, e risolverli tutti non è un
+  prerequisito per avanzare (§7, punto 2);
 - le 23 unioni testuali ora candidate e il quarto problema in comune di APEX: confronto a vista o con una regola
   testuale più fine, da decidere;
 - delle sorgenti di training solo i sintetici v4 sono confrontati con `pannello-v3` (§6.2). Le scansioni storiche e

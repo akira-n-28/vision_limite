@@ -1,13 +1,15 @@
 # Piano di implementazione F0
 
-Stato al 2026-11-02, [pipeline v1.5](../PIPELINE_ADDESTRAMENTO_LIMITE_VL.md) (§§3, 5, 6, 17). Il confronto è fra il
+Stato al 2026-11-04, [pipeline v1.5](../PIPELINE_ADDESTRAMENTO_LIMITE_VL.md) (§§3, 5, 6, 17). Il confronto è fra il
 codice del repository sul cluster e i requisiti della pipeline.
 
 **Stato attuale degli interventi (§3):**
 - **C1-C2, sintetici:** implementati e collaudati. Il candidato v4 è generato e controllato (job 30447-30449), e il
   manifest è applicato nei loader con il dev split (job 30450-30451; S2 §§2.6-2.7). Il 2026-11-02 v4 è decontaminata
   contro `pannello-v3`, con il manifest `synth-v4-candidato-2` (job 30517-30518). Il campione per l'audit delle golden
-  answer è preparato, ma la revisione non è fatta (job 30522; S2 §§2.9-2.10).
+  answer è preparato (job 30522; S2 §§2.9-2.10). Il 2026-11-04 i fogli sono corretti con la stessa selezione, e il
+  validatore verifica gli split lungo la catena delle derivazioni (job 30555-30556, `campione-2`, S2 §2.11). La
+  revisione non è fatta.
 - **C5 e C7:** implementati in parte, nel sottoinsieme di S1 per i sintetici v4 (S1 §9).
 - **C3, C4, C6, C8, C9:** non iniziati.
 - **Pannello di valutazione (punto 7):** benchmark scaricati e verificati (job 30463). Indice, gruppi e ruoli sono
@@ -291,6 +293,8 @@ C3 e C4 seguono D3.
 | 30521 (2026-11-02) | `slurm/synth_gold_sample.sbatch campione-1` | fermato in 1 s da `tests/test_synth_gold.py`, per un errore del test, prima di scrivere uscite; ripetuto nel 30522 | niente |
 | 30522 (2026-11-02) | `slurm/synth_gold_sample.sbatch campione-1`: `decontam_review.py` sui candidati e `synth_gold_sample.py` sul manifest v2 | 5 min 4 s. Somiglianza dei pixel dei 264 candidati sempre sotto 0,80. Campione di 380 unità e 175 casi mirati, foglio dei candidati con 131 immagini del pannello, inventario dei controlli per proprietà (S2 §2.10) | che il materiale per la revisione è pronto e riproducibile. Nessuna revisione e nessuna stima |
 | 30523 (2026-11-02) | `slurm/tests_cpu.sbatch` su `87c4108` | 27 file, 1.052 controlli, nessun fallimento, stderr vuoto, 10 min 54 s. Nuovi: `tests/test_panel.py` +11, `test_synth_decontam.py` 31, `test_synth_gold.py` 20 | che le modifiche di questo lotto superano le regressioni scritte e che i 990 controlli precedenti non cambiano |
+| 30555 (2026-11-04) | `slurm/tests_cpu.sbatch` su `6328a29` | 27 file, 1.086 controlli, nessun fallimento, stderr vuoto, 10 min 2 s. Nuovi: `test_synth_gold.py` +22 (prompt del loader con e senza opzioni incorporate, coppia con risposte diverse, undicesima corrispondenza, riconciliazione), `test_synth_decontam.py` +12 (due derivazioni consecutive) | che le quattro correzioni superano le regressioni scritte e che i controlli precedenti non cambiano |
+| 30556 (2026-11-04) | `slurm/synth_gold_sample.sbatch campione-2 campione-1 campione-1`, dopo il 30555 | 4 min. Test mirati; `manifest_check` di `synth-v4-candidato-2` col validatore corretto, 44 su 44 con la catena 2 → 1; fogli `campione-2`: 755 corrispondenze su 755 riconciliate (18 oltre l'anteprima, in 3 record), 102 immagini del pannello, prompt del loader per 337 unità, soluzioni per variante; selezione identica a `campione-1` (S2 §2.11) | che i fogli sono completi e riproducibili con la stessa estrazione. Nessuna revisione e nessuna stima |
 
 Calcoli di sola libreria standard sul frontend, il 2026-10-28, a supporto delle specifiche (non sono collaudi):
 - riproduzione delle domande di synth v3 dalle chiavi, con istogrammi identici al manifest del job 29756;
@@ -475,6 +479,13 @@ dettagli in S2 §§2.9-2.10):
   Verifiche 37 su 37, comprese le 5 nuove sulle versioni derivate.
 - **Campione** delle golden answer: 380 unità e 175 casi mirati, inventario dei controlli per proprietà, foglio dei
   264 candidati. Nessuna revisione è avviata.
+- **Correzioni del 2026-11-04** (job 30555-30556, codice `6328a29`, S2 §2.11), con la stessa selezione:
+  - il foglio dei candidati prende tutte le corrispondenze dalla scansione completa, 755 su 755 riconciliate;
+  - il primo passaggio mostra il prompt del loader;
+  - le coppie hanno soluzioni ed esiti per variante;
+  - `manifest_check` verifica gli split risalendo la catena delle derivazioni fino alla versione che li assegnò.
+
+  I fogli da usare sono quelli di `campione-2`.
 - **Stato.** Ancora incompleto per gli esperimenti: mancano l'audit visivo, la verifica dei candidati, le varianti e il
   contratto. Decontaminazione superata, golden answer verificate e dati pronti per F0 sono tre condizioni diverse, e
   nessuna delle ultime due è raggiunta.
@@ -487,7 +498,7 @@ un job CPU (CLAUDE.md).
 
 | Collaudo | Scopo | Risorse | Quando |
 | --- | --- | --- | --- |
-| Sintetici (C1, C2) | Eseguiti: test (job 30392, 30417, 30448), controllo sugli shard (job 30393, 30418, 30448), coppie v4 (job 30419), analisi degli scarti (job 30400, 30420), render e candidato v4 (job 30447-30449), manifest e dev split (job 30450-30451), decontaminazione esterna contro `pannello-v3` e manifest `synth-v4-candidato-2` (job 30517-30518), campione dell'audit preparato (job 30522, S2 §2.10). Da fare, con l'ok dell'utente: revisione visiva del campione (380 unità e 175 casi mirati, rubrica della S2 §2.8, C8 prima del limite) e dei 264 candidati della decontaminazione | revisione umana; C8 CPU 20 min | con l'ok dell'utente (D5) |
+| Sintetici (C1, C2) | Eseguiti: test (job 30392, 30417, 30448), controllo sugli shard (job 30393, 30418, 30448), coppie v4 (job 30419), analisi degli scarti (job 30400, 30420), render e candidato v4 (job 30447-30449), manifest e dev split (job 30450-30451), decontaminazione esterna contro `pannello-v3` e manifest `synth-v4-candidato-2` (job 30517-30518), campione dell'audit preparato (job 30522, S2 §2.10), fogli corretti con la stessa selezione (job 30556, `campione-2`, S2 §2.11). Da fare, con l'ok dell'utente: revisione visiva del campione (380 unità e 175 casi mirati, rubrica della S2 §2.8, C8 prima del limite) e dei 264 candidati della decontaminazione | revisione umana; C8 CPU 20 min | con l'ok dell'utente (D5) |
 | Contratto ed estrattore (C3, C4; punto 1) | Tokenizzazione e label per modalità; quattro forme e terminazione; tassonomia ufficiale; risposta diretta di Violetto | CPU 20 min; GPU 1 ora | dopo D3 e S3 |
 | Manifest, indice e reader (C5-C7; punto 3) | Per i sintetici v4 eseguiti (job 30450-30451, S1 §9). Restano: indice globale e chiavi storiche (C6), varianti e contratto (dopo C3), contatori per compito, le altre sorgenti | CPU 20 min; indice CPU 4 CPU 24G, durata da misurare | dopo S1, D6 |
 | Stime (C8) | Copertura esatta, limite ipergeometrico, estrazioni | CPU 20 min | dopo S4 |
@@ -496,7 +507,7 @@ un job CPU (CLAUDE.md).
 | Encoder (punto 5) | Refactoring SigLIP2 identico; parità dell'encoder B col percorso nativo; rami disattivati uguali al riferimento | GPU 1 ora ciascuno | (a) dopo l'ok; (b) dopo D1 |
 | ViT addestrabile (punto 6) | Gradienti, variazione dei pesi, salvataggio, ripresa | GPU 64G 1 ora | dopo il punto 5 (a) |
 | Valutatore visivo (punto 7) | Correttezza del codice di valutazione | GPU ≤ 2 ore | dopo C4 |
-| Pannello e campione (punto 7; D6) | Eseguiti: download e verifica (job 30463), inventario (job 30464), indice, gruppi e ruoli `pannello-v2` (job 30466), collaudi e `pannello-v3` (job 30468-30469). Il 2026-11-02 il confronto fra versioni usa `metrica_primaria` (job 30517), e v4 è decontaminata (job 30518). Da fare, con l'ok dell'utente: verifica visiva dei 743 gruppi inammissibili, a partire dai 191 candidati forti, con esito in `pannello-v4`, insieme ai gruppi dei 7 elementi di test con candidati dallo sviluppo sintetico (S2 §2.10); decontaminazione delle altre sorgenti locali contro `pannello-v3`; manifest delle ammissioni di UniMER e MAVIS (lotto in `docs/F0_CAMPIONE_CANDIDATO.md` §6) | CPU, pochi minuti per job; revisione umana per la verifica visiva | dopo l'approvazione di D6 |
+| Pannello e campione (punto 7; D6) | Eseguiti: download e verifica (job 30463), inventario (job 30464), indice, gruppi e ruoli `pannello-v2` (job 30466), collaudi e `pannello-v3` (job 30468-30469). Il 2026-11-02 il confronto fra versioni usa `metrica_primaria` (job 30517), e v4 è decontaminata (job 30518). Da fare, con l'ok dell'utente: i gruppi dei 7 elementi di test con candidati dallo sviluppo sintetico (S2 §2.10), con esito in `pannello-v4`; la verifica visiva dei 743 gruppi inammissibili è facoltativa, perché possono restare esclusi dalla metrica primaria e risolverli tutti non è un prerequisito per avanzare (chiarimento dell'utente del 2026-11-04); decontaminazione delle altre sorgenti locali contro `pannello-v3`; manifest delle ammissioni di UniMER e MAVIS (lotto in `docs/F0_CAMPIONE_CANDIDATO.md` §6) | CPU, pochi minuti per job; revisione umana per la verifica visiva | dopo l'approvazione di D6 |
 
 ## 5. Fuori dal primo perimetro
 

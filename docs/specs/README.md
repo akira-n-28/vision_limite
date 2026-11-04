@@ -11,7 +11,8 @@ in parte, C5 e C7:
   (`630d00a`, job 30450-30451, S2 §2.7).
 - **Decontaminazione esterna di v4** contro `pannello-v3`, con il manifest derivato `synth-v4-candidato-2` (`fe85a97`,
   job 30517-30518, S2 §2.9). Il campione per l'audit delle golden answer è preparato (job 30522, S2 §2.10), senza
-  revisione.
+  revisione. Il 2026-11-04 i fogli sono corretti con la stessa selezione (`campione-2`), e `manifest_check.py` verifica
+  gli split lungo la catena delle derivazioni (`6328a29`, job 30555-30556, S2 §2.11).
 
 Il candidato resta incompleto per gli esperimenti, e nessun dato è certificato.
 

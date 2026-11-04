@@ -120,9 +120,12 @@ per `p10-pannello`.
      quarantena per gruppo nel manifest `synth-v4-candidato-2`.
    - Per MAVIS, UniMER, PixMo e LLaVA serve una scansione con pixel, pHash e testo, e poi la risoluzione dei candidati.
 7. **Verifica visiva:**
-   - dei 743 gruppi inammissibili del pannello (1.300 evidenze dirette, 191 forti), prima di qualsiasi uso del test;
-   - l'audit di v4 (S2 §2.8, D5): campione di 380 unità e 175 casi mirati preparato (S2 §2.10), revisione non fatta;
-   - i 264 candidati della decontaminazione di v4, con il foglio della S2 §2.10;
+   - l'audit di v4 (S2 §2.8, D5): campione di 380 unità e 175 casi mirati, con i fogli corretti di `campione-2` (S2
+     §2.11), revisione non fatta;
+   - i 264 candidati della decontaminazione di v4, con tutte le loro corrispondenze nel foglio di `campione-2`;
+   - non è un prerequisito la verifica dei 743 gruppi inammissibili del pannello (1.300 evidenze dirette, 191 forti):
+     restano fuori dalla metrica primaria, che usa solo il test utilizzabile, e si verificano solo se servono a un
+     compito preciso (chiarimento dell'utente del 2026-11-04);
    - campioni di MAVIS (fedeltà ai pixel) e di PixMo (dettagli aggiunti);
    - l'osservabilità alla risoluzione scelta.
 8. **Più immagini (punto 4 del piano).** `Sample.images`, loader e riferimenti nel testo servono per MUIRBench, MV-MATH,
@@ -135,14 +138,17 @@ per `p10-pannello`.
 Il lotto è indipendente dalle decisioni aperte: si può fare dopo l'ok, con job CPU di pochi minuti ciascuno, senza GPU
 né agenti.
 
-1. **Verifica visiva dei gruppi inammissibili del pannello** (`groups_excluded.jsonl.gz` di `pannello-v3`).
+1. **Verifica visiva dei gruppi inammissibili del pannello** (`groups_excluded.jsonl.gz` di `pannello-v3`),
+   facoltativa: i 743 gruppi possono restare esclusi dalla metrica primaria (chiarimento del 2026-11-04). Si fa solo
+   per i gruppi che bloccano un compito.
    - Fogli di coppie e un TSV degli esiti per gruppo, a partire dai 191 candidati forti.
    - Le immagini si ritrovano con `panel_index.resolve_entries`, già verificato sull'indice.
    - La correlazione dei pixel a 64×64 di `decontam_review.py` serve a ordinarli.
    - Revisione umana; l'esito va in `pannello-v4`.
 2. **Decontaminazione esterna di v4 contro `pannello-v3`.** Fatta il 2026-11-02 (job 30517-30518, S2 §2.9), con il
    manifest nuovo `synth-v4-candidato-2`. Il campione per l'audit delle golden answer è preparato (job 30522, S2
-   §2.10). Restano la revisione visiva e la verifica dei candidati.
+   §2.10), e i fogli sono corretti il 2026-11-04 con la stessa selezione (job 30556, `campione-2`, S2 §2.11). Restano la
+   revisione visiva e la verifica dei candidati.
 3. **Manifest delle ammissioni di UniMER-1M e MAVIS-Geometry,** col sottoinsieme di S1 già usato per v4:
    - record, gruppi e stati;
    - esclusioni e quarantena importate da `unimer_check/run4`;

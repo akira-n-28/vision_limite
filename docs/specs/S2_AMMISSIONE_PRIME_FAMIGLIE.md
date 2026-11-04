@@ -777,7 +777,8 @@ l'audit, la verifica dei 264 candidati, le varianti e il contratto.
 
 Sono le due condizioni che, dopo il manifest (§2.7), mancano per "pronto per un esperimento" (pipeline §15.3; S4
 §1). Il 2026-10-30 c'era solo il piano. Il 2026-11-02 la decontaminazione esterna è eseguita (§2.9) e il campione
-dell'audit è preparato (§2.10); l'audit non è iniziato.
+dell'audit è preparato (§2.10). Il 2026-11-04 i fogli sono rifatti dagli stessi artefatti, con la stessa selezione
+(§2.11); l'audit non è iniziato.
 
 **Audit visivo.** È una revisione umana delle immagini come le vede il modello, cioè il PNG, che il processor lascia
 invariato (§2.6). Non si usano agenti LLM. I due campioni restano separati (S4 §2).
@@ -803,9 +804,19 @@ invariato (§2.6). Non si usano agenti LLM. I due campioni restano separati (S4 
      "seme": 0, "record_id", "posizione", "qa"}`. È un'estrazione senza reinserimento con probabilità uguali n/N. Il
      file del campione registra seme, N, n, probabilità d'inclusione e sha256 del manifest; la numerosità non si
      estende dopo l'estrazione.
-   - **Procedura:** il revisore risponde prima senza vedere il target (S4 §5), guardando l'immagine e la domanda con le
-     opzioni; poi confronta. Un disaccordo si risolve con layout e specifica, e si documenta. Incerti e casi non
-     giudicabili contano come errori nel limite, e la loro quota si riporta sempre.
+   - **Procedura** (corretta il 2026-11-04, §2.11). Nel primo passaggio il revisore vede l'immagine e il prompt
+     effettivo, senza target e senza opzioni aggiunte, e risponde prima di vedere il target (S4 §5):
+     - **train e dev:** il testo dell'utente costruito dal loader di training (`data.synth_qa_sample`). Sono da 1 a 5
+       domande numerate; la QA campionata è la domanda `numero_nel_prompt`. Le opzioni si vedono solo quando fanno
+       parte della domanda, come in `shape_type` e `label_type`;
+     - **test e coppie:** ogni QA da sola, col prefisso di `f1c.qa_messages` per una domanda. È il protocollo del foglio,
+       perché quello di valutazione di F0 non è fissato (D3). `f1c_eval.py`, storico, usava lo stesso prefisso e dava un
+       punteggio alle opzioni senza mostrarle. Il loader di training non costruisce il prompt delle coppie.
+
+     Dopo il primo giudizio si consultano le opzioni (`opzioni.tsv`) e il target (`soluzioni.tsv`), poi si confronta. Un
+     disaccordo si risolve con layout e specifica, e si documenta. Incerti e casi non giudicabili contano come errori
+     nel limite, e la loro quota si riporta sempre. Nelle coppie si registra il giudizio su ciascuna variante (a e b) e
+     sul contratto della coppia.
    - **Risultato:** condizionato alla sensibilità del revisore, che non è misurata (S4 §4).
 2. **Casi mirati, diagnostici.** Contano errori e falsi allarmi, ma non stimano un tasso. Sono circa 170:
    - le 67 scene in quarantena, tutte. Per ciascuna: leggibile e univoca (proposta di riammissione in una versione
@@ -971,9 +982,10 @@ I gruppi con un candidato sono 199. Cambiano stato, tutti da ammesso a quaranten
 **Evidenze nel manifest.** Ogni record ha l'evidenza `decontaminazione_pannello`, con:
 - esito proprio e del gruppo;
 - controlli eseguiti: pixel, pHash, e testo con il numero di domande confrontabili;
-- corrispondenze per tipo, e fino a 10 elementi del pannello con posizione, distanza, ruolo, gruppo e ammissione alla
-  metrica primaria;
-- il riferimento a `records.jsonl.gz` della scansione, con lo sha256.
+- corrispondenze per tipo, e un'anteprima di al più 10 elementi del pannello con posizione, distanza, ruolo, gruppo e
+  ammissione alla metrica primaria;
+- il riferimento a `records.jsonl.gz` della scansione, con lo sha256. L'elenco completo delle corrispondenze sta solo
+  lì: chi le esamina segue il riferimento (§2.11).
 
 Chi cambia stato ha anche il motivo `decontaminazione_pannello`, con i membri del gruppo che lo causano. Il manifest
 registra, con i loro sha256, indice, verifica, pannello, scansione, versione precedente e identità del codice.
@@ -988,7 +1000,8 @@ registra, con i loro sha256, indice, verifica, pannello, scansione, versione pre
   - una sola evidenza di decontaminazione per record;
   - un motivo per ogni cambio di stato.
 
-  La regola degli split si ricalcola sulla versione 1, da cui gli split sono ereditati.
+  La regola degli split si ricalcola sulla versione 1, da cui gli split sono ereditati. Dal 2026-11-04 il validatore
+  risale la catena fino alla versione che assegnò gli split, anche per le derivazioni successive (§2.11).
 
 **Identificativi.** Ogni decisione si riconduce al record originale. Chiave, `record_id` ricalcolato da
 `manifest.load`, shard, posizione e sha256 dei byte del PNG coincidono fra manifest e riga della scansione. Ogni
@@ -1025,6 +1038,11 @@ pannello non contiene i sintetici, quindi `pannello-v3` non le vede: vanno consi
 Preparazione dell'audit della §2.8 sul manifest `synth-v4-candidato-2`, con `scripts/synth_gold_sample.py` (codice
 `fe85a97`, script poi committati in `87c4108`) e uscite in `outputs/synth_gold_review/campione-1`. Nessuna revisione è
 avviata: niente agenti, nessun dato o spiegazione rigenerati.
+
+**Superato per la revisione da `campione-2` (§2.11)**, con la stessa selezione. I fogli di `campione-1` restano come
+erano, ma hanno tre difetti: i candidati della decontaminazione mostrano solo l'anteprima di 10 corrispondenze
+dell'evidenza; il primo passaggio mostra sempre le opzioni, che il modello di norma non vede; le coppie mirate hanno la
+soluzione della sola variante a.
 
 **Quattro proprietà, tenute separate** (§1):
 1. **correttezza matematica:** il target è vero per la scena descritta dalla specifica;
@@ -1124,6 +1142,137 @@ fermato in 1 s su un errore del test (etichette dei vertici uguali nel poligono 
 - la revisione umana dei 380 + 175 casi e dei 264 candidati;
 - C8, per il limite con collaudi;
 - una versione nuova del manifest con gli esiti: riammissioni o esclusioni, mai correzioni della v2.
+
+### 2.11 Correzione dei fogli e del validatore delle derivazioni (job 30555-30556, codice `6328a29`, 2026-11-04)
+
+Intervento circoscritto dopo la revisione dei push fino a `cfe29f4`. Non ripete la scansione e non crea versioni del
+manifest. Restano invariati scansione completa, `synth-v4-candidato-2`, `pannello-v3` e `campione-1`. I fogli nuovi
+sono in `outputs/synth_gold_review/campione-2`.
+
+**1. Corrispondenze complete nel foglio della decontaminazione.**
+- **Difetto.** L'evidenza del manifest conserva un'anteprima di al più 10 corrispondenze (`MAX_EVIDENCE`), e
+  `campione-1` usava solo quella per immagini e foglio.
+- **Correzione.** Il foglio segue il riferimento dell'evidenza a `records.jsonl.gz` della scansione e ne verifica:
+  - lo sha256, uguale a quello dell'evidenza e del manifest; `summary.json`, `matches.jsonl` ed `elements.jsonl.gz`
+    hanno gli sha256 del manifest, e l'indice quello registrato;
+  - per ogni record chiave, shard, posizione, sha256 del PNG, conteggi e anteprima, uguali all'evidenza;
+  - per ogni corrispondenza la voce dell'indice (elemento, posizione dell'immagine, id).
+
+  Un identificativo incoerente ferma il job prima di scrivere. Una riga o un dettaglio mancante, una voce assente o
+  un'immagine non ritrovata rendono il record `incompleto`.
+- **Fogli.** `candidati_decontaminazione.tsv` ha una riga per record. `corrispondenze_decontaminazione.tsv` ha una riga
+  per corrispondenza, con record e `record_id`, elemento del pannello, posizione dell'immagine, voce dell'indice, ruolo,
+  gruppo, `metrica_primaria`, presenza nell'anteprima del manifest e file dell'immagine.
+
+**Riconciliazione** (5 controlli, tutti superati):
+
+| Conteggio | Valore |
+| --- | --- |
+| record con corrispondenze nella scansione = candidati del manifest | 264 = 264 |
+| corrispondenze: righe della scansione = `summary.json` = `matches.jsonl` = esportate | 755 |
+| corrispondenze oltre l'anteprima, assenti in `campione-1` | 18, in 3 record |
+| duplicati di evidenza (stessa coppia record-voce) | 0 |
+| voci ed elementi del pannello distinti | 133 |
+| immagini del pannello distinte per pixel (file scritti una volta in `immagini/pannello/`) | 102 |
+| record con materiale incompleto | 0 |
+
+I tre record oltre l'anteprima sono di train, già in quarantena: `synth-0013615` e `synth-0009643` hanno 18
+corrispondenze con DynaMath, `synth-0035515` ne ha 12 con DynaMath, UniMER-Test e DocVQA. I conteggi della §2.9 venivano
+già dalla scansione completa e non cambiano, compresi i sette elementi di test della §2.10. Le 133 voci contro le 131
+voci di `campione-1` vengono da quelle 18 corrispondenze. Alcune voci hanno gli stessi pixel: le 133 voci corrispondono a
+102 immagini distinte, e ciascuna si copia una volta.
+
+**2. Prompt del primo passaggio** (procedura in §2.8). Per train e dev il foglio mostra il testo costruito dal loader
+di training (`data.synth_qa_sample`), confrontato per ogni unità con `qa_messages(pick_questions)` dalle posizioni del
+manifest. La QA campionata è la domanda `numero_nel_prompt`. Le opzioni sono in `opzioni.tsv` e i target in
+`soluzioni.tsv`; nel primo passaggio si vedono solo se fanno parte della domanda. Il testo esatto, con sha256 e domande
+contenute, sta in `prompts.jsonl`; nelle celle gli a capo sono `\n`. Unità statistica e QA selezionate non cambiano.
+
+| Origine del prompt | Unità | Chi |
+| --- | --- | --- |
+| loader, QA nel prompt | 337 | 300 del campione, 30 delle regole nuove, 7 casi delle soglie |
+| loader, scena intera | 83 | quarantena 67, testi e riquadri vicini alle soglie 16 |
+| QA che il loader non sceglie, come domanda singola | 25 | casi delle soglie: il modello non le vede mai in training |
+| test, domanda singola | 50 | campione del test |
+| coppie, domanda singola | 50 | 30 del campione e 20 casi mirati |
+| nessuno | 10 | esclusioni per contaminazione |
+
+**Test e coppie.** Il protocollo verificato è quello del foglio, la domanda da sola col prefisso di `qa_messages`. Il
+protocollo di valutazione di F0 non è fissato (D3). Il loader di training non costruisce il prompt delle coppie: il job
+lo prova su `synth-pair-00140-a` (ValueError, nessuna domanda). Le opzioni stanno nel materiale separato, da
+consultare dopo il primo giudizio.
+
+`opzioni_nel_testo_della_domanda` è un indicatore testuale: vale sì quando tutte le opzioni compaiono come parole nella
+domanda. Lo sono `shape_type` e `label_type`, e anche domande come "above or below"; non lo sono `count`, `coords`,
+`exists`, `side_len` e `intersections`.
+
+**3. Entrambe le soluzioni delle coppie.** `soluzioni.tsv` e `opzioni.tsv` hanno una riga per variante, con etichetta a
+o b (dalla variante del JSON, uguale al suffisso della chiave), record e `record_id`. Vale per le 30 coppie del campione
+e per le 20 mirate, che prima avevano solo la variante a.
+- `soluzioni.tsv` ha 512 righe: 412 fuori dalle coppie, più 50 varianti a e 50 b.
+- `esiti.tsv` ha 655 righe: per ogni coppia le righe a e b e una riga `coppia` per il contratto.
+
+**4. Split delle derivazioni successive** (`scripts/manifest_check.py`, `verify_splits`).
+- **Difetto.** La regola degli split si ricalcolava sui record del genitore immediato. Da una terza versione in poi, un
+  gruppo di dev tutto in quarantena nel genitore ha zero scene ammesse, e `assign_splits` lo riassegnerebbe a train.
+- **Correzione:** due verifiche separate.
+  - **Rispetto al genitore immediato:** stessi record, gruppi, insiemi, split e posizioni; nessuno stato meno grave.
+    Con la decontaminazione si controlla anche che:
+    - evidenze e motivi del genitore siano conservati;
+    - ci sia una sola evidenza nuova per record;
+    - ogni cambio di stato abbia un motivo nuovo;
+    - lo stato sia il più grave fra quello del genitore e quello dato dall'esito del gruppo, cioè nessuna riammissione;
+    - ci sia un solo esito per gruppo.
+  - **Rispetto all'assegnazione originale:** la catena `ereditato_da` si risale fino alla versione che assegnò gli
+    split. Ogni anello è letto con `manifest.load` e ha lo sha256 di `manifest.json` registrato dal figlio, anche in
+    `precedente`. Regola, identità e split sono uguali lungo la catena, nessun anello migliora uno stato, e la regola si
+    ricalcola sui record dell'origine.
+- **Motivi.** `synth_decontam.py` aggiunge il motivo nuovo a quelli del genitore invece di sostituirli. Su
+  `candidato-2`, derivato da una versione senza quel motivo, il risultato non cambia.
+- **Su `synth-v4-candidato-2`** (job 30556, in sola lettura, `outputs/manifest_check/synth-v4-candidato-2-campione-2`):
+  44 controlli su 44, con la catena 2 → 1 (`9a8104cd…`, `975dfe42…`).
+
+**Collaudi** (job 30555, suite CPU sul codice `6328a29`): 27 file e 1.086 controlli, nessun fallimento, 10 min 2 s.
+- `tests/test_synth_gold.py`, +22 controlli:
+  - prompt uguale a quello del loader su scene vere del generatore, con opzioni incorporate (`label_type` fra più
+    domande) e senza (`count` da sola);
+  - test, coppie e loader che rifiuta una coppia;
+  - una coppia con risposte diverse (9 e 11), con righe a e b;
+  - 12 corrispondenze, l'undicesima esportata oltre l'anteprima di 10; la riconciliazione non passa con le sole 10;
+  - materiale incompleto segnalato, posizione o anteprima alterate che fermano il foglio.
+- `tests/test_synth_decontam.py`, +12 controlli: due derivazioni consecutive scritte da `synth_decontam.py`.
+  - Un gruppo di dev va tutto in quarantena nella versione 2 e resta in dev nella 3. Sul genitore immediato la regola
+    lo riporterebbe in train, sull'origine no.
+  - Si rifiutano un anello alterato, una riammissione e un'evidenza tolta.
+
+**Confronto con `campione-1`** (`confronto.json`, il job esce con errore se la selezione cambia): nessuna differenza.
+
+| Che cosa | Esito |
+| --- | --- |
+| Estrazione | stessi seme, etichetta `synth-v4-1`, manifest e popolazioni (N, n e limiti per strato) |
+| Unità | 380 del campione e 175 mirate, uguali per unità, strato, rango, record, `record_id`, shard, indice, posizione, ordine nel loader, tipo, domanda e digest della QA |
+| Candidati | 264, stessi ranghi ed esiti |
+| Risposte | 462 unità con risposta uguali; 20 varianti b aggiunte |
+| Opzioni | uguali, ma spostate in `opzioni.tsv` per 462 unità |
+| Immagini v4 | 870, con byte identici |
+| Anteprima | in `campione-1` era il prefisso dell'elenco completo; mancavano 18 corrispondenze in 3 record |
+
+**Costo.** Job 30555: 10 min 2 s, 4 CPU. Job 30556: 4 min, 8 CPU e 48G. In questo job `manifest_check` ha preso 2 min
+30 s e i fogli 1 min 9 s. In tutto circa 14 minuti di tempo reale e 72 minuti di CPU allocate; niente GPU, download,
+token o agenti. Su disco `campione-2` occupa circa 11 MiB (870 PNG v4 e 102 immagini del pannello), il controllo del
+manifest 24 KiB.
+
+**Limiti:**
+- nessuna revisione è fatta e nessun record è promosso a gold;
+- il prompt di test e coppie è quello del foglio, non un protocollo di valutazione approvato;
+- il primo passaggio mostra il testo dell'utente, non il system prompt fisso del template né il prefill `<think></think>`
+  di F1, che il processor aggiunge;
+- `opzioni_nel_testo_della_domanda` è un indicatore testuale, non una regola del generatore;
+- la verifica della catena prova integrità e coerenza delle versioni, non la correttezza delle decisioni.
+
+**Restano aperti:** revisione visiva del campione e dei 264 candidati (D5), requisiti del loader di F0 della §2.9, C8.
+I 743 gruppi esclusi dal pannello possono restare esclusi: risolverli tutti non è un prerequisito per avanzare
+(`docs/PANNELLO_VALUTAZIONE.md` §7, punto 2).
 
 ## 3. MAVIS-Geometry (`f1_mavis.py`, `f1_schema.py`, shard `9c80fff3-caption`)
 
