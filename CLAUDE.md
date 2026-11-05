@@ -356,6 +356,8 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
       fedeltà all'immagine da verificare. Non è letto dai loader.
     - `f1_mavis_check.py` (run2) usava la chiave `mavis-<id>`, il loader usa quella del tar: le scelte casuali delle
       domande differiscono, e il manifest usa quelle del loader.
+    - Riverificato in sola lettura (job 30635): 15 controlli su 15. Il controllo sul cambio di seme è stato tolto dalle
+      verifiche di MAVIS e UniMER: la dipendenza dal seme si prova nei test.
 - UniMER @ 2343ddd9 (job 29436, 29438): l'immagine `images/<indice>.png` ha come formula la riga `<indice>` di
   `train.txt`; le righe vuote sono HME100K (tolto per copyright) e le formule a mano di CROHME (meno dell'1%) non si
   separano per indice. Shard in `data/shards/unimer/2343ddd9/` (985.450 campioni, test spe/cpe/sce/hwe in `test/`),
@@ -366,6 +368,11 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
     shard densi: 985.450 formule e 30.685 righe ritagliate, coi loro genitori, in gruppi per stessi byte del PNG.
   - run4 e run2 sono importati per chiave e ricalcolati dalle regole correnti, uguali ai loro file. Dev al 5%, seme 0.
   - Non certifica nulla e i loader non lo leggono; manca la decontaminazione esterna.
+  - Riverificato in sola lettura coi verificatori di `c271d6e` (job 30634, `scripts/manifest_recheck.py`): 28 controlli
+    su 28, nessuna anomalia.
+    - Le 30.685 righe ritagliate hanno il PNG della formula e fasce strutturalmente valide; ogni stato è il più grave
+      richiesto dalle evidenze.
+    - Le fasce non provano la corrispondenza visiva.
 - Sintetici v3 (`data/shards/synth/v3`, job 29756; il codice attuale ne riproduce esattamente le domande): `intersections`
   conta entro ±R mentre il disegno arriva a ±(R+1), con 37 target errati e 364 domande al bordo disegnato;
   `shape_type` e `label_type` sono domande aperte con più risposte vere (`docs/specs/S2_AMMISSIONE_PRIME_FAMIGLIE.md`

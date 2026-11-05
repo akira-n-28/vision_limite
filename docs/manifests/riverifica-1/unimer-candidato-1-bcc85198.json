@@ -1,0 +1,239 @@
+{
+ "schema": "limite-vl-riverifica/1",
+ "sorgente": "unimer",
+ "manifest": "data/manifests/unimer-candidato-1",
+ "nome": "unimer-candidato",
+ "versione": "1",
+ "manifest_sha256": "bcc851982598a80cdcf60ab00eb2adb0ff0adf581180ec7b296ed3d498d4dfcb",
+ "manifest_sha256_atteso": "bcc851982598a80cdcf60ab00eb2adb0ff0adf581180ec7b296ed3d498d4dfcb",
+ "records_sha256": "c183b95526fa55955f98976bf9f6035f06f1c6ad2f820161ca797f228559d92c",
+ "job_costruzione": "30625",
+ "job_id": "30634",
+ "codice": {
+  "commit": "c271d6ee01ffcf3e4ed71e51c28bddf9dbe32171",
+  "dirty": true,
+  "diff_sha256": "70f4b47e9569a91e3e30c69c22a3c50ce941e7698bbadcfdff699a641a757bdc",
+  "untracked": [
+   "docs/manifests/riverifica-1/"
+  ]
+ },
+ "verificatori": {
+  "unimer_manifest": {
+   "percorso": "scripts/unimer_manifest.py",
+   "sha256": "529ceac767e63e95bbfbb327f006f8044c62fb157fe87bdee3977bc63610ccab"
+  },
+  "mavis_manifest": {
+   "percorso": "scripts/mavis_manifest.py",
+   "sha256": "af948f50675d9c823a045c5c78e7cc6f76a4d70b53bc053c1d2a97e18f8b0c96"
+  },
+  "manifest_recheck": {
+   "percorso": "scripts/manifest_recheck.py",
+   "sha256": "ebacc3b763e1e3b7c9c109bc91773e536c0fa64a5917fb1e8bc9b54c29cd7460"
+  }
+ },
+ "evidenze_uguali_a_quelle_registrate": true,
+ "evidenze": {
+  "unimer_check_run4/quality_excluded.txt": "40e57da0729e7f68e014dec41d67808fe6c8aeae0b748abf8264af8f184e3e13",
+  "unimer_check_run4/uncertain.txt": "56cc240a3b89ba0e1a79472fa1fa1e4842e1d2062eef0c53d09c9b5ece79bd7a",
+  "unimer_check_run4/relabel.jsonl": "ef045047128fd273340f25ca001deaa3d811c361d55b9f9c2fd8ce449a7d4e16",
+  "unimer_check_run4/reasons.jsonl": "2bdca881d1ac39501935d07886eb11c9916cde0804bf205f09bef7652b6803e0",
+  "unimer_check_run4/report.json": "92153e53e8adaee23e4e43b3ff75bf0aac2f7f495aeb3e25654eebf7504fce76",
+  "unimer_overlap_run2/report.json": "bef6c1c698aa1f8c0c605feb85df2f8896e9ae0ad8f09c5106ca9b7a08626734",
+  "unimer_overlap_run2/train_matches_test.txt": "5b9addde1b9707740c0d621dc5da9bbb7157f38ff7fc74e3823796f8e2517dd0",
+  "unimer_overlap_run2/train_contamination_long.txt": "71f60e6c344d518307216ea58ca36183ef47df17fd9fe6e1eaeee3fab1dc2f49"
+ },
+ "rapporto": "outputs/manifest_recheck/riverifica-1/unimer-candidato-1-bcc85198/verifica.json",
+ "rapporto_sha256": "bfc7eda2fed326ee000d01e25e8a864e9d0d0ae35ee1cae7a2a1cc3ae665fe7e",
+ "controlli": [
+  {
+   "parte": "verifica",
+   "controllo": "manifest letto e verificato (sha256 dei record, record_id ricalcolati, un solo split per gruppo, conteggi per shard)",
+   "esito": true
+  },
+  {
+   "parte": "verifica",
+   "controllo": "identità uniche: (record_id, insieme) e chiave per insieme; solo gli insiemi train e righe",
+   "esito": true
+  },
+  {
+   "parte": "verifica",
+   "controllo": "gruppi ricalcolati dai byte del PNG delle formule e dai genitori delle righe ritagliate: stessa partizione",
+   "esito": true
+  },
+  {
+   "parte": "verifica",
+   "controllo": "group_id ricalcolati dai membri",
+   "esito": true
+  },
+  {
+   "parte": "verifica",
+   "controllo": "nessun gruppo in due split (in particolare fra train e dev)",
+   "esito": true
+  },
+  {
+   "parte": "verifica",
+   "controllo": "split ricalcolato con quota e seme del manifest: uguale a quello scritto",
+   "esito": true
+  },
+  {
+   "parte": "verifica",
+   "controllo": "dev: almeno l'obiettivo di formule ammesse, superato al più dall'ultimo gruppo",
+   "esito": true
+  },
+  {
+   "parte": "verifica",
+   "controllo": "righe ritagliate: genitore presente con gli stessi hash, stesso gruppo e split, stato non meno grave",
+   "esito": true
+  },
+  {
+   "parte": "verifica",
+   "controllo": "righe ritagliate: lo stesso PNG della formula (stessi byte e griglia, stessa_immagine_del_genitore vera)",
+   "esito": true
+  },
+  {
+   "parte": "verifica",
+   "controllo": "rietichettature: genitore con l'etichetta originale e nuova etichetta uguali a relabel.jsonl",
+   "esito": true
+  },
+  {
+   "parte": "verifica",
+   "controllo": "rietichettature: tutte e sole quelle di relabel.jsonl",
+   "esito": true
+  },
+  {
+   "parte": "verifica",
+   "controllo": "righe ritagliate di formule rietichettate non ammesse",
+   "esito": true
+  },
+  {
+   "parte": "verifica",
+   "controllo": "liste storiche: ogni chiave risolta in un solo record",
+   "esito": true
+  },
+  {
+   "parte": "verifica",
+   "controllo": "evidenze di run4 nei record uguali alle liste",
+   "esito": true
+  },
+  {
+   "parte": "verifica",
+   "controllo": "errori certi esclusi, incerti in quarantena o esclusi",
+   "esito": true
+  },
+  {
+   "parte": "verifica",
+   "controllo": "evidenze di run2 nei record uguali alle liste",
+   "esito": true
+  },
+  {
+   "parte": "verifica",
+   "controllo": "evidenze di ogni formula: una di run4 e una di run2 con esiti noti; formula lunga del test se e solo se ha più di 20 token visibili",
+   "esito": true
+  },
+  {
+   "parte": "verifica",
+   "controllo": "stessa immagine di UniMER-Test: escluso tutto il gruppo, righe ritagliate comprese",
+   "esito": true
+  },
+  {
+   "parte": "verifica",
+   "controllo": "formula di UniMER-Test con più di 20 token visibili: almeno in quarantena tutto il gruppo, righe ritagliate comprese",
+   "esito": true
+  },
+  {
+   "parte": "verifica",
+   "controllo": "stato di ogni record uguale al più grave richiesto dalle evidenze (run4 per record, run2 per gruppo e righe ritagliate, rietichettatura della formula per le sue righe)",
+   "esito": true
+  },
+  {
+   "parte": "verifica",
+   "controllo": "conteggi per insieme, split, stato, compito e motivo uguali a manifest.json",
+   "esito": true
+  },
+  {
+   "parte": "verifica",
+   "controllo": "ranghi del campione candidato ricalcolati",
+   "esito": true
+  },
+  {
+   "parte": "verifica",
+   "controllo": "file derivati (keys/) con gli sha256 registrati",
+   "esito": true
+  },
+  {
+   "parte": "righe_ritagliate",
+   "controllo": "shard delle righe ritagliate uguale a quello registrato nel manifest (sha256, byte, campioni)",
+   "esito": true
+  },
+  {
+   "parte": "righe_ritagliate",
+   "controllo": "ogni record righe del manifest nello shard, ogni campione dello shard nel manifest; JSON, PNG, etichetta, posizione e numero di righe coi valori del manifest",
+   "esito": true
+  },
+  {
+   "parte": "righe_ritagliate",
+   "controllo": "righe e fasce strutturalmente valide (unimer_manifest.band_problems: coppie di interi dentro l'immagine, in ordine, senza sovrapposizioni, una per riga; dimensioni del JSON uguali al PNG) e griglia del manifest coerente",
+   "esito": true
+  },
+  {
+   "parte": "righe_ritagliate",
+   "controllo": "formula genitore (digest del manifest): stesso PNG, stessa etichetta e griglia, genitore registrato uguale, nessun errore di dimensioni in run4",
+   "esito": true
+  },
+  {
+   "parte": "righe_ritagliate",
+   "controllo": "shard di train non riletti: dimensione su disco uguale a quella registrata",
+   "esito": true
+  }
+ ],
+ "superati": 28,
+ "totale": 28,
+ "esito": true,
+ "anomalie": 0,
+ "righe_ritagliate": {
+  "record_righe": 30685,
+  "controllati": 30685,
+  "con_anomalie": 0,
+  "anomalie_per_gruppo_di_controlli": {},
+  "anomalie_per_causa": {},
+  "esempi_per_causa": {},
+  "fasce_per_record": {
+   "2": 19430,
+   "3": 6513,
+   "4": 2828,
+   "5": 931,
+   "6": 503,
+   "7": 174,
+   "8": 134,
+   "9": 61,
+   "10": 32,
+   "11": 28,
+   "12": 15,
+   "13": 11,
+   "14": 7,
+   "15": 5,
+   "16": 3,
+   "17": 3,
+   "18": 1,
+   "19": 1,
+   "20": 1,
+   "23": 1,
+   "24": 1,
+   "28": 2
+  },
+  "fasce": {
+   "altezza_minima": 15,
+   "spazio_minimo": 0,
+   "record_con_fasce_adiacenti": 255,
+   "record_con_l_ultima_fascia_fino_al_bordo": 655
+  },
+  "shard": [
+   {
+    "percorso": "data/shards/unimer/2343ddd9-dense/lines/unimer-lines-00000.tar",
+    "sha256_letto": "43c0687458685a75a5a16cdd89ac22e31cc975c037d4aa894423e356a49c62b4",
+    "uguale": true
+   }
+  ]
+ },
+ "nota": "riverifica in sola lettura di un manifest già scritto, coi verificatori correnti: non ricostruisce e non corregge nulla; non certifica la qualità e non autorizza il training"
+}

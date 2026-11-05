@@ -312,6 +312,9 @@ C3 e C4 seguono D3.
 | 30625 (2026-11-05) | `slurm/unimer_manifest.sbatch costruzione unimer-candidato 1` (24G): test, lettura verificata dei 10 tar, riconciliazione, scrittura e verifica | 3 min 53 s, 4 CPU, 15 min 32 s di CPU allocate, RSS massima 7,6 GiB nella rilettura. `data/manifests/unimer-candidato-1` (262 MiB più 14 MiB di chiavi): 985.450 formule e 30.685 righe ritagliate in 933.870 gruppi; run4 e run2 riprodotti; verifica 21 su 21 (S2 §4) | che il candidato è riproducibile, con evidenze riconciliate, gruppi indivisibili e trasformazioni coi genitori. Non certifica le formule, non è letto dai loader, la decontaminazione esterna manca |
 | 30626 (2026-11-05) | `slurm/mavis_manifest.sbatch prova mavis-geometry-candidato`: test, poi un tar | 37 s, 4 CPU, 2 min 28 s di CPU allocate. Test 12 su 12, col run2 del fixture scritto da `f1_mavis_check.py`. 19.000 record in 26 s, sha256 uguale allo sharding, 22,6 domande per record; RSS 212 MiB; stima della lettura completa 70-80 s | il dimensionamento della costruzione completa |
 | 30630 (2026-11-05) | `slurm/mavis_manifest.sbatch costruzione mavis-geometry-candidato 1`: test, lettura verificata degli 11 tar, riconciliazione, scrittura e verifica | 2 min 23 s, 4 CPU, 9 min 32 s di CPU allocate, RSS massima 3,9 GiB. `data/manifests/mavis-geometry-candidato-1` (148 MiB): 199.050 record ammessi in 158.018 gruppi, nessun conflitto di verità, `shape_type` in quarantena in 177.944 record; run2 riprodotto coi 60 esempi; verifica 16 su 16 (S2 §3) | che il candidato è riproducibile e coerente con le annotazioni, con gruppi indivisibili e stato per compito. Non dice nulla sulla fedeltà all'immagine, non è letto dai loader, la decontaminazione esterna manca |
+| 30633 (2026-11-05) | `slurm/tests_cpu.sbatch` con `test_unimer_manifest.py`, `test_mavis_manifest.py` e `test_manifest_recheck.py`, prima del commit `c271d6e` | 22 s, 4 CPU, 1 min 28 s di CPU allocate, stderr vuoto: 29 su 29, 14 su 14, 8 su 8. Gli id git del contenuto provato coincidono col commit | che le lacune del verificatore sono chiuse sui fixture: PNG della riga scambiato rifiutato prima dei gruppi, fasce non valide rifiutate (20 casi), stati alterati rifiutati dai soli controlli attesi, quota zero e semi consecutivi con lo stesso dev accettati |
+| 30634 (2026-11-05) | `slurm/manifest_recheck.sbatch unimer unimer-candidato-1 bcc85198… riverifica-1`: test mirati, poi riverifica in sola lettura | 1 min 43 s, 2 CPU, 3 min 26 s di CPU allocate, RSS 7,5 GiB. 28 controlli su 28, nessuna anomalia: verifica corrente 23 su 23 (stato atteso per 1.016.135 record su 1.016.135); 30.685 righe su 30.685 contro lo shard delle righe e la formula genitore, coi digest del manifest; 8 file di evidenze e 5 shard di train (solo dimensione) uguali a quelli registrati (S2 §4) | che il manifest scritto rispetta i controlli nuovi: stesso PNG della formula, fasce strutturalmente valide, stati delle contaminazioni. Non prova la corrispondenza visiva delle fasce |
+| 30635 (2026-11-05) | `slurm/manifest_recheck.sbatch mavis mavis-geometry-candidato-1 dc0f264c… riverifica-1` | 42 s, 2 CPU, 1 min 24 s di CPU allocate, RSS 3,8 GiB: 15 controlli su 15, nessuna anomalia, 10 file di evidenze uguali a quelli registrati (S2 §3) | che il manifest scritto supera la verifica senza il controllo sul cambio di seme |
 
 Calcoli di sola libreria standard sul frontend, il 2026-10-28, a supporto delle specifiche (non sono collaudi):
 - riproduzione delle domande di synth v3 dalle chiavi, con istogrammi identici al manifest del job 29756;
@@ -580,6 +583,11 @@ training; i loader non li applicano ancora (C7).
   - *Dev:* 5% delle formule ammesse, seme 0; rango del campione candidato per ogni gruppo.
   - *Collaudo:* run4 e run2 ricalcolati dalle regole correnti e uguali ai loro file; 15 test su fixture; verifica dopo
     la scrittura 21 su 21.
+  - *Verificatore corretto* (`c271d6e`, job 30633): la riga ritagliata deve avere il PNG della formula e fasce
+    strutturalmente valide, prima dei gruppi; lo stato di ogni record è il più grave richiesto dalle evidenze; tolto il
+    controllo sul cambio di seme.
+  - *Riverifica in sola lettura* (job 30634, `scripts/manifest_recheck.py`): 28 controlli su 28, nessuna anomalia. Il
+    rapporto è `docs/manifests/riverifica-1/unimer-candidato-1-bcc85198.json`.
   - *Lacune:* decontaminazione esterna contro `pannello-v3`; revisione campionaria (S4); `immagine_vuota` di run4 non
     ricalcolata; formule uguali con immagini diverse non unite (il dev misura immagini nuove); reader (C7).
 - **MAVIS-Geometry** (`scripts/mavis_manifest.py`, job 30626 e 30630, S1 §9, S2 §3).
@@ -594,6 +602,7 @@ training; i loader non li applicano ancora (C7).
   - *Collaudo:* run2 ricalcolato con la sua chiave (`mavis-<id>`, diversa da quella del loader) e uguale al report e ai
     60 esempi; caption e geometry check senza segnalazioni; 12 test su fixture con annotazioni vere, il cui run2 lo
     scrive lo script storico; verifica dopo la scrittura 16 su 16.
+  - *Riverifica in sola lettura* (job 30635), senza il controllo sul cambio di seme: 15 su 15, nessuna anomalia.
   - *Lacune:* fedeltà all'immagine (revisione visiva, S4); decontaminazione esterna; C9 (opzioni di `shape_type`,
     valore visualizzato ed esatto, 22.712 record con razionali disegnati come decimali); geometry check non ricalcolato;
     reader (C7), mentre il loader attuale può ancora scegliere `shape_type`.

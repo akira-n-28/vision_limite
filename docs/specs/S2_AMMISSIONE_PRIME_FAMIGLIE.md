@@ -1523,6 +1523,12 @@ riverificata per la nuova configurazione (pipeline §5.7).
   - Manca la decontaminazione esterna contro `pannello-v3`, che comprende le geometrie di MathVerse, degli stessi autori.
   - C9 non è implementato.
   - Il loader attuale può ancora scegliere `shape_type`: un reader col manifest (C7) deve escluderla.
+- **Riverifica in sola lettura** (2026-11-05, job 30635, `scripts/manifest_recheck.py`). Il manifest è stato
+  riverificato senza ricostruirlo, con la verifica corretta in `c271d6e`, che non chiede più che un altro seme cambi
+  il dev.
+  - `manifest.json` è quello atteso e i 10 file di evidenze sono uguali a quelli registrati.
+  - Esito: 15 controlli su 15, nessuna anomalia.
+  - Rapporto: `docs/manifests/riverifica-1/mavis-geometry-candidato-1-dc0f264c.json`.
 
 ## 4. UniMER (`data/shards/unimer/2343ddd9-dense`, `latex.py`, `outputs/unimer_check/run4`)
 
@@ -1573,6 +1579,31 @@ MiB). Il riepilogo versionato è `docs/manifests/unimer-candidato-1.json`.
     metrica senza contaminazione usa i casi mai visti di run2.
   - Il dev misura immagini nuove, non formule nuove.
   - I loader non applicano il manifest (C7).
+- **Verificatore corretto** (2026-11-05, `c271d6e`, test nel job 30633).
+  - La riga ritagliata deve avere il PNG della formula, con gli stessi byte e le stesse dimensioni. Righe e fasce devono
+    essere strutturalmente valide (`band_problems`): coppie di interi con 0 ≤ y0 < y1 ≤ altezza, in ordine, senza
+    sovrapposizioni, una per riga, con le dimensioni del JSON uguali a quelle del PNG.
+  - Costruzione e verifica lo richiedono prima di gruppi e ammissioni. Il PNG della riga non crea legami.
+  - La verifica ricalcola lo stato di ogni record dalle evidenze, e vince il più grave.
+  - Non chiede più che un altro seme cambi il dev.
+- **Riverifica in sola lettura** (job 30634, `scripts/manifest_recheck.py`).
+  - **Ingressi.** `manifest.json` è quello atteso (`bcc85198…`). Gli 8 file di run4 e run2 sono uguali a quelli
+    registrati.
+  - **Verifica corrente.** 23 controlli su 23:
+    - le 30.685 righe ritagliate hanno il PNG e la griglia della loro formula;
+    - lo stato di 1.016.135 record su 1.016.135 è quello richiesto dalle evidenze;
+    - il gruppo con l'immagine di UniMER-Test (2 record) è escluso;
+    - i 404 gruppi con una formula lunga del test (493 record) non hanno record ammessi.
+  - **Righe contro lo shard.** Lo shard delle righe è stato riletto e hashato: lo sha256 `43c06874…` è uguale.
+    - Tutte le 30.685 righe hanno JSON, PNG, etichetta, posizione e numero di righe del manifest, con fasce valide.
+    - Il genitore torna coi digest del manifest. Gli shard di train non sono stati riletti.
+    - Le fasce per riga vanno da 2 a 28; la più bassa è alta 15 px.
+    - In 255 record due fasce si toccano, con spazio 0: è ammesso perché gli intervalli sono semiaperti, ma lì il
+      loader non aggiunge margine verso la riga vicina.
+  - **Esito.** 28 controlli su 28, nessuna anomalia, nessuna nuova versione necessaria.
+  - **Rapporto.** `docs/manifests/riverifica-1/unimer-candidato-1-bcc85198.json`.
+  - **Limite.** La validità delle fasce è strutturale: che ogni fascia contenga la sua riga resta da verificare
+    guardando.
 
 ## 5. Collaudi (CPU, `tests_cpu`)
 
