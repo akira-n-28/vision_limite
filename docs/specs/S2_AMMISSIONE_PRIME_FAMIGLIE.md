@@ -843,7 +843,8 @@ invariato (§2.6). Non si usano agenti LLM. I due campioni restano separati (S4 
    Per ogni caso si registrano anche il tipo di difetto e il tempo.
 4. **Prerequisiti, da approvare (D5):**
    - il disegno e le numerosità sopra;
-   - il limite ipergeometrico con i collaudi di S4 §8 (C8, `estimate.py`, non implementato);
+   - il limite ipergeometrico con i collaudi di S4 §8 (C8, `estimate.py`: implementato e collaudato il 2026-11-05, S4
+     §9; non ancora applicato agli esiti);
    - uno script che estrae i campioni e prepara i fogli di revisione, in un job CPU di pochi minuti;
    - un foglio TSV per gli esiti.
 
@@ -1078,7 +1079,8 @@ Il limite è il superiore esatto al 95%, ipergeometrico, ed è solo informativo:
 - vale con zero errori osservati, contando incerti e casi non giudicabili come errori;
 - resta condizionato alla sensibilità del revisore (S4 §4);
 - C8 (`estimate.py`) non è implementato; qui il limite viene da `synth_gold_sample.upper_zero`, collaudato sui valori
-  della §2.8.
+  della §2.8. Dal 2026-11-05 il limite esatto è in C8 (S4 §9), che ritrova i valori della §2.8; questa tabella resta
+  quella calcolata con `upper_zero`.
 
 Una numerosità minore va fissata prima di guardare: è il prefisso nell'ordine del rango.
 
@@ -1140,7 +1142,7 @@ fermato in 1 s su un errore del test (etichette dei vertici uguali nel poligono 
 **Restano da decidere e da fare:**
 - D5: budget degli audit e numerosità;
 - la revisione umana dei 380 + 175 casi e dei 264 candidati;
-- C8, per il limite con collaudi;
+- C8, per il limite con collaudi: implementato e collaudato il 2026-11-05 (S4 §9), da applicare agli esiti;
 - una versione nuova del manifest con gli esiti: riammissioni o esclusioni, mai correzioni della v2.
 
 ### 2.11 Correzione dei fogli e del validatore delle derivazioni (job 30555-30556, codice `6328a29`, 2026-11-04)
@@ -1270,7 +1272,16 @@ manifest 24 KiB.
 - `opzioni_nel_testo_della_domanda` è un indicatore testuale, non una regola del generatore;
 - la verifica della catena prova integrità e coerenza delle versioni, non la correttezza delle decisioni.
 
-**Restano aperti:** revisione visiva del campione e dei 264 candidati (D5), requisiti del loader di F0 della §2.9, C8.
+**Restano aperti:** revisione visiva del campione e dei 264 candidati (D5), requisiti del loader di F0 della §2.9, C8
+(implementato il 2026-11-05, S4 §9, da applicare agli esiti).
+
+**Nota del 2026-11-05 sul confronto.** Il confronto qui sopra va dal formato 1 di `campione-1` al formato attuale, il
+caso che il codice di allora trattava correttamente, e resta valido per ciò che confrontava. Non certifica tutto: le 20
+risposte b delle coppie mirate e le opzioni b di tutte le 50 coppie non c'erano nel formato 1, quindi sono state
+aggiunte senza confronto. `confronto.json` conta le prime come `seconde_varianti_aggiunte` e non nomina le seconde. Lo
+stesso codice falliva invece fra due fogli del formato attuale: aggregava le coppie casuali e prendeva la prima
+variante nelle altre. È corretto in `2a2002a` (job 30616): confronto per (unita, variante) col formato del precedente
+esplicito e le aggiunte del formato 1 elencate come non certificate. Non è stato rieseguito sui fogli reali.
 I 743 gruppi esclusi dal pannello possono restare esclusi: risolverli tutti non è un prerequisito per avanzare
 (`docs/PANNELLO_VALUTAZIONE.md` §7, punto 2).
 

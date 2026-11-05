@@ -1,6 +1,6 @@
 # Piano di implementazione F0
 
-Stato al 2026-11-04, [pipeline v1.5](../PIPELINE_ADDESTRAMENTO_LIMITE_VL.md) (§§3, 5, 6, 17). Il confronto è fra il
+Stato al 2026-11-05, [pipeline v1.5](../PIPELINE_ADDESTRAMENTO_LIMITE_VL.md) (§§3, 5, 6, 17). Il confronto è fra il
 codice del repository sul cluster e i requisiti della pipeline.
 
 **Stato attuale degli interventi (§3):**
@@ -9,9 +9,12 @@ codice del repository sul cluster e i requisiti della pipeline.
   contro `pannello-v3`, con il manifest `synth-v4-candidato-2` (job 30517-30518). Il campione per l'audit delle golden
   answer è preparato (job 30522; S2 §§2.9-2.10). Il 2026-11-04 i fogli sono corretti con la stessa selezione, e il
   validatore verifica gli split lungo la catena delle derivazioni (job 30555-30556, `campione-2`, S2 §2.11). La
-  revisione non è fatta.
+  revisione non è fatta. Il 2026-11-05 il confronto con un campione precedente (`compare_previous`) lavora per unità e
+  variante, col formato del precedente esplicito (`2a2002a`, job 30616, sezione "Confronto dei fogli e stime" in §4).
 - **C5 e C7:** implementati in parte, nel sottoinsieme di S1 per i sintetici v4 (S1 §9).
-- **C3, C4, C6, C8, C9:** non iniziati.
+- **C8, stime:** nucleo implementato e collaudato su dati fittizi il 2026-11-05 (job 30616-30617, S4 §9); non applicato
+  agli esiti reali.
+- **C3, C4, C6, C9:** non iniziati.
 - **Pannello di valutazione (punto 7):** benchmark scaricati e verificati (job 30463). Indice, gruppi e ruoli sono
   fissati in `pannello-v3` (job 30469), prima di qualsiasi valutazione del modello, e descritti in
   `docs/PANNELLO_VALUTAZIONE.md`. v3 corregge sei problemi di v2 (collaudi nel job 30468). Da approvare (D6).
@@ -246,7 +249,8 @@ Il prossimo lotto minimo, indipendente dalle decisioni aperte, è in `docs/F0_CA
 1. verifica visiva dei gruppi inammissibili del pannello;
 2. decontaminazione di v4 contro `pannello-v3`: fatta il 2026-11-02 (job 30517-30518); resta la verifica visiva dei
    264 candidati;
-3. manifest delle ammissioni di UniMER e MAVIS (estensione di C5 e C7);
+3. manifest delle ammissioni di UniMER e MAVIS (estensione di C5 e C7): è il lotto successivo indicato dall'utente il
+   2026-11-05;
 4. scansione delle sorgenti locali contro il pannello.
 
 C3 e C4 seguono D3.
@@ -260,7 +264,7 @@ C3 e C4 seguono D3.
 | C5 | Identità e manifest: JSON canonico, digest completi, mappa delle collisioni, record, scrittura immutabile; i loader restituiscono la costruzione canonica. **In parte, per i sintetici v4 (2026-10-30, `630d00a`, S1 §9): JSON canonico, digest e collisioni, `record_id`, `group_id`, record, split per gruppo, scrittura immutabile (`data/manifests/synth-v4-candidato-1`, job 30451); mancano `variant_id`, `uid` e la costruzione canonica dai loader, che dipendono da C3** | `src/limite_vl/manifest.py`, `scripts/synth_manifest.py`, `data.py` | S1 §8 (collisione forzata, canonicalizzazione, prefissi, contratto): `tests/test_manifest.py` tranne il contratto | — | C3 (per la costruzione canonica) |
 | C6 | Indice globale e import delle esclusioni storiche | `scripts/build_index.py` (nuovo) | S1 §8 (gruppi, chiavi storiche) | costruzione dell'indice (CPU, 4 CPU, 24G, durata da misurare su uno shard per sorgente) | C5, D6 |
 | C7 | Reader col manifest, validazione dal manifest, contatori per sorgente e compito (`too_long` compreso). **In parte (2026-10-30, `630d00a`): solo i record ammessi dello split, validazione dal manifest, sha256 di JSON e PNG controllati, contatori dei reader e degli esempi caricati per sorgente, shard v4 leggibili solo col manifest; verifiche sui dati reali nel job 30451 (`scripts/manifest_check.py`); mancano i contatori per compito e `too_long` per sorgente** | `stream.py`, `collator.py`, `data_lists.py` | S1 §8 (reader): `tests/test_manifest.py` | verifiche del manifest (CPU, 8 CPU, 16G, 4 min) | C5 |
-| C8 | Stime: limite ipergeometrico e binomiale, estrazione con probabilità registrate, Bonferroni, rifiuto se unità e quantità non coincidono | `src/limite_vl/estimate.py` (nuovo) | S4 §8 (copertura esatta sul controesempio) | — | S4 |
+| C8 | Stime: limite ipergeometrico e binomiale, estrazione con probabilità registrate, Bonferroni, rifiuto se unità e quantità non coincidono. **Nucleo implementato il 2026-11-05, dopo l'adozione del nucleo tecnico di S4 da parte dell'utente: limiti esatti, Bonferroni, compatibilità fra disegno, quantità e popolazione, esiti contati senza perdite, tre livelli del risultato (S4 §9). Collaudato su dati fittizi (job 30616-30617), non applicato agli esiti reali. Senza campionatori: l'estrazione con probabilità registrate resta quella di `synth_gold_sample.py`** | `src/limite_vl/estimate.py` (nuovo) | S4 §8 tranne l'estrazione: `tests/test_estimate.py` | test mirati: CPU, 2 CPU, 4G, 2-3 s (job 30616-30617) | S4 |
 | C9 | MAVIS: `shape_type` con opzioni dalle misure note; valore visualizzato ed esatto nel record | `src/limite_vl/f1_mavis.py` | S2 §5 (MAVIS) | controllo su tutti gli shard (CPU, come il job 30052) | C5 |
 
 ## 4. Collaudi
@@ -298,6 +302,8 @@ C3 e C4 seguono D3.
 | 30562-30566 (2026-11-04) | `slurm/js_engine_probe.sbatch` (30562); `slurm/review_package.sbatch campione-2 synth-v4-campione-2 verifica` (30563-30566) | Sonda: su `lagrange0` c'è Duktape 2.7 come libreria di sistema; Node in `~/.nvm` e Firefox snap restano fuori dal progetto e non si usano. Il JavaScript pubblicato (`a9252b5`), eseguito per la prima volta con Duktape: 58 su 59 controlli, saltata la parte DOM. Correzioni del primo giudizio (S2 §2.12): autotest senza target, unità collegate per record e scena (23 unità), registro delle esposizioni, unione degli stati, formato 2 con migrazione. Esito: senza DOM 97 superati e 0 falliti; su DOM simulato 118 e 0; collegamenti uguali a Python; verifica statica 29 su 29 | che logica e interfaccia si eseguono con Duktape, con le regressioni scritte, sui dati veri. Non è una prova in un browser: il collaudo resta `verifica.html` sul portatile |
 | 30568-30571 (2026-11-04) | `slurm/review_package.sbatch campione-2 synth-v4-campione-2 verifica` (30568, 30569, 30571 sul commit) e `… regressione 9ea9af1` (30570) | Correzione dell'indipendenza delle unità già fissate (S2 §2.12, punto 5): blocco e classificazione separati, cronologie unite, stati del formato 2 di `9ea9af1` riconciliati. Senza DOM 112 superati e 0 falliti; DOM simulato 136 e 0; verifica statica 29 su 29. Con il `logica.js` di `9ea9af1` falliscono esattamente i controlli nuovi (11 senza DOM, 14 su DOM simulato) | che i nuovi test rilevano il difetto e che la correzione lo elimina, con Duktape. Nessuna prova in un browser |
 | 30556 (2026-11-04) | `slurm/synth_gold_sample.sbatch campione-2 campione-1 campione-1`, dopo il 30555 | 4 min. Test mirati; `manifest_check` di `synth-v4-candidato-2` col validatore corretto, 44 su 44 con la catena 2 → 1; fogli `campione-2`: 755 corrispondenze su 755 riconciliate (18 oltre l'anteprima, in 3 record), 102 immagini del pannello, prompt del loader per 337 unità, soluzioni per variante; selezione identica a `campione-1` (S2 §2.11) | che i fogli sono completi e riproducibili con la stessa estrazione. Nessuna revisione e nessuna stima |
+| 30616 (2026-11-05) | `slurm/tests_cpu.sbatch tests/test_synth_gold.py tests/test_estimate.py`, test mirati sulle dipendenze modificate, prima dei commit | 3 s, 2 CPU, 6 s di CPU allocate, stderr vuoto. `test_synth_gold.py` 60 controlli su 60, 18 nuovi su `compare_previous`; `test_estimate.py` 44 su 44. Gli id git dei file provati coincidono con quelli di `2a2002a` | che il confronto per unità e variante e il nucleo di C8 superano le regressioni scritte, su dati fittizi. I campioni reali non sono rigenerati, e C8 non è applicato agli esiti |
+| 30617 (2026-11-05) | `slurm/tests_cpu.sbatch tests/test_estimate.py`, sul contenuto del commit di C8 | 2 s, 2 CPU, 4 s di CPU allocate: 44 su 44, compresi i numeri dell'esempio minimo (S4 §9) | come sopra, per la versione committata del test di C8 |
 
 Calcoli di sola libreria standard sul frontend, il 2026-10-28, a supporto delle specifiche (non sono collaudi):
 - riproduzione delle domande di synth v3 dalle chiavi, con istogrammi identici al manifest del job 29756;
@@ -501,6 +507,50 @@ dettagli in S2 §§2.9-2.10):
   contratto. Decontaminazione superata, golden answer verificate e dati pronti per F0 sono tre condizioni diverse, e
   nessuna delle ultime due è raggiunta.
 
+Confronto dei fogli e stime (job 30616-30617, 2026-11-05), mentre l'utente fa la revisione di `synth-v4-campione-2`.
+La revisione, il pacchetto, i fogli, la selezione e il manifest non sono toccati.
+- **`compare_previous`** (`scripts/synth_gold_sample.py`, commit `2a2002a`). Il difetto: il confronto assumeva sempre
+  il formato di `campione-1`, con le coppie casuali aggregate in una riga e le coppie mirate con la sola variante a.
+  Due fogli del formato attuale, che ha una riga per variante, risultavano quindi diversi anche se identici, e la
+  variante b non si confrontava.
+  - *Implementazione:* il formato del precedente viene dallo schema del suo `report.json`, controllato con le colonne
+    dei file. Nel formato attuale soluzioni e opzioni si confrontano per (unita, variante), con record e record_id
+    associati, risposta, esito del checker, stato e stato della scena. Ogni foglio si controlla anche da solo: righe
+    ripetute, varianti mancanti o inattese, record sbagliato. Dal formato 1 sono ammesse solo le trasformazioni
+    previste: le risposte aggregate si separano per variante, e le varianti b assenti si dichiarano aggiunte senza
+    confronto, quindi non certificate (`confronto_completo` falso). Restano i controlli su selezione, ordine, ranghi,
+    manifest e immagini.
+  - *Collaudo:* 18 controlli nuovi su fogli fittizi (job 30616).
+  - *Applicazione ai fogli reali:* nessuna; il confronto nuovo si userà alla prossima generazione di fogli. Il
+    confronto già scritto fra `campione-1` e `campione-2` (job 30556) andava dal formato 1 a quello attuale, il caso che
+    il codice vecchio trattava correttamente, e resta valido per ciò che confrontava. Le 20 risposte b delle coppie
+    mirate e le opzioni b delle 50 coppie non erano nel formato 1, quindi non sono certificate invariate (S2 §2.11).
+- **C8** (`src/limite_vl/estimate.py`, S4 §9).
+  - *Implementazione:* limite ipergeometrico esatto e Clopper-Pearson, Bonferroni, compatibilità fra popolazione, unità
+    estratta e quantità, esiti contati senza perdite, tre livelli del risultato. Non ci sono campionatori, aggregazioni
+    di strati, soglie né certificazioni.
+  - *Collaudo:* 44 controlli su dati fittizi (job 30616-30617): enumerazione esatta, copertura esatta, casi limite,
+    controesempio della S4 §4, Bonferroni, rifiuti.
+  - *Applicazione agli esiti reali:* non fatta. Servono la revisione completa e la corrispondenza fra i valori del
+    pacchetto e gli esiti di C8, da fissare con l'utente prima di guardare gli esiti (proposta in S4 §9). Gli esiti
+    parziali non scelgono soglie né cambiano il disegno.
+  - *Esempio minimo,* con dati fittizi (S4 §9):
+
+    ```python
+    from limite_vl import estimate as est
+
+    d = est.Design("esempio-fittizio", "A", "qa", est.UNIFORM, 10_000, 300)  # N = 10.000 QA, n = 300 estratte
+    c = est.Claim("correttezza", "quota_qa_errate", "esempio-fittizio", "A", 10_000)
+    k = est.Counts(approvato=294, errato=2, incerto=1, non_giudicabile=1, mancante=1, approvato_non_indipendente=1)
+    r = est.estimate(c, d, k)  # r["limite"]: k = 6, D_U = 388, valore 0.0388; r["conteggi"]: quota non risolta 3/300
+    ```
+
+    Con 2 errori confermati il limite usa k = 6, perché incerti, non giudicabili, mancanti e approvazioni non
+    indipendenti contano come errori. Il risultato: al più 388 QA su 10.000 non sarebbero approvate (3,88%, al 95%,
+    valido per il disegno). Lo stesso numero vale per le QA errate solo se il revisore non approva errori. Con un
+    secondo strato simultaneo (Bonferroni, 1/40 ciascuno) il limite sale a 426. Una stima della quota di QA da un
+    campione di coppie è rifiutata.
+
 ### Da pianificare
 
 Nessuno dei controlli che restano in questa tabella è stato eseguito o è dichiarato superato: quelli eseguiti sono
@@ -509,10 +559,10 @@ un job CPU (CLAUDE.md).
 
 | Collaudo | Scopo | Risorse | Quando |
 | --- | --- | --- | --- |
-| Sintetici (C1, C2) | Eseguiti: test (job 30392, 30417, 30448), controllo sugli shard (job 30393, 30418, 30448), coppie v4 (job 30419), analisi degli scarti (job 30400, 30420), render e candidato v4 (job 30447-30449), manifest e dev split (job 30450-30451), decontaminazione esterna contro `pannello-v3` e manifest `synth-v4-candidato-2` (job 30517-30518), campione dell'audit preparato (job 30522, S2 §2.10), fogli corretti con la stessa selezione (job 30556, `campione-2`, S2 §2.11). Da fare, con l'ok dell'utente: revisione visiva del campione (380 unità e 175 casi mirati, rubrica della S2 §2.8, C8 prima del limite) e dei 264 candidati della decontaminazione | revisione umana; C8 CPU 20 min | con l'ok dell'utente (D5) |
+| Sintetici (C1, C2) | Eseguiti: test (job 30392, 30417, 30448), controllo sugli shard (job 30393, 30418, 30448), coppie v4 (job 30419), analisi degli scarti (job 30400, 30420), render e candidato v4 (job 30447-30449), manifest e dev split (job 30450-30451), decontaminazione esterna contro `pannello-v3` e manifest `synth-v4-candidato-2` (job 30517-30518), campione dell'audit preparato (job 30522, S2 §2.10), fogli corretti con la stessa selezione (job 30556, `campione-2`, S2 §2.11), confronto per unità e variante (job 30616). In corso, fatta dall'utente: revisione visiva del campione (380 unità e 175 casi mirati, rubrica della S2 §2.8) e dei 264 candidati della decontaminazione. Poi: limite con C8 sugli esiti, dopo aver fissato con l'utente la corrispondenza degli esiti (S4 §9) | revisione umana; C8 CPU pochi secondi | con l'ok dell'utente (D5) |
 | Contratto ed estrattore (C3, C4; punto 1) | Tokenizzazione e label per modalità; quattro forme e terminazione; tassonomia ufficiale; risposta diretta di Violetto | CPU 20 min; GPU 1 ora | dopo D3 e S3 |
 | Manifest, indice e reader (C5-C7; punto 3) | Per i sintetici v4 eseguiti (job 30450-30451, S1 §9). Restano: indice globale e chiavi storiche (C6), varianti e contratto (dopo C3), contatori per compito, le altre sorgenti | CPU 20 min; indice CPU 4 CPU 24G, durata da misurare | dopo S1, D6 |
-| Stime (C8) | Copertura esatta, limite ipergeometrico, estrazioni | CPU 20 min | dopo S4 |
+| Stime (C8) | Eseguiti: copertura esatta, limite ipergeometrico e binomiale, Bonferroni, rifiuti (job 30616-30617, S4 §9). Da fare: collaudo dell'estrazione solo se si aggiunge un campionatore; applicazione agli esiti reali dopo la revisione completa | CPU pochi secondi | applicazione con l'ok dell'utente |
 | MAVIS (C9; punto 2) | `shape_type` con opzioni; valori visualizzati ed esatti | CPU 20 min; controllo CPU su tutti gli shard | dopo C5 |
 | Più immagini (punto 4) | Ordine, budget, parità con cache | CPU 20 min; GPU 1 ora | dopo i punti 1, 3 |
 | Encoder (punto 5) | Refactoring SigLIP2 identico; parità dell'encoder B col percorso nativo; rami disattivati uguali al riferimento | GPU 1 ora ciascuno | (a) dopo l'ok; (b) dopo D1 |

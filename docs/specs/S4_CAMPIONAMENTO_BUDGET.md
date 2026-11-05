@@ -4,6 +4,10 @@
 pipeline v1.4 §§5.4, 5.9, 15.3, 16 (rilievi R8, G6, G7). Soglie e budget numerici sono decisioni dell'utente (D4, D5):
 qui ci sono il disegno e i valori proposti, segnati come tali.
 
+Il 2026-11-05 l'utente ha adottato il nucleo tecnico: limiti esatti (§3), compatibilità fra disegno e quantità stimata,
+verifiche di copertura (§8). È implementato e collaudato in C8 (§9), non ancora applicato a esiti reali. Soglie di
+ammissione, numerosità e budget degli audit proposti (§§6-7) restano decisioni aperte.
+
 ## 1. Principi
 
 - Una stima vale solo per la quantità, la popolazione e il disegno dichiarati **prima** dell'estrazione.
@@ -127,8 +131,8 @@ I numeri della tabella sono proposte di lavoro, non soglie approvate.
 
 Per i sintetici v4 il piano concreto del 2026-10-30 è in S2 §2.8, ed è anch'esso da approvare. Rispetto alla riga della
 tabella aggiunge un campione casuale informativo (75 QA per famiglia, 50 del test, 30 coppie), oltre ai casi mirati,
-perché "pronto per un esperimento" chiede un audit campionario (pipeline §15.3; §1). Il limite ipergeometrico richiede C8,
-non ancora implementato.
+perché "pronto per un esperimento" chiede un audit campionario (pipeline §15.3; §1). Il limite ipergeometrico è in C8
+(§9), collaudato su dati fittizi e non ancora applicato agli esiti di quella revisione.
 
 ## 8. Collaudi (CPU, `tests_cpu`)
 
@@ -147,3 +151,144 @@ non ancora implementato.
   rifiutata: il codice controlla che unità e quantità coincidano.
 - **Bonferroni.** Due strati al livello 0.025 ciascuno danno un limite per l'unione con copertura congiunta di almeno
   0.95, su popolazioni costruite apposta.
+
+Eseguiti per C8 tutti tranne quello dell'estrazione, perché C8 non contiene campionatori (§9). Il campionatore dei
+sintetici (`scripts/synth_gold_sample.py`) è collaudato solo per l'ordine riproducibile e per il prefisso
+(`tests/test_synth_gold.py`).
+
+## 9. Nucleo implementato (C8, 2026-11-05)
+
+Il nucleo tecnico adottato dall'utente il 2026-11-05 è in `src/limite_vl/estimate.py`, che usa solo la libreria
+standard. Lo stato va letto su tre livelli separati:
+- **Implementazione:** fatta, nel commit di C8.
+- **Collaudo:** `tests/test_estimate.py` su dati fittizi, 44 controlli su 44 (job 30616 e 30617).
+- **Applicazione agli esiti reali:** non fatta. La revisione di `synth-v4-campione-2` è in corso, e i suoi esiti
+  parziali non si usano per scegliere soglie, corrispondenze degli esiti o disegno.
+
+**Funzioni.**
+
+| Funzione | Uso |
+| --- | --- |
+| `hypergeometric_upper(N, n, k, alpha)` | D_U della §3, con interi esatti; il limite della quota è D_U / N |
+| `clopper_pearson_upper(n, k, alpha)` | limite binomiale esatto per estrazioni con reinserimento, arrotondato per eccesso |
+| `bonferroni(alpha, m)` | livello alpha / m di ciascuna di m affermazioni simultanee |
+| `Claim`, `Design`, `check_compatible` | affermazione e disegno dello strato, con il rifiuto se non sono compatibili |
+| `tally`, `Counts`, `describe` | esiti per estrazione, contati senza perdite; conteggi descrittivi |
+| `estimate`, `estimate_simultaneous` | limite per uno strato; più affermazioni con Bonferroni, ciascuna col suo risultato |
+
+Alpha vale 1/20 se non è indicato, ed è tenuto come frazione esatta.
+
+**Quantità ammesse,** ciascuna con la sua unità estratta:
+
+| Quantità | Unità estratta | Estrazione | Limite |
+| --- | --- | --- | --- |
+| `quota_qa_errate` | QA | uniforme senza reinserimento | ipergeometrico |
+| `quota_gruppi_con_errore` | gruppo, controllato per intero | uniforme senza reinserimento | ipergeometrico |
+| `quota_coppie_con_errore` | coppia, giudicata per intero | uniforme senza reinserimento | ipergeometrico |
+| `quota_target_token_errati` | QA | con reinserimento, probabilità proporzionale ai target-token | Clopper-Pearson |
+
+Con n = N il limite ipergeometrico è un censimento e dà la quota esatta.
+
+**Esiti,** uno per estrazione:
+
+| Esito | Significato | Nel limite |
+| --- | --- | --- |
+| `approvato` | corretto per la proprietà, con primo giudizio indipendente (§5) | approvato |
+| `approvato_non_indipendente` | corretto, ma il primo giudizio non era indipendente dal target | errore |
+| `errato` | errore confermato | errore |
+| `incerto` | il revisore non decide | errore |
+| `non_giudicabile` | il caso non permette un giudizio | errore |
+| `mancante` | estratto e non giudicato | errore |
+
+Nessun esito si toglie. Tutti compaiono nei conteggi, e la quota non risolta (incerti, non giudicabili, mancanti) si
+riporta sempre. Contare come errori gli esiti non approvati lascia valido il limite e lo allarga.
+
+**Il calcolo si rifiuta** (eccezione `Refused`) nei casi seguenti:
+- casi mirati, che non stimano un tasso: restano solo i conteggi (`describe`);
+- unità estratta diversa da quella della quantità, per esempio la quota di QA da un campione di gruppi o di coppie
+  (§4);
+- estrazione diversa da quella della quantità;
+- popolazione, strato o N diversi fra affermazione e disegno;
+- numero di esiti diverso da n, perché la numerosità non si estende né si riduce dopo l'estrazione;
+- unità estratta senza esito (va segnata `mancante`), esito di un'unità non estratta, esito ripetuto o sconosciuto,
+  unità ripetuta in un'estrazione senza reinserimento;
+- la stessa affermazione due volte nella stessa famiglia.
+
+Gli input numerici non validi danno `ValueError` (§3).
+
+**Risultato,** in tre parti separate:
+1. `conteggi`, descrittivi: valgono per le unità guardate, non per la popolazione.
+2. `limite`, valido per il disegno dichiarato: con probabilità almeno 1 − alpha sull'estrazione, la quota della
+   popolazione che la revisione non approverebbe non supera il limite.
+3. `conclusione`, condizionata all'attendibilità del revisore: lo stesso numero limita la quota di unità errate solo se
+   il revisore non approva unità errate. La sua sensibilità non è misurata e non si corregge (§4).
+
+`certificazione` vale sempre "nessuna": nessun record diventa gold e nessuna soglia si applica.
+
+**Esempio minimo** con dati fittizi, ripreso da `test_example` in `tests/test_estimate.py`:
+
+```python
+from limite_vl import estimate as est
+
+pop = "esempio-fittizio"
+qa = est.Design(pop, "A", "qa", est.UNIFORM, 10_000, 300)
+coppie = est.Design(pop, "B", "coppia", est.UNIFORM, 500, 30)
+voci = [(est.Claim("correttezza", "quota_qa_errate", pop, "A", 10_000), qa,
+         est.Counts(approvato=294, errato=2, incerto=1, non_giudicabile=1, mancante=1, approvato_non_indipendente=1)),
+        (est.Claim("correttezza", "quota_coppie_con_errore", pop, "B", 500), coppie, est.Counts(approvato=30))]
+uno = est.estimate(*voci[0])               # un'affermazione al 95%
+insieme = est.estimate_simultaneous(voci)  # due affermazioni simultanee, ciascuna a 1/40
+```
+
+| Strato | Esiti | k nel limite | Limite al 95% | Con Bonferroni (1/40) |
+| --- | --- | --- | --- | --- |
+| A: 300 QA su 10.000 | 294 approvati, 2 errati, 1 incerto, 1 non giudicabile, 1 mancante, 1 approvazione non indipendente | 6 | 388 su 10.000 (3,88%) | 426 (4,26%) |
+| B: 30 coppie su 500 | 30 approvate | 0 | 46 su 500 (9,2%) | 56 (11,2%) |
+
+- Nello strato A gli errori confermati sono 2, ma il limite usa k = 6; la quota non risolta è 3/300.
+- La conclusione condizionata di A: se il revisore non approva QA errate, la quota di QA errate per la correttezza è al
+  più il 3,88%, al 95%.
+- Una stima della quota di QA dal disegno B è rifiutata: le coppie non stimano la quota di QA.
+
+**Collaudi** (job 30616 e 30617; 2 CPU, 2-3 s di tempo reale e 4-6 s di CPU allocate ciascuno):
+- **Enumerazione esatta:** per N ≤ 9 P(X ≤ k) e D_U coincidono con l'enumerazione di tutti i sottoinsiemi, in 630 casi
+  con alpha 1/20, 1/5 e 1/2.
+- **Copertura esatta:** almeno 1 − alpha per ogni D con N ≤ 12. Il minimo è 1 − alpha esatto, 0,95 (0,80 con alpha
+  1/5), dove P(X ≤ k) vale proprio alpha: per esempio N = 6, n = 3, D = 3, con P(X = 0) = 1/20. Con la disuguaglianza
+  stretta della §3 quel D è escluso, e la copertura resta al livello nominale, non sotto.
+- **Casi limite:** k = n, censimento, N = n = 1, k = 0 contro la scansione di tutti i D, e i valori della S2 §2.8
+  (3,91%, 5,77%, 9,00%); il limite cresce con k e cala con n.
+- **Convergenza a Clopper-Pearson:** scarto relativo 1,6·10⁻³, 2,1·10⁻⁴ e 1,8·10⁻⁵ per N = 10⁵, 10⁶ e 10⁷.
+- **Clopper-Pearson:**
+  - con k = 0 coincide con 1 − alpha^(1/n): 0,99% su 300;
+  - la probabilità esatta al limite è ≤ alpha, e > alpha poco sotto;
+  - coincide con `stem_audit.clopper_pearson` (storico) entro 1,2·10⁻¹⁵;
+  - la copertura esatta è ≥ 0,95 su una griglia di p.
+- **Controesempio della §4,** con calcolo esatto:
+  - col campione di gruppi `clustered_rate` copre nel 30% dei casi, e C8 rifiuta la stessa stima;
+  - 300 QA uniformi coprono al 95,55%, e sono tutte corrette con probabilità 1,24·10⁻¹⁰²;
+  - dallo stesso campione di gruppi si stima la quota di gruppi con errore: limite 0,8%, copertura 1.
+- **Bonferroni,** su due strati costruiti apposta (N = 400 con n = 40, N = 300 con n = 30), con campioni indipendenti:
+  - senza correzione la copertura simultanea scende a 0,903 per i D peggiori;
+  - con alpha/2 per strato resta almeno 0,9507 per ogni coppia di D;
+  - il limite dell'unione copre a 0,9988.
+- **Il resto:** input non validi, rifiuti per compatibilità e per esiti, tre parti del risultato, censimento,
+  Clopper-Pearson col disegno dei token.
+
+Niente GPU, download o token.
+
+**Limiti rimasti:**
+- C8 non contiene campionatori, quindi il collaudo dell'estrazione della §8 non è fatto.
+- Non c'è correzione per la sensibilità del revisore né calibrazione: le conclusioni restano condizionate.
+- Non c'è un limite automatico per l'unione di strati. È la somma dei D_U ciascuno a alpha/S, da calcolare a parte se
+  serve.
+- La corrispondenza fra i valori del pacchetto di revisione (`revisioni/synth-v4-campione-2`) e gli esiti di C8 non è
+  implementata. Va fissata con l'utente prima di guardare gli esiti. Proposta:
+  - `si` → `approvato`, oppure `approvato_non_indipendente` se il primo giudizio non è indipendente;
+  - `no` → `errato` se confermato con evidenza indipendente (§4), altrimenti `incerto`;
+  - `incerto` e `non_verificabile` → `incerto`; `non_giudicabile` → `non_giudicabile`; `non_compilato` → `mancante`;
+  - `non_applicabile` → rifiuto per quella proprietà;
+  - la gravità `minore` non è un errore e si conta a parte (S2 §2.8);
+  - una coppia è approvata solo se le due varianti e il contratto lo sono.
+- Per applicare C8 al campione dei sintetici, `Design` e `Claim` si costruiscono dal suo `report.json`: N, n, unità,
+  sha256 del manifest come popolazione, un'affermazione per proprietà e strato.

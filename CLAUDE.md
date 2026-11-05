@@ -228,6 +228,10 @@ training o audit è approvato. Il primo perimetro di lavoro è in `docs/F0_IMPLE
   consumo va nel ledger a ogni giro; al tetto ci si ferma e si riferisce. Il consenso fra agenti non è verità. Gli
   audit precedenti non contano come audit (decisione del 2026-10-26): orientano i controlli nuovi, non giustificano
   decisioni.
+- Stime campionarie solo con `src/limite_vl/estimate.py` (C8, S4 §9; nucleo tecnico adottato dall'utente il
+  2026-11-05). Un'affermazione per strato; l'unità estratta deve essere quella della quantità; gli esiti non approvati
+  (incerti, mancanti, approvazioni non indipendenti) contano come errori; nessuna certificazione. La corrispondenza fra
+  gli esiti di una revisione e quelli di C8 si fissa con l'utente prima di guardarli.
 - Le soglie numeriche e le ricette della strategia precedente (≤ 1% sulle risposte e ≤ 2% sui fatti della regola del
   2026-10-19, 300M token di F1-clean, picchi NorMuon al 15%) non valgono più (confermato dall'utente il 2026-10-28):
   soglie, volumi e iperparametri si fissano prima dei piloti, con l'utente.
@@ -511,6 +515,7 @@ parametri in `groups.py` sono ipotesi da verificare con `f0_checks.py` (sezione 
   - `synth.py`, `synth_check.py`, `mavis_gen.py`, `f1_schema.py`, `f1_mavis.py`, `mavis.py`: sintetici, la loro verifica
     indipendente, MAVIS;
   - `decontam.py`, `transcripts.py`, `mmfine.py`, `replay.py`: decontaminazione, PixMo, MMFineReason, replay testuale;
+  - `estimate.py`: stime campionarie con limiti esatti (C8);
   - `train_utils.py`: loss a blocchi e checkpointing per layer; `generation.py`: generazione;
   - `limite_code.py`: import verificato del codice di Limite; `optim/`: NorMuon e gruppi;
   - `provenance.py`: hash di testi e file, identità del codice, file nuovi senza sovrascrivere;
