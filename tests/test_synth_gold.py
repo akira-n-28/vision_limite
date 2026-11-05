@@ -16,7 +16,10 @@ riconciliate con summary.json e matches.jsonl, con materiale incompleto segnalat
 Dal 2026-11-05 anche compare_previous su fogli fittizi piccoli, scritti come li scrive il job: dal formato 1 di
 campione-1 (risposte aggregate separate per variante, varianti b assenti dichiarate senza confronto), formato attuale
 identico, sola variante b cambiata in una coppia casuale e in una mirata, varianti mancanti, aggiunte, ripetute o col
-record sbagliato, opzioni della sola variante b, e i controlli già presenti su ranghi, ordine, manifest e immagini."""
+record sbagliato, opzioni della sola variante b, e i controlli già presenti su ranghi, ordine, manifest e immagini.
+I fogli del formato attuale si scrivono con gs.write_sheet, il percorso di main. Tabelle vuote: colonne canoniche
+scritte da main, due campioni identici senza soluzioni né opzioni compatibili, file vuoti del vecchio scrittore (sola
+intestazione "unita") accettati solo se le unità non attendono righe, file con la sola colonna unita e righe rifiutati."""
 from __future__ import annotations
 
 import io
@@ -406,41 +409,56 @@ def write_images(where: Path, tables: dict, changed: dict | None = None) -> None
 
 
 def write_sheet(where: Path, tables: dict, fmt: str = gs.SCHEMA, files_fmt: str | None = None,
-                manifest_sha: str = MSHA) -> None:
-    """Foglio precedente su disco: report.json con lo schema fmt e i file nel formato files_fmt (di solito lo stesso)."""
+                manifest_sha: str = MSHA, legacy: tuple[str, ...] = ()) -> None:
+    """Foglio precedente su disco, con report.json che dichiara lo schema fmt e i file nel formato files_fmt (di solito
+    lo stesso). I file del formato attuale passano per gs.write_sheet, il percorso di scrittura di main. Quelli del
+    formato 1, e i nomi in `legacy`, per gs.write_table senza colonne, come li scriveva il codice prima del 2026-11-05:
+    colonne della prima riga, e la sola intestazione "unita" se la tabella è vuota."""
     files_fmt = files_fmt or fmt
     where.mkdir(parents=True)
     report = {"schema": fmt, "seme": 0, "audit": gs.AUDIT, "manifest": {"manifest_sha256": manifest_sha},
               "campione": {"strati": DESIGN}}
     (where / "report.json").write_text(json.dumps(report), encoding="utf-8")
-
-    def columns(rows):
-        return list(dict.fromkeys(k for r in rows for k in r)) or ["unita"]
-
-    c, m = tables["campione"], tables["mirati"]
-    if files_fmt == gs.FORMAT_V1:  # opzioni del primo record nella riga dell'unità
+    if files_fmt == gs.FORMAT_V1:  # opzioni del primo record nella riga dell'unità, risposte aggregate
         first = {}
         for o in tables["opzioni"]:
             first.setdefault(o["unita"], o["opzioni"])
-        c = [{**r, "opzioni": first.get(r["unita"], "")} for r in c]
-        m = [{**r, "opzioni": first.get(r["unita"], "")} for r in m]
-        gs.write_table(where / "soluzioni.tsv", v1_solutions(tables), list(gs.SOLUTION_COLUMNS[gs.FORMAT_V1]))
+        sheet = {"campione.tsv": [{**r, "opzioni": first.get(r["unita"], "")} for r in tables["campione"]],
+                 "mirati.tsv": [{**r, "opzioni": first.get(r["unita"], "")} for r in tables["mirati"]],
+                 "soluzioni.tsv": v1_solutions(tables)}
+        legacy = tuple(sheet)
     else:
-        gs.write_table(where / "soluzioni.tsv", tables["soluzioni"], list(gs.SOLUTION_COLUMNS[gs.SCHEMA]))
-        gs.write_table(where / "opzioni.tsv", tables["opzioni"], list(gs.OPTION_COLUMNS))
-    gs.write_table(where / "campione.tsv", c, columns(c))
-    gs.write_table(where / "mirati.tsv", m, columns(m))
-    gs.write_table(where / "candidati_decontaminazione.tsv", tables["candidati"], columns(tables["candidati"]))
+        sheet = {"campione.tsv": tables["campione"], "mirati.tsv": tables["mirati"],
+                 "soluzioni.tsv": tables["soluzioni"], "opzioni.tsv": tables["opzioni"]}
+    sheet["candidati_decontaminazione.tsv"] = tables["candidati"]
+    for name, rows in sheet.items():
+        if name in legacy:
+            gs.write_table(where / name, rows)
+        else:
+            gs.write_sheet(where, name, rows)
     write_images(where, tables)
 
 
-def compare(prev_tables: dict, new_tables: dict | None = None, *, changed_images: dict | None = None, **sheet) -> dict:
+def compare(prev_tables: dict, new_tables: dict | None = None, *, changed_images: dict | None = None, after=None,
+            **sheet) -> dict:
     new_tables = new_tables or gold_tables()
     with tempfile.TemporaryDirectory() as tmp:
         prev, out = Path(tmp) / "precedente", Path(tmp) / "nuovo"
         write_sheet(prev, prev_tables, **sheet)
+        if after:
+            after(prev)
         write_images(out, new_tables, changed_images)
         return gs.compare_previous(prev, new_tables, DESIGN, 0, MSHA, out)
+
+
+def scene_only_tables() -> dict:
+    """Foglio senza QA: nessuna unità del campione e il solo caso mirato sulla scena intera, quindi nessuna soluzione e
+    nessuna opzione."""
+    t = gold_tables()
+    t["campione"] = []
+    t["mirati"] = [r for r in t["mirati"] if r["posizione_qa"] == ""]
+    t["soluzioni"], t["opzioni"] = [], []
+    return t
 
 
 def row_of(tables: dict, kind: str, uid: str, variant: str) -> dict:
@@ -473,7 +491,8 @@ def test_compare_previous():
     r = compare(gold_tables(), fmt=gs.FORMAT_V1)
     tr = r.get("trasformazioni") or {}
     check("confronto dal formato 1: selezione invariata con le sole trasformazioni previste",
-          r["selezione_invariata"] and r["formati"] == {"precedente": gs.FORMAT_V1, "nuovo": gs.SCHEMA},
+          r["selezione_invariata"] and r["formati"] == {"precedente": gs.FORMAT_V1, "nuovo": gs.SCHEMA,
+                                                        "tabelle_vuote_senza_colonne": []},
           json.dumps(r["differenze"], ensure_ascii=False)[:300])
     check("confronto dal formato 1: risposte aggregate della coppia casuale separate e confrontate per variante",
           tr.get("risposte_aggregate_separate") == ["C-coppie-001"] and r.get("soluzioni_confrontate") == 5
@@ -567,6 +586,46 @@ def test_compare_previous():
           set(r1["differenze"]) == {"formato"} and set(r2["differenze"]) == {"formato"}
           and r1["confronto_completo"] is False and not r2["selezione_invariata"],
           str([r1["differenze"], r2["differenze"]])[:300])
+
+    # tabelle vuote, scritte col percorso di main (write_sheet) o col vecchio scrittore senza colonne
+    with tempfile.TemporaryDirectory() as tmp:
+        for name in ("soluzioni.tsv", "opzioni.tsv"):
+            gs.write_sheet(Path(tmp), name, [])
+        written = [gs.tsv_columns(Path(tmp) / n) for n in ("soluzioni.tsv", "opzioni.tsv")]
+        rows = [gs.read_tsv(Path(tmp) / n) for n in ("soluzioni.tsv", "opzioni.tsv")]
+    check("tabelle vuote: main scrive soluzioni.tsv e opzioni.tsv con le colonne canoniche e nessuna riga",
+          written == [list(gs.SOLUTION_COLUMNS[gs.SCHEMA]), list(gs.OPTION_COLUMNS)] and rows == [[], []], str(written))
+    try:
+        with tempfile.TemporaryDirectory() as tmp:
+            gs.write_sheet(Path(tmp), "soluzioni.tsv", [{**gold_tables()["soluzioni"][0], "fuori": 1}])
+        refused = False
+    except ValueError:
+        refused = True
+    check("tabelle: un campo fuori dalle colonne è un errore, non un dato perso in silenzio", refused)
+    r = compare(scene_only_tables(), scene_only_tables())
+    check("tabelle vuote: due campioni identici senza soluzioni né opzioni sono compatibili",
+          r["selezione_invariata"] and r["confronto_completo"] is True and r.get("soluzioni_confrontate") == 0
+          and r["formati"]["tabelle_vuote_senza_colonne"] == [], str(r["differenze"]))
+    r = compare(scene_only_tables(), scene_only_tables(), legacy=("soluzioni.tsv", "opzioni.tsv"))
+    r1 = compare(scene_only_tables(), scene_only_tables(), fmt=gs.FORMAT_V1)
+    check("tabelle vuote del vecchio scrittore (sola intestazione unita), senza righe attese: accettate e dichiarate, "
+          "anche nel formato 1",
+          r["selezione_invariata"] and r["formati"]["tabelle_vuote_senza_colonne"] == ["soluzioni.tsv", "opzioni.tsv"]
+          and r1["selezione_invariata"] and r1["formati"]["tabelle_vuote_senza_colonne"] == ["soluzioni.tsv"],
+          str([r["differenze"], r1["differenze"], r["formati"], r1["formati"]])[:300])
+    old = gold_tables()
+    old["soluzioni"] = []
+    r = compare(old, legacy=("soluzioni.tsv",))
+    check("tabella vuota del vecchio scrittore quando le unità attendono varianti: file incompleto, rifiutato",
+          not r["selezione_invariata"] and any("attendono 6 righe" in p for p in r["differenze"].get("formato", [])),
+          str(r["differenze"]))
+
+    def only_unita(prev: Path) -> None:
+        gs.write_table(prev / "soluzioni.tsv", [{"unita": "C-coord-001"}])
+
+    r = compare(gold_tables(), after=only_unita)
+    check("tabella con la sola colonna unita ma con righe: file incompleto, rifiutato",
+          not r["selezione_invariata"] and set(r["differenze"]) == {"formato"}, str(r["differenze"]))
 
 
 if __name__ == "__main__":

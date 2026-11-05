@@ -521,6 +521,13 @@ La revisione, il pacchetto, i fogli, la selezione e il manifest non sono toccati
     confronto, quindi non certificate (`confronto_completo` falso). Restano i controlli su selezione, ordine, ranghi,
     manifest e immagini.
   - *Collaudo:* 18 controlli nuovi su fogli fittizi (job 30616).
+  - *Tabelle vuote* (correzione residua dopo la revisione di `50ef2c6`, job 30622). Senza righe e senza colonne date,
+    `write_table` scriveva la sola intestazione `unita`, mentre il confronto chiede quelle complete: due campioni
+    identici senza soluzioni né opzioni risultavano incompatibili. Ora scrittura e confronto usano le stesse colonne
+    canoniche (`SHEET_COLUMNS`, scritte da `write_sheet` anche per le tabelle vuote), e un campo fuori dalle colonne è
+    un errore. Un file vuoto del vecchio scrittore si accetta, e si dichiara in `formati.tabelle_vuote_senza_colonne`,
+    solo se le unità non attendono righe; altrimenti, o se ha righe, è un file incompleto. 6 controlli nuovi scrivono
+    i fogli col percorso di `main` (66 su 66).
   - *Applicazione ai fogli reali:* nessuna; il confronto nuovo si userà alla prossima generazione di fogli. Il
     confronto già scritto fra `campione-1` e `campione-2` (job 30556) andava dal formato 1 a quello attuale, il caso che
     il codice vecchio trattava correttamente, e resta valido per ciò che confrontava. Le 20 risposte b delle coppie

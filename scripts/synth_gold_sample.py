@@ -650,6 +650,11 @@ SOLUTION_COLUMNS = {
              "stato_scena_sha256"),
 }
 OPTION_COLUMNS = ("unita", "variante", "record", "posizione_qa", "tipo", "opzioni", "opzioni_nel_testo_della_domanda")
+# colonne canoniche dei fogli col formato fisso: le scrive main (write_sheet) anche quando la tabella è vuota, e le
+# controlla compare_previous (format_problems); gli altri fogli prendono le colonne dalla prima riga
+SHEET_COLUMNS = {"soluzioni.tsv": SOLUTION_COLUMNS[SCHEMA], "opzioni.tsv": OPTION_COLUMNS, "esiti.tsv": REVIEW_COLUMNS,
+                 "esiti_decontaminazione.tsv": DECONTAM_REVIEW_COLUMNS}
+LEGACY_EMPTY = ["unita"]  # intestazione di una tabella vuota scritta senza colonne, prima del 2026-11-05
 # campi confrontati per (unita, variante); nel formato 1 il record è quello dell'unità nella posizione della variante
 SAME_SOLUTION = {FORMAT_V1: ("record", "risposta", "esito_checker", "stato_scena_sha256"),
                  SCHEMA: SOLUTION_COLUMNS[SCHEMA][2:]}
@@ -670,14 +675,29 @@ def tsv_columns(path: Path) -> list[str]:
 
 
 def write_table(path: Path, table: list[dict], columns=None) -> dict:
-    """TSV con le celle di cell(); senza colonne date, quelle della prima riga."""
-    columns = columns or (list(table[0]) if table else ["unita"])
+    """TSV con le celle di cell(). Senza colonne date valgono quelle della prima riga, e una tabella vuota ha la sola
+    intestazione "unita". Un campo di una riga fuori dalle colonne è un errore, non un dato perso in silenzio."""
+    columns = list(columns or (list(table[0]) if table else LEGACY_EMPTY))
+    extra = sorted({k for row in table for k in row} - set(columns))
+    if extra:
+        raise ValueError(f"{Path(path).name}: campi fuori dalle colonne {extra[:5]}")
     with open(path, "w", encoding="utf-8", newline="") as fh:
         w = csv.DictWriter(fh, fieldnames=columns, delimiter="\t", lineterminator="\n")
         w.writeheader()
         for row in table:
             w.writerow({c: cell(row.get(c, "")) for c in columns})
     return {**file_entry(path), "righe": len(table)}
+
+
+def write_sheet(out_dir: Path, name: str, table: list[dict]) -> dict:
+    """Un foglio del campione come lo scrive main: colonne canoniche (SHEET_COLUMNS) per i fogli col formato fisso,
+    anche vuoti; per gli altri, quelle della prima riga."""
+    return write_table(Path(out_dir) / name, table, SHEET_COLUMNS.get(name))
+
+
+def legacy_empty(path: Path) -> bool:
+    """Tabella vuota scritta senza colonne prima del 2026-11-05: la sola intestazione "unita" e nessuna riga."""
+    return tsv_columns(path) == LEGACY_EMPTY and not read_tsv(path)
 
 
 def sheet_units(campione: list[dict], mirati: list[dict]) -> tuple[dict[str, dict], list[str]]:
@@ -811,24 +831,38 @@ def compare_index(old: dict, new: dict, fields: tuple, allowed_new: set) -> tupl
             [name(k) for k in added if k in allowed_new])
 
 
-def format_problems(prev: Path, fmt, old_units_rows: list[dict], tables: dict[str, list[dict]]) -> list[str]:
-    """Il formato del foglio precedente si legge dallo schema del suo report.json e deve coincidere con le colonne dei
-    file; le tabelle nuove devono avere le colonne del formato attuale."""
+def format_problems(prev: Path, fmt, old_c: list[dict], old_m: list[dict],
+                    tables: dict[str, list[dict]]) -> tuple[list[str], list[str]]:
+    """(problemi, tabelle vuote del vecchio scrittore). Il formato del foglio precedente si legge dallo schema del suo
+    report.json e deve coincidere con le colonne dei file; le tabelle nuove devono avere le colonne del formato
+    attuale. Un file con la sola intestazione "unita" e nessuna riga è la tabella vuota che main scriveva senza colonne
+    prima del 2026-11-05: si accetta, e si dichiara, solo se le unità del foglio non attendono righe in quella tabella;
+    altrimenti è un file incompleto."""
     if fmt not in SOLUTION_COLUMNS:
-        return [f"schema del campione precedente non riconosciuto: {fmt!r} (noti: {sorted(SOLUTION_COLUMNS)})"]
-    problems = []
-    cols = tsv_columns(prev / "soluzioni.tsv")
-    if tuple(cols) != SOLUTION_COLUMNS[fmt]:
-        problems.append(f"soluzioni.tsv del precedente con le colonne {cols}: {fmt} vuole {list(SOLUTION_COLUMNS[fmt])}")
-    if fmt == FORMAT_V1:
-        if any("opzioni" not in row for row in old_units_rows):
-            problems.append(f"{fmt}: campione.tsv o mirati.tsv senza la colonna opzioni")
-    elif tuple(tsv_columns(prev / "opzioni.tsv")) != OPTION_COLUMNS:
-        problems.append(f"opzioni.tsv del precedente assente o senza le colonne {list(OPTION_COLUMNS)}")
+        return [f"schema del campione precedente non riconosciuto: {fmt!r} (noti: {sorted(SOLUTION_COLUMNS)})"], []
+    problems, legacy = [], []
+    units, _ = sheet_units(old_c, old_m)
+    tables_of_fmt = [("soluzioni.tsv", "soluzioni", SOLUTION_COLUMNS[fmt])]
+    if fmt == SCHEMA:
+        tables_of_fmt.append(("opzioni.tsv", "opzioni", OPTION_COLUMNS))
+    for name, kind, want in tables_of_fmt:
+        cols = tsv_columns(prev / name)
+        if tuple(cols) == want:
+            continue
+        if legacy_empty(prev / name):
+            expected = sum(len(expected_variants(u, fmt, kind)) for u in units.values())
+            if expected:
+                problems.append(f"{name} del precedente vuoto e senza colonne, ma le sue unità attendono {expected} righe")
+            else:
+                legacy.append(name)
+            continue
+        problems.append(f"{name} del precedente assente o con le colonne {cols}: {fmt} vuole {list(want)}")
+    if fmt == FORMAT_V1 and any("opzioni" not in row for row in old_c + old_m):
+        problems.append(f"{fmt}: campione.tsv o mirati.tsv senza la colonna opzioni")
     for name, columns in (("soluzioni", SOLUTION_COLUMNS[SCHEMA]), ("opzioni", OPTION_COLUMNS)):
         if any(set(columns) - set(row) for row in tables[name]):
             problems.append(f"{name} nuove senza le colonne di {SCHEMA}")
-    return problems
+    return problems, legacy
 
 
 def compare_previous(prev: Path, tables: dict[str, list[dict]], design: dict, seed: int, manifest_sha: str,
@@ -845,6 +879,11 @@ def compare_previous(prev: Path, tables: dict[str, list[dict]], design: dict, se
     y") si separano e si confrontano per variante; le varianti b assenti nel formato 1 (soluzioni delle coppie mirate,
     opzioni di tutte le coppie) sono aggiunte senza confronto, elencate in `trasformazioni`, e non si certificano
     invariate: `confronto_completo` è falso.
+
+    Tabelle vuote: main scrive soluzioni.tsv e opzioni.tsv con le colonne canoniche anche senza righe (write_sheet). Un
+    precedente con la sola intestazione "unita" e nessuna riga, come le scriveva main prima del 2026-11-05, si accetta
+    solo se le sue unità non attendono righe in quella tabella, ed è elencato in formati.tabelle_vuote_senza_colonne;
+    altrimenti è un file incompleto.
 
     `selezione_invariata` è falso se cambia una sola unità, un rango, un record, una posizione, una QA, una risposta,
     un'opzione confrontata o un'immagine v4, o se un foglio ha un problema di struttura o un formato non riconosciuto."""
@@ -874,8 +913,8 @@ def compare_previous(prev: Path, tables: dict[str, list[dict]], design: dict, se
     out["candidati"] = same("candidati_decontaminazione", old_d, tables["candidati"], SAME_DECONTAM)
     # soluzioni e opzioni per (unita, variante), secondo il formato dichiarato del precedente
     fmt = old_report.get("schema")
-    out["formati"] = {"precedente": fmt, "nuovo": SCHEMA}
-    bad_format = format_problems(prev, fmt, old_c + old_m, tables)
+    bad_format, legacy = format_problems(prev, fmt, old_c, old_m, tables)
+    out["formati"] = {"precedente": fmt, "nuovo": SCHEMA, "tabelle_vuote_senza_colonne": legacy}
     if bad_format:
         diffs["formato"] += bad_format
         out["confronto_completo"] = False
@@ -1335,8 +1374,8 @@ def main() -> None:
                                                                              .split("|"))]),
                     "domanda": "stessa immagine o stesso contenuto di un elemento del pannello?"})
 
-    def write_tsv(name: str, table: list[dict], columns=None) -> dict:
-        return write_table(args.out / name, table, columns)
+    def write_tsv(name: str, table: list[dict]) -> dict:
+        return write_sheet(args.out, name, table)
 
     # ---- inventario
     inv = defaultdict(Counter)
@@ -1364,13 +1403,12 @@ def main() -> None:
              "prompts.jsonl": {**file_entry(prompt_path), "righe": len(prompts)},
              "opzioni.tsv": write_tsv("opzioni.tsv", options),
              "soluzioni.tsv": write_tsv("soluzioni.tsv", solutions),
-             "esiti.tsv": write_tsv("esiti.tsv", form, REVIEW_COLUMNS),
+             "esiti.tsv": write_tsv("esiti.tsv", form),
              "inventario.tsv": write_tsv("inventario.tsv", inventory),
              "candidati_decontaminazione.tsv": write_tsv("candidati_decontaminazione.tsv", drows),
              "corrispondenze_decontaminazione.tsv": write_tsv("corrispondenze_decontaminazione.tsv", dmatches),
              "esiti_decontaminazione.tsv": write_tsv("esiti_decontaminazione.tsv",
-                                                     [{"unita": x["unita"], "record": x["record"]} for x in drows],
-                                                     DECONTAM_REVIEW_COLUMNS)}
+                                                     [{"unita": x["unita"], "record": x["record"]} for x in drows])}
     comparison = None
     if args.previous:
         comparison = compare_previous(args.previous, {"campione": rows, "mirati": mrows, "candidati": drows,
