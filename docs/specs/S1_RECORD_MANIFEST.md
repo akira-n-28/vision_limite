@@ -238,6 +238,17 @@ uno, ferma la costruzione. unimer_check/run4 e unimer_overlap/run2 si ricalcolan
 costruzione si ferma se il ricalcolo non coincide coi loro file. I gruppi sono i legami esatti dentro la sorgente (stessi
 byte del PNG), non l'indice globale (§4).
 
+Controlli aggiunti il 2026-11-05 (job 30633):
+- **Righe ritagliate.** La riga ritagliata ha il PNG della formula, con le stesse dimensioni, e fasce strutturalmente
+  valide: coppie di interi dentro l'immagine, in ordine, senza sovrapposizioni, una per riga. Costruzione e verifica lo
+  richiedono, prima dei gruppi. Non è una prova della corrispondenza visiva.
+- **Gruppi.** La riga entra nel gruppo per il genitore e il suo PNG non crea legami: un PNG scambiato non unisce due
+  formule estranee.
+- **Stati.** La verifica ricalcola lo stato di ogni record dalle evidenze, e vince il più grave: run4 per record, run2
+  per gruppo con le righe ritagliate, la rietichettatura della formula per le sue righe.
+- **Split.** Si ricalcola col seme dichiarato, con gruppi indivisibili e la quota. La verifica non chiede che un altro
+  seme cambi il dev, perché con quota zero o pochi gruppi può non cambiare: la dipendenza dal seme si prova nei test.
+
 **Estensione a MAVIS-Geometry** (2026-11-05, `scripts/mavis_manifest.py`, `data/manifests/mavis-geometry-candidato-1`,
 job 30630; S2 §3). Usa lo stesso schema e la stessa lettura verificata, e riusa le funzioni dello script di UniMER. Ogni
 riga ha in più:
@@ -249,4 +260,5 @@ riga ha in più:
 - `verifiche`: coerenza con le annotazioni e fedeltà all'immagine, separate;
 - `misure_razionali_come_decimali`.
 
-I gruppi sono i legami esatti dentro la sorgente: stessi byte del PNG oppure stesso diagram_generation.
+I gruppi sono i legami esatti dentro la sorgente: stessi byte del PNG oppure stesso diagram_generation. Lo split si
+verifica come per UniMER, col seme dichiarato e senza il controllo sul cambio di seme (job 30633).

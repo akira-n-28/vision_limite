@@ -434,14 +434,18 @@ def summarize(recs: list[dict]) -> dict:
     return {k: dict(sorted(v.items())) for k, v in c.items()}
 
 
-def verify(folder: Path, ev: dict) -> dict:
-    """Controlli rileggendo il manifest scritto (manifest.load) e le liste storiche, senza gli shard."""
+def verify(folder: Path, ev: dict, m: mf.Manifest | None = None) -> dict:
+    """Controlli rileggendo il manifest scritto (manifest.load, o `m` già letto con manifest.load) e le liste storiche,
+    senza gli shard. Lo split si ricalcola col seme dichiarato, con gruppi indivisibili e la quota per profondità; che
+    un altro seme dia un dev diverso non è una proprietà del manifest (con quota zero o pochi gruppi può non accadere)
+    e si prova nei test."""
     checks = []
 
     def ok(name: str, cond: bool, detail=None) -> None:
         checks.append({"controllo": name, "esito": bool(cond), "dettaglio": detail})
 
-    m = mf.load(folder)
+    if m is None:
+        m = mf.load(folder)
     ok("manifest letto e verificato (sha256 dei record, record_id ricalcolati, un solo split per gruppo, conteggi per "
        "shard)", True)
     recs = [r for rows in m.by_shard.values() for r in rows.values()]
@@ -474,9 +478,6 @@ def verify(folder: Path, ev: dict) -> dict:
     again = mf.assign_splits(info, rule["quota_dev"], rule["seme"])
     ok("split ricalcolato con quota e seme del manifest: uguale a quello scritto",
        all(again[g] == next(iter(split[g])) for g in info))
-    other = mf.assign_splits(info, rule["quota_dev"], rule["seme"] + 1)
-    moved = sum(other[g] != again[g] for g in info)
-    ok("con un altro seme il dev cambia (la scelta dipende dal seme)", moved > 0, moved)
     per_family = {}
     for fam in sorted({i["famiglia"] for i in info.values()}):
         admitted = sum(i["ammessi"] for i in info.values() if i["famiglia"] == fam)

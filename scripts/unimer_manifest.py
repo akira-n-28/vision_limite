@@ -16,12 +16,16 @@ Record, una riga JSON per campione di uno shard:
 - formule intere (insieme `train`), compito transcribe;
 - righe ritagliate (insieme `righe`): lo stesso campione originale, quindi lo stesso record_id della formula, con le
   fasce delle righe; compiti transcribe_line e transcribe_line_select; trasformazione `righe` e il genitore (shard,
-  posizione e hash della formula intera).
+  posizione e hash della formula intera). Prima dei gruppi si richiede che il PNG sia quello della formula (stessi
+  byte, stesse dimensioni dichiarate) e che righe e fasce siano strutturalmente valide (band_problems); ogni
+  discrepanza ferma il job. La validità delle fasce non prova che ciascuna contenga la sua riga: quella è la
+  corrispondenza visiva, da verificare guardando.
 UniMER-Test non entra: è valutazione, coi ruoli di pannello-v3, e qui serve solo a riconoscere le contaminazioni.
 
-Gruppi (S1 §3): componenti dei legami esatti, cioè gli stessi byte del PNG negli shard densi; ogni riga ritagliata sta
-nel gruppo della sua formula. Formule uguali con immagini diverse non si uniscono, perché una formula comune non
-identifica un problema (S1 §5): il dev misura immagini nuove, non formule nuove.
+Gruppi (S1 §3): componenti dei legami esatti, cioè gli stessi byte del PNG delle formule negli shard densi; ogni riga
+ritagliata sta nel gruppo della sua formula attraverso il genitore, e il suo PNG non crea legami. Formule uguali con
+immagini diverse non si uniscono, perché una formula comune non identifica un problema (S1 §5): il dev misura immagini
+nuove, non formule nuove.
 
 Stati (vince il più grave):
 - `escluso`: errori certi di run4 (per record); stessa immagine di un campione di UniMER-Test (per gruppo: legame
@@ -42,7 +46,9 @@ pixel, non si ricalcola: in run4 non ha casi.
 
 Split (manifest.assign_splits): dev per circa --dev-fraction delle formule ammesse, gruppi indivisibili in ordine di
 sha256({seme, gruppo}) con --seed; il resto train. Il rango di estrazione del campione candidato (F0_CAMPIONE_CANDIDATO
-§1) è registrato per ogni gruppo: rango_f0, e per i gruppi di dev anche rango_f0_sviluppo.
+§1) è registrato per ogni gruppo: rango_f0, e per i gruppi di dev anche rango_f0_sviluppo. La verifica ricalcola lo
+split col seme dichiarato e controlla gruppi indivisibili e quota; non chiede che un altro seme dia un dev diverso
+(con quota zero o pochi gruppi può non cambiare): la dipendenza dal seme si prova nei test.
 
 Uscite: --out (data/manifests/<nome>-<versione>, scritta una volta sola) con records.jsonl.gz, manifest.json e keys/;
 --report (cartella nuova) con verifica.json, i controlli fatti rileggendo il manifest; --summary, rapporto sintetico
@@ -92,6 +98,12 @@ NOT_REPRODUCED = {"immagine_vuota"}  # decodifica dei pixel: importato da run4, 
 Z = 5.0  # z robusto delle proporzioni di run4 (--z di unimer_check.py)
 LONG = 20  # formule del test oltre questi token visibili: contaminazione di run2 (--long di unimer_test_overlap.py)
 SEVERITY = {"ammesso": 0, "quarantena": 1, "escluso": 2}
+# stato minimo richiesto da ciascun esito delle evidenze, come lo applica build(): run4 per record, run2 per gruppo
+# (con le righe ritagliate); la verifica lo ricalcola dalle evidenze scritte nei record
+RUN4_REQUIRED = {"excluded": "escluso", "uncertain": "quarantena", "accepted": "ammesso",
+                 "nessuna_segnalazione": "ammesso"}
+RUN2_REQUIRED = {"immagine_del_test": "escluso", "formula_lunga_del_test": "quarantena",
+                 "formula_breve_del_test": "ammesso", "nessuna_corrispondenza": "ammesso"}
 TASKS = {"train": ["transcribe"], "righe": ["transcribe_line", "transcribe_line_select"]}
 NOT_COVERED = [
     "variant_id e uid (S1 §1): dipendono dal contratto di risposta (S3, D3). L'ammissione è per record e compito; il "
@@ -111,6 +123,8 @@ MISSING_CHECKS = [
     "stima campionaria della correttezza e dell'osservabilità alla risoluzione scelta (S4, revisione competente)",
     "controllo immagine_vuota di run4 non ricalcolato (decodifica dei pixel); in run4 nessun caso",
     "quarantene da riesaminare: conflitti irrisolti di run4 e formule lunghe del test con immagine diversa",
+    "righe ritagliate: fasce verificate solo nella struttura (interi, dentro l'immagine, in ordine, senza "
+    "sovrapposizioni, una per riga); che ogni fascia contenga la sua riga è da verificare guardando",
     "manoscritti incidentali di CROHME (meno dell'1%): non si separano per indice e restano (v1.5)",
 ]
 
@@ -168,6 +182,51 @@ def png_size(data: bytes) -> tuple[int, int] | None:
     return struct.unpack(">II", data[16:24])
 
 
+def band_problems(meta: dict, label: str, png: bytes) -> list[str]:
+    """Validità strutturale di un campione delle righe ritagliate (scripts/shard_unimer.py --lines): `rows` uguale a
+    f1c.array_rows dell'etichetta; `lines` una fascia [y0, y1) per riga, ciascuna una coppia di interi con
+    0 <= y0 < y1 <= altezza del PNG, in ordine e senza sovrapposizioni (fasce adiacenti ammesse: gli intervalli sono
+    semiaperti, e il loader taglia a metà dello spazio fra righe vicine); larghezza e altezza del JSON uguali a quelle
+    del PNG. Lista vuota se tutto torna. Non prova che ogni fascia contenga la sua riga di testo."""
+    out = []
+    size = png_size(png)
+    declared = (meta.get("width"), meta.get("height"))
+    if size is None:
+        out.append("PNG senza intestazione IHDR leggibile")
+    elif declared != size:
+        out.append(f"dimensioni del JSON {declared[0]}x{declared[1]} diverse da quelle del PNG {size[0]}x{size[1]}")
+    rows, expected = meta.get("rows"), array_rows(label)
+    if not isinstance(rows, list) or not rows:
+        out.append("nessuna riga del LaTeX (rows)")
+    elif rows != expected:
+        out.append("righe diverse da f1c.array_rows dell'etichetta")
+    lines = meta.get("lines")
+    if not isinstance(lines, list) or not lines:
+        out.append("nessuna fascia (lines)")
+        return out
+    wanted = len(expected) if expected else len(rows) if isinstance(rows, list) and rows else None
+    if wanted is not None and len(lines) != wanted:
+        out.append(f"{len(lines)} fasce per {wanted} righe")
+    height = size[1] if size else None
+    prev = None
+    for k, band in enumerate(lines):
+        if not (isinstance(band, list) and len(band) == 2 and all(type(y) is int for y in band)):
+            out.append(f"fascia {k}: {band!r} non è una coppia di interi")
+            continue
+        y0, y1 = band
+        if y0 >= y1:
+            out.append(f"fascia {k}: [{y0}, {y1}) vuota o invertita")
+        if y0 < 0 or (height is not None and y1 > height):
+            out.append(f"fascia {k}: [{y0}, {y1}) fuori dall'immagine (altezza {height})")
+        if prev is not None:
+            if y0 < prev[0]:
+                out.append(f"fascia {k}: [{y0}, {y1}) prima della precedente [{prev[0]}, {prev[1]}): fasce non in ordine")
+            elif y0 < prev[1]:
+                out.append(f"fascia {k}: [{y0}, {y1}) sovrapposta alla precedente [{prev[0]}, {prev[1]})")
+        prev = (y0, y1)
+    return out
+
+
 def vis_digest(label: str) -> tuple[bytes, int]:
     """Digest della formula visibile (token visibili dell'etichetta effettiva, uniti da spazi, come vis_string di
     unimer_test_overlap.py) e numero dei suoi token come li conta run2 (split della stringa)."""
@@ -223,9 +282,9 @@ def read_shard(task: tuple[str, str, int]) -> dict:
                                     hashlib.sha256(new.encode()).digest() if new is not None else None, rules,
                                     meta["width"], meta["height"], meta["subset"], meta["index"]))
             elif kind == "righe":
-                rows_ok = bool(meta.get("rows")) and meta["rows"] == array_rows(label) \
-                    and len(meta.get("lines") or []) == len(meta["rows"])
-                rows.append(base + (len(meta.get("rows") or []), rows_ok, meta["width"], meta["height"]))
+                n_rows = len(meta["rows"]) if isinstance(meta.get("rows"), list) else 0
+                rows.append(base + (n_rows, tuple(band_problems(meta, label, png)), meta.get("width"),
+                                    meta.get("height")))
             else:
                 vis, n_vis = vis_digest(label)
                 rows.append(base + (vis, n_vis, meta["subset"]))
@@ -393,16 +452,27 @@ def build(args, plan: dict) -> dict:
         if row[0] in index:
             raise Problem(f"{row[0]}: in due shard di train ({train_shard[index[row[0]]]}, {train_shard[i]})")
         index[row[0]] = i
-    parent_of = []
-    for j, row in enumerate(righe):
+    # righe ritagliate: formula genitore con la stessa etichetta e lo stesso PNG (byte e dimensioni), righe e fasce
+    # strutturalmente valide; prima di gruppi e ammissioni, così un PNG scambiato non lega due formule estranee
+    parent_of, bad = [], []
+    for row in righe:
         i = index.get(row[0])
         if i is None:
-            raise Problem(f"riga ritagliata {row[0]} senza la formula negli shard di train")
-        if row[4] != train[i][4]:
-            raise Problem(f"riga ritagliata {row[0]}: etichetta diversa da quella della formula")
-        if not row[6]:
-            raise Problem(f"riga ritagliata {row[0]}: righe o fasce diverse da f1c.array_rows dell'etichetta")
+            bad.append(f"riga ritagliata {row[0]} senza la formula negli shard di train")
+            continue
+        parent = train[i]
+        why = list(row[6])
+        if row[4] != parent[4]:
+            why.append("etichetta diversa da quella della formula")
+        if row[3] != parent[3]:
+            why.append(f"PNG diverso da quello della formula (sha256 {row[3].hex()[:12]} contro {parent[3].hex()[:12]})")
+        if (row[7], row[8]) != (parent[11], parent[12]):
+            why.append(f"dimensioni {row[7]}x{row[8]} diverse da quelle della formula {parent[11]}x{parent[12]}")
+        if why:
+            bad.append(f"riga ritagliata {row[0]}: {'; '.join(why)}")
         parent_of.append(i)
+    if bad:
+        raise Problem(f"{len(bad)} righe ritagliate incoerenti con la formula o non valide: {' | '.join(bad[:5])}")
     if len(set(parent_of)) != len(parent_of):
         raise Problem("una formula ha due righe ritagliate")
 
@@ -530,11 +600,9 @@ def build(args, plan: dict) -> dict:
     if problems:
         raise Problem("; ".join(problems[:10]))
 
-    # ---- gruppi: stessi byte del PNG; ogni riga ritagliata con la sua formula
-    n = len(train) + len(righe)
-    links = same_key_links([row[3] for row in train] + [row[3] for row in righe])
-    links += [(parent_of[j], len(train) + j) for j in range(len(righe))]
-    rep = components(n, links)
+    # ---- gruppi: stessi byte del PNG delle formule; ogni riga ritagliata nel gruppo della sua formula (records()
+    # usa il gruppo del genitore), senza legami dal suo PNG
+    rep = components(len(train), same_key_links([row[3] for row in train]))
     dup_check = [r["val_key"] for r in dup_rows if r.get("immagine")]
     members = defaultdict(list)
     for i in range(len(train)):
@@ -663,29 +731,35 @@ def summarize(recs: list[dict]) -> dict:
 
 # ---------------------------------------------------------------- verifica dopo la scrittura
 
-def verify(folder: Path, check: Path, overlap: Path, seed_check: bool = True) -> dict:
-    """Controlli rileggendo il manifest scritto (manifest.load) e le liste storiche, senza gli shard: identità uniche,
-    gruppi e split ricalcolati, trasformazioni e genitori, evidenze riconciliate, conteggi, ranghi, file derivati."""
+def verify(folder: Path, check: Path, overlap: Path, m: mf.Manifest | None = None) -> dict:
+    """Controlli rileggendo il manifest scritto (manifest.load, o `m` già letto con manifest.load) e le liste storiche,
+    senza gli shard: identità uniche, gruppi e split ricalcolati, trasformazioni e genitori (le righe ritagliate con lo
+    stesso PNG della formula), evidenze riconciliate, stato di ogni record uguale al più grave richiesto dalle
+    evidenze, conteggi, ranghi, file derivati. Lo split si ricalcola col seme dichiarato; che un altro seme dia un dev
+    diverso non è una proprietà del manifest (con quota zero o pochi gruppi può non accadere) e si prova nei test."""
     checks = []
 
     def ok(name: str, cond: bool, detail=None) -> None:
         checks.append({"controllo": name, "esito": bool(cond), "dettaglio": detail})
 
-    m = mf.load(folder)
+    if m is None:
+        m = mf.load(folder)
     ok("manifest letto e verificato (sha256 dei record, record_id ricalcolati, un solo split per gruppo, conteggi per "
        "shard)", True)
     recs = [r for rows in m.by_shard.values() for r in rows.values()]
     meta = m.meta
     base = [r for r in recs if r["insieme"] == "train"]
-    ok("identità uniche: (record_id, insieme) e chiave per insieme",
+    righe = [r for r in recs if r["insieme"] == "righe"]
+    ok("identità uniche: (record_id, insieme) e chiave per insieme; solo gli insiemi train e righe",
        len({(r["record_id"], r["insieme"]) for r in recs}) == len(recs)
-       and len({r["record"] for r in base}) == len(base))
+       and len({r["record"] for r in base}) == len(base) and len(base) + len(righe) == len(recs))
     by_key = {r["record"]: r for r in base}
-    # gruppi ricalcolati dai legami salvati
-    items = base + [r for r in recs if r["insieme"] == "righe"]
-    base_pos = {r["record_id"]: n for n, r in enumerate(items) if r["insieme"] == "train"}
-    links = same_key_links([r["immagini"][0]["sha256"] for r in items])
-    links += [(base_pos[g["record_id"]], n) for n, r in enumerate(items) if r["insieme"] == "righe"
+    # gruppi ricalcolati dai legami salvati: stessi byte del PNG delle formule; ogni riga ritagliata col suo genitore,
+    # senza legami dal suo PNG (un PNG scambiato non unisce due formule estranee)
+    items = base + righe
+    base_pos = {r["record_id"]: n for n, r in enumerate(base)}
+    links = same_key_links([r["immagini"][0]["sha256"] for r in base])
+    links += [(base_pos[g["record_id"]], len(base) + j) for j, r in enumerate(righe)
               for g in r["genitori"] if g.get("record_id") in base_pos]
     rep = components(len(items), links)
     ours = defaultdict(set)
@@ -694,7 +768,7 @@ def verify(folder: Path, check: Path, overlap: Path, seed_check: bool = True) ->
     theirs = defaultdict(set)
     for n, r in enumerate(items):
         theirs[r["gruppo"]].add(n)
-    ok("gruppi ricalcolati dai byte del PNG e dai genitori: stessa partizione",
+    ok("gruppi ricalcolati dai byte del PNG delle formule e dai genitori delle righe ritagliate: stessa partizione",
        sorted(map(sorted, ours.values())) == sorted(map(sorted, theirs.values())), len(theirs))
     digests = mf.Digests()
     bad_gid = 0
@@ -715,10 +789,6 @@ def verify(folder: Path, check: Path, overlap: Path, seed_check: bool = True) ->
     again = mf.assign_splits(info, rule["quota_dev"], rule["seme"])
     ok("split ricalcolato con quota e seme del manifest: uguale a quello scritto",
        all(again[g] == next(iter(split[g])) for g in info))
-    if seed_check:
-        other = mf.assign_splits(info, rule["quota_dev"], rule["seme"] + 1)
-        moved = sum(other[g] != again[g] for g in info)
-        ok("con un altro seme il dev cambia (la scelta dipende dal seme)", moved > 0, moved)
     admitted = sum(i["ammessi"] for i in info.values())
     dev = sum(i["ammessi"] for g, i in info.items() if again[g] == "dev")
     ok("dev: almeno l'obiettivo di formule ammesse, superato al più dall'ultimo gruppo",
@@ -748,6 +818,15 @@ def verify(folder: Path, check: Path, overlap: Path, seed_check: bool = True) ->
                 bad_relabel.append(r["record"])
     ok("righe ritagliate: genitore presente con gli stessi hash, stesso gruppo e split, stato non meno grave",
        not bad_righe, bad_righe[:5])
+    other_png = []
+    for r in righe:
+        p, g, t = by_key.get(r["record"]), (r["genitori"] or [{}])[0], r["trasformazione"] or {}
+        if p is None or len(r["immagini"]) != 1 or r["immagini"][0]["sha256"] != p["immagini"][0]["sha256"] \
+                or r["immagini"][0].get("griglia") != p["immagini"][0].get("griglia") \
+                or g.get("png_sha256") != r["immagini"][0]["sha256"] or t.get("stessa_immagine_del_genitore") is not True:
+            other_png.append(r["record"])
+    ok("righe ritagliate: lo stesso PNG della formula (stessi byte e griglia, stessa_immagine_del_genitore vera)",
+       not other_png, {"righe": len(righe), "diverse": len(other_png), "esempi": other_png[:5]})
     ok("rietichettature: genitore con l'etichetta originale e nuova etichetta uguali a relabel.jsonl",
        not bad_relabel, bad_relabel[:5])
     got_relabel = {r["record"] for r in base if r["trasformazione"]}
@@ -777,15 +856,54 @@ def verify(folder: Path, check: Path, overlap: Path, seed_check: bool = True) ->
                and e["esito"] != "nessuna_corrispondenza"}
     ok("evidenze di run2 nei record uguali alle liste", cont == set(lists["train_contamination_long"])
        and matched == set(lists["train_matches_test"]), dict(esiti))
-    bad_cont = [k for k in cont if by_key[k]["stato"] == "ammesso"]
-    ok("contaminazioni con UniMER-Test non ammesse (immagine: escluse; formula lunga: almeno in quarantena)",
-       not bad_cont, bad_cont[:5])
-    group_cont = defaultdict(set)
+    # stati richiesti dalle evidenze, con la regola di build(): run4 per record; run2 per gruppo, righe ritagliate
+    # comprese; righe di una formula rietichettata almeno in quarantena; vince sempre il più grave
+    malformed, need_record, need_group = [], {}, defaultdict(lambda: "ammesso")
+    image_groups, long_groups = set(), set()
     for r in base:
-        if r["record"] in cont:
-            group_cont[r["gruppo"]].add(r["record"])
-    spread = [r["record"] for r in base if r["gruppo"] in group_cont and r["stato"] == "ammesso"]
-    ok("contaminazioni estese a tutto il gruppo", not spread, spread[:5])
+        e4 = [e["esito"] for e in r["evidenze"] if e["lista"] == "unimer_check_run4"]
+        e2 = [e["esito"] for e in r["evidenze"] if e["lista"] == "unimer_overlap_run2"]
+        if len(e4) != 1 or len(e2) != 1 or e4[0] not in RUN4_REQUIRED or e2[0] not in RUN2_REQUIRED:
+            malformed.append(r["record"])
+            continue
+        many = r["token_visibili"] > LONG
+        if (e2[0] == "formula_lunga_del_test" and not many) or (e2[0] == "formula_breve_del_test" and many):
+            malformed.append(r["record"])
+            continue
+        need_record[r["record"]] = RUN4_REQUIRED[e4[0]]
+        need_group[r["gruppo"]] = worst(need_group[r["gruppo"]], RUN2_REQUIRED[e2[0]])
+        if e2[0] == "immagine_del_test":
+            image_groups.add(r["gruppo"])
+        elif e2[0] == "formula_lunga_del_test":
+            long_groups.add(r["gruppo"])
+    ok("evidenze di ogni formula: una di run4 e una di run2 con esiti noti; formula lunga del test se e solo se ha più "
+       f"di {LONG} token visibili", not malformed,
+       {"formule": len(base), "non_conformi": len(malformed), "esempi": malformed[:5]})
+    expected = {("train", r["record"]): worst(need_record.get(r["record"], "ammesso"), need_group[r["gruppo"]])
+                for r in base}
+    for r in righe:
+        p = by_key.get(r["record"])
+        if p is not None:
+            relabeled = (p["trasformazione"] or {}).get("nome") == "rietichettatura"
+            expected[("righe", r["record"])] = worst(expected[("train", p["record"])],
+                                                     "quarantena" if relabeled else "ammesso")
+    not_excluded = [f"{r['insieme']}/{r['record']}" for r in recs if r["gruppo"] in image_groups
+                    and r["stato"] != "escluso"]
+    ok("stessa immagine di UniMER-Test: escluso tutto il gruppo, righe ritagliate comprese", not not_excluded,
+       {"gruppi": len(image_groups), "record": sum(r["gruppo"] in image_groups for r in recs),
+        "non_esclusi": len(not_excluded), "esempi": not_excluded[:5]})
+    admitted_long = [f"{r['insieme']}/{r['record']}" for r in recs if r["gruppo"] in long_groups
+                     and r["stato"] == "ammesso"]
+    ok(f"formula di UniMER-Test con più di {LONG} token visibili: almeno in quarantena tutto il gruppo, righe "
+       "ritagliate comprese", not admitted_long,
+       {"gruppi": len(long_groups), "record": sum(r["gruppo"] in long_groups for r in recs),
+        "ammessi": len(admitted_long), "esempi": admitted_long[:5]})
+    differ = [f"{r['insieme']}/{r['record']}: {r['stato']} invece di {expected[(r['insieme'], r['record'])]}"
+              for r in recs if (r["insieme"], r["record"]) in expected
+              and r["stato"] != expected[(r["insieme"], r["record"])]]
+    ok("stato di ogni record uguale al più grave richiesto dalle evidenze (run4 per record, run2 per gruppo e righe "
+       "ritagliate, rietichettatura della formula per le sue righe)", not differ and len(expected) == len(recs),
+       {"record": len(recs), "con_stato_atteso": len(expected), "diversi": len(differ), "esempi": differ[:5]})
     # conteggi, ranghi, file derivati
     ok("conteggi per insieme, split, stato, compito e motivo uguali a manifest.json",
        summarize(recs) == meta["conteggi"])

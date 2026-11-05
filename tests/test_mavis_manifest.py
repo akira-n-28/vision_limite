@@ -10,7 +10,8 @@ didascalia alterata. Controlla:
 - costruzione, scrittura e verifica col percorso del job (mavis_manifest.run): stati del record e dei compiti, shape_type
   in quarantena senza togliere gli altri compiti, coerenza con le annotazioni e fedeltà all'immagine separate, gruppi,
   split per profondità, ranghi, misure razionali, evidenze;
-- riproducibilità e dipendenza degli split dal seme;
+- riproducibilità; su più semi gli split cambiano e stati e gruppi no; la verifica non chiede che un altro seme cambi il
+  dev (quota zero, quota piccola con un seme e il successivo che danno lo stesso dev);
 - rifiuti prima della scrittura: run2 non riprodotto, sha256 di uno shard, chiave segnalata senza record, caption check
   incoerente, escluso dello sharding presente negli shard, duplicato della vecchia validazione da solo nel gruppo,
   snapshot diverso."""
@@ -200,19 +201,53 @@ def test_build_and_verify():
           and all(len(q["sha256"]) == 64 for q in recs["d0-9323"]["qa"]))
 
 
-def test_reproducible():
+def run_quietly(args) -> tuple[dict | None, str]:
+    try:
+        return mm.run(args), ""
+    except um.Problem as exc:
+        return None, str(exc)
+
+
+def test_seed():
+    """Il seme: due costruzioni uguali; su più semi gli split cambiano e stati e gruppi no; la verifica non chiede che
+    un altro seme cambi il dev (quota zero; quota piccola con un seme e il successivo che danno lo stesso dev)."""
     with tempfile.TemporaryDirectory() as tmp:
-        args = write_fixture(Path(tmp), spec())
+        tmp = Path(tmp)
+        args = write_fixture(tmp, spec())
         plan = mm.shard_plan(args.shards)
         lines = [[json.dumps(r, sort_keys=True) for r in mm.records(mm.build(args, plan))] for _ in range(2)]
-        args.seed = 1
-        other = [json.loads(x) for x in (json.dumps(r, sort_keys=True) for r in mm.records(mm.build(args, plan)))]
-    first = [json.loads(x) for x in lines[0]]
+        by_seed = {}
+        for seed in range(6):
+            args.seed = seed
+            by_seed[seed] = list(mm.records(mm.build(args, plan)))
+        args.seed = 0
+        info = mm.build(args, plan)["info"]
+        zero, why_zero = run_quietly(argparse.Namespace(**{**vars(args), "dev_fraction": 0.0, "out": tmp / "zero",
+                                                           "report": tmp / "zero-v", "summary": tmp / "zero.json"}))
+        zero_dev = [r for rows in mf.load(tmp / "zero").by_shard.values() for r in rows.values()
+                    if r["split"] == "dev"] if zero else None
+        small = 0.05
+        targets = {}
+        for i in info.values():
+            targets[i["famiglia"]] = targets.get(i["famiglia"], 0) + i["ammessi"]
+        targets = {f: round(small * n) for f, n in sorted(targets.items())}
+        same = next(s for s in range(1000) if mf.assign_splits(info, small, s) == mf.assign_splits(info, small, s + 1))
+        steady, why_steady = run_quietly(argparse.Namespace(**{**vars(args), "dev_fraction": small, "seed": same,
+                                                               "out": tmp / "small", "report": tmp / "small-v",
+                                                               "summary": tmp / "small.json"}))
+        verification = json.loads((tmp / "small-v" / "verifica.json").read_text()) if steady else {"controlli": []}
     check("riproducibilità: due costruzioni danno righe identiche", lines[0] == lines[1] and len(lines[0]) == 30)
-    check("con un altro seme cambiano gli split, non gli stati né i gruppi",
-          [r["split"] for r in first] != [r["split"] for r in other]
-          and [r["stato"] for r in first] == [r["stato"] for r in other]
-          and [r["gruppo"] for r in first] == [r["gruppo"] for r in other])
+    splits = {s: [r["split"] for r in recs] for s, recs in by_seed.items()}
+    check("su sei semi gli split non sono tutti uguali, stati e gruppi sì",
+          len({tuple(v) for v in splits.values()}) > 1
+          and len({tuple(r["stato"] for r in recs) for recs in by_seed.values()}) == 1
+          and len({tuple(r["gruppo"] for r in recs) for recs in by_seed.values()}) == 1)
+    check("quota di dev zero: nessun dev, verifica superata", zero is not None and zero["esito_verifica"]
+          and not zero_dev, why_zero[:200])
+    check(f"quota piccola ({small}, obiettivi per profondità {targets}) con un seme e il successivo che danno lo stesso "
+          "dev: verifica superata, nessun controllo sul cambiamento del dev con un altro seme",
+          steady is not None and steady["esito_verifica"] and any(targets.values())
+          and not any("altro seme" in c["controllo"] for c in verification["controlli"]), f"seme {same} {why_steady[:200]}")
 
 
 def test_refusals():
@@ -250,7 +285,7 @@ def test_refusals():
 
 if __name__ == "__main__":
     test_build_and_verify()
-    test_reproducible()
+    test_seed()
     test_refusals()
     print("\nfalliti:", FAILS or "nessuno")
     sys.exit(1 if FAILS else 0)
