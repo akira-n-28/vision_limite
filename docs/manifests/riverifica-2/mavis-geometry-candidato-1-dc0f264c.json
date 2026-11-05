@@ -1,0 +1,131 @@
+{
+ "schema": "limite-vl-riverifica/2",
+ "sorgente": "mavis",
+ "manifest": "data/manifests/mavis-geometry-candidato-1",
+ "nome": "mavis-geometry-candidato",
+ "versione": "1",
+ "manifest_sha256": "dc0f264c60c1549cc1c9412ccae15d0fa6040ef1e55ac99cda0046957d6dbc2e",
+ "manifest_sha256_atteso": "dc0f264c60c1549cc1c9412ccae15d0fa6040ef1e55ac99cda0046957d6dbc2e",
+ "records_sha256": "f2a1c212303d7f5baa9fbf6580ec03d77af07b0d17c0145697d32fa94d81dd5f",
+ "job_costruzione": "30630",
+ "job_id": "30640",
+ "codice": {
+  "commit": "aed2e2b2ce783f2bbe8f5ca8bcf4d7cbb76e390c",
+  "dirty": true,
+  "diff_sha256": "a0c36f2cad93411f0c5167610ff39a90b2ed1520759f67a0d94b86bf27860668",
+  "untracked": []
+ },
+ "verificatori": {
+  "unimer_manifest": {
+   "percorso": "scripts/unimer_manifest.py",
+   "sha256": "529ceac767e63e95bbfbb327f006f8044c62fb157fe87bdee3977bc63610ccab"
+  },
+  "mavis_manifest": {
+   "percorso": "scripts/mavis_manifest.py",
+   "sha256": "af948f50675d9c823a045c5c78e7cc6f76a4d70b53bc053c1d2a97e18f8b0c96"
+  },
+  "manifest_recheck": {
+   "percorso": "scripts/manifest_recheck.py",
+   "sha256": "aa32fa3851f97554bd63d2b0a872c10c280bf3b415e1299a225a07ae16aa8dc3"
+  }
+ },
+ "evidenze_registrate_non_rilette": {},
+ "evidenze_uguali_a_quelle_registrate": true,
+ "evidenze_obbligatorie": 10,
+ "evidenze": {
+  "f1_mavis_run2/report.json": "49d9cab80ffcbec751887e6e8987fb02f33372a1e63a613deeab539b3c744893",
+  "f1_mavis_run2/sample.jsonl": "627eae99ed03a36f390d884b6e7c11b7f1e1355cc16fc02f9185ba76fe0a6326",
+  "f1_mavis_run2/failures.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "mavis_caption_check_run1/report.json": "d079fde7c76b4607bb492e8695bb92aaaa5be18284c0cbc905025159cc3a3db7",
+  "mavis_caption_check_run1/issues.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "mavis_geometry_run1/report.json": "abaffb206b09a37c100747534e6ffcddffbad09b3de6ff873f486e46f45622ba",
+  "mavis_geometry_run1/violations.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "fractions_run1/report.json": "327468169293ab353d0df618b18f2251ee34400795ac7549ea42275e28689dd1",
+  "split_duplicates_run1/report.json": "9f21e1bb9f58726c7c865959736c42cf90f3c9d705c12f50db284f7368d5b16e",
+  "split_duplicates_run1/val_with_duplicates.jsonl": "5805784db6796921261aab92a2e3af9074e664f934f37e9eca424d9e2f5b3332"
+ },
+ "rapporto": "outputs/manifest_recheck/riverifica-2/mavis-geometry-candidato-1-dc0f264c/verifica.json",
+ "rapporto_sha256": "1c84064bbcfd5f4eef636ab4f467e0e0cedbd845ab4be76f26b72a8c8f232f4b",
+ "controlli": [
+  {
+   "parte": "verifica",
+   "controllo": "manifest letto e verificato (sha256 dei record, record_id ricalcolati, un solo split per gruppo, conteggi per shard)",
+   "esito": true
+  },
+  {
+   "parte": "verifica",
+   "controllo": "identità uniche: record_id e chiave",
+   "esito": true
+  },
+  {
+   "parte": "verifica",
+   "controllo": "gruppi ricalcolati dai byte del PNG e da diagram_generation: stessa partizione",
+   "esito": true
+  },
+  {
+   "parte": "verifica",
+   "controllo": "group_id ricalcolati dai membri",
+   "esito": true
+  },
+  {
+   "parte": "verifica",
+   "controllo": "nessun gruppo in due split (in particolare fra train e dev)",
+   "esito": true
+  },
+  {
+   "parte": "verifica",
+   "controllo": "split ricalcolato con quota e seme del manifest: uguale a quello scritto",
+   "esito": true
+  },
+  {
+   "parte": "verifica",
+   "controllo": "dev per profondità: almeno l'obiettivo, superato al più dall'ultimo gruppo",
+   "esito": true
+  },
+  {
+   "parte": "verifica",
+   "controllo": "compiti: shape_type mai ammessa, gli altri con lo stato del record",
+   "esito": true
+  },
+  {
+   "parte": "verifica",
+   "controllo": "domande dei compiti uguali alle QA del record",
+   "esito": true
+  },
+  {
+   "parte": "verifica",
+   "controllo": "ogni record ammesso ha la coerenza con le annotazioni verificata; la fedeltà all'immagine resta da verificare per tutti",
+   "esito": true
+  },
+  {
+   "parte": "verifica",
+   "controllo": "liste storiche: ogni chiave segnalata risolta in un solo record, e non ammessa",
+   "esito": true
+  },
+  {
+   "parte": "verifica",
+   "controllo": "gruppi con descrizioni diverse: nessun record ammesso",
+   "esito": true
+  },
+  {
+   "parte": "verifica",
+   "controllo": "conteggi per split, profondità, stato, compito e motivo uguali a manifest.json",
+   "esito": true
+  },
+  {
+   "parte": "verifica",
+   "controllo": "ranghi del campione candidato ricalcolati",
+   "esito": true
+  },
+  {
+   "parte": "verifica",
+   "controllo": "file derivati (keys/) con gli sha256 registrati",
+   "esito": true
+  }
+ ],
+ "superati": 15,
+ "totale": 15,
+ "esito": true,
+ "anomalie": 0,
+ "nota": "riverifica in sola lettura di un manifest già scritto, coi verificatori correnti: non ricostruisce e non corregge nulla; non certifica la qualità né la corrispondenza visiva, non completa la decontaminazione e non autorizza il training"
+}

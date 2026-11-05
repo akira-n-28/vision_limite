@@ -1534,8 +1534,10 @@ riverificata per la nuova configurazione (pipeline §5.7).
   sha256 completo, uguale a quello su disco prima della verifica.
   - Si ferma se `liste_importate` è assente o vuota, se una lista o un file non sono registrati, se un digest manca o
     non è valido: un insieme incompleto non vale più come verifica riuscita.
-  - È una correzione del verificatore, non un nuovo esito sul dataset: la riverifica del job 30635 non è stata ripetuta.
-    Il suo rapporto elenca proprio i 10 file ora obbligatori, registrati e uguali su disco.
+  - **Esito sul manifest** (job 30640, `riverifica-2`). Le 10 evidenze sono registrate e uguali su disco, con gli stessi
+    digest di `riverifica-1`; tre sono file vuoti, perché run2 non ha fallimenti e i due check non hanno segnalazioni.
+    15 controlli su 15, nessuna anomalia.
+    Rapporto: `docs/manifests/riverifica-2/mavis-geometry-candidato-1-dc0f264c.json`.
   - Non prova la fedeltà all'immagine e non completa la decontaminazione.
 
 ## 4. UniMER (`data/shards/unimer/2343ddd9-dense`, `latex.py`, `outputs/unimer_check/run4`)
@@ -1621,9 +1623,11 @@ MiB). Il riepilogo versionato è `docs/manifests/unimer-candidato-1.json`.
   - **Evidenze obbligatorie.** Sono gli 8 file di run4 e run2 che la costruzione registra, compresi quelli che la
     verifica rilegge. Devono essere in `liste_importate` con digest sha256 completi e uguali su disco, prima dell'uso.
     `split_duplicates/run1` è registrata ma non riletta (serve solo alla costruzione), ed è elencata a parte.
-  - **Stato del dataset.** È una correzione del verificatore, non un nuovo esito: la riverifica del job 30634 non è
-    stata ripetuta. Nel suo rapporto le evidenze sono proprio gli 8 file ora obbligatori. Lo shard delle righe è
-    l'unico classificato `righe`, con 30.685 record, tutti controllati: quanti sono i record `righe` della verifica.
+  - **Esito sul manifest** (job 30639, `riverifica-2`). La classificazione è coerente: 5 shard `train` con 985.450
+    formule, 1 shard `righe` con 30.685 righe. Le 8 evidenze sono registrate e uguali su disco, con gli stessi digest di
+    `riverifica-1`. 28 controlli su 28, nessuna anomalia: le 30.685 righe ricavate dai record sono tutte controllate, e
+    le fasce danno gli stessi numeri di `riverifica-1`.
+    Rapporto: `docs/manifests/riverifica-2/unimer-candidato-1-bcc85198.json`.
   - Non prova la corrispondenza visiva delle fasce e non completa la decontaminazione.
 
 ## 5. Collaudi (CPU, `tests_cpu`)
