@@ -350,6 +350,12 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
     `diagram_generation` (job 30033, 30052: andata e ritorno su 199.050). La coerenza fra due descrizioni non prova
     la fedeltà ai pixel (`mavis_gen.py`). I valori razionali (denominatori 2 e 3) sono disegnati come decimali a due
     cifre (job 30049): valore esatto, visualizzato e richiesto vanno separati (pipeline §5.6).
+  - Manifest candidato `data/manifests/mavis-geometry-candidato-1` (job 30630, `scripts/mavis_manifest.py`, S2 §3):
+    199.050 record in gruppi per stessi byte del PNG o stesso diagram_generation, dev al 5% per profondità.
+    - `shape_type` è in quarantena come compito; gli altri compiti restano. Coerenza con le annotazioni verificata,
+      fedeltà all'immagine da verificare. Non è letto dai loader.
+    - `f1_mavis_check.py` (run2) usava la chiave `mavis-<id>`, il loader usa quella del tar: le scelte casuali delle
+      domande differiscono, e il manifest usa quelle del loader.
 - UniMER @ 2343ddd9 (job 29436, 29438): l'immagine `images/<indice>.png` ha come formula la riga `<indice>` di
   `train.txt`; le righe vuote sono HME100K (tolto per copyright) e le formule a mano di CROHME (meno dell'1%) non si
   separano per indice. Shard in `data/shards/unimer/2343ddd9/` (985.450 campioni, test spe/cpe/sce/hwe in `test/`),

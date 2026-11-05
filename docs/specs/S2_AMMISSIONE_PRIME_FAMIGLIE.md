@@ -1490,6 +1490,40 @@ renderer di MAVIS non è nostro, quindi non abbiamo invarianti: l'osservabilità
 Se in F0 cambia la risoluzione (oggi 2304 patch, oltre le 1024 di addestramento di NaFlex), l'osservabilità va
 riverificata per la nuova configurazione (pipeline §5.7).
 
+**Manifest candidato** (2026-11-05, job 30626 e 30630, `scripts/mavis_manifest.py`). Cartella
+`data/manifests/mavis-geometry-candidato-1`: `manifest.json` ha sha256 `dc0f264c…`, `records.jsonl.gz` ha
+`f2a1c212…` (148 MiB). Il riepilogo versionato è `docs/manifests/mavis-geometry-candidato-1.json`.
+- **Ingressi.** Gli 11 tar `9c80fff3-caption` (job 29419) sono letti e hashati una volta, con sha256 uguali al loro
+  manifest; il blob dello snapshot ha lo sha256 dichiarato.
+- **Record.** 199.050, uno per caption.jpg, con compiti, QA e digest. Le QA sono quelle che il loader costruisce con la
+  chiave del tar (`data.mavis_f1_sample`). Il record porta anche i digest della descrizione canonica, della verità, di
+  diagram_generation e della didascalia.
+- **Gruppi.** 158.018, per stessi byte del PNG o stesso diagram_generation. 10.240 hanno più di un record (51.272 in
+  tutto), e in nessuno la stessa domanda ha risposte diverse o le descrizioni differiscono.
+- **Stati.**
+  - Tutti i record sono ammessi come candidati: nessuna verità manca, l'andata e ritorno è perfetta, nessuna lista storica
+    li segnala e nessun gruppo è in conflitto.
+  - `shape_type` è in quarantena come compito in 177.944 record (383.592 domande), senza togliere gli altri compiti.
+  - Gli altri otto tipi di domanda e la descrizione sono ammessi.
+- **Due proprietà separate per record.** La coerenza con le annotazioni è verificata dal codice: didascalia contro
+  diagram_generation, andata e ritorno della descrizione. La fedeltà all'immagine resta da verificare per tutti i
+  record.
+- **Dev.** 9.951 record, il 5% di ogni profondità d0-d3, seme 0; rango del campione candidato per ogni gruppo.
+- **Riconciliazione.** run2 è ricalcolato con la chiave `mavis-<id>` che usava `f1_mavis_check.py`, diversa da quella del
+  loader. Coincidono motivi, record pronti per profondità, domande per tipo, risposte yes/no e domande per esempio. I 60
+  esempi di `sample.jsonl` sono riprodotti esattamente.
+  - Caption check e geometry check non hanno segnalazioni sui 199.050.
+  - Il geometry check non è ricalcolato.
+  - Gli esclusi dallo sharding (1 incompleto e 552 didascalie duplicate) non sono negli shard.
+  - Le 108 chiavi della vecchia validazione con l'immagine ripetuta stanno in gruppi di più record.
+- **Valori.** 22.712 record hanno misure razionali disegnate come decimali. La risposta è il decimale disegnato;
+  l'esatto non è nel record (C9).
+- **Limiti.**
+  - Manca la fedeltà all'immagine: revisione visiva e stima di S4.
+  - Manca la decontaminazione esterna contro `pannello-v3`, che comprende le geometrie di MathVerse, degli stessi autori.
+  - C9 non è implementato.
+  - Il loader attuale può ancora scegliere `shape_type`: un reader col manifest (C7) deve escluderla.
+
 ## 4. UniMER (`data/shards/unimer/2343ddd9-dense`, `latex.py`, `outputs/unimer_check/run4`)
 
 | Compito | Corretto | Osservabile | Stato atteso |

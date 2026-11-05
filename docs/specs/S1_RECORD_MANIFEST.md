@@ -237,3 +237,16 @@ Le liste storiche (§5) si importano una per una. Ogni chiave deve risolversi in
 uno, ferma la costruzione. unimer_check/run4 e unimer_overlap/run2 si ricalcolano anche dalle regole correnti, e la
 costruzione si ferma se il ricalcolo non coincide coi loro file. I gruppi sono i legami esatti dentro la sorgente (stessi
 byte del PNG), non l'indice globale (§4).
+
+**Estensione a MAVIS-Geometry** (2026-11-05, `scripts/mavis_manifest.py`, `data/manifests/mavis-geometry-candidato-1`,
+job 30630; S2 §3). Usa lo stesso schema e la stessa lettura verificata, e riusa le funzioni dello script di UniMER. Ogni
+riga ha in più:
+- `famiglia`: la profondità d0-d3, che fa da strato del dev;
+- `compiti`, uno per tipo, ciascuno con il suo stato e il numero di domande: lo stato di un tipo di domanda (§2) è per
+  compito, quindi `shape_type` in quarantena non toglie gli altri compiti del record;
+- `qa`: tipo e digest delle domande che il loader costruisce con la chiave del tar;
+- i digest della descrizione, della verità, di diagram_generation e della didascalia;
+- `verifiche`: coerenza con le annotazioni e fedeltà all'immagine, separate;
+- `misure_razionali_come_decimali`.
+
+I gruppi sono i legami esatti dentro la sorgente: stessi byte del PNG oppure stesso diagram_generation.

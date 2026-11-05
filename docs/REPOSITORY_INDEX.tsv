@@ -96,6 +96,7 @@ docs/img/synth-review/prima-dopo-coords.png	immagine	corrente	correzioni di v4 (
 docs/img/synth-review/prima-dopo-coppie.png	immagine	corrente	correzioni di v4 (job 30420, S2 §2.5): coppie polygon v3 accanto alle v4 con la stessa chiave	ritagli dei PNG del renderer (scripts/synth_review.py)
 docs/img/synth-review/prima-dopo-origine.png	immagine	corrente	correzioni di v4 (job 30420, S2 §2.5): O e tacche -1 all'origine, prima e dopo	ritagli dei PNG del renderer (scripts/synth_review.py)
 docs/img/synth-review/prima-dopo-polygon.png	immagine	corrente	correzioni di v4 (job 30420, S2 §2.5): misure e punto segnato dei polygon, prima e dopo	ritagli dei PNG del renderer (scripts/synth_review.py)
+docs/manifests/mavis-geometry-candidato-1.json	rapporto	corrente	riepilogo verificabile del manifest candidato di MAVIS-Geometry (job 30630): identità, sha256 di manifest, record, shard e liste importate, split per profondità, conteggi per compito e stato, riconciliazione con run2 e coi controlli storici, controlli della verifica, lacune	il manifest sta in data/manifests, fuori da git
 docs/manifests/unimer-candidato-1.json	rapporto	corrente	riepilogo verificabile del manifest candidato di UniMER-1M (job 30625): identità, sha256 di manifest, record, shard e liste importate, split, conteggi, riproduzione di run4 e run2, controlli della verifica, lacune	il manifest sta in data/manifests, fuori da git
 docs/reviews/PIPELINE_ADDESTRAMENTO_LIMITE_VL.md	documento	corrente	navigazione dei rapporti	-
 docs/reviews/README.md	documento	corrente	navigazione dei rapporti	-
@@ -172,6 +173,7 @@ scripts/mavis_caption_survey.py	script	riutilizzabile	ispezione dei dati senza t
 scripts/mavis_contact_sheet.py	script	riutilizzabile	controllo deterministico dei dati (pipeline §5.3); esiti come evidenze, non ammissione	-
 scripts/mavis_fraction_values.py	script	riutilizzabile	controllo deterministico dei dati (pipeline §5.3); esiti come evidenze, non ammissione	-
 scripts/mavis_geometry_check.py	script	riutilizzabile	controllo deterministico dei dati (pipeline §5.3); esiti come evidenze, non ammissione	importato da tests/test_mavis_geometry
+scripts/mavis_manifest.py	script	corrente	manifest candidato di MAVIS-Geometry (F0_CAMPIONE_CANDIDATO §6 punto 3, S1 §9, S2 §3): shard caption letti e hashati, compiti con shape_type in quarantena, gruppi per byte del PNG e diagram_generation, verità diverse nello stesso gruppo in quarantena, run2 ricalcolato con la sua chiave, caption e geometry check riconciliati, dev per profondità, rango del campione candidato, verifica dopo la scrittura; modalità di prova su un tar (job 30626, 30630)	riusa scripts/unimer_manifest.py; scrive data/manifests/<nome>-<versione> una volta sola; non certifica
 scripts/mavis_variants.py	script	riutilizzabile	ispezione dei dati senza training	-
 scripts/mavis_zip_survey.py	script	riutilizzabile	ispezione dei dati senza training	-
 scripts/panel_groups.py	script	corrente	gruppi e ruoli del pannello: legami confermati (testo di solo testo nella forma conservativa), candidati, evidenze dirette e inammissibilità per gruppo, copertura dei vicini pHash, split attesi, riesame e confronto col pannello precedente (job 30469); il confronto usa metrica_primaria quando c'è, la regola di v2 solo per i formati precedenti (job 30517)	solo in un job CPU; uscite scritte una volta
@@ -247,6 +249,7 @@ slurm/mavis_caption_survey.sbatch	launcher	riutilizzabile	launcher di ispezione,
 slurm/mavis_contact_sheet.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
 slurm/mavis_fraction_values.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
 slurm/mavis_geometry_check.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
+slurm/mavis_manifest.sbatch	launcher	corrente	test del manifest, poi prova su un tar oppure costruzione del manifest candidato di MAVIS con verifica e riepilogo (job 30626, 30630)	ingressi fissi: shard 9c80fff3-caption e le uscite storiche in outputs/
 slurm/mavis_variants.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
 slurm/mavis_zip_survey.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
 slurm/panel_groups.sbatch	launcher	corrente	indice del pannello, sua verifica e gruppi e ruoli (panel_index.py e panel_groups.py; job 30465, 30466, 30469); --indice riusa un indice, --precedente confronta	-
@@ -334,6 +337,7 @@ tests/test_manifest.py	test	corrente	test CPU (slurm/tests_cpu.sbatch): manifest
 tests/test_mavis.py	test	storico	test di codice storico mantenuto importabile	-
 tests/test_mavis_gen.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
 tests/test_mavis_geometry.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
+tests/test_mavis_manifest.py	test	corrente	test CPU del manifest candidato di MAVIS su shard fittizi con annotazioni vere (tests/test_mavis_gen.py): run2 del fixture scritto da scripts/f1_mavis_check.py, compiti e shape_type, duplicato e conflitto nella stessa immagine, didascalia diversa, misure razionali, split e ranghi, riproducibilità, 7 rifiuti (job 30626, 30630)	esegue scripts/f1_mavis_check.py in un sottoprocesso
 tests/test_normuon.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
 tests/test_panel.py	test	corrente	test CPU del pannello e della convenzione delle immagini: irrisolti per gruppo, testo conservativo, vicini pHash, PNG trasparenti, recupero dal nuovo indice, split di ChartQA, confronto fra versioni con metrica_primaria e formato v2 (slurm/tests_cpu.sbatch, job 30468, 30517)	-
 tests/test_replay.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-

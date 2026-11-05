@@ -1,0 +1,313 @@
+{
+ "schema": "limite-vl-manifest-riepilogo/1",
+ "manifest": "data/manifests/mavis-geometry-candidato-1",
+ "nome": "mavis-geometry-candidato",
+ "versione": "1",
+ "job_id": "30630",
+ "manifest_sha256": "dc0f264c60c1549cc1c9412ccae15d0fa6040ef1e55ac99cda0046957d6dbc2e",
+ "records_sha256": "f2a1c212303d7f5baa9fbf6580ec03d77af07b0d17c0145697d32fa94d81dd5f",
+ "righe": 199050,
+ "sorgente": "mavis-geometry",
+ "revisione": "9c80fff300f4f2cb3a76f71e03428eebdd571907",
+ "shards": [
+  {
+   "insieme": "train",
+   "nome": "mavis-geometry-caption-00000.tar",
+   "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00000.tar",
+   "sha256": "0a6144be1c6a424944ecbf48a598fa8056646b38a363095678726a8ece3bf6a9",
+   "bytes": 1031505920,
+   "record": 19000
+  },
+  {
+   "insieme": "train",
+   "nome": "mavis-geometry-caption-00001.tar",
+   "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00001.tar",
+   "sha256": "9ead847c1403c8bac953db8ef7509cd47158773d6ff0df5ec7caebbab035139c",
+   "bytes": 1027225600,
+   "record": 19000
+  },
+  {
+   "insieme": "train",
+   "nome": "mavis-geometry-caption-00002.tar",
+   "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00002.tar",
+   "sha256": "a4d5b382657643a52c3697485d5a2584a4e158a091ed2a6cf9ef9c8476a43d1b",
+   "bytes": 957132800,
+   "record": 19000
+  },
+  {
+   "insieme": "train",
+   "nome": "mavis-geometry-caption-00003.tar",
+   "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00003.tar",
+   "sha256": "1be409c665906f5330f042e10e6cdb38e76fe5889dd720f287fe06ecc48bba7d",
+   "bytes": 831549440,
+   "record": 19000
+  },
+  {
+   "insieme": "train",
+   "nome": "mavis-geometry-caption-00004.tar",
+   "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00004.tar",
+   "sha256": "6a878d9754c4760432644fdc2a5fb86bb656ffa4d10d1e595a0f3edeeffe1d99",
+   "bytes": 833996800,
+   "record": 19000
+  },
+  {
+   "insieme": "train",
+   "nome": "mavis-geometry-caption-00005.tar",
+   "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00005.tar",
+   "sha256": "2e8ca055af6d304e2350c1b70d33ed711b382384ba35dd2658bb5c3c4cca23f9",
+   "bytes": 940677120,
+   "record": 19000
+  },
+  {
+   "insieme": "train",
+   "nome": "mavis-geometry-caption-00006.tar",
+   "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00006.tar",
+   "sha256": "c8b75acbf51a9ea3420a713782e470fdc084413a0b33d84985a4ec16c7b1db58",
+   "bytes": 973568000,
+   "record": 19000
+  },
+  {
+   "insieme": "train",
+   "nome": "mavis-geometry-caption-00007.tar",
+   "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00007.tar",
+   "sha256": "6281ca0100eecb05eade4b622fcb6ea36a6c2bfb56b048a7a6463d15bfb47252",
+   "bytes": 964894720,
+   "record": 19000
+  },
+  {
+   "insieme": "train",
+   "nome": "mavis-geometry-caption-00008.tar",
+   "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00008.tar",
+   "sha256": "505cbd3bdd312ef6fe26543f67484075eb4b8271f30538cf0ed7e74e13b5dd79",
+   "bytes": 918968320,
+   "record": 19000
+  },
+  {
+   "insieme": "train",
+   "nome": "mavis-geometry-caption-00009.tar",
+   "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00009.tar",
+   "sha256": "24c21c7fe38c9c455212c0e5218ee9f4c93c333c6981e09798f418c7e7aae4ad",
+   "bytes": 917688320,
+   "record": 19000
+  },
+  {
+   "insieme": "train",
+   "nome": "mavis-geometry-caption-00010.tar",
+   "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00010.tar",
+   "sha256": "c1915023a08332ab1a9aae35ff05c1c03de3024bb83359a5f416f7f449bddd9c",
+   "bytes": 439265280,
+   "record": 9050
+  }
+ ],
+ "liste_importate": {
+  "f1_mavis_run2": {
+   "report.json": "49d9cab80ffcbec751887e6e8987fb02f33372a1e63a613deeab539b3c744893",
+   "sample.jsonl": "627eae99ed03a36f390d884b6e7c11b7f1e1355cc16fc02f9185ba76fe0a6326",
+   "failures.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "mavis_caption_check_run1": {
+   "report.json": "d079fde7c76b4607bb492e8695bb92aaaa5be18284c0cbc905025159cc3a3db7",
+   "issues.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "mavis_geometry_run1": {
+   "report.json": "abaffb206b09a37c100747534e6ffcddffbad09b3de6ff873f486e46f45622ba",
+   "violations.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "fractions_run1": {
+   "report.json": "327468169293ab353d0df618b18f2251ee34400795ac7549ea42275e28689dd1"
+  },
+  "split_duplicates_run1": {
+   "report.json": "9f21e1bb9f58726c7c865959736c42cf90f3c9d705c12f50db284f7368d5b16e",
+   "val_with_duplicates.jsonl": "5805784db6796921261aab92a2e3af9074e664f934f37e9eca424d9e2f5b3332"
+  }
+ },
+ "split": {
+  "d0": {
+   "ammessi": 49448,
+   "obiettivo": 2472,
+   "dev": 2472,
+   "quota": 0.04999
+  },
+  "d1": {
+   "ammessi": 49949,
+   "obiettivo": 2497,
+   "dev": 2497,
+   "quota": 0.04999
+  },
+  "d2": {
+   "ammessi": 49869,
+   "obiettivo": 2493,
+   "dev": 2493,
+   "quota": 0.04999
+  },
+  "d3": {
+   "ammessi": 49784,
+   "obiettivo": 2489,
+   "dev": 2489,
+   "quota": 0.05
+  }
+ },
+ "conteggi": {
+  "per_split_famiglia_stato": {
+   "dev/d0/ammesso": 2472,
+   "dev/d1/ammesso": 2497,
+   "dev/d2/ammesso": 2493,
+   "dev/d3/ammesso": 2489,
+   "train/d0/ammesso": 46976,
+   "train/d1/ammesso": 47452,
+   "train/d2/ammesso": 47376,
+   "train/d3/ammesso": 47295
+  },
+  "per_compito_split_stato": {
+   "angle_val/dev/ammesso": 9951,
+   "angle_val/train/ammesso": 189099,
+   "count_points/dev/ammesso": 9951,
+   "count_points/train/ammesso": 189099,
+   "describe/dev/ammesso": 9951,
+   "describe/train/ammesso": 189099,
+   "direction/dev/ammesso": 4815,
+   "direction/train/ammesso": 91678,
+   "exists_point/dev/ammesso": 9951,
+   "exists_point/train/ammesso": 189099,
+   "exists_shape/dev/ammesso": 9951,
+   "exists_shape/train/ammesso": 189099,
+   "removed_side/dev/ammesso": 4815,
+   "removed_side/train/ammesso": 91678,
+   "shape_type/dev/quarantena": 8877,
+   "shape_type/train/quarantena": 169067,
+   "shared_side/dev/ammesso": 7479,
+   "shared_side/train/ammesso": 142123,
+   "side_len/dev/ammesso": 9951,
+   "side_len/train/ammesso": 189099
+  },
+  "domande_per_tipo_stato": {
+   "angle_val/ammesso": 498089,
+   "count_points/ammesso": 199050,
+   "direction/ammesso": 114497,
+   "exists_point/ammesso": 398100,
+   "exists_shape/ammesso": 398100,
+   "removed_side/ammesso": 114497,
+   "shape_type/quarantena": 383592,
+   "shared_side/ammesso": 299039,
+   "side_len/ammesso": 734064
+  },
+  "per_motivo": {},
+  "gruppi_per_split": {
+   "dev": 7788,
+   "train": 150230
+  },
+  "misure_razionali": {
+   "record_con_misure_razionali": 22712
+  }
+ },
+ "riconciliazione": {
+  "caption_check": {
+   "didascalie_diverse": 0,
+   "segnalazioni_nel_file": 0
+  },
+  "geometry_check": {
+   "violazioni_nel_file": 0,
+   "ricalcolato": false
+  },
+  "sharding": {
+   "incompleti": 1,
+   "didascalie_duplicate": 552
+  },
+  "gruppi": {
+   "in_conflitto": 0,
+   "con_piu_record": 10240,
+   "record_in_gruppi_con_piu_record": 51272,
+   "con_piu_profondita": 0
+  },
+  "duplicati_vecchia_validazione_controllati": 108,
+  "run2_uguale": true,
+  "run2_esempi_riprodotti": 60
+ },
+ "controlli": [
+  {
+   "controllo": "manifest letto e verificato (sha256 dei record, record_id ricalcolati, un solo split per gruppo, conteggi per shard)",
+   "esito": true
+  },
+  {
+   "controllo": "identità uniche: record_id e chiave",
+   "esito": true
+  },
+  {
+   "controllo": "gruppi ricalcolati dai byte del PNG e da diagram_generation: stessa partizione",
+   "esito": true
+  },
+  {
+   "controllo": "group_id ricalcolati dai membri",
+   "esito": true
+  },
+  {
+   "controllo": "nessun gruppo in due split (in particolare fra train e dev)",
+   "esito": true
+  },
+  {
+   "controllo": "split ricalcolato con quota e seme del manifest: uguale a quello scritto",
+   "esito": true
+  },
+  {
+   "controllo": "con un altro seme il dev cambia (la scelta dipende dal seme)",
+   "esito": true
+  },
+  {
+   "controllo": "dev per profondità: almeno l'obiettivo, superato al più dall'ultimo gruppo",
+   "esito": true
+  },
+  {
+   "controllo": "compiti: shape_type mai ammessa, gli altri con lo stato del record",
+   "esito": true
+  },
+  {
+   "controllo": "domande dei compiti uguali alle QA del record",
+   "esito": true
+  },
+  {
+   "controllo": "ogni record ammesso ha la coerenza con le annotazioni verificata; la fedeltà all'immagine resta da verificare per tutti",
+   "esito": true
+  },
+  {
+   "controllo": "liste storiche: ogni chiave segnalata risolta in un solo record, e non ammessa",
+   "esito": true
+  },
+  {
+   "controllo": "gruppi con descrizioni diverse: nessun record ammesso",
+   "esito": true
+  },
+  {
+   "controllo": "conteggi per split, profondità, stato, compito e motivo uguali a manifest.json",
+   "esito": true
+  },
+  {
+   "controllo": "ranghi del campione candidato ricalcolati",
+   "esito": true
+  },
+  {
+   "controllo": "file derivati (keys/) con gli sha256 registrati",
+   "esito": true
+  }
+ ],
+ "esito_verifica": true,
+ "compiti_in_quarantena": {
+  "shape_type": "classi che non formano una catena (quadrato, rettangolo, rombo, aquilone, parallelogramma; triangolo rettangolo e isoscele): servono opzioni con una sola vera secondo le misure note (C9, S2 §3)"
+ },
+ "fuori_dal_sottoinsieme": [
+  "variant_id e uid (S1 §1): dipendono dal contratto di risposta (S3, D3). Il loader sceglie dalla chiave il compito (descrizione o domande), il prompt della descrizione e da 1 a 5 domande; il manifest elenca tutte le domande possibili del record con il loro digest",
+  "hash dei token di input e di target, tokenizer, template e contratto (S1 §2, §7): dipendono dal contratto",
+  "indice globale fra sorgenti (S1 §4): i gruppi sono i legami esatti dentro MAVIS-Geometry; le altre due immagini della cartella (text.jpg, vision_dominant.jpg) non sono negli shard",
+  "decontaminazione esterna contro pannello-v3 (pixel, pHash e testo, comprese le geometrie di MathVerse, degli stessi autori): non fatta, è il lotto successivo",
+  "reader col manifest (C7): gli shard di MAVIS non sono in manifest.MANIFEST_REQUIRED e il loader attuale (data.mavis_f1_sample) può ancora scegliere shape_type; un reader che applichi il manifest deve escluderla",
+  "C9: opzioni di shape_type costruite dalle misure note, valore visualizzato ed esatto nel record; qui solo il conteggio delle misure razionali disegnate come decimali",
+  "campo gold (S2 §3): nessuno; target_controllato dopo il campione di S4"
+ ],
+ "verifiche_mancanti": [
+  "fedeltà all'immagine: il renderer di MAVIS non è nostro, nessuna invariante; revisione visiva campionaria e stima di S4 da fare (finora 40 immagini guardate, outputs/f1_mavis/contact_run1)",
+  "decontaminazione esterna di MAVIS contro pannello-v3",
+  "osservabilità alla risoluzione scelta (oggi 2304 patch, oltre le 1024 di addestramento di NaFlex)",
+  "shape_type in quarantena finché C9 non costruisce le opzioni",
+  "valori razionali: la risposta è il decimale disegnato; l'esatto non è nel record (C9)"
+ ],
+ "nota": "organizza candidati ed evidenze: non certifica la qualità e non autorizza il training"
+}
