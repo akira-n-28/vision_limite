@@ -248,6 +248,9 @@ Controlli aggiunti il 2026-11-05 (job 30633):
   per gruppo con le righe ritagliate, la rietichettatura della formula per le sue righe.
 - **Split.** Si ricalcola col seme dichiarato, con gruppi indivisibili e la quota. La verifica non chiede che un altro
   seme cambi il dev, perché con quota zero o pochi gruppi può non cambiare: la dipendenza dal seme si prova nei test.
+- **Riverifica** (`scripts/manifest_recheck.py`, test nel job 30638). Si ferma se l'`insieme` di uno shard in
+  `manifest.json` non è quello dei suoi record, e ricava le righe da rileggere dai record. Le evidenze che rilegge sono
+  obbligatorie: ogni lista e ogni file in `liste_importate`, con un digest sha256 completo uguale al file su disco.
 
 **Estensione a MAVIS-Geometry** (2026-11-05, `scripts/mavis_manifest.py`, `data/manifests/mavis-geometry-candidato-1`,
 job 30630; S2 §3). Usa lo stesso schema e la stessa lettura verificata, e riusa le funzioni dello script di UniMER. Ogni

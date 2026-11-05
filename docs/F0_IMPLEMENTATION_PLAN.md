@@ -315,6 +315,7 @@ C3 e C4 seguono D3.
 | 30633 (2026-11-05) | `slurm/tests_cpu.sbatch` con `test_unimer_manifest.py`, `test_mavis_manifest.py` e `test_manifest_recheck.py`, prima del commit `c271d6e` | 22 s, 4 CPU, 1 min 28 s di CPU allocate, stderr vuoto: 29 su 29, 14 su 14, 8 su 8. Gli id git del contenuto provato coincidono col commit | che le lacune del verificatore sono chiuse sui fixture: PNG della riga scambiato rifiutato prima dei gruppi, fasce non valide rifiutate (20 casi), stati alterati rifiutati dai soli controlli attesi, quota zero e semi consecutivi con lo stesso dev accettati |
 | 30634 (2026-11-05) | `slurm/manifest_recheck.sbatch unimer unimer-candidato-1 bcc85198… riverifica-1`: test mirati, poi riverifica in sola lettura | 1 min 43 s, 2 CPU, 3 min 26 s di CPU allocate, RSS 7,5 GiB. 28 controlli su 28, nessuna anomalia: verifica corrente 23 su 23 (stato atteso per 1.016.135 record su 1.016.135); 30.685 righe su 30.685 contro lo shard delle righe e la formula genitore, coi digest del manifest; 8 file di evidenze e 5 shard di train (solo dimensione) uguali a quelli registrati (S2 §4) | che il manifest scritto rispetta i controlli nuovi: stesso PNG della formula, fasce strutturalmente valide, stati delle contaminazioni. Non prova la corrispondenza visiva delle fasce |
 | 30635 (2026-11-05) | `slurm/manifest_recheck.sbatch mavis mavis-geometry-candidato-1 dc0f264c… riverifica-1` | 42 s, 2 CPU, 1 min 24 s di CPU allocate, RSS 3,8 GiB: 15 controlli su 15, nessuna anomalia, 10 file di evidenze uguali a quelli registrati (S2 §3) | che il manifest scritto supera la verifica senza il controllo sul cambio di seme |
+| 30638 (2026-11-05) | `slurm/tests_cpu.sbatch tests/test_manifest_recheck.py`, prima del commit della correzione di `scripts/manifest_recheck.py` | 7 s, 4 CPU, stderr vuoto: 25 controlli su 25, di cui 17 nuovi. Gli id git del contenuto provato coincidono col commit | che sui fixture la riverifica rifiuta lo shard delle righe classificato `train` coi record invariati, e le evidenze incomplete: `liste_importate` assente o vuota, lista o file non registrati, digest mancante o non valido, per UniMER e MAVIS. Accetta i manifest completi e quello senza righe ritagliate. I manifest reali non sono riverificati (S2 §§3-4) |
 
 Calcoli di sola libreria standard sul frontend, il 2026-10-28, a supporto delle specifiche (non sono collaudi):
 - riproduzione delle domande di synth v3 dalle chiavi, con istogrammi identici al manifest del job 29756;
@@ -588,6 +589,8 @@ training; i loader non li applicano ancora (C7).
     controllo sul cambio di seme.
   - *Riverifica in sola lettura* (job 30634, `scripts/manifest_recheck.py`): 28 controlli su 28, nessuna anomalia. Il
     rapporto è `docs/manifests/riverifica-1/unimer-candidato-1-bcc85198.json`.
+  - *Riverifica corretta* (job 30638, test su fixture): si ferma se la classificazione degli shard non è quella dei
+    record, o se le evidenze obbligatorie non sono registrate con digest validi (S2 §4). Il job 30634 non è ripetuto.
   - *Lacune:* decontaminazione esterna contro `pannello-v3`; revisione campionaria (S4); `immagine_vuota` di run4 non
     ricalcolata; formule uguali con immagini diverse non unite (il dev misura immagini nuove); reader (C7).
 - **MAVIS-Geometry** (`scripts/mavis_manifest.py`, job 30626 e 30630, S1 §9, S2 §3).
@@ -603,6 +606,8 @@ training; i loader non li applicano ancora (C7).
     60 esempi; caption e geometry check senza segnalazioni; 12 test su fixture con annotazioni vere, il cui run2 lo
     scrive lo script storico; verifica dopo la scrittura 16 su 16.
   - *Riverifica in sola lettura* (job 30635), senza il controllo sul cambio di seme: 15 su 15, nessuna anomalia.
+  - *Riverifica corretta* (job 30638, test su fixture): le evidenze obbligatorie di `evidence_files` devono essere
+    registrate con digest validi e uguali su disco prima dell'uso (S2 §3). Il job 30635 non è ripetuto.
   - *Lacune:* fedeltà all'immagine (revisione visiva, S4); decontaminazione esterna; C9 (opzioni di `shape_type`,
     valore visualizzato ed esatto, 22.712 record con razionali disegnati come decimali); geometry check non ricalcolato;
     reader (C7), mentre il loader attuale può ancora scegliere `shape_type`.

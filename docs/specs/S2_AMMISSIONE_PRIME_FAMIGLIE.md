@@ -1529,6 +1529,14 @@ riverificata per la nuova configurazione (pipeline §5.7).
   - `manifest.json` è quello atteso e i 10 file di evidenze sono uguali a quelli registrati.
   - Esito: 15 controlli su 15, nessuna anomalia.
   - Rapporto: `docs/manifests/riverifica-1/mavis-geometry-candidato-1-dc0f264c.json`.
+- **Riverifica corretta** (2026-11-05, test nel job 30638). Le evidenze obbligatorie sono quelle di
+  `mavis_manifest.evidence_files`: 5 liste e 10 file. Ognuna dev'essere registrata in `liste_importate` con un digest
+  sha256 completo, uguale a quello su disco prima della verifica.
+  - Si ferma se `liste_importate` è assente o vuota, se una lista o un file non sono registrati, se un digest manca o
+    non è valido: un insieme incompleto non vale più come verifica riuscita.
+  - È una correzione del verificatore, non un nuovo esito sul dataset: la riverifica del job 30635 non è stata ripetuta.
+    Il suo rapporto elenca proprio i 10 file ora obbligatori, registrati e uguali su disco.
+  - Non prova la fedeltà all'immagine e non completa la decontaminazione.
 
 ## 4. UniMER (`data/shards/unimer/2343ddd9-dense`, `latex.py`, `outputs/unimer_check/run4`)
 
@@ -1604,6 +1612,19 @@ MiB). Il riepilogo versionato è `docs/manifests/unimer-candidato-1.json`.
   - **Rapporto.** `docs/manifests/riverifica-1/unimer-candidato-1-bcc85198.json`.
   - **Limite.** La validità delle fasce è strutturale: che ogni fascia contenga la sua riga resta da verificare
     guardando.
+- **Riverifica corretta** (2026-11-05, test nel job 30638). Due controlli in più, che fermano la riverifica prima di
+  scrivere:
+  - **Classificazione degli shard.** L'`insieme` di ogni shard in `manifest.json` dev'essere quello di ciascuno dei suoi
+    record. Prima, uno shard delle righe classificato `train` saltava la rilettura dei ritagli, e il controllo passava
+    con zero righe attese e zero controllate. Ora le righe attese si ricavano dai record e vanno coperte tutte e sole.
+    Zero righe resta valido se il manifest non ne ha.
+  - **Evidenze obbligatorie.** Sono gli 8 file di run4 e run2 che la costruzione registra, compresi quelli che la
+    verifica rilegge. Devono essere in `liste_importate` con digest sha256 completi e uguali su disco, prima dell'uso.
+    `split_duplicates/run1` è registrata ma non riletta (serve solo alla costruzione), ed è elencata a parte.
+  - **Stato del dataset.** È una correzione del verificatore, non un nuovo esito: la riverifica del job 30634 non è
+    stata ripetuta. Nel suo rapporto le evidenze sono proprio gli 8 file ora obbligatori. Lo shard delle righe è
+    l'unico classificato `righe`, con 30.685 record, tutti controllati: quanti sono i record `righe` della verifica.
+  - Non prova la corrispondenza visiva delle fasce e non completa la decontaminazione.
 
 ## 5. Collaudi (CPU, `tests_cpu`)
 
