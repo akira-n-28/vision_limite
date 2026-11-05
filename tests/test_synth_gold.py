@@ -11,12 +11,19 @@ Dal 2026-11-04 anche: prompt esportato uguale a quello di data.synth_qa_sample s
 opzioni incorporate nella domanda (label_type, shape_type) e senza (count), domanda singola per test e coppie e loader
 che rifiuta le coppie; soluzioni, opzioni e modulo con una riga per variante in una coppia con risposte diverse;
 corrispondenze della decontaminazione prese tutte dalla scansione (12, anche l'undicesima oltre l'anteprima di 10),
-riconciliate con summary.json e matches.jsonl, con materiale incompleto segnalato e identificativi incoerenti fermati."""
+riconciliate con summary.json e matches.jsonl, con materiale incompleto segnalato e identificativi incoerenti fermati.
+
+Dal 2026-11-05 anche compare_previous su fogli fittizi piccoli, scritti come li scrive il job: dal formato 1 di
+campione-1 (risposte aggregate separate per variante, varianti b assenti dichiarate senza confronto), formato attuale
+identico, sola variante b cambiata in una coppia casuale e in una mirata, varianti mancanti, aggiunte, ripetute o col
+record sbagliato, opzioni della sola variante b, e i controlli già presenti su ranghi, ordine, manifest e immagini."""
 from __future__ import annotations
 
 import io
 import json
 import sys
+import tempfile
+from collections import defaultdict
 from pathlib import Path
 
 from PIL import Image
@@ -305,6 +312,263 @@ def test_decontam_full():
           any("posizione" in f for f in fatal) and any("anteprima" in f for f in fatal2))
 
 
+# ---------------------------------------------------------------- confronto con un campione precedente (fittizio)
+
+MSHA = "e" * 64
+DESIGN = {"coord": {"N": 100, "n": 1, "p_inclusione": 0.01, "unita": "QA"},
+          "coppie": {"N": 10, "n": 1, "p_inclusione": 0.1, "unita": "coppia"}}
+
+
+def fx_record(key, insieme="train", split="train", stato="ammesso"):
+    return {"record": key, "record_id": mf.sha256_text("id/" + key), "insieme": insieme, "split": split,
+            "stato": stato, "stato_scena_sha256": mf.sha256_text("scena/" + key)}
+
+
+def fx_qa(tipo, text, options, answer):
+    return {"type": tipo, "q": text, "options": options, "answer": answer}
+
+
+def gold_tables() -> dict:
+    """Tabelle nuove fittizie nel formato attuale, con soluzioni e opzioni da unit_rows come in main(): un'unità
+    casuale semplice e una coppia casuale; una coppia mirata, una regola nuova e un caso sulla scena intera; un
+    candidato della decontaminazione."""
+    def pair(p):
+        return [fx_record(f"synth-pair-{p:05d}-{v}", "coppie", "test") for v in "ab"]
+
+    side_x = "Is point A above or below the x-axis?"
+    units = [
+        ("C-coord-001", "campione", [fx_record("synth-0000001")], 2,
+         [fx_qa("quadrant", "In which quadrant is point A?", ["I", "II", "III", "IV"], "II")]),
+        ("C-coppie-001", "campione", pair(1), 0,
+         [fx_qa("side_x", side_x, ["above", "below"], a) for a in ("above", "below")]),
+        ("M-coppie_per_famiglia-001", "mirati", pair(2), 0,
+         [fx_qa("side_len", "What is the length of side AB?", ["9", "11"], a) for a in ("9", "11")]),
+        ("M-regole_nuove_v4-001", "mirati", [fx_record("synth-0000005")], 1,
+         [fx_qa("label_type", "What shape is labeled B: circle, square or triangle?", ["circle", "square", "triangle"],
+                "square")]),
+        ("M-quarantena-001", "mirati", [fx_record("synth-0000004", stato="quarantena")], None, None),
+    ]
+    metas = {r["record"]: {"pair": {"variant": r["record"][-1]}} for _, _, rs, _, _ in units for r in rs
+             if r["insieme"] == "coppie"}
+    tables = {"campione": [], "mirati": [], "candidati": [], "soluzioni": [], "opzioni": []}
+    for uid, table, rs, pos, qs in units:
+        row = {"unita": uid, "record": "|".join(r["record"] for r in rs),
+               "record_id": "|".join(r["record_id"] for r in rs),
+               "posizione_qa": "" if pos is None else pos, "tipo": qs[0]["type"] if qs else "scena",
+               "domanda": qs[0]["q"] if qs else "scena intera", "famiglia": "coord",
+               "immagini": "|".join(f"immagini/{r['record']}.png" for r in rs)}
+        if table == "campione":
+            row.update({"strato": "coppie" if len(rs) == 2 else "coord", "rango": mf.sha256_text(uid), "N": 100,
+                        "n": 1, "p_inclusione": "1/100", "insieme": rs[0]["insieme"], "split": rs[0]["split"]})
+        else:
+            row.update({"categoria": uid[2:-4], "motivo": "caso fittizio", "misura": "",
+                        "insieme": "|".join(r["insieme"] for r in rs), "split": "|".join(r["split"] for r in rs),
+                        "stato": "|".join(r["stato"] for r in rs)})
+        tables[table].append(row)
+        sols, opts, _ = gs.unit_rows(uid, rs, metas, qs or [None] * len(rs), pos, lambda r, p: "ok")
+        tables["soluzioni"] += sols
+        tables["opzioni"] += opts
+    tables["candidati"].append({"unita": "D-001", "rango": mf.sha256_text("D-001"), "record": "synth-0000009",
+                                "record_id": mf.sha256_text("id/synth-0000009"), "insieme": "train", "split": "train",
+                                "stato": "quarantena", "famiglia": "coord", "esito": "candidato",
+                                "esito_gruppo": "candidato", "corrispondenze": '{"image": 1}',
+                                "elementi": "image dynamath/x:1 pos 0 d=2 test",
+                                "immagini": "immagini/synth-0000009.png|immagini/pannello/ab.png"})
+    return tables
+
+
+def v1_solutions(tables: dict) -> list[dict]:
+    """soluzioni.tsv del formato 1 (campione-1, codice 87c4108): una riga per unità; le coppie casuali con le risposte
+    aggregate "a: x | b: y", le coppie mirate con la sola variante a."""
+    by_unit = defaultdict(list)
+    for s in tables["soluzioni"]:
+        by_unit[s["unita"]].append(s)
+    rows = []
+    for uid, ss in by_unit.items():
+        if uid.startswith("C-") and len(ss) == 2:
+            rows.append({"unita": uid, "risposta": " | ".join(f"{s['variante']}: {s['risposta']}" for s in ss),
+                         "esito_checker": "|".join(s["esito_checker"] for s in ss),
+                         "stato_scena_sha256": "|".join(s["stato_scena_sha256"] for s in ss)})
+        else:
+            rows.append({k: ss[0][k] for k in gs.SOLUTION_COLUMNS[gs.FORMAT_V1]})
+    return rows
+
+
+def sheet_images(tables: dict) -> list[str]:
+    return [p for name in ("campione", "mirati", "candidati") for row in tables[name] for p in row["immagini"].split("|")
+            if p.startswith("immagini/synth-")]
+
+
+def write_images(where: Path, tables: dict, changed: dict | None = None) -> None:
+    (where / "immagini").mkdir(parents=True, exist_ok=True)
+    for p in sheet_images(tables):
+        (where / p).write_bytes((changed or {}).get(p, f"png fittizio {p}".encode()))
+
+
+def write_sheet(where: Path, tables: dict, fmt: str = gs.SCHEMA, files_fmt: str | None = None,
+                manifest_sha: str = MSHA) -> None:
+    """Foglio precedente su disco: report.json con lo schema fmt e i file nel formato files_fmt (di solito lo stesso)."""
+    files_fmt = files_fmt or fmt
+    where.mkdir(parents=True)
+    report = {"schema": fmt, "seme": 0, "audit": gs.AUDIT, "manifest": {"manifest_sha256": manifest_sha},
+              "campione": {"strati": DESIGN}}
+    (where / "report.json").write_text(json.dumps(report), encoding="utf-8")
+
+    def columns(rows):
+        return list(dict.fromkeys(k for r in rows for k in r)) or ["unita"]
+
+    c, m = tables["campione"], tables["mirati"]
+    if files_fmt == gs.FORMAT_V1:  # opzioni del primo record nella riga dell'unità
+        first = {}
+        for o in tables["opzioni"]:
+            first.setdefault(o["unita"], o["opzioni"])
+        c = [{**r, "opzioni": first.get(r["unita"], "")} for r in c]
+        m = [{**r, "opzioni": first.get(r["unita"], "")} for r in m]
+        gs.write_table(where / "soluzioni.tsv", v1_solutions(tables), list(gs.SOLUTION_COLUMNS[gs.FORMAT_V1]))
+    else:
+        gs.write_table(where / "soluzioni.tsv", tables["soluzioni"], list(gs.SOLUTION_COLUMNS[gs.SCHEMA]))
+        gs.write_table(where / "opzioni.tsv", tables["opzioni"], list(gs.OPTION_COLUMNS))
+    gs.write_table(where / "campione.tsv", c, columns(c))
+    gs.write_table(where / "mirati.tsv", m, columns(m))
+    gs.write_table(where / "candidati_decontaminazione.tsv", tables["candidati"], columns(tables["candidati"]))
+    write_images(where, tables)
+
+
+def compare(prev_tables: dict, new_tables: dict | None = None, *, changed_images: dict | None = None, **sheet) -> dict:
+    new_tables = new_tables or gold_tables()
+    with tempfile.TemporaryDirectory() as tmp:
+        prev, out = Path(tmp) / "precedente", Path(tmp) / "nuovo"
+        write_sheet(prev, prev_tables, **sheet)
+        write_images(out, new_tables, changed_images)
+        return gs.compare_previous(prev, new_tables, DESIGN, 0, MSHA, out)
+
+
+def row_of(tables: dict, kind: str, uid: str, variant: str) -> dict:
+    return next(r for r in tables[kind] if r["unita"] == uid and r["variante"] == variant)
+
+
+def drop(tables: dict, kind: str, uid: str, variant: str) -> None:
+    tables[kind] = [r for r in tables[kind] if not (r["unita"] == uid and r["variante"] == variant)]
+
+
+def changed_keys(result: dict, kind: str) -> list:
+    return [(d["unita"], d["variante"], d["campi"]) for d in result["differenze"].get(kind, [])]
+
+
+def problems(result: dict, which: str) -> list[str]:
+    return result["differenze"].get(f"struttura_{which}", [])
+
+
+def test_compare_previous():
+    check("confronto: risposta aggregata del formato 1 separata per variante, rifiutata se ambigua",
+          gs.split_aggregated({"risposta": "a: 9 | b: 11", "esito_checker": "ok|ok", "stato_scena_sha256": "h|k"})
+          == {"a": {"risposta": "9", "esito_checker": "ok", "stato_scena_sha256": "h"},
+              "b": {"risposta": "11", "esito_checker": "ok", "stato_scena_sha256": "k"}}
+          and gs.split_aggregated({"risposta": "a: 9 | 10 | b: 11", "esito_checker": "ok|ok",
+                                   "stato_scena_sha256": "h|k"}) is None
+          and gs.split_aggregated({"risposta": "b: 11 | a: 9", "esito_checker": "ok|ok",
+                                   "stato_scena_sha256": "h|k"}) is None)
+
+    # vecchio -> nuovo, con le trasformazioni previste
+    r = compare(gold_tables(), fmt=gs.FORMAT_V1)
+    tr = r.get("trasformazioni") or {}
+    check("confronto dal formato 1: selezione invariata con le sole trasformazioni previste",
+          r["selezione_invariata"] and r["formati"] == {"precedente": gs.FORMAT_V1, "nuovo": gs.SCHEMA},
+          json.dumps(r["differenze"], ensure_ascii=False)[:300])
+    check("confronto dal formato 1: risposte aggregate della coppia casuale separate e confrontate per variante",
+          tr.get("risposte_aggregate_separate") == ["C-coppie-001"] and r.get("soluzioni_confrontate") == 5
+          and r.get("opzioni_confrontate") == 4, str(tr))
+    check("confronto dal formato 1: varianti b assenti dichiarate aggiunte senza confronto, confronto non completo",
+          tr.get("varianti_aggiunte_senza_confronto") == {"soluzioni": ["M-coppie_per_famiglia-001/b"],
+                                                          "opzioni": ["C-coppie-001/b", "M-coppie_per_famiglia-001/b"]}
+          and r["confronto_completo"] is False and r["seconde_varianti_aggiunte"] == 1, str(tr))
+    old = gold_tables()
+    row_of(old, "soluzioni", "C-coppie-001", "b")["risposta"] = "left"
+    r = compare(old, fmt=gs.FORMAT_V1)
+    check("confronto dal formato 1: una risposta b diversa nella riga aggregata è rilevata sulla variante b",
+          not r["selezione_invariata"] and changed_keys(r, "soluzioni") == [("C-coppie-001", "b", ["risposta"])],
+          str(r["differenze"]))
+
+    # nuovo -> nuovo
+    r = compare(gold_tables())
+    tr = r.get("trasformazioni") or {}
+    check("confronto nel formato attuale: fogli identici danno selezione invariata e confronto completo",
+          r["selezione_invariata"] and r["confronto_completo"] is True and r.get("soluzioni_confrontate") == 6
+          and r.get("opzioni_confrontate") == 6 and tr.get("risposte_aggregate_separate") == []
+          and tr.get("varianti_aggiunte_senza_confronto") == {"soluzioni": [], "opzioni": []},
+          json.dumps(r["differenze"], ensure_ascii=False)[:300])
+    for uid, field, value in (("C-coppie-001", "risposta", "left"), ("M-coppie_per_famiglia-001", "esito_checker",
+                                                                     "non_ammissibile"),
+                              ("M-coppie_per_famiglia-001", "stato_scena_sha256", "0" * 64)):
+        new = gold_tables()
+        row_of(new, "soluzioni", uid, "b")[field] = value
+        r = compare(gold_tables(), new)
+        check(f"confronto nel formato attuale: solo {field} della variante b di {uid} cambiato, rilevato su (unita, b)",
+              not r["selezione_invariata"] and changed_keys(r, "soluzioni") == [(uid, "b", [field])]
+              and set(r["differenze"]) == {"soluzioni"}, str(r["differenze"]))
+    new = gold_tables()
+    drop(new, "soluzioni", "C-coppie-001", "b")
+    r = compare(gold_tables(), new)
+    check("confronto: variante mancante nel nuovo foglio rilevata",
+          not r["selezione_invariata"] and r["differenze"].get("soluzioni_mancanti_nel_nuovo") == ["C-coppie-001/b"]
+          and "soluzioni C-coppie-001/b: variante mancante" in problems(r, "nuova"), str(r["differenze"]))
+    new = gold_tables()
+    new["soluzioni"].append({**row_of(new, "soluzioni", "C-coord-001", ""), "variante": "a"})
+    r = compare(gold_tables(), new)
+    check("confronto: variante aggiunta a un'unità che non è una coppia rilevata come inattesa",
+          not r["selezione_invariata"] and "soluzioni C-coord-001/a: variante inattesa" in problems(r, "nuova"),
+          str(r["differenze"]))
+    old = gold_tables()
+    drop(old, "soluzioni", "M-coppie_per_famiglia-001", "b")
+    r = compare(old)
+    check("confronto nel formato attuale: una variante b assente nel precedente non è un'aggiunta prevista",
+          not r["selezione_invariata"]
+          and r["differenze"].get("soluzioni_aggiunte_non_previste") == ["M-coppie_per_famiglia-001/b"]
+          and "soluzioni M-coppie_per_famiglia-001/b: variante mancante" in problems(r, "precedente"),
+          str(r["differenze"]))
+    new = gold_tables()
+    new["soluzioni"].append(dict(row_of(new, "soluzioni", "C-coppie-001", "b")))
+    r = compare(gold_tables(), new)
+    check("confronto: variante ripetuta rilevata",
+          not r["selezione_invariata"] and "soluzioni C-coppie-001/b: riga ripetuta" in problems(r, "nuova"),
+          str(r["differenze"]))
+    new = gold_tables()
+    a, b = row_of(new, "soluzioni", "C-coppie-001", "a"), row_of(new, "soluzioni", "C-coppie-001", "b")
+    b.update(record=a["record"], record_id=a["record_id"])
+    r = compare(gold_tables(), new)
+    check("confronto: variante b associata al record della variante a rilevata",
+          not r["selezione_invariata"] and any(p.startswith("soluzioni C-coppie-001/b: associata al record")
+                                               for p in problems(r, "nuova"))
+          and changed_keys(r, "soluzioni") == [("C-coppie-001", "b", ["record", "record_id"])], str(r["differenze"]))
+    for uid in ("C-coppie-001", "M-coppie_per_famiglia-001"):
+        new = gold_tables()
+        row_of(new, "opzioni", uid, "b")["opzioni"] = "above / below / on"
+        r = compare(gold_tables(), new)
+        check(f"confronto: opzioni della sola variante b di {uid} cambiate, rilevate su (unita, b)",
+              not r["selezione_invariata"] and changed_keys(r, "opzioni") == [(uid, "b", ["opzioni"])]
+              and set(r["differenze"]) == {"opzioni"}, str(r["differenze"]))
+
+    # controlli già presenti: rango, ordine, manifest, immagini; formato
+    new = gold_tables()
+    new["campione"][0]["rango"] = "0" * 64
+    r1 = compare(gold_tables(), new)
+    new = gold_tables()
+    new["campione"].reverse()
+    r2 = compare(gold_tables(), new)
+    r3 = compare(gold_tables(), manifest_sha="f" * 64)
+    r4 = compare(gold_tables(), changed_images={"immagini/synth-pair-00002-b.png": b"altri byte"})
+    check("confronto: restano i controlli su rango, ordine, manifest e byte delle immagini v4",
+          set(r1["differenze"]) == {"campione"} and set(r2["differenze"]) == {"campione"}
+          and set(r3["differenze"]) == {"manifest"} and set(r4["differenze"]) == {"immagini_v4"},
+          str([sorted(x["differenze"]) for x in (r1, r2, r3, r4)]))
+    r1 = compare(gold_tables(), fmt="synth-gold-sample/9")
+    r2 = compare(gold_tables(), fmt=gs.FORMAT_V1, files_fmt=gs.SCHEMA)
+    check("confronto: schema sconosciuto, o schema del formato 1 con i file del formato attuale, rifiutati",
+          set(r1["differenze"]) == {"formato"} and set(r2["differenze"]) == {"formato"}
+          and r1["confronto_completo"] is False and not r2["selezione_invariata"],
+          str([r1["differenze"], r2["differenze"]])[:300])
+
+
 if __name__ == "__main__":
     test_populations()
     test_bound()
@@ -313,5 +577,6 @@ if __name__ == "__main__":
     test_prompts()
     test_pairs()
     test_decontam_full()
+    test_compare_previous()
     print("\nfalliti:", FAILS or "nessuno")
     sys.exit(1 if FAILS else 0)

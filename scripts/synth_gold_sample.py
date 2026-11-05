@@ -60,8 +60,10 @@ scansione o un'immagine del pannello non ritrovata rende il record `incompleto`;
 job prima di scrivere. Ogni immagine del pannello si copia una volta in immagini/pannello/<sha256>.<estensione>.
 
 **Fogli:** ogni unità ha le immagini copiate byte per byte dagli shard (immagini/, sha256 controllato). esiti.tsv è il
-modulo vuoto, con una colonna per proprietà. Con --previous il job confronta selezione, ranghi, target e immagini con
-un campione precedente (confronto.json) ed esce con errore se la selezione è cambiata.
+modulo vuoto, con una colonna per proprietà. Con --previous il job confronta selezione, ranghi, target, opzioni e
+immagini con un campione precedente (confronto.json) ed esce con errore se la selezione è cambiata. Soluzioni e opzioni
+si confrontano per (unita, variante) nel formato dichiarato dal report precedente (compare_previous): dal formato 1 di
+campione-1 solo con le trasformazioni previste, e le varianti b che quel formato non aveva restano non certificate.
 
     srun $RUN_PYTHON -u -B scripts/synth_gold_sample.py --manifest DIR --out DIR [--index DIR] [--review DIR] \\
         [--previous DIR] [--seed 0]
@@ -641,15 +643,211 @@ def reconcile(scan_rows: dict[str, dict], summary: dict, matches_lines: list[dic
 
 # ---------------------------------------------------------------- confronto con un campione precedente
 
+FORMAT_V1 = "synth-gold-sample/1"  # campione-1 (job 30522): soluzioni una per unità, opzioni nel foglio dell'unità
+SOLUTION_COLUMNS = {
+    FORMAT_V1: ("unita", "risposta", "esito_checker", "stato_scena_sha256"),
+    SCHEMA: ("unita", "variante", "record", "record_id", "posizione_qa", "tipo", "risposta", "esito_checker", "stato",
+             "stato_scena_sha256"),
+}
+OPTION_COLUMNS = ("unita", "variante", "record", "posizione_qa", "tipo", "opzioni", "opzioni_nel_testo_della_domanda")
+# campi confrontati per (unita, variante); nel formato 1 il record è quello dell'unità nella posizione della variante
+SAME_SOLUTION = {FORMAT_V1: ("record", "risposta", "esito_checker", "stato_scena_sha256"),
+                 SCHEMA: SOLUTION_COLUMNS[SCHEMA][2:]}
+SAME_OPTION = {FORMAT_V1: ("record", "opzioni"), SCHEMA: OPTION_COLUMNS[2:]}
+
+
 def read_tsv(path: Path) -> list[dict]:
     with open(path, encoding="utf-8", newline="") as fh:
         return list(csv.DictReader(fh, delimiter="\t"))
 
 
+def tsv_columns(path: Path) -> list[str]:
+    """Intestazione di un TSV; vuota se il file non c'è."""
+    if not path.exists():
+        return []
+    with open(path, encoding="utf-8", newline="") as fh:
+        return next(csv.reader(fh, delimiter="\t"), [])
+
+
+def write_table(path: Path, table: list[dict], columns=None) -> dict:
+    """TSV con le celle di cell(); senza colonne date, quelle della prima riga."""
+    columns = columns or (list(table[0]) if table else ["unita"])
+    with open(path, "w", encoding="utf-8", newline="") as fh:
+        w = csv.DictWriter(fh, fieldnames=columns, delimiter="\t", lineterminator="\n")
+        w.writeheader()
+        for row in table:
+            w.writerow({c: cell(row.get(c, "")) for c in columns})
+    return {**file_entry(path), "righe": len(table)}
+
+
+def sheet_units(campione: list[dict], mirati: list[dict]) -> tuple[dict[str, dict], list[str]]:
+    """Unità di un foglio: tabella d'origine, record e record_id nell'ordine dell'unità, coppia o no, con o senza QA, e
+    le opzioni del formato 1. Problemi: unità ripetute."""
+    units, problems = {}, []
+    for name, rows in (("campione", campione), ("mirati", mirati)):
+        for row in rows:
+            uid = cell(row.get("unita", ""))
+            if uid in units:
+                problems.append(f"{uid}: unità ripetuta")
+                continue
+            records = cell(row.get("record", "")).split("|")
+            units[uid] = {"tabella": name, "records": records, "record_ids": cell(row.get("record_id", "")).split("|"),
+                          "coppia": len(records) == 2 and set(cell(row.get("insieme", "")).split("|")) == {"coppie"},
+                          "con_qa": cell(row.get("posizione_qa", "")) != "", "opzioni": row.get("opzioni")}
+    return units, problems
+
+
+def expected_variants(u: dict, fmt: str, kind: str) -> dict[str, int]:
+    """Varianti attese con una riga di `kind` (soluzioni o opzioni) e posizione del loro record nell'unità. Formato
+    attuale: a e b nelle coppie, "" nelle altre unità con una QA. Formato 1: la sola a nelle soluzioni delle coppie
+    mirate e nelle opzioni di tutte le coppie (la riga dell'unità aveva le opzioni del primo record)."""
+    if not u["con_qa"]:
+        return {}
+    if not u["coppia"]:
+        return {"": 0} if len(u["records"]) == 1 else {}
+    if fmt == FORMAT_V1 and (kind == "opzioni" or u["tabella"] == "mirati"):
+        return {"a": 0}
+    return {"a": 0, "b": 1}
+
+
+def split_aggregated(row: dict) -> dict[str, dict] | None:
+    """Soluzione del formato 1 di una coppia casuale ("a: x | b: y", esiti e stati della scena separati da "|")
+    separata per variante; None se non si separa in modo univoco."""
+    answers = row.get("risposta", "").split(" | ")
+    status = row.get("esito_checker", "").split("|")
+    scene = row.get("stato_scena_sha256", "").split("|")
+    if not len(answers) == len(status) == len(scene) == 2:
+        return None
+    out = {}
+    for v, a, s, h in zip("ab", answers, status, scene):
+        if not a.startswith(f"{v}: "):
+            return None
+        out[v] = {"risposta": a[len(v) + 2:], "esito_checker": s, "stato_scena_sha256": h}
+    return out
+
+
+def sheet_index(units: dict[str, dict], solutions: list[dict], options: list[dict] | None,
+                fmt: str) -> tuple[dict, dict, list[str], list[str]]:
+    """Soluzioni e opzioni di un foglio per (unita, variante), con i problemi di struttura: righe ripetute, unità
+    assenti, varianti inattese o mancanti, varianti associate a un record diverso da quello dell'unità. Nel formato 1
+    le risposte aggregate delle coppie casuali si separano per variante (restituisce anche quelle unità) e le opzioni
+    vengono dal foglio dell'unità (options None)."""
+    problems, split = [], []
+    indexes: dict[str, dict] = {"soluzioni": {}, "opzioni": {}}
+
+    def add(kind: str, uid: str, v: str, fields: dict) -> None:
+        index, where = indexes[kind], f"{kind} {uid}/{v or '-'}"
+        u = units.get(uid)
+        if u is None:
+            problems.append(f"{where}: unità assente da campione e mirati")
+            return
+        if (uid, v) in index:
+            problems.append(f"{where}: riga ripetuta")
+            return
+        want = expected_variants(u, fmt, kind)
+        if v not in want:
+            problems.append(f"{where}: variante inattesa")
+            return
+        i = want[v]
+        record = u["records"][i] if i < len(u["records"]) else ""
+        record_id = u["record_ids"][i] if i < len(u["record_ids"]) else ""
+        if v and not record.endswith(f"-{v}"):
+            problems.append(f"{where}: l'unità ha il record {record} al posto della variante {v}")
+        if fmt == FORMAT_V1:
+            fields = {"record": record, **fields}
+        elif fields.get("record") != record or fields.get("record_id", record_id) != record_id:
+            problems.append(f"{where}: associata al record {fields.get('record')} ({fields.get('record_id', '-')}) "
+                            f"invece di {record} ({record_id})")
+        index[(uid, v)] = fields
+
+    for row in solutions:
+        uid = cell(row.get("unita", ""))
+        if fmt != FORMAT_V1:
+            add("soluzioni", uid, cell(row.get("variante", "")), {f: cell(row.get(f, "")) for f in SAME_SOLUTION[fmt]})
+            continue
+        u = units.get(uid) or {}
+        if u.get("coppia") and u.get("tabella") == "campione":
+            parts = split_aggregated(row)
+            if parts is None:
+                problems.append(f"soluzioni {uid}: risposta aggregata della coppia non separabile")
+                continue
+            split.append(uid)
+            for v, fields in parts.items():
+                add("soluzioni", uid, v, fields)
+        else:
+            add("soluzioni", uid, "a" if u.get("coppia") else "",
+                {f: cell(row.get(f, "")) for f in SAME_SOLUTION[FORMAT_V1][1:]})
+    if fmt == FORMAT_V1:
+        for uid, u in units.items():
+            if u["con_qa"]:
+                add("opzioni", uid, "a" if u["coppia"] else "", {"opzioni": cell(u["opzioni"] or "")})
+    else:
+        for row in options or []:
+            add("opzioni", cell(row.get("unita", "")), cell(row.get("variante", "")),
+                {f: cell(row.get(f, "")) for f in SAME_OPTION[fmt]})
+    for kind, index in indexes.items():
+        for uid, u in units.items():
+            for v in expected_variants(u, fmt, kind):
+                if (uid, v) not in index:
+                    problems.append(f"{kind} {uid}/{v or '-'}: variante mancante")
+    return indexes["soluzioni"], indexes["opzioni"], problems, split
+
+
+def compare_index(old: dict, new: dict, fields: tuple, allowed_new: set) -> tuple[list, list, list, list]:
+    """Confronto per (unita, variante): (campi diversi, chiavi solo nel precedente, chiavi solo nel nuovo non previste,
+    chiavi solo nel nuovo previste dalla trasformazione dei formati)."""
+    changed = []
+    for key in sorted(set(old) & set(new)):
+        bad = [f for f in fields if old[key].get(f) != new[key].get(f)]
+        if bad:
+            changed.append({"unita": key[0], "variante": key[1], "campi": bad,
+                            "vecchio": {f: old[key].get(f) for f in bad}, "nuovo": {f: new[key].get(f) for f in bad}})
+
+    def name(key: tuple) -> str:
+        return f"{key[0]}/{key[1] or '-'}"
+
+    added = sorted(set(new) - set(old))
+    return (changed, [name(k) for k in sorted(set(old) - set(new))], [name(k) for k in added if k not in allowed_new],
+            [name(k) for k in added if k in allowed_new])
+
+
+def format_problems(prev: Path, fmt, old_units_rows: list[dict], tables: dict[str, list[dict]]) -> list[str]:
+    """Il formato del foglio precedente si legge dallo schema del suo report.json e deve coincidere con le colonne dei
+    file; le tabelle nuove devono avere le colonne del formato attuale."""
+    if fmt not in SOLUTION_COLUMNS:
+        return [f"schema del campione precedente non riconosciuto: {fmt!r} (noti: {sorted(SOLUTION_COLUMNS)})"]
+    problems = []
+    cols = tsv_columns(prev / "soluzioni.tsv")
+    if tuple(cols) != SOLUTION_COLUMNS[fmt]:
+        problems.append(f"soluzioni.tsv del precedente con le colonne {cols}: {fmt} vuole {list(SOLUTION_COLUMNS[fmt])}")
+    if fmt == FORMAT_V1:
+        if any("opzioni" not in row for row in old_units_rows):
+            problems.append(f"{fmt}: campione.tsv o mirati.tsv senza la colonna opzioni")
+    elif tuple(tsv_columns(prev / "opzioni.tsv")) != OPTION_COLUMNS:
+        problems.append(f"opzioni.tsv del precedente assente o senza le colonne {list(OPTION_COLUMNS)}")
+    for name, columns in (("soluzioni", SOLUTION_COLUMNS[SCHEMA]), ("opzioni", OPTION_COLUMNS)):
+        if any(set(columns) - set(row) for row in tables[name]):
+            problems.append(f"{name} nuove senza le colonne di {SCHEMA}")
+    return problems
+
+
 def compare_previous(prev: Path, tables: dict[str, list[dict]], design: dict, seed: int, manifest_sha: str,
                      out_dir: Path) -> dict:
-    """Selezione, ranghi, target e immagini v4 del campione precedente contro quelli nuovi. `selezione_invariata` è
-    falso se cambia una sola unità, un rango, un record, una posizione, una QA, una risposta o un'immagine v4."""
+    """Selezione, ranghi, soluzioni, opzioni e immagini v4 del campione precedente contro quelli nuovi, con il formato
+    del precedente dichiarato dallo schema del suo report.json.
+
+    Formato attuale contro attuale: soluzioni e opzioni per (unita, variante), con record e record_id associati,
+    posizione, tipo, risposta, esito del checker, stato e stato della scena; opzioni per variante da opzioni.tsv. Ogni
+    foglio si controlla anche da solo: righe ripetute, varianti mancanti o inattese, varianti associate a un record
+    diverso da quello dell'unità.
+
+    Dal formato 1 (campione-1) solo le trasformazioni previste: le risposte aggregate delle coppie casuali ("a: x | b:
+    y") si separano e si confrontano per variante; le varianti b assenti nel formato 1 (soluzioni delle coppie mirate,
+    opzioni di tutte le coppie) sono aggiunte senza confronto, elencate in `trasformazioni`, e non si certificano
+    invariate: `confronto_completo` è falso.
+
+    `selezione_invariata` è falso se cambia una sola unità, un rango, un record, una posizione, una QA, una risposta,
+    un'opzione confrontata o un'immagine v4, o se un foglio ha un problema di struttura o un formato non riconosciuto."""
     old_report = json.loads((prev / "report.json").read_text(encoding="utf-8"))
     diffs: dict[str, list] = defaultdict(list)
 
@@ -674,43 +872,47 @@ def compare_previous(prev: Path, tables: dict[str, list[dict]], design: dict, se
     out["unita_campione"] = same("campione", old_c, tables["campione"], SAME_SAMPLE)
     out["unita_mirate"] = same("mirati", old_m, tables["mirati"], SAME_TARGETED)
     out["candidati"] = same("candidati_decontaminazione", old_d, tables["candidati"], SAME_DECONTAM)
-    # risposte: il foglio precedente aveva una riga per unità (le coppie casuali come "a: x | b: y", le coppie mirate
-    # solo con la variante a); quello nuovo ne ha una per variante
-    new_sol = defaultdict(list)
-    for s in tables["soluzioni"]:
-        new_sol[s["unita"]].append(s)
-    added_b = 0
-    for row in read_tsv(prev / "soluzioni.tsv"):
-        rows = new_sol.get(row["unita"], [])
-        if row["unita"].startswith("C-") and len(rows) == 2:
-            want = (" | ".join(f"{s['variante']}: {s['risposta']}" for s in rows),
-                    "|".join(s["esito_checker"] for s in rows), "|".join(s["stato_scena_sha256"] for s in rows))
-        else:
-            first = rows[:1] or [{}]
-            want = (first[0].get("risposta"), first[0].get("esito_checker"), first[0].get("stato_scena_sha256"))
-            added_b += len(rows) == 2
-        got = (row["risposta"], row["esito_checker"], row["stato_scena_sha256"])
-        if tuple(cell(x) for x in want) != got:
-            diffs["soluzioni"].append({"unita": row["unita"], "vecchio": got, "nuovo": want})
-    old_units = {row["unita"] for row in read_tsv(prev / "soluzioni.tsv")}
-    out["risposte_confrontate"] = len(old_units)
-    out["unita_con_risposta_nuove"] = sorted(set(new_sol) - old_units)[:10]
-    if set(new_sol) != old_units:
-        diffs["soluzioni"].append({"unita_solo_nuove": len(set(new_sol) - old_units),
-                                   "unita_solo_vecchie": len(old_units - set(new_sol))})
-    out["seconde_varianti_aggiunte"] = added_b
-    # opzioni: prima nel foglio del primo passaggio, ora in opzioni.tsv
-    new_opt = {}
-    for o in tables["opzioni"]:
-        new_opt.setdefault(o["unita"], o["opzioni"])
-    moved = 0
-    for row in old_c + old_m:
-        if row.get("opzioni"):
-            moved += 1
-            if new_opt.get(row["unita"]) != row["opzioni"]:
-                diffs["opzioni"].append({"unita": row["unita"], "vecchie": row["opzioni"],
-                                         "nuove": new_opt.get(row["unita"])})
-    out["opzioni_spostate_in_opzioni.tsv"] = moved
+    # soluzioni e opzioni per (unita, variante), secondo il formato dichiarato del precedente
+    fmt = old_report.get("schema")
+    out["formati"] = {"precedente": fmt, "nuovo": SCHEMA}
+    bad_format = format_problems(prev, fmt, old_c + old_m, tables)
+    if bad_format:
+        diffs["formato"] += bad_format
+        out["confronto_completo"] = False
+    else:
+        old_units, p_old = sheet_units(old_c, old_m)
+        new_units, p_new = sheet_units(tables["campione"], tables["mirati"])
+        old_sol, old_opt, p, split = sheet_index(old_units, read_tsv(prev / "soluzioni.tsv"),
+                                                 None if fmt == FORMAT_V1 else read_tsv(prev / "opzioni.tsv"), fmt)
+        p_old += p
+        new_sol, new_opt, p, _ = sheet_index(new_units, tables["soluzioni"], tables["opzioni"], SCHEMA)
+        p_new += p
+        if p_old:
+            diffs["struttura_precedente"] += p_old
+        if p_new:
+            diffs["struttura_nuova"] += p_new
+        # aggiunte previste solo dal formato 1: le varianti b che quel formato non aveva
+        pairs = {uid for uid, u in old_units.items() if u["coppia"]} if fmt == FORMAT_V1 else set()
+        allowed = {"soluzioni": {(uid, "b") for uid in pairs if old_units[uid]["tabella"] == "mirati"},
+                   "opzioni": {(uid, "b") for uid in pairs}}
+        added = {}
+        for kind, old_idx, new_idx, fields in (("soluzioni", old_sol, new_sol, SAME_SOLUTION[fmt]),
+                                               ("opzioni", old_opt, new_opt, SAME_OPTION[fmt])):
+            changed, only_old, unexpected, added[kind] = compare_index(old_idx, new_idx, fields, allowed[kind])
+            if changed:
+                diffs[kind] += changed
+            if only_old:
+                diffs[f"{kind}_mancanti_nel_nuovo"] += only_old
+            if unexpected:
+                diffs[f"{kind}_aggiunte_non_previste"] += unexpected
+            out[f"{kind}_confrontate"] = len(set(old_idx) & set(new_idx))
+        out["trasformazioni"] = {
+            "risposte_aggregate_separate": split, "varianti_aggiunte_senza_confronto": added,
+            "nota": "trasformazioni previste solo dal formato 1: risposte aggregate delle coppie casuali separate per "
+                    "variante; varianti b assenti nel formato 1 (soluzioni delle coppie mirate, opzioni di tutte le "
+                    "coppie) aggiunte senza confronto, quindi non certificate invariate"}
+        out["seconde_varianti_aggiunte"] = len(added["soluzioni"])
+        out["confronto_completo"] = not any(added.values())
     # anteprima del foglio precedente: prefisso dell'elenco completo
     full = {d["unita"]: d["elementi"].split("; ") if d["elementi"] else [] for d in tables["candidati"]}
     longer, extra = 0, 0
@@ -1134,14 +1336,7 @@ def main() -> None:
                     "domanda": "stessa immagine o stesso contenuto di un elemento del pannello?"})
 
     def write_tsv(name: str, table: list[dict], columns=None) -> dict:
-        path = args.out / name
-        columns = columns or (list(table[0]) if table else ["unita"])
-        with open(path, "w", encoding="utf-8", newline="") as fh:
-            w = csv.DictWriter(fh, fieldnames=columns, delimiter="\t", lineterminator="\n")
-            w.writeheader()
-            for row in table:
-                w.writerow({c: cell(row.get(c, "")) for c in columns})
-        return {**file_entry(path), "righe": len(table)}
+        return write_table(args.out / name, table, columns)
 
     # ---- inventario
     inv = defaultdict(Counter)
@@ -1227,6 +1422,7 @@ def main() -> None:
                       "materiale_incompleto": len(incomplete), "immagini": len(written),
                       "immagini_pannello": report["immagini_pannello"], "errori_pannello": len(panel_errors),
                       "selezione_invariata": None if comparison is None else comparison["selezione_invariata"],
+                      "confronto_completo": None if comparison is None else comparison["confronto_completo"],
                       "seconds": report["seconds"]}, ensure_ascii=False))
     problems = []
     if panel_errors:
