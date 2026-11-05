@@ -218,3 +218,22 @@ Serve a rappresentare e applicare il candidato v4 (S2 §2.7). Il codice è in `s
 - **Contatori per compito e target-token nel flusso (§6).** I conteggi per compito sono nel controllo
   (`manifest_check.py`); `too_long` resta in totale.
 - **Collaudi del contratto e delle chiavi storiche (§8).**
+
+**Estensione a UniMER-1M** (2026-11-05, `scripts/unimer_manifest.py`, `data/manifests/unimer-candidato-1`, job 30625;
+S2 §4). Usa lo stesso schema (`limite-vl-manifest/1`) e la stessa lettura verificata (`manifest.load`). Ogni riga ha in
+più:
+- `insieme`: `train` per la formula intera, `righe` per la riga ritagliata. La riga ritagliata ha lo stesso record_id
+  della formula, perché è lo stesso campione originale: §1 mette il ritaglio nella variante. Sono unici la coppia
+  (record_id, insieme) e la chiave dentro l'insieme;
+- `compiti`: transcribe per le formule; transcribe_line e transcribe_line_select per le righe;
+- `trasformazione` e `genitori` (§2):
+  - `righe`, col genitore: shard, posizione e sha256 di JSON e PNG della formula;
+  - `rietichettatura`, con regola e nuova etichetta, e il genitore con l'etichetta originale;
+- `etichetta_sha256`, `token_visibili`, `rango_f0` e `rango_f0_sviluppo` (rango del campione candidato di F0);
+- `evidenze`: riferimenti a una lista di `liste_importate`, il cui file e sha256 stanno una volta sola nel
+  `manifest.json`.
+
+Le liste storiche (§5) si importano una per una. Ogni chiave deve risolversi in esattamente un record: zero, o più di
+uno, ferma la costruzione. unimer_check/run4 e unimer_overlap/run2 si ricalcolano anche dalle regole correnti, e la
+costruzione si ferma se il ricalcolo non coincide coi loro file. I gruppi sono i legami esatti dentro la sorgente (stessi
+byte del PNG), non l'indice globale (§4).

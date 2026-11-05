@@ -356,6 +356,10 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
   varianti `2343ddd9-x4` e `2343ddd9-dense` (con `lines/`). Formula senza gli spazi del formato im2latex
   (`latex.despace`), immagine al più 2x e 1024 patch (`processing.capped_size`). Controlli e rietichettature in
   `outputs/unimer_check/run4`, sovrapposizioni col test in `outputs/unimer_overlap/run2`.
+  - Manifest candidato `data/manifests/unimer-candidato-1` (job 30625, `scripts/unimer_manifest.py`, S2 §4), sugli
+    shard densi: 985.450 formule e 30.685 righe ritagliate, coi loro genitori, in gruppi per stessi byte del PNG.
+  - run4 e run2 sono importati per chiave e ricalcolati dalle regole correnti, uguali ai loro file. Dev al 5%, seme 0.
+  - Non certifica nulla e i loader non lo leggono; manca la decontaminazione esterna.
 - Sintetici v3 (`data/shards/synth/v3`, job 29756; il codice attuale ne riproduce esattamente le domande): `intersections`
   conta entro ±R mentre il disegno arriva a ±(R+1), con 37 target errati e 364 domande al bordo disegnato;
   `shape_type` e `label_type` sono domande aperte con più risposte vere (`docs/specs/S2_AMMISSIONE_PRIME_FAMIGLIE.md`

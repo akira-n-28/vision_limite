@@ -96,6 +96,7 @@ docs/img/synth-review/prima-dopo-coords.png	immagine	corrente	correzioni di v4 (
 docs/img/synth-review/prima-dopo-coppie.png	immagine	corrente	correzioni di v4 (job 30420, S2 §2.5): coppie polygon v3 accanto alle v4 con la stessa chiave	ritagli dei PNG del renderer (scripts/synth_review.py)
 docs/img/synth-review/prima-dopo-origine.png	immagine	corrente	correzioni di v4 (job 30420, S2 §2.5): O e tacche -1 all'origine, prima e dopo	ritagli dei PNG del renderer (scripts/synth_review.py)
 docs/img/synth-review/prima-dopo-polygon.png	immagine	corrente	correzioni di v4 (job 30420, S2 §2.5): misure e punto segnato dei polygon, prima e dopo	ritagli dei PNG del renderer (scripts/synth_review.py)
+docs/manifests/unimer-candidato-1.json	rapporto	corrente	riepilogo verificabile del manifest candidato di UniMER-1M (job 30625): identità, sha256 di manifest, record, shard e liste importate, split, conteggi, riproduzione di run4 e run2, controlli della verifica, lacune	il manifest sta in data/manifests, fuori da git
 docs/reviews/PIPELINE_ADDESTRAMENTO_LIMITE_VL.md	documento	corrente	navigazione dei rapporti	-
 docs/reviews/README.md	documento	corrente	navigazione dei rapporti	-
 docs/reviews/REVISIONE_INDIPENDENTE_GOLD_E_DECONTAMINAZIONE.md	documento	storico	rapporto indipendente immutato (versione e hash propri)	-
@@ -207,6 +208,7 @@ scripts/synth_semantics_check.py	script	corrente	verifica semantica e del render
 scripts/train_f1.py	script	da adeguare	trainer F1 storico (ViT congelato); helper importati da molti strumenti; base del nuovo trainer (§17.4)	importato da check_train_config, check_vision_padding, check_vision_precision, eval_f1_formulas, eval_f1_val, f1_error_gen, f1c_*, f2_generate, replay_generate, stream_stats, train_f2
 scripts/train_f2.py	script	storico	trainer F2 storico: gate f2-cert, conteggi di parametri fissi, ViT congelato; riusabili MasterWeights e gruppi	importato da tests/test_f2_train
 scripts/unimer_check.py	script	riutilizzabile	controllo deterministico dei dati (pipeline §5.3); esiti come evidenze, non ammissione	-
+scripts/unimer_manifest.py	script	corrente	manifest candidato di UniMER-1M (F0_CAMPIONE_CANDIDATO §6 punto 3, S1 §9, S2 §4): shard densi letti e hashati, record e righe ritagliate coi genitori, gruppi per byte del PNG, run4 e run2 importati per chiave e ricalcolati, dev per gruppo, rango del campione candidato, verifica dopo la scrittura; modalità di prova su un tar (job 30624-30625)	scrive data/manifests/<nome>-<versione> una volta sola; non certifica; importato da scripts/mavis_manifest.py
 scripts/unimer_survey.py	script	riutilizzabile	ispezione dei dati senza training	-
 scripts/unimer_test_overlap.py	script	riutilizzabile	controllo deterministico dei dati (pipeline §5.3); esiti come evidenze, non ammissione	-
 scripts/uvlock_manifest.py	script	corrente	kit: ambiente, download controllati, cache HF, verifica	-
@@ -272,6 +274,7 @@ slurm/synth_review.sbatch	launcher	corrente	launcher dell'ambiente, delle verifi
 slurm/synth_semantics_check.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
 slurm/tests_cpu.sbatch	launcher	corrente	launcher della suite CPU (tests/test_*.py); con argomenti solo i test indicati, con l'id git dei file provati nel log (2026-11-05)	-
 slurm/unimer_check.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
+slurm/unimer_manifest.sbatch	launcher	corrente	test del manifest, poi prova su un tar per insieme oppure costruzione del manifest candidato di UniMER con verifica e riepilogo (job 30624-30625)	ingressi fissi: shard 2343ddd9-dense, unimer_check/run4, unimer_overlap/run2, split_duplicates/run1
 slurm/unimer_survey.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
 slurm/unimer_test_overlap.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
 slurm/verify_hashes.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
@@ -339,5 +342,6 @@ tests/test_synth.py	test	corrente	test CPU (slurm/tests_cpu.sbatch)	-
 tests/test_synth_decontam.py	test	corrente	test CPU della decontaminazione esterna dei sintetici: domande nella scansione, identità dei pixel e pHash come candidato, perimetro, identificativi, scansione parziale, stato per gruppo senza riammissioni, manifest derivato (job 30517); due derivazioni consecutive con un gruppo di dev in quarantena, anello alterato, riammissione ed evidenza tolta (2026-11-04)	-
 tests/test_synth_gold.py	test	corrente	test CPU della preparazione delle golden answer: strati e rango del campione, limite con zero errori, margini dal layout, casi mirati (job 30522); prompt uguale a quello del loader con e senza opzioni incorporate, coppie con risposte diverse, 12 corrispondenze con l'undicesima esportata e riconciliazione (2026-11-04); compare_previous su fogli fittizi nei due formati, con varianti cambiate, mancanti, aggiunte, ripetute o col record sbagliato (2026-11-05, job 30616); tabelle vuote scritte col percorso di main e file vuoti del vecchio scrittore (job 30622)	-
 tests/test_transcripts.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
+tests/test_unimer_manifest.py	test	corrente	test CPU del manifest candidato di UniMER su shard, liste e snapshot fittizi: stati da run4 e run2, gruppi, righe ritagliate e rietichettature coi genitori, split e ranghi, verifica, riproducibilità, 11 rifiuti di evidenze o ingressi incoerenti (job 30624-30625)	importa scripts/unimer_check.py (matplotlib)
 tests/test_vl_data.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
 third_party/.gitkeep	documento	corrente	cartella dei repository esterni	-

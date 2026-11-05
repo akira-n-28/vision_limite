@@ -1507,6 +1507,39 @@ Il target è la formula senza gli spazi del formato im2latex (`latex.despace`). 
 dei token LaTeX a meno degli spazi (`latex.same_latex`), non l'equivalenza matematica: `x+x` non vale `2x`. UniMER-Test
 (spe, cpe, sce, hwe) resta solo valutazione; hwe è manoscritto.
 
+**Manifest candidato** (2026-11-05, job 30624-30625, `scripts/unimer_manifest.py`). Cartella
+`data/manifests/unimer-candidato-1`: `manifest.json` ha sha256 `bcc85198…`, `records.jsonl.gz` ha `c183b955…` (262
+MiB). Il riepilogo versionato è `docs/manifests/unimer-candidato-1.json`.
+- **Ingressi.** Gli shard densi di `2343ddd9` (job 29729) sono letti e hashati una volta, con sha256 uguali al loro
+  manifest. I blob dello snapshot di Hugging Face hanno lo sha256 dichiarato dallo sharding.
+- **Record.** 985.450 formule e 30.685 righe ritagliate. Ogni riga ritagliata ha il genitore e sta nel gruppo e nello
+  split della sua formula. UniMER-Test non entra nel manifest: serve solo a riconoscere le contaminazioni.
+- **Gruppi.** 933.870, per stessi byte del PNG: 50.866 duplicati con la stessa formula e 402 gruppi in conflitto.
+  Formule uguali con immagini diverse non si uniscono, perché una formula comune non identifica un problema (S1 §5).
+- **Stati delle formule.**
+  - 983.875 ammesse, di cui 49.195 in dev, cioè il 5%, con seme 0;
+  - 1.523 in quarantena: 1.119 incerti di run4 e 404 formule di UniMER-Test con più di 20 token visibili e un'immagine
+    diversa, da riesaminare;
+  - 52 escluse: 51 errori certi di run4 e 1 con la stessa immagine di un campione di UniMER-Test, escluso col suo
+    gruppo.
+- **Stati delle righe.** 30.588 ammesse; 91 in quarantena (89 dalla formula, 2 perché la formula è rietichettata e le
+  righe vengono dall'etichetta originale); 6 escluse.
+- **Rietichettature.** Le 18.827 sono trasformazioni tracciate, con regola e genitore, non correzioni certificate. Le
+  formule ammesse sono candidate, non gold.
+- **Conteggi documentati, verificati invece che copiati.** run4 e run2 sono ricalcolati dalle regole correnti e coincidono
+  coi loro file:
+  - tutti i 19.997 motivi e le 18.827 rietichettature;
+  - 51 errori certi, 1.119 incerti, di cui 1.116 in 402 gruppi in conflitto;
+  - 152.781 corrispondenze col test e 405 contaminazioni.
+
+  Solo `immagine_vuota`, che decodifica i pixel, non è ricalcolata: in run4 non ha casi.
+- **Limiti.**
+  - Manca la decontaminazione esterna contro `pannello-v3`.
+  - 152.376 formule del training uguali a una formula breve del test restano un'evidenza senza cambio di stato: la
+    metrica senza contaminazione usa i casi mai visti di run2.
+  - Il dev misura immagini nuove, non formule nuove.
+  - I loader non applicano il manifest (C7).
+
 ## 5. Collaudi (CPU, `tests_cpu`)
 
 - **Intersezioni.** Conteggio geometrico e ammissibilità si collaudano separatamente.

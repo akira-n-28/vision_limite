@@ -11,7 +11,9 @@ codice del repository sul cluster e i requisiti della pipeline.
   validatore verifica gli split lungo la catena delle derivazioni (job 30555-30556, `campione-2`, S2 §2.11). La
   revisione non è fatta. Il 2026-11-05 il confronto con un campione precedente (`compare_previous`) lavora per unità e
   variante, col formato del precedente esplicito (`2a2002a`, job 30616, sezione "Confronto dei fogli e stime" in §4).
-- **C5 e C7:** implementati in parte, nel sottoinsieme di S1 per i sintetici v4 (S1 §9).
+- **C5 e C7:** implementati in parte, nel sottoinsieme di S1 per i sintetici v4 (S1 §9). Il 2026-11-05 lo stesso
+  sottoinsieme dà il manifest candidato di UniMER-1M (`unimer-candidato-1`, job 30624-30625, S2 §4), con le evidenze
+  storiche importate e ricalcolate; i loader non lo applicano ancora.
 - **C8, stime:** nucleo implementato e collaudato su dati fittizi il 2026-11-05 (job 30616-30617, S4 §9); non applicato
   agli esiti reali.
 - **C3, C4, C6, C9:** non iniziati.
@@ -123,13 +125,13 @@ di mutazione per famiglia. Poi un job CPU che costruisce i record su tutti gli s
 
 | Requisito | Stato | Evidenza |
 | --- | --- | --- |
-| Validazione per gruppo esplicito | implementata per i sintetici v4 (2026-10-30, `630d00a`, S1 §9); mancante per le altre sorgenti | con un manifest (`manifest.py`, `stream.py`) la validazione è lo split dev del manifest, assegnato per gruppo; senza, resta quella di prima: i primi `val_count` campioni dell'ultimo shard di ogni sorgente |
+| Validazione per gruppo esplicito | implementata per i sintetici v4 (2026-10-30, `630d00a`, S1 §9); per UniMER dev per gruppo nel manifest candidato (2026-11-05, job 30625), non ancora letto dai loader; mancante per le altre sorgenti | con un manifest (`manifest.py`, `stream.py`) la validazione è lo split dev del manifest, assegnato per gruppo; senza, resta quella di prima: i primi `val_count` campioni dell'ultimo shard di ogni sorgente |
 | Esclusioni per identità di compito/variante | mancante | `stream.py:45`, `74-77`: insieme di chiavi del campione (immagine); per `f2_solution` anche la chiave del problema (`164-165`) |
 | QA costruite al volo legate al record ammesso | mancante | `data.py:191-283` (`mavis_qa_sample`, `mavis_f1_sample`, `unimer_line_sample`, …) scelgono domanda o riga durante il caricamento |
 | Rietichettature tracciate | da collaudare | `stream.py:79-97` (`apply_relabel`, solo se l'etichetta coincide); `unimer_check/run4/relabel.jsonl` |
 | Liste obbligatorie e provenienza | verificato per la bozza F1-clean | `data_lists.py`; job 30051 |
 | Deduplicazione trasversale fra sorgenti | mancante | `scripts/split_duplicates.py` lavora per sorgente e usa target identici; `decontam.py` normalizza il testo togliendo simboli: segnali, non prove |
-| Esclusioni storiche come evidenze riesaminabili | mancante | liste in `data/decontam/p6`, `data/decontam/f1eval`, `data/decontam/text/replay`, `outputs/unimer_check/run4`, `outputs/unimer_overlap/run2`, `outputs/split_duplicates/run1`, `outputs/pixmo_check/run4` (riferite dalla bozza archiviata `f1-clean.json`) |
+| Esclusioni storiche come evidenze riesaminabili | in parte: `unimer_check/run4` e `unimer_overlap/run2` importate, risolte e ricalcolate nel manifest candidato di UniMER (2026-11-05, job 30625; `split_duplicates/run1` solo come controllo incrociato); mancanti le altre | liste in `data/decontam/p6`, `data/decontam/f1eval`, `data/decontam/text/replay`, `outputs/unimer_check/run4`, `outputs/unimer_overlap/run2`, `outputs/split_duplicates/run1`, `outputs/pixmo_check/run4` (riferite dalla bozza archiviata `f1-clean.json`) |
 | Contabilità per sorgente di esempi consumati, target-token, ripetizioni, scarti dopo l'ammissione | parziale | `stream.py` conta errori, errori del manifest ed esempi caricati per sorgente, e i reader contano letti, saltati e consegnati (`630d00a`); `collator.py` conta `too_long` solo in totale; nessun conteggio per compito né di target-token nel flusso (i conteggi per compito sono nel controllo `manifest_check.py`) |
 
 **Intervento minimo.** (a) Indice globale costruito dall'inventario fissato (`docs/ARTIFACT_INVENTORY.tsv`): ID e
@@ -249,8 +251,8 @@ Il prossimo lotto minimo, indipendente dalle decisioni aperte, è in `docs/F0_CA
 1. verifica visiva dei gruppi inammissibili del pannello;
 2. decontaminazione di v4 contro `pannello-v3`: fatta il 2026-11-02 (job 30517-30518); resta la verifica visiva dei
    264 candidati;
-3. manifest delle ammissioni di UniMER e MAVIS (estensione di C5 e C7): è il lotto successivo indicato dall'utente il
-   2026-11-05;
+3. manifest delle ammissioni di UniMER e MAVIS (estensione di C5 e C7), il lotto indicato dall'utente il 2026-11-05:
+   UniMER fatto (`unimer-candidato-1`, job 30624-30625);
 4. scansione delle sorgenti locali contro il pannello.
 
 C3 e C4 seguono D3.
@@ -261,7 +263,7 @@ C3 e C4 seguono D3.
 | C2 | Verifica semantica indipendente dei sintetici: ricalcolo per tipo dagli oggetti disegnati (layout) con predicati propri, intersezioni solo nei tratti disegnati; invarianti del renderer, compreso il taglio sull'area effettiva degli assi; violazioni bloccanti che impediscono la verifica del campione; nel report esiti separati per semantica della scena, corrispondenza col PNG dello shard e campione (S2 §2.4). **Implementato il 2026-10-28 (`38af82a`), corretto il 2026-10-29, esiti per campione dopo la revisione di `f7d32d3`; suite CPU passata (job 30392), controllo sugli shard eseguito (job 30393, §4); coordinate lette dalle tacche vicine (`b0b90c5`, S2 §2.5), controlli passati (job 30417-30420); collaudi a 10.000 scene e controllo del candidato v4 sugli shard salvati (`284e8f1`, job 30448-30449: integrità, riproducibilità, checker, coppie, duplicati e split)** | `src/limite_vl/synth_check.py`, `scripts/synth_semantics_check.py` (anche `--cases`), `slurm/synth_semantics_check.sbatch`, `scripts/synth_case_svg.py` (schemi dei casi), `scripts/synth_candidate.py`, `slurm/synth_candidate.sbatch` | mutazioni ed esiti per campione (`test_sample_evidence`) e candidato (`test_candidate`) in `tests/test_synth.py`; su v3 deve ritrovare i difetti noti | controllo di v3 e di scene v4 in memoria (CPU, 8 CPU, 16G, ≤ 1 h 30); candidato v4: 8 CPU, 16G, 9 min 38 s | C1 |
 | C3 | Contratto `vl-contract/1`: oggetto versionato, template `limite-vl/1`, processor che lo riceve e lo registra | `src/limite_vl/contract.py` (nuovo), `processing.py` | S3 §6 (tokenizzazione delle due modalità, system prompt canonico identico ai token di Violetto) | — | D3 |
 | C4 | Estrattore e verificatori: forma, completezza dai metadati, candidati, tre esiti separati; `generate_batch` restituisce anche `max_new_tokens` e il motivo d'arresto | `src/limite_vl/answers.py` (nuovo), `generation.py` | S3 §6, compresi i casi A-T della tassonomia ufficiale | — | C3 |
-| C5 | Identità e manifest: JSON canonico, digest completi, mappa delle collisioni, record, scrittura immutabile; i loader restituiscono la costruzione canonica. **In parte, per i sintetici v4 (2026-10-30, `630d00a`, S1 §9): JSON canonico, digest e collisioni, `record_id`, `group_id`, record, split per gruppo, scrittura immutabile (`data/manifests/synth-v4-candidato-1`, job 30451); mancano `variant_id`, `uid` e la costruzione canonica dai loader, che dipendono da C3** | `src/limite_vl/manifest.py`, `scripts/synth_manifest.py`, `data.py` | S1 §8 (collisione forzata, canonicalizzazione, prefissi, contratto): `tests/test_manifest.py` tranne il contratto | — | C3 (per la costruzione canonica) |
+| C5 | Identità e manifest: JSON canonico, digest completi, mappa delle collisioni, record, scrittura immutabile; i loader restituiscono la costruzione canonica. **In parte, per i sintetici v4 (2026-10-30, `630d00a`, S1 §9): JSON canonico, digest e collisioni, `record_id`, `group_id`, record, split per gruppo, scrittura immutabile (`data/manifests/synth-v4-candidato-1`, job 30451); mancano `variant_id`, `uid` e la costruzione canonica dai loader, che dipendono da C3. Il 2026-11-05 manifest candidato di UniMER-1M con lo stesso sottoinsieme, più trasformazioni e genitori (righe ritagliate, rietichettature), compiti, evidenze per lista e rango del campione candidato (`data/manifests/unimer-candidato-1`, job 30624-30625, S1 §9, S2 §4)** | `src/limite_vl/manifest.py`, `scripts/synth_manifest.py`, `scripts/unimer_manifest.py`, `data.py` | S1 §8 (collisione forzata, canonicalizzazione, prefissi, contratto): `tests/test_manifest.py` tranne il contratto | — | C3 (per la costruzione canonica) |
 | C6 | Indice globale e import delle esclusioni storiche | `scripts/build_index.py` (nuovo) | S1 §8 (gruppi, chiavi storiche) | costruzione dell'indice (CPU, 4 CPU, 24G, durata da misurare su uno shard per sorgente) | C5, D6 |
 | C7 | Reader col manifest, validazione dal manifest, contatori per sorgente e compito (`too_long` compreso). **In parte (2026-10-30, `630d00a`): solo i record ammessi dello split, validazione dal manifest, sha256 di JSON e PNG controllati, contatori dei reader e degli esempi caricati per sorgente, shard v4 leggibili solo col manifest; verifiche sui dati reali nel job 30451 (`scripts/manifest_check.py`); mancano i contatori per compito e `too_long` per sorgente** | `stream.py`, `collator.py`, `data_lists.py` | S1 §8 (reader): `tests/test_manifest.py` | verifiche del manifest (CPU, 8 CPU, 16G, 4 min) | C5 |
 | C8 | Stime: limite ipergeometrico e binomiale, estrazione con probabilità registrate, Bonferroni, rifiuto se unità e quantità non coincidono. **Nucleo implementato il 2026-11-05, dopo l'adozione del nucleo tecnico di S4 da parte dell'utente: limiti esatti, Bonferroni, compatibilità fra disegno, quantità e popolazione, esiti contati senza perdite, tre livelli del risultato (S4 §9). Collaudato su dati fittizi (job 30616-30617), non applicato agli esiti reali. Senza campionatori: l'estrazione con probabilità registrate resta quella di `synth_gold_sample.py`** | `src/limite_vl/estimate.py` (nuovo) | S4 §8 tranne l'estrazione: `tests/test_estimate.py` | test mirati: CPU, 2 CPU, 4G, 2-3 s (job 30616-30617) | S4 |
@@ -304,6 +306,9 @@ C3 e C4 seguono D3.
 | 30556 (2026-11-04) | `slurm/synth_gold_sample.sbatch campione-2 campione-1 campione-1`, dopo il 30555 | 4 min. Test mirati; `manifest_check` di `synth-v4-candidato-2` col validatore corretto, 44 su 44 con la catena 2 → 1; fogli `campione-2`: 755 corrispondenze su 755 riconciliate (18 oltre l'anteprima, in 3 record), 102 immagini del pannello, prompt del loader per 337 unità, soluzioni per variante; selezione identica a `campione-1` (S2 §2.11) | che i fogli sono completi e riproducibili con la stessa estrazione. Nessuna revisione e nessuna stima |
 | 30616 (2026-11-05) | `slurm/tests_cpu.sbatch tests/test_synth_gold.py tests/test_estimate.py`, test mirati sulle dipendenze modificate, prima dei commit | 3 s, 2 CPU, 6 s di CPU allocate, stderr vuoto. `test_synth_gold.py` 60 controlli su 60, 18 nuovi su `compare_previous`; `test_estimate.py` 44 su 44. Gli id git dei file provati coincidono con quelli di `2a2002a` | che il confronto per unità e variante e il nucleo di C8 superano le regressioni scritte, su dati fittizi. I campioni reali non sono rigenerati, e C8 non è applicato agli esiti |
 | 30617 (2026-11-05) | `slurm/tests_cpu.sbatch tests/test_estimate.py`, sul contenuto del commit di C8 | 2 s, 2 CPU, 4 s di CPU allocate: 44 su 44, compresi i numeri dell'esempio minimo (S4 §9) | come sopra, per la versione committata del test di C8 |
+| 30622 (2026-11-05) | `slurm/tests_cpu.sbatch tests/test_synth_gold.py`, correzione delle tabelle vuote (`1002c94`) | 2 s, 2 CPU, 4 s di CPU allocate: 66 su 66, 6 nuovi | che scrittura e confronto usano le stesse colonne canoniche anche senza righe, e che i file vuoti del vecchio scrittore si accettano solo senza righe attese |
+| 30624 (2026-11-05) | `slurm/unimer_manifest.sbatch prova unimer-candidato`: test, poi un tar per insieme degli shard densi | 42 s, 4 CPU, 2 min 48 s di CPU allocate. Test 15 su 15. 200.000 formule in 34,8 s (5.747 al secondo), sha256 uguali allo sharding; RSS 487 MiB; stima della lettura completa circa 50 s | il dimensionamento della costruzione completa |
+| 30625 (2026-11-05) | `slurm/unimer_manifest.sbatch costruzione unimer-candidato 1` (24G): test, lettura verificata dei 10 tar, riconciliazione, scrittura e verifica | 3 min 53 s, 4 CPU, 15 min 32 s di CPU allocate, RSS massima 7,6 GiB nella rilettura. `data/manifests/unimer-candidato-1` (262 MiB più 14 MiB di chiavi): 985.450 formule e 30.685 righe ritagliate in 933.870 gruppi; run4 e run2 riprodotti; verifica 21 su 21 (S2 §4) | che il candidato è riproducibile, con evidenze riconciliate, gruppi indivisibili e trasformazioni coi genitori. Non certifica le formule, non è letto dai loader, la decontaminazione esterna manca |
 
 Calcoli di sola libreria standard sul frontend, il 2026-10-28, a supporto delle specifiche (non sono collaudi):
 - riproduzione delle domande di synth v3 dalle chiavi, con istogrammi identici al manifest del job 29756;
@@ -558,6 +563,23 @@ La revisione, il pacchetto, i fogli, la selezione e il manifest non sono toccati
     secondo strato simultaneo (Bonferroni, 1/40 ciascuno) il limite sale a 426. Una stima della quota di QA da un
     campione di coppie è rifiutata.
 
+Manifest candidati di UniMER e MAVIS (lotto di `docs/F0_CAMPIONE_CANDIDATO.md` §6, punto 3), con il sottoinsieme di S1
+dei sintetici. Organizzano candidati ed evidenze: non certificano la qualità, non assegnano gold e non autorizzano il
+training; i loader non li applicano ancora (C7).
+- **UniMER-1M** (`scripts/unimer_manifest.py`, job 30624-30625, S1 §9, S2 §4).
+  - *Ingressi verificati:* shard densi di `2343ddd9` letti e hashati una volta, con sha256 uguali allo sharding (job
+    29729) e allo snapshot di Hugging Face.
+  - *Record:* 985.450 formule e 30.685 righe ritagliate. Le righe hanno lo stesso record_id della formula,
+    trasformazione `righe` e genitore. UniMER-Test non entra: serve solo a riconoscere le contaminazioni.
+  - *Gruppi:* stessi byte del PNG, con le righe nel gruppo della loro formula.
+  - *Stati:* da run4 per record (errori certi esclusi, incerti in quarantena, rietichettature tracciate) e da run2 per
+    gruppo (stessa immagine del test: esclusione; formula del test con più di 20 token e immagine diversa: quarantena).
+  - *Dev:* 5% delle formule ammesse, seme 0; rango del campione candidato per ogni gruppo.
+  - *Collaudo:* run4 e run2 ricalcolati dalle regole correnti e uguali ai loro file; 15 test su fixture; verifica dopo
+    la scrittura 21 su 21.
+  - *Lacune:* decontaminazione esterna contro `pannello-v3`; revisione campionaria (S4); `immagine_vuota` di run4 non
+    ricalcolata; formule uguali con immagini diverse non unite (il dev misura immagini nuove); reader (C7).
+
 ### Da pianificare
 
 Nessuno dei controlli che restano in questa tabella è stato eseguito o è dichiarato superato: quelli eseguiti sono
@@ -568,7 +590,7 @@ un job CPU (CLAUDE.md).
 | --- | --- | --- | --- |
 | Sintetici (C1, C2) | Eseguiti: test (job 30392, 30417, 30448), controllo sugli shard (job 30393, 30418, 30448), coppie v4 (job 30419), analisi degli scarti (job 30400, 30420), render e candidato v4 (job 30447-30449), manifest e dev split (job 30450-30451), decontaminazione esterna contro `pannello-v3` e manifest `synth-v4-candidato-2` (job 30517-30518), campione dell'audit preparato (job 30522, S2 §2.10), fogli corretti con la stessa selezione (job 30556, `campione-2`, S2 §2.11), confronto per unità e variante (job 30616). In corso, fatta dall'utente: revisione visiva del campione (380 unità e 175 casi mirati, rubrica della S2 §2.8) e dei 264 candidati della decontaminazione. Poi: limite con C8 sugli esiti, dopo aver fissato con l'utente la corrispondenza degli esiti (S4 §9) | revisione umana; C8 CPU pochi secondi | con l'ok dell'utente (D5) |
 | Contratto ed estrattore (C3, C4; punto 1) | Tokenizzazione e label per modalità; quattro forme e terminazione; tassonomia ufficiale; risposta diretta di Violetto | CPU 20 min; GPU 1 ora | dopo D3 e S3 |
-| Manifest, indice e reader (C5-C7; punto 3) | Per i sintetici v4 eseguiti (job 30450-30451, S1 §9). Restano: indice globale e chiavi storiche (C6), varianti e contratto (dopo C3), contatori per compito, le altre sorgenti | CPU 20 min; indice CPU 4 CPU 24G, durata da misurare | dopo S1, D6 |
+| Manifest, indice e reader (C5-C7; punto 3) | Per i sintetici v4 eseguiti (job 30450-30451, S1 §9). Manifest candidato di UniMER eseguito (job 30624-30625). Restano: reader che applichino i manifest di UniMER e MAVIS (C7), indice globale e chiavi storiche delle altre sorgenti (C6), varianti e contratto (dopo C3), contatori per compito nel flusso, PixMo e LLaVA | CPU 20 min; indice CPU 4 CPU 24G, durata da misurare | dopo S1, D6 |
 | Stime (C8) | Eseguiti: copertura esatta, limite ipergeometrico e binomiale, Bonferroni, rifiuti (job 30616-30617, S4 §9). Da fare: collaudo dell'estrazione solo se si aggiunge un campionatore; applicazione agli esiti reali dopo la revisione completa | CPU pochi secondi | applicazione con l'ok dell'utente |
 | MAVIS (C9; punto 2) | `shape_type` con opzioni; valori visualizzati ed esatti | CPU 20 min; controllo CPU su tutti gli shard | dopo C5 |
 | Più immagini (punto 4) | Ordine, budget, parità con cache | CPU 20 min; GPU 1 ora | dopo i punti 1, 3 |

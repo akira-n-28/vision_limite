@@ -1,0 +1,273 @@
+{
+ "schema": "limite-vl-manifest-riepilogo/1",
+ "manifest": "data/manifests/unimer-candidato-1",
+ "nome": "unimer-candidato",
+ "versione": "1",
+ "job_id": "30625",
+ "manifest_sha256": "bcc851982598a80cdcf60ab00eb2adb0ff0adf581180ec7b296ed3d498d4dfcb",
+ "records_sha256": "c183b95526fa55955f98976bf9f6035f06f1c6ad2f820161ca797f228559d92c",
+ "righe": 1016135,
+ "sorgente": "unimer",
+ "revisione": "2343ddd963290469da36ca83e3a56c66e068add9",
+ "shards": [
+  {
+   "insieme": "train",
+   "nome": "unimer-train-00000.tar",
+   "percorso": "data/shards/unimer/2343ddd9-dense/unimer-train-00000.tar",
+   "sha256": "1b4bd0fae133c0421f91e434800b2ab02b4d305dbdb8614b2ef2c2d806a6ef33",
+   "bytes": 3260282880,
+   "record": 200000
+  },
+  {
+   "insieme": "train",
+   "nome": "unimer-train-00001.tar",
+   "percorso": "data/shards/unimer/2343ddd9-dense/unimer-train-00001.tar",
+   "sha256": "dad4f622839b62f73994ef7ae393e49ab233bcecbceaf162ec344f558096df81",
+   "bytes": 3273871360,
+   "record": 200000
+  },
+  {
+   "insieme": "train",
+   "nome": "unimer-train-00002.tar",
+   "percorso": "data/shards/unimer/2343ddd9-dense/unimer-train-00002.tar",
+   "sha256": "f9095ec7687e110cc1041b6128adfd176ae5fb77e636a31d18a9948863642560",
+   "bytes": 3258214400,
+   "record": 200000
+  },
+  {
+   "insieme": "train",
+   "nome": "unimer-train-00003.tar",
+   "percorso": "data/shards/unimer/2343ddd9-dense/unimer-train-00003.tar",
+   "sha256": "2963f38bc315c63c08dfc9a547bc1cbfca7abf0575ae5a0affa041e2d65f2563",
+   "bytes": 3278469120,
+   "record": 200000
+  },
+  {
+   "insieme": "train",
+   "nome": "unimer-train-00004.tar",
+   "percorso": "data/shards/unimer/2343ddd9-dense/unimer-train-00004.tar",
+   "sha256": "6906269fe6da6fcb0f47a4df4be791bf35da83e8c1e50ed3a704031c3f9e8c90",
+   "bytes": 3036272640,
+   "record": 185450
+  },
+  {
+   "insieme": "righe",
+   "nome": "unimer-lines-00000.tar",
+   "percorso": "data/shards/unimer/2343ddd9-dense/lines/unimer-lines-00000.tar",
+   "sha256": "43c0687458685a75a5a16cdd89ac22e31cc975c037d4aa894423e356a49c62b4",
+   "bytes": 1346990080,
+   "record": 30685
+  }
+ ],
+ "liste_importate": {
+  "unimer_check_run4": {
+   "quality_excluded.txt": "40e57da0729e7f68e014dec41d67808fe6c8aeae0b748abf8264af8f184e3e13",
+   "uncertain.txt": "56cc240a3b89ba0e1a79472fa1fa1e4842e1d2062eef0c53d09c9b5ece79bd7a",
+   "relabel.jsonl": "ef045047128fd273340f25ca001deaa3d811c361d55b9f9c2fd8ce449a7d4e16",
+   "reasons.jsonl": "2bdca881d1ac39501935d07886eb11c9916cde0804bf205f09bef7652b6803e0",
+   "report.json": "92153e53e8adaee23e4e43b3ff75bf0aac2f7f495aeb3e25654eebf7504fce76"
+  },
+  "unimer_overlap_run2": {
+   "report.json": "bef6c1c698aa1f8c0c605feb85df2f8896e9ae0ad8f09c5106ca9b7a08626734",
+   "train_matches_test.txt": "5b9addde1b9707740c0d621dc5da9bbb7157f38ff7fc74e3823796f8e2517dd0",
+   "train_contamination_long.txt": "71f60e6c344d518307216ea58ca36183ef47df17fd9fe6e1eaeee3fab1dc2f49"
+  },
+  "split_duplicates_run1": {
+   "val_with_duplicates.jsonl": "0afd414ae75b6e4f27e42e7367af11e550493917dec5235287cdce88e1063a2d"
+  }
+ },
+ "split": {
+  "quota_dev": 0.05,
+  "seme": 0,
+  "formule_ammesse": 983875,
+  "formule_ammesse_dev": 49195,
+  "quota_ottenuta": 0.05
+ },
+ "conteggi": {
+  "per_insieme_split_stato": {
+   "righe/dev/ammesso": 1533,
+   "righe/train/ammesso": 29055,
+   "righe/train/escluso": 6,
+   "righe/train/quarantena": 91,
+   "train/dev/ammesso": 49195,
+   "train/train/ammesso": 934680,
+   "train/train/escluso": 52,
+   "train/train/quarantena": 1523
+  },
+  "per_compito_split_stato": {
+   "transcribe/dev/ammesso": 49195,
+   "transcribe/train/ammesso": 934680,
+   "transcribe/train/escluso": 52,
+   "transcribe/train/quarantena": 1523,
+   "transcribe_line/dev/ammesso": 1533,
+   "transcribe_line/train/ammesso": 29055,
+   "transcribe_line/train/escluso": 6,
+   "transcribe_line/train/quarantena": 91,
+   "transcribe_line_select/dev/ammesso": 1533,
+   "transcribe_line_select/train/ammesso": 29055,
+   "transcribe_line_select/train/escluso": 6,
+   "transcribe_line_select/train/quarantena": 91
+  },
+  "per_motivo": {
+   "dalla formula: formula di UniMER-Test con più di 20 token visibili, immagine diversa": 89,
+   "dalla formula: stessa immagine di UniMER-Test": 1,
+   "dalla formula: unimer_check/4: comando_non_reso": 5,
+   "dalla formula: unimer_check/4: rietichettato_graffe_codificate": 2,
+   "formula di UniMER-Test con più di 20 token visibili, immagine diversa": 404,
+   "formula rietichettata: le righe vengono dall'etichetta originale": 2,
+   "stessa immagine di UniMER-Test": 1,
+   "unimer_check/4: comando_non_reso": 51,
+   "unimer_check/4: conflitto_irrisolto": 1116,
+   "unimer_check/4: marcatori_non_riparabili": 3,
+   "unimer_check/4: proporzioni_fuori_norma": 7,
+   "unimer_check/4: rietichettato_graffe_codificate": 256,
+   "unimer_check/4: rietichettato_indice_isolato": 18975
+  },
+  "gruppi_per_split": {
+   "dev": 46647,
+   "train": 887223
+  },
+  "trasformazioni": {
+   "rietichettatura": 18827,
+   "righe": 30685
+  }
+ },
+ "riproduzione_run4": {
+  "stati": {
+   "accepted": 18827,
+   "uncertain": 1119,
+   "excluded": 51
+  },
+  "categorie": {
+   "rietichettato_indice_isolato": 18975,
+   "conflitto_irrisolto": 1116,
+   "comando_non_reso": 51,
+   "rietichettato_graffe_codificate": 256,
+   "proporzioni_fuori_norma": 7,
+   "marcatori_non_riparabili": 3
+  },
+  "reasons_uguali": true,
+  "reasons_diversi": 0,
+  "relabel_uguali": true,
+  "relabel_diversi": 0,
+  "gruppi_in_conflitto": 402,
+  "campioni_in_conflitto": 1116,
+  "duplicati_stessa_immagine_stessa_formula": 50866,
+  "non_ricalcolato": [
+   "immagine_vuota"
+  ],
+  "run2": {
+   "corrispondenze": 152781,
+   "per_formula": 152781,
+   "per_immagine": 1,
+   "formula_lunga": 405,
+   "contaminazioni": 405,
+   "contaminazioni_solo_formula_lunga": 404,
+   "uguali_ai_file": true
+  }
+ },
+ "controlli": [
+  {
+   "controllo": "manifest letto e verificato (sha256 dei record, record_id ricalcolati, un solo split per gruppo, conteggi per shard)",
+   "esito": true
+  },
+  {
+   "controllo": "identità uniche: (record_id, insieme) e chiave per insieme",
+   "esito": true
+  },
+  {
+   "controllo": "gruppi ricalcolati dai byte del PNG e dai genitori: stessa partizione",
+   "esito": true
+  },
+  {
+   "controllo": "group_id ricalcolati dai membri",
+   "esito": true
+  },
+  {
+   "controllo": "nessun gruppo in due split (in particolare fra train e dev)",
+   "esito": true
+  },
+  {
+   "controllo": "split ricalcolato con quota e seme del manifest: uguale a quello scritto",
+   "esito": true
+  },
+  {
+   "controllo": "con un altro seme il dev cambia (la scelta dipende dal seme)",
+   "esito": true
+  },
+  {
+   "controllo": "dev: almeno l'obiettivo di formule ammesse, superato al più dall'ultimo gruppo",
+   "esito": true
+  },
+  {
+   "controllo": "righe ritagliate: genitore presente con gli stessi hash, stesso gruppo e split, stato non meno grave",
+   "esito": true
+  },
+  {
+   "controllo": "rietichettature: genitore con l'etichetta originale e nuova etichetta uguali a relabel.jsonl",
+   "esito": true
+  },
+  {
+   "controllo": "rietichettature: tutte e sole quelle di relabel.jsonl",
+   "esito": true
+  },
+  {
+   "controllo": "righe ritagliate di formule rietichettate non ammesse",
+   "esito": true
+  },
+  {
+   "controllo": "liste storiche: ogni chiave risolta in un solo record",
+   "esito": true
+  },
+  {
+   "controllo": "evidenze di run4 nei record uguali alle liste",
+   "esito": true
+  },
+  {
+   "controllo": "errori certi esclusi, incerti in quarantena o esclusi",
+   "esito": true
+  },
+  {
+   "controllo": "evidenze di run2 nei record uguali alle liste",
+   "esito": true
+  },
+  {
+   "controllo": "contaminazioni con UniMER-Test non ammesse (immagine: escluse; formula lunga: almeno in quarantena)",
+   "esito": true
+  },
+  {
+   "controllo": "contaminazioni estese a tutto il gruppo",
+   "esito": true
+  },
+  {
+   "controllo": "conteggi per insieme, split, stato, compito e motivo uguali a manifest.json",
+   "esito": true
+  },
+  {
+   "controllo": "ranghi del campione candidato ricalcolati",
+   "esito": true
+  },
+  {
+   "controllo": "file derivati (keys/) con gli sha256 registrati",
+   "esito": true
+  }
+ ],
+ "esito_verifica": true,
+ "fuori_dal_sottoinsieme": [
+  "variant_id e uid (S1 §1): dipendono dal contratto di risposta (S3, D3). L'ammissione è per record e compito; il ritaglio della riga e la scelta della riga sono decisi dal loader con la chiave (data._unimer_line)",
+  "hash dei token di input e di target, tokenizer, template e contratto (S1 §2, §7): dipendono dal contratto",
+  "indice globale fra sorgenti (S1 §4): i gruppi sono i legami esatti dentro UniMER-1M; nessun confronto con le altre sorgenti di training",
+  "decontaminazione esterna contro pannello-v3 (pixel, pHash e testo): non fatta, è il lotto successivo. Qui c'è solo il confronto interno con UniMER-Test di run2, ricalcolato",
+  "reader col manifest (C7): gli shard di UniMER non sono in manifest.MANIFEST_REQUIRED e i loader non applicano questo manifest; è un candidato, non autorizza il training",
+  "campo gold (S2 §4): nessuno; target_controllato richiede la stima campionaria di S4 e la revisione visiva",
+  "equivalenza matematica delle formule: il target è l'uguaglianza dei token LaTeX senza spazi (latex.same_latex)"
+ ],
+ "verifiche_mancanti": [
+  "decontaminazione esterna di UniMER contro pannello-v3 (immagini e formule di tutti i benchmark del pannello)",
+  "stima campionaria della correttezza e dell'osservabilità alla risoluzione scelta (S4, revisione competente)",
+  "controllo immagine_vuota di run4 non ricalcolato (decodifica dei pixel); in run4 nessun caso",
+  "quarantene da riesaminare: conflitti irrisolti di run4 e formule lunghe del test con immagine diversa",
+  "manoscritti incidentali di CROHME (meno dell'1%): non si separano per indice e restano (v1.5)"
+ ],
+ "nota": "organizza candidati ed evidenze: non certifica la qualità e non autorizza il training"
+}
