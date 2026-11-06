@@ -14,7 +14,10 @@ codice del repository sul cluster e i requisiti della pipeline.
 - **C5 e C7:** implementati in parte, nel sottoinsieme di S1 per i sintetici v4 (S1 §9). Il 2026-11-05 lo stesso
   sottoinsieme dà i manifest candidati di UniMER-1M (`unimer-candidato-1`, job 30624-30625, S2 §4) e di
   MAVIS-Geometry (`mavis-geometry-candidato-1`, job 30626 e 30630, S2 §3), con le evidenze storiche importate e
-  ricalcolate; i loader non li applicano ancora.
+  ricalcolate. Il 2026-11-06 il C7 di UniMER e MAVIS è implementato e verificato nel perimetro di S1 §9. I reader
+  applicano `unimer-candidato-2` e `mavis-geometry-candidato-3` per record, split e compito, con il manifest
+  identificato da sha256 e la configurazione `config/runs/f0-c7-reader-unimer-mavis.json` (collaudo, non ricetta).
+  Test nel job 30686-30688; smoke test sui dati reali nel job 30688.
 - **C8, stime:** nucleo implementato e collaudato su dati fittizi il 2026-11-05 (job 30616-30617, S4 §9); non applicato
   agli esiti reali.
 - **C3, C4, C6, C9:** non iniziati.
@@ -253,7 +256,8 @@ Il prossimo lotto minimo, indipendente dalle decisioni aperte, è in `docs/F0_CA
 2. decontaminazione di v4 contro `pannello-v3`: fatta il 2026-11-02 (job 30517-30518); resta la verifica visiva dei
    264 candidati;
 3. manifest delle ammissioni di UniMER e MAVIS (estensione di C5 e C7), il lotto indicato dall'utente il 2026-11-05:
-   fatti tutti e due (`unimer-candidato-1`, job 30624-30625; `mavis-geometry-candidato-1`, job 30626 e 30630);
+   fatti tutti e due (`unimer-candidato-1`, job 30624-30625; `mavis-geometry-candidato-1`, job 30626 e 30630). Dal
+   2026-11-06 i reader applicano le versioni `unimer-candidato-2` e `mavis-geometry-candidato-3` (C7, job 30686-30688);
 4. scansione delle sorgenti locali contro il pannello.
 
 C3 e C4 seguono D3.
@@ -266,7 +270,14 @@ C3 e C4 seguono D3.
 | C4 | Estrattore e verificatori: forma, completezza dai metadati, candidati, tre esiti separati; `generate_batch` restituisce anche `max_new_tokens` e il motivo d'arresto | `src/limite_vl/answers.py` (nuovo), `generation.py` | S3 §6, compresi i casi A-T della tassonomia ufficiale | — | C3 |
 | C5 | Identità e manifest: JSON canonico, digest completi, mappa delle collisioni, record, scrittura immutabile; i loader restituiscono la costruzione canonica. **In parte, per i sintetici v4 (2026-10-30, `630d00a`, S1 §9): JSON canonico, digest e collisioni, `record_id`, `group_id`, record, split per gruppo, scrittura immutabile (`data/manifests/synth-v4-candidato-1`, job 30451); mancano `variant_id`, `uid` e la costruzione canonica dai loader, che dipendono da C3. Il 2026-11-05 manifest candidato di UniMER-1M con lo stesso sottoinsieme, più trasformazioni e genitori (righe ritagliate, rietichettature), compiti, evidenze per lista e rango del campione candidato (`data/manifests/unimer-candidato-1`, job 30624-30625, S1 §9, S2 §4); poi quello di MAVIS-Geometry, con stato per compito (`shape_type` in quarantena) e coerenza con le annotazioni separata dalla fedeltà all'immagine (`data/manifests/mavis-geometry-candidato-1`, job 30626 e 30630, S2 §3)** | `src/limite_vl/manifest.py`, `scripts/synth_manifest.py`, `scripts/unimer_manifest.py`, `scripts/mavis_manifest.py`, `data.py` | S1 §8 (collisione forzata, canonicalizzazione, prefissi, contratto): `tests/test_manifest.py` tranne il contratto | — | C3 (per la costruzione canonica) |
 | C6 | Indice globale e import delle esclusioni storiche | `scripts/build_index.py` (nuovo) | S1 §8 (gruppi, chiavi storiche) | costruzione dell'indice (CPU, 4 CPU, 24G, durata da misurare su uno shard per sorgente) | C5, D6 |
-| C7 | Reader col manifest, validazione dal manifest, contatori per sorgente e compito (`too_long` compreso). **In parte (2026-10-30, `630d00a`): solo i record ammessi dello split, validazione dal manifest, sha256 di JSON e PNG controllati, contatori dei reader e degli esempi caricati per sorgente, shard v4 leggibili solo col manifest; verifiche sui dati reali nel job 30451 (`scripts/manifest_check.py`); mancano i contatori per compito e `too_long` per sorgente** | `stream.py`, `collator.py`, `data_lists.py` | S1 §8 (reader): `tests/test_manifest.py` | verifiche del manifest (CPU, 8 CPU, 16G, 4 min) | C5 |
+| C7 | Reader col manifest, validazione dal manifest, contatori per sorgente e compito (`too_long` compreso). **In parte (2026-10-30, `630d00a`): solo i record ammessi dello split, validazione dal manifest, sha256 di JSON e PNG controllati, contatori dei reader e degli esempi caricati per sorgente, shard v4 leggibili solo col manifest; verifiche sui dati reali nel job 30451 (`scripts/manifest_check.py`). Il 2026-11-06 UniMER e MAVIS (S1 §9, `manifest.TASKED`):
+manifest obbligatorio e identificato da sha256; tipo di loader legato a sorgente, insieme, compito e revisione degli shard;
+esclusioni e rietichettature solo dal manifest; ammissione per record, split e compito coi motivi dei saltati; decisione del
+record allegata al campione, applicata dai loader (filtro per compito di `mavis_f1` prima della scelta, `shape_type` mai,
+digest di domande e descrizione; rietichettature verificate); contatori per sorgente e compito e `too_long` per sorgente.
+Test nel job 30686-30688 (`tests/test_reader_manifest.py`); smoke test sui manifest reali nel job 30688
+(`scripts/reader_smoke.py`). Restano: contatori di `uid`, gruppi e ripetizioni; i loader chiamati fuori dal reader; PixMo e
+LLaVA** | `stream.py`, `collator.py`, `data_lists.py`, `data.py`, `manifest.py` | S1 §8 (reader): `tests/test_manifest.py`, `tests/test_reader_manifest.py` | verifiche del manifest (CPU, 8 CPU, 16G, 4 min); smoke test di C7 (CPU, 8 CPU, 48G) | C5 |
 | C8 | Stime: limite ipergeometrico e binomiale, estrazione con probabilità registrate, Bonferroni, rifiuto se unità e quantità non coincidono. **Nucleo implementato il 2026-11-05, dopo l'adozione del nucleo tecnico di S4 da parte dell'utente: limiti esatti, Bonferroni, compatibilità fra disegno, quantità e popolazione, esiti contati senza perdite, tre livelli del risultato (S4 §9). Collaudato su dati fittizi (job 30616-30617), non applicato agli esiti reali. Senza campionatori: l'estrazione con probabilità registrate resta quella di `synth_gold_sample.py`** | `src/limite_vl/estimate.py` (nuovo) | S4 §8 tranne l'estrazione: `tests/test_estimate.py` | test mirati: CPU, 2 CPU, 4G, 2-3 s (job 30616-30617) | S4 |
 | C9 | MAVIS: `shape_type` con opzioni dalle misure note; valore visualizzato ed esatto nel record | `src/limite_vl/f1_mavis.py` | S2 §5 (MAVIS) | controllo su tutti gli shard (CPU, come il job 30052) | C5 |
 
@@ -327,6 +338,8 @@ C3 e C4 seguono D3.
 | 30652 (2026-11-06) | `slurm/panel_decontam.sbatch completo mavis completo-mavis-1 2` (8 CPU, 48G) su `861aba8` | 56 min 9 s; scansione di 199.050 record in 53 min, RSS massima 8,8 GiB. Nessun pixel identico; candidati in 664 record e 109 gruppi (pHash MathVision 587, MV-MATH 119, We-Math 12, MathVerse 8, MathVista 1; testo 5); 3 10-gram ignorati per la sola frequenza, 20.116 record con sole corrispondenze ignorate. `mavis-geometry-candidato-2`: 693 record in quarantena per gruppo, `shape_type` invariata; compatibilità 24 su 24, versione nuova 21 su 21 (S2 §3) | che i candidati sono in quarantena per gruppo, con split ereditati e nessuna riammissione. Non li risolve e non prova la fedeltà all'immagine. Le decisioni testuali, prese con la regola di frequenza, sono riesaminate nel job 30676 |
 | 30674-30675 (2026-11-06) | `slurm/tests_cpu.sbatch tests/test_panel_decontam.py`, correzione del filtro testuale di MAVIS (regole esplicite `panel-decontam/2`, comando `riesame`) | 30674: 89 su 90, un'aspettativa sbagliata del test (riammissione provata su un record ammesso anche nel genitore); 30675: 90 su 90. 15 s | che sui fixture un problema specifico ripetuto in più di 25 record resta candidato, con duplicati e varianti nello stesso gruppo, e che lo stesso test fallisce col filtro di `f163a81`. Inoltre: l'enumerazione dei punti è coperta solo nella descrizione del loader legata al manifest; il riesame di un candidato-2 costruito col codice vecchio dà una versione verificata; le alterazioni sono rifiutate |
 | 30676 (2026-11-06) | `slurm/panel_decontam.sbatch riesame mavis riesame-1 3` (4 CPU, 48G) | 7 min 25 s, RSS massima 10,6 GiB. Test 90 su 90; candidato-2 riverificato con la sua regola storica (23 su 23). Lette solo intestazioni e 20.121 JSON (251 MiB su 9,2 GiB, 133 s); 20.071 descrizioni legate al manifest. Enumerazioni coperte; 50 record verso MathVision 753 candidati (47 gruppi). `mavis-geometry-candidato-3`: 1.591 record da ammesso a quarantena (1.406 in due gruppi di figure identiche); verifica della catena 25 su 25 (S2 §3) | che la frequenza non decide più nulla e che le decisioni nuove sono ricalcolabili dalla scansione e dalle descrizioni. Non risolve i candidati |
+| 30686 (2026-11-06) | `slurm/tests_cpu.sbatch` con `tests/test_reader_manifest.py` (nuovo) e le regressioni `test_manifest`, `test_data_lists`, `test_f1_data`, `test_vl_data`, `test_f1c`, `test_replay`, `test_f2_gate`, `test_panel_decontam` (4 CPU, 16G) | 7 min. Regressioni superate: `test_manifest` (sintetici v4, col record alterato ora contato dal reader), `test_panel_decontam` 90 su 90. `test_reader_manifest` 47 su 48: l'unico fallimento è un helper del test, che leggeva i contatori del reader dopo l'inizio dell'epoca successiva (62 letti invece di 56), corretto fotografandoli alla fine dell'epoca | che le modifiche di C7 non cambiano i percorsi esistenti: sintetici v4, liste, F1, F1c, replay, gate F2, decontaminazione. Nessun controllo del codice fallito |
+| 30687-30688 (2026-11-06) | `slurm/reader_smoke.sbatch c7-1` e `c7-2` (8 CPU, 48G): test mirati, poi smoke test sui manifest e sugli shard reali con `config/runs/f0-c7-reader-unimer-mavis.json`, senza modello | 30687: test mirati superati (`test_reader_manifest` 48 su 48) e 4 sorgenti su 4 costruite; poi fermato da un errore dello script (attributo cercato su `Source` invece che su `Source.admission`) prima del sottoinsieme, nessuna uscita. 30688: 6 min 47 s; script 264 s, di cui `make_sources` 124 s coi due manifest letti e i 17 shard verificati una volta; RSS massima 14,2 GiB. 22 controlli su 22 (`docs/reader_smoke/c7-2.json`). Primo shard di ogni sorgente letto per intero in train e dev: chiavi consegnate uguali, nell'ordine dello shard, a quelle ammesse dai record grezzi del manifest, coi motivi dei saltati (formule dello shard 0: 189.690 consegnate, 9.977 `split_dev`, 325 quarantena, 8 esclusi). Esempi col processor: 327, 300, 300 e 300 di train, 200 di dev per sorgente; compiti solo fra gli ammessi, `shape_type` mai emessa (463 domande bloccate in train, 328 in dev), 45 rietichettature controllate. `MixedRowStream`, 20 micro-batch: 701 esempi di train da tutte le sorgenti | che i reader di UniMER e MAVIS chiamati da `make_sources` consegnano solo i record ammessi dello split col compito del tipo, applicano le rietichettature del manifest e non emettono `shape_type`. Letture parziali, uno shard per sorgente ed esempi a campione: non è una verifica completa del flusso di training, non collauda il training e non certifica le golden answer |
 
 Calcoli di sola libreria standard sul frontend, il 2026-10-28, a supporto delle specifiche (non sono collaudi):
 - riproduzione delle domande di synth v3 dalle chiavi, con istogrammi identici al manifest del job 29756;
@@ -583,7 +596,7 @@ La revisione, il pacchetto, i fogli, la selezione e il manifest non sono toccati
 
 Manifest candidati di UniMER e MAVIS (lotto di `docs/F0_CAMPIONE_CANDIDATO.md` §6, punto 3), con il sottoinsieme di S1
 dei sintetici. Organizzano candidati ed evidenze: non certificano la qualità, non assegnano gold e non autorizzano il
-training; i loader non li applicano ancora (C7).
+training. Dal 2026-11-06 i reader applicano `unimer-candidato-2` e `mavis-geometry-candidato-3` (C7, S1 §9).
 - **UniMER-1M** (`scripts/unimer_manifest.py`, job 30624-30625, S1 §9, S2 §4).
   - *Ingressi verificati:* shard densi di `2343ddd9` letti e hashati una volta, con sha256 uguali allo sharding (job
     29729) e allo snapshot di Hugging Face.
@@ -607,7 +620,9 @@ training; i loader non li applicano ancora (C7).
     sui ritagli, formule contro UniMER-Test e OCRBench. Ritrova solo l'immagine e le formule lunghe di run2: nessun cambio
     di stato.
   - *Lacune:* revisione campionaria (S4); le 404 formule lunghe da riesaminare; `immagine_vuota` di run4 non
-    ricalcolata; formule uguali con immagini diverse non unite (il dev misura immagini nuove); reader (C7).
+    ricalcolata; formule uguali con immagini diverse non unite (il dev misura immagini nuove).
+  - *Reader (C7)* (job 30686-30688, S1 §9): formule e righe ritagliate con decisioni proprie, rietichettature dalla lista
+    registrata nel manifest, applicate e verificate.
 - **MAVIS-Geometry** (`scripts/mavis_manifest.py`, job 30626 e 30630, S1 §9, S2 §3).
   - *Ingressi verificati:* 11 tar `9c80fff3-caption` letti e hashati una volta, con sha256 uguali allo sharding (job
     29419) e allo snapshot.
@@ -632,7 +647,10 @@ training; i loader non li applicano ancora (C7).
     tutto 2.284 record in quarantena in 156 gruppi, nessuna riammissione.
   - *Lacune:* fedeltà all'immagine (revisione visiva, S4); verifica a vista dei 156 gruppi candidati; C9 (opzioni di
     `shape_type`, valore visualizzato ed esatto, 22.712 record con razionali disegnati come decimali); geometry check
-    non ricalcolato; reader (C7), mentre il loader attuale può ancora scegliere `shape_type`.
+    non ricalcolato.
+  - *Reader (C7)* (job 30686-30688, S1 §9): `mavis_f1` sceglie solo fra i compiti ammessi, mai `shape_type`. Pool delle
+    domande e descrizione sono legati ai digest del manifest. Chiamato fuori dal reader, il loader sceglie ancora come
+    prima.
 
 ### Da pianificare
 
@@ -644,7 +662,7 @@ un job CPU (CLAUDE.md).
 | --- | --- | --- | --- |
 | Sintetici (C1, C2) | Eseguiti: test (job 30392, 30417, 30448), controllo sugli shard (job 30393, 30418, 30448), coppie v4 (job 30419), analisi degli scarti (job 30400, 30420), render e candidato v4 (job 30447-30449), manifest e dev split (job 30450-30451), decontaminazione esterna contro `pannello-v3` e manifest `synth-v4-candidato-2` (job 30517-30518), campione dell'audit preparato (job 30522, S2 §2.10), fogli corretti con la stessa selezione (job 30556, `campione-2`, S2 §2.11), confronto per unità e variante (job 30616). In corso, fatta dall'utente: revisione visiva del campione (380 unità e 175 casi mirati, rubrica della S2 §2.8) e dei 264 candidati della decontaminazione. Poi: limite con C8 sugli esiti, dopo aver fissato con l'utente la corrispondenza degli esiti (S4 §9) | revisione umana; C8 CPU pochi secondi | con l'ok dell'utente (D5) |
 | Contratto ed estrattore (C3, C4; punto 1) | Tokenizzazione e label per modalità; quattro forme e terminazione; tassonomia ufficiale; risposta diretta di Violetto | CPU 20 min; GPU 1 ora | dopo D3 e S3 |
-| Manifest, indice e reader (C5-C7; punto 3) | Per i sintetici v4 eseguiti (job 30450-30451, S1 §9). Manifest candidati di UniMER (job 30624-30625) e di MAVIS (job 30626 e 30630) eseguiti, e le loro versioni 2 con la decontaminazione esterna (job 30651-30652). Restano: reader che applichino i manifest di UniMER e MAVIS (C7), indice globale e chiavi storiche delle altre sorgenti (C6), varianti e contratto (dopo C3), contatori per compito nel flusso, PixMo e LLaVA | CPU 20 min; indice CPU 4 CPU 24G, durata da misurare | dopo S1, D6 |
+| Manifest, indice e reader (C5-C7; punto 3) | Per i sintetici v4 eseguiti (job 30450-30451, S1 §9). Manifest candidati di UniMER (job 30624-30625) e di MAVIS (job 30626 e 30630) eseguiti, le loro versioni 2 con la decontaminazione esterna (job 30651-30652) e la versione 3 di MAVIS senza la regola di frequenza (job 30676). Reader che applicano `unimer-candidato-2` e `mavis-geometry-candidato-3` per record, split e compito, coi contatori per sorgente e compito nel flusso (C7, job 30686-30688; smoke test su uno shard per sorgente, non una verifica completa). Restano: indice globale e chiavi storiche delle altre sorgenti (C6), varianti e contratto (dopo C3), contatori di `uid`, gruppi e ripetizioni, loader chiamati fuori dal reader, PixMo e LLaVA | CPU 20 min; indice CPU 4 CPU 24G, durata da misurare | dopo S1, D6 |
 | Stime (C8) | Eseguiti: copertura esatta, limite ipergeometrico e binomiale, Bonferroni, rifiuti (job 30616-30617, S4 §9). Da fare: collaudo dell'estrazione solo se si aggiunge un campionatore; applicazione agli esiti reali dopo la revisione completa | CPU pochi secondi | applicazione con l'ok dell'utente |
 | MAVIS (C9; punto 2) | `shape_type` con opzioni; valori visualizzati ed esatti | CPU 20 min; controllo CPU su tutti gli shard | dopo C5 |
 | Più immagini (punto 4) | Ordine, budget, parità con cache | CPU 20 min; GPU 1 ora | dopo i punti 1, 3 |

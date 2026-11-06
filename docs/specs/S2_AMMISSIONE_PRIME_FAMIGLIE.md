@@ -1523,7 +1523,8 @@ riverificata per la nuova configurazione (pipeline §5.7).
   - La decontaminazione esterna contro `pannello-v3`, che comprende le geometrie di MathVerse, degli stessi autori, è
     nella versione 2 (sotto, 2026-11-06).
   - C9 non è implementato.
-  - Il loader attuale può ancora scegliere `shape_type`: un reader col manifest (C7) deve escluderla.
+  - Il reader col manifest (C7, 2026-11-06, S1 §9) esclude `shape_type`: `mavis_f1` toglie dal pool le domande dei
+    compiti non ammessi prima di scegliere. Chiamato direttamente, fuori dal reader, il loader sceglie ancora come prima.
 - **Riverifica in sola lettura** (2026-11-05, job 30635, `scripts/manifest_recheck.py`). Il manifest è stato
   riverificato senza ricostruirlo, con la verifica corretta in `c271d6e`, che non chiede più che un altro seme cambi
   il dev.
@@ -1704,7 +1705,8 @@ MiB). Il riepilogo versionato è `docs/manifests/unimer-candidato-1.json`.
   - 152.376 formule del training uguali a una formula breve del test restano un'evidenza senza cambio di stato: la
     metrica senza contaminazione usa i casi mai visti di run2.
   - Il dev misura immagini nuove, non formule nuove.
-  - I loader non applicano il manifest (C7).
+  - I reader applicano il manifest (C7, 2026-11-06, S1 §9) con `unimer-candidato-2`: formule (transcribe) e righe
+    ritagliate (transcribe_line, transcribe_line_select) con decisioni proprie, rietichettature dalla lista registrata.
 - **Verificatore corretto** (2026-11-05, `c271d6e`, test nel job 30633).
   - La riga ritagliata deve avere il PNG della formula, con gli stessi byte e le stesse dimensioni. Righe e fasce devono
     essere strutturalmente valide (`band_problems`): coppie di interi con 0 ≤ y0 < y1 ≤ altezza, in ordine, senza

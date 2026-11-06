@@ -106,9 +106,10 @@ per `p10-pannello`.
    ragionata, né l'estrattore e i verificatori che separano formato, completezza e correttezza.
 2. **Identità delle varianti.** `variant_id` e `uid` (S1) mancano per tutte le sorgenti, anche per v4: il manifest
    copre record e gruppi, non varianti né contratto.
-3. **C5 e C7 per le altre sorgenti.** Oggi solo i sintetici v4 hanno un manifest delle ammissioni e i reader filtrati.
-   UniMER e MAVIS hanno manifest candidati con record, gruppi, stati, liste importate e dev (2026-11-05, job 30625 e
-   30630), che i reader non applicano ancora. Mancano per PixMo e LLaVA:
+3. **C5 e C7 per le altre sorgenti.** I sintetici v4, UniMER e MAVIS hanno un manifest delle ammissioni e i reader
+   filtrati. Per UniMER (`unimer-candidato-2`) e MAVIS (`mavis-geometry-candidato-3`) l'ammissione vale per record,
+   split e compito, con la configurazione di collaudo `config/runs/f0-c7-reader-unimer-mavis.json` (C7 del 2026-11-06,
+   job 30686-30688, S1 §9). Mancano per PixMo e LLaVA:
    - record e gruppi;
    - stati, esclusioni e quarantene importate;
    - split di sviluppo per gruppo;

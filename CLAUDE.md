@@ -382,8 +382,8 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
       gruppi di figure identiche di profondità 0.
     - Nessuna riammissione; stessi record, gruppi e split di candidato-2; evidenze e motivi conservati.
     - Verifica della catena 25 su 25: candidato-1, candidato-2 con la sua regola storica, poi candidato-3.
-    - `verifica-manifest` non si applica a un genitore già derivato. Nessun candidato è risolto e non è letto dai
-      loader.
+    - `verifica-manifest` non si applica a un genitore già derivato. Nessun candidato è risolto.
+    - È il manifest che i reader applicano (C7, sotto): `mavis_f1` sceglie solo fra i compiti ammessi, mai `shape_type`.
 - UniMER @ 2343ddd9 (job 29436, 29438): l'immagine `images/<indice>.png` ha come formula la riga `<indice>` di
   `train.txt`; le righe vuote sono HME100K (tolto per copyright) e le formule a mano di CROHME (meno dell'1%) non si
   separano per indice. Shard in `data/shards/unimer/2343ddd9/` (985.450 campioni, test spe/cpe/sce/hwe in `test/`),
@@ -402,11 +402,32 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
     - Le fasce non provano la corrispondenza visiva.
   - Versione 2 `data/manifests/unimer-candidato-2` (job 30651, `scripts/panel_decontam.py`, S2 §4): la versione 1
     con la decontaminazione esterna contro `pannello-v3`. Pixel sugli originali di `UniMER-1M.zip`, sui PNG e sui
-    ritagli; formule contro UniMER-Test e OCRBench; nessun pHash sulle formule. Non è letta dai loader.
+    ritagli; formule contro UniMER-Test e OCRBench; nessun pHash sulle formule. È il manifest che i reader applicano
+    (C7, sotto).
     - Ritrova solo i casi di run2: l'immagine di UniMER-Test (un gruppo, già escluso) e le 404 formule lunghe (già in
       quarantena). Nessun cambio di stato.
     - Formule brevi uguali: evidenze senza effetto.
     - Verifica della versione nuova 20 su 20.
+- Reader col manifest di UniMER e MAVIS (C7, 2026-11-06, S1 §9; `manifest.TASKED`, `stream.make_sources`, `data`):
+  - **Config e identità.** La config `config/runs/f0-c7-reader-unimer-mavis.json` (collaudo, non ricetta) seleziona
+    `unimer-candidato-2` (`97af1033…`) per `unimer_formula`, `unimer_line` e `unimer_line_select`, e
+    `mavis-geometry-candidato-3` (`f3cca473…`) per `mavis_f1`. Il manifest va identificato con `manifest_sha256`.
+  - **Arresti.** Gli shard di `data/shards/unimer` e `data/shards/mavis-geometry` senza manifest non si leggono. Errori
+    espliciti anche per tipo, insieme o revisione incompatibili e per shard alterati; liste `exclude` o `relabel`
+    nella config sono rifiutate.
+  - **Ammissione.** Si leggono solo i record ammessi dello split col compito del tipo; la validazione è il dev del
+    manifest. Il reader controlla gli sha256 di JSON e PNG prima delle rietichettature e allega al campione la
+    decisione del record. I loader la applicano: UniMER il compito e l'etichetta nuova, `mavis_f1` le domande filtrate
+    per compito prima della scelta, mai `shape_type`, coi digest del manifest.
+  - **Contatori.** Per sorgente e compito, e `too_long` per sorgente.
+  - **Non protetti.** I loader chiamati direttamente (`iter_shard`) e gli script "da adeguare" che non passano da
+    `make_sources`.
+  - **Verifica.** Test CPU nei job 30686-30688 (`tests/test_reader_manifest.py` 48 su 48, regressioni superate).
+    Smoke test sui manifest e sugli shard reali nel job 30688 (`docs/reader_smoke/c7-2.json`, 22 controlli su 22):
+    - il primo shard di ogni sorgente, letto per intero in train e in dev, consegna esattamente i record ammessi;
+    - gli esempi a campione e un breve flusso misto non contengono `shape_type`.
+
+    Sono letture parziali: non verificano tutto il flusso e non collaudano il training.
 - Sintetici v3 (`data/shards/synth/v3`, job 29756; il codice attuale ne riproduce esattamente le domande): `intersections`
   conta entro ±R mentre il disegno arriva a ±(R+1), con 37 target errati e 364 domande al bordo disegnato;
   `shape_type` e `label_type` sono domande aperte con più risposte vere (`docs/specs/S2_AMMISSIONE_PRIME_FAMIGLIE.md`
@@ -545,7 +566,8 @@ parametri in `groups.py` sono ipotesi da verificare con `f0_checks.py` (sezione 
   `ISTRUZIONI_MIGRAZIONE_LAGRANGE.md` — incarico della migrazione del 2026-10-28
 - `docs/` — stato del repository, piano F0, pannello di valutazione, campione candidato di F0, inventario degli
   artefatti, indice dei file, rilievi e rapporti delle revisioni
-- `config/paths.env` — percorsi e variabili offline; `config/runs/` — vuota finché non ci sono ricette collaudate;
+- `config/paths.env` — percorsi e variabili offline; `config/runs/` — nessuna ricetta di training finché non ci sono
+  ricette collaudate, solo la config di collaudo di C7 (`f0-c7-reader-unimer-mavis.json`, non una ricetta);
   `config/audit/` — istruzioni e politica degli audit storici (congelate)
 - `downloads/` — `sources.tsv`, `catalog_status.tsv`, `build_manifests.sh`, `manifests/`
 - `scripts/` — ambiente, download, verifica, ispezione e shard dei dati, controlli deterministici, decontaminazione,
@@ -560,8 +582,10 @@ parametri in `groups.py` sono ipotesi da verificare con `f0_checks.py` (sezione 
   - `processing.py`: immagini in patch a griglia pari, chat in token e label;
   - `collator.py`: packing e collate;
   - `data.py`: lettura degli shard tar ed esempi per tipo di sorgente (un'immagine per `Sample`);
-  - `stream.py`: flusso misto e riprendibile di micro-batch, esclusioni, rietichettature e filtro del manifest;
-  - `manifest.py`: identità sha256, gruppi e split, lettura verificata del manifest delle ammissioni (S1 §9);
+  - `stream.py`: flusso misto e riprendibile di micro-batch, esclusioni, rietichettature e filtro del manifest (per
+    UniMER e MAVIS anche per compito, con la decisione del record allegata al campione);
+  - `manifest.py`: identità sha256, gruppi e split, lettura verificata del manifest delle ammissioni e ammissione per
+    compito di UniMER e MAVIS (`TASKED`, S1 §9);
   - `data_lists.py`: liste obbligatorie e loro provenienza;
   - `latex.py`, `latex_render.py`: formule e confronto fra trascrizioni;
   - `synth.py`, `synth_check.py`, `mavis_gen.py`, `f1_schema.py`, `f1_mavis.py`, `mavis.py`: sintetici, la loro verifica

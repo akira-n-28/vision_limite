@@ -69,6 +69,7 @@ config/audit/stem_gold.md	istruzioni audit	storico-congelato	indice e sha256 in 
 config/audit/stem_solve.md	istruzioni audit	storico-congelato	indice e sha256 in config/audit/INDEX.md	citato per percorso o hash da outputs/f2_pilot, f2_cert, stem_audit
 config/paths.env	config	corrente	percorsi offline	-
 config/runs/README.md	config	corrente	nessuna ricetta corrente	-
+config/runs/f0-c7-reader-unimer-mavis.json	config	corrente	config di collaudo di C7, non ricetta di training (campo notes): sorgenti unimer (unimer_formula), unimer_line e unimer_line_select (righe ritagliate) e mavis (mavis_f1) coi manifest unimer-candidato-2 e mavis-geometry-candidato-3 identificati dal loro sha256, split train (validazione dal dev)	letta da scripts/reader_smoke.py; pesi, mix e durate non decisi
 docs/ACTIVE_WORK_AND_UNTOUCHED_PATHS.md	documento	corrente	stato, piano o inventario della migrazione	-
 docs/ARTIFACT_INVENTORY.tsv	documento	corrente	stato, piano o inventario della migrazione	-
 docs/F0_CAMPIONE_CANDIDATO.md	documento	corrente	campione candidato di F0: selezione riproducibile per training dei piloti, sviluppo e test riservato; lacune e aggiunte minime; cosa manca; prossimo lotto	proposta, nessuna sorgente ammessa
@@ -102,6 +103,7 @@ docs/manifests/mavis-geometry-candidato-3.json	rapporto	corrente	riepilogo della
 docs/manifests/unimer-candidato-1.json	rapporto	corrente	riepilogo verificabile del manifest candidato di UniMER-1M (job 30625): identità, sha256 di manifest, record, shard e liste importate, split, conteggi, riproduzione di run4 e run2, controlli della verifica, lacune	il manifest sta in data/manifests, fuori da git
 docs/manifests/unimer-candidato-2.json	rapporto	corrente	riepilogo della versione 2 di UniMER-1M (job 30651): decontaminazione esterna contro pannello-v3 (panel-decontam/1, che per UniMER non ha regole testuali), nessun cambio di stato, controlli	il manifest sta in data/manifests, fuori da git; invariato dalla correzione del filtro di MAVIS
 docs/reviews/PIPELINE_ADDESTRAMENTO_LIMITE_VL.md	documento	corrente	navigazione dei rapporti	-
+docs/reader_smoke/c7-2.json	rapporto	corrente	riepilogo dello smoke test di C7 (job 30688, scripts/reader_smoke.py): manifest e sha256, sorgente, revisione, insieme, tipo e compito per sorgente, attesi del manifest per split, stato e compito; sottoinsieme (primo shard di ogni sorgente, train e dev) confrontato esattamente coi record grezzi; esempi, validazione e flusso misto; tempi e memoria	il rapporto completo è in outputs/reader_smoke/c7-2; letture parziali, non verifica completa del training
 docs/reviews/README.md	documento	corrente	navigazione dei rapporti	-
 docs/reviews/REVISIONE_INDIPENDENTE_GOLD_E_DECONTAMINAZIONE.md	documento	storico	rapporto indipendente immutato (versione e hash propri)	-
 docs/reviews/REVISIONE_INDIPENDENTE_PIPELINE_LIMITE_VL.md	documento	storico	rapporto indipendente immutato (versione e hash propri)	-
@@ -188,6 +190,7 @@ scripts/panel_inventory_summary.py	script	corrente	riassunto leggibile dell'inve
 scripts/panel_overlaps.py	script	corrente	sovrapposizioni fra i benchmark indicizzati: pHash identici o vicini (candidati), testi identici, ID condivisi (job 30459)	-
 scripts/peek_parquet.py	script	riutilizzabile	ispezione dei dati senza training	-
 scripts/peek_shard.py	script	riutilizzabile	ispezione dei dati senza training	-
+scripts/reader_smoke.py	script	corrente	smoke test di C7 sui manifest e sugli shard reali di UniMER e MAVIS: sorgenti della config col manifest identificato, primo shard di ogni sorgente letto per intero in train e dev e confrontato esattamente coi record grezzi del manifest (motivi dei saltati compresi), esempi col processor (compiti, shape_type, rietichettature, righe), validazione e breve MixedRowStream	solo in un job CPU, nessun modello; letture parziali: non è una verifica completa del training
 scripts/pixmo_transcript_check.py	script	riutilizzabile	controllo deterministico dei dati (pipeline §5.3); esiti come evidenze, non ammissione	-
 scripts/replay_decontam.py	script	riutilizzabile	decontaminazione: segnali di candidati (pipeline §5.8)	-
 scripts/replay_generate.py	script	storico	replay con tracce generate da Violetto (il replay v1.4 parte dai riferimenti originali)	-
@@ -266,6 +269,7 @@ slurm/peek_parquet.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, 
 slurm/peek_shard.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
 slurm/pixmo_transcript_check.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
 slurm/prologue.sh	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
+slurm/reader_smoke.sbatch	launcher	corrente	test mirati (test_reader_manifest, test_manifest), poi lo smoke test di C7 (scripts/reader_smoke.py) con config/runs/f0-c7-reader-unimer-mavis.json -> outputs/reader_smoke/NOME e docs/reader_smoke/NOME.json	8 CPU, 48G, 1 ora; manifest e shard in sola lettura
 slurm/replay_decontam.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
 slurm/shard_llava_pretrain.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
 slurm/shard_mavis_geometry.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
@@ -291,9 +295,9 @@ slurm/verify_hashes.sbatch	launcher	corrente	launcher dell'ambiente, delle verif
 slurm/vllm_smoke.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
 src/limite_vl/.gitkeep	modulo	corrente	segnaposto	-
 src/limite_vl/__init__.py	modulo	corrente	pacchetto	-
-src/limite_vl/collator.py	modulo	da adeguare	packing e collate	posizioni azzerate a ogni esempio; scarta gli esempi troppo lunghi senza contabilità
-src/limite_vl/data.py	modulo	da adeguare	lettura degli shard ed esempi per tipo	un'immagine per Sample; QA costruite al volo senza identità compito/variante
-src/limite_vl/data_lists.py	modulo	riutilizzabile	liste obbligatorie e loro provenienza, col manifest delle ammissioni e lo split di ogni sorgente	REQUIRED vale ancora per famiglia (synth: lista v3 vuota)
+src/limite_vl/collator.py	modulo	da adeguare	packing e collate; too_long contato in totale e per sorgente (C7)	posizioni azzerate a ogni esempio
+src/limite_vl/data.py	modulo	da adeguare	lettura degli shard ed esempi per tipo; con la decisione del manifest allegata dal reader (C7) i loader di UniMER vogliono il compito del tipo e l'etichetta rietichettata registrata, mavis_f1 sceglie compito e domande solo fra gli ammessi (shape_type no) dopo aver legato pool e descrizione ai digest del manifest; Sample dice compiti svolti e domande bloccate	un'immagine per Sample; QA costruite al volo senza identità compito/variante; chiamati direttamente (iter_shard), i loader non applicano il manifest
+src/limite_vl/data_lists.py	modulo	riutilizzabile	liste obbligatorie e loro provenienza, col manifest delle ammissioni, lo split e lo sha256 dichiarato di ogni sorgente; UniMER e MAVIS col manifest senza liste obbligatorie	REQUIRED vale ancora per famiglia (synth: lista v3 vuota)
 src/limite_vl/decontam.py	modulo	riutilizzabile	pHash e n-gram per candidati di contaminazione; convenzioni delle immagini (rgb-su-bianco/1, grigio-diretto/0) e forma conservativa dei testi (exact_text)	segnale, non prova (§5.10.3)
 src/limite_vl/estimate.py	modulo	corrente	stime della qualità da campioni (C8, S4 §9): limiti esatti ipergeometrico e Clopper-Pearson, Bonferroni, compatibilità fra popolazione, unità estratta e quantità, esiti contati senza perdite, conteggi, limite e conclusione condizionata separati (job 30616-30617)	solo libreria standard; nessun campionatore, aggregazione o certificazione; non applicato agli esiti reali
 src/limite_vl/f1_mavis.py	modulo	riutilizzabile	verità, descrizione canonica e domande MAVIS da diagram_generation	valore esatto/visualizzato/richiesto da separare (§5.6)
@@ -307,7 +311,7 @@ src/limite_vl/generation.py	modulo	riutilizzabile	generazione a batch per il mod
 src/limite_vl/latex.py	modulo	riutilizzabile	formule e confronto fra trascrizioni	separare equivalenza matematica e trascrizione (§5.7)
 src/limite_vl/latex_render.py	modulo	riutilizzabile	confronto col disegno di matplotlib	-
 src/limite_vl/limite_code.py	modulo	corrente	import verificato del codice di Limite	-
-src/limite_vl/manifest.py	modulo	corrente	manifest delle ammissioni, sottoinsieme di S1 (§9): JSON canonico, digest e collisioni, record_id e group_id, split per gruppo, lettura verificata, filtro dei reader	solo libreria standard; senza variant_id e uid (dipendono da S3)
+src/limite_vl/manifest.py	modulo	corrente	manifest delle ammissioni, sottoinsieme di S1 (§9): JSON canonico, digest e collisioni, record_id e group_id, split per gruppo, lettura verificata, filtro dei reader; C7 per UniMER e MAVIS (TASKED): tipo di loader legato a sorgente, insieme e compito, revisione degli shard, shard verificati una volta per manifest, ammissione per record e compito con i motivi dei saltati, decisione del record allegata al campione, rietichettature dalla lista registrata	solo libreria standard; senza variant_id e uid (dipendono da S3)
 src/limite_vl/mavis.py	modulo	storico	MAVIS come dati F2 col ponte testuale	importato da mavis_gen e f2_claims
 src/limite_vl/mavis_gen.py	modulo	riutilizzabile	diagram_generation di MAVIS e confronto con la didascalia	coerenza ≠ fedeltà ai pixel
 src/limite_vl/mmfine.py	modulo	riutilizzabile	chiavi e lettura dei problemi di MMFineReason	-
@@ -315,11 +319,11 @@ src/limite_vl/modeling.py	modulo	da adeguare	modello VL baseline	loader solo Sig
 src/limite_vl/optim/__init__.py	modulo	riutilizzabile	ottimizzatori	-
 src/limite_vl/optim/groups.py	modulo	riutilizzabile	gruppi della Tabella 1	regole sui nomi da verificare; servono gruppi disgiunti per il ViT (§8)
 src/limite_vl/optim/normuon.py	modulo	riutilizzabile	NorMuon, alternativa ad AdamW (§14)	-
-src/limite_vl/processing.py	modulo	da adeguare	immagini in patch e chat in token	template di Violetto con \boxed{}; tetto 768 token; immagini solo prima del testo
+src/limite_vl/processing.py	modulo	da adeguare	immagini in patch e chat in token; Example con i compiti svolti e le domande bloccate (C7)	template di Violetto con \boxed{}; tetto 768 token; immagini solo prima del testo
 src/limite_vl/provenance.py	modulo	corrente	hash, identità del codice, scrittura senza sovrascrivere	-
 src/limite_vl/replay.py	modulo	da adeguare	replay testuale	prompt con ragionamento e \boxed{} obbligatori
 src/limite_vl/stem_audit.py	modulo	storico-congelato	regole dello screening STEM	sha256 congelato in outputs/f2_pilot/*
-src/limite_vl/stream.py	modulo	corrente	flusso misto riprendibile, esclusioni, rietichettature e filtro del manifest delle ammissioni (solo record ammessi dello split, validazione dal dev, contatori; 630d00a, S1 §9)	senza manifest la validazione resta il prefisso dell'ultimo shard; ammissione per record, non per variante
+src/limite_vl/stream.py	modulo	corrente	flusso misto riprendibile, esclusioni, rietichettature e filtro del manifest delle ammissioni (solo record ammessi dello split, validazione dal dev, contatori; 630d00a, S1 §9). C7 per UniMER e MAVIS: manifest identificato da sha256, esclusioni e rietichettature solo dal manifest, sha256 di JSON e PNG controllati dal reader prima delle trasformazioni, motivi dei saltati, decisione allegata al campione, contatori per sorgente e compito, arresto dopo FAILURE_LIMIT esempi di seguito non costruibili	senza manifest la validazione resta il prefisso dell'ultimo shard; ammissione per record e compito, non per variante
 src/limite_vl/synth.py	modulo	corrente	generatore dei sintetici: v4 corretta (C1), v3 riproducibile con version=3	correzioni minime di v4 in b0b90c5 (coppie per riscalatura, punto segnato lontano dalle misure, tacche -1 senza numero; S2 §2.5); test e controlli passati (job 30417-30420)
 src/limite_vl/synth_check.py	modulo	corrente	verifica indipendente delle domande sintetiche contro il disegno (C2)	coordinate anche dalle tacche vicine, con le tacche nel layout (b0b90c5); test e controlli passati (job 30417-30420)
 src/limite_vl/train_utils.py	modulo	riutilizzabile	loss a blocchi, checkpointing per layer, ricompilazioni di flex	-
@@ -340,7 +344,7 @@ tests/test_f2_records.py	test	storico-congelato	test di codice storico mantenuto
 tests/test_f2_train.py	test	storico	test di codice storico mantenuto importabile	-
 tests/test_latex_render.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
 tests/test_latex_structure.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
-tests/test_manifest.py	test	corrente	test CPU (slurm/tests_cpu.sbatch): manifest delle ammissioni e reader (S1 §8, in parte)	importa torch
+tests/test_manifest.py	test	corrente	test CPU (slurm/tests_cpu.sbatch): manifest delle ammissioni e reader dei sintetici v4 (S1 §8, in parte); dal C7 il record alterato si conta nel reader (errori_manifest)	importa torch
 tests/test_manifest_recheck.py	test	corrente	test CPU della riverifica in sola lettura sui fixture di UniMER e MAVIS: manifest corretti superati senza cambiare i byte degli ingressi, con tutte le evidenze obbligatorie verificate, anche UniMER senza righe ritagliate; 6 rifiuti prima di scrivere; shard delle righe classificato train rifiutato coi record invariati; 12 rifiuti per evidenze incomplete (liste_importate assente o vuota, lista o file non registrati, digest mancante o non valido); PNG di una riga ritagliata scambiato e fasce sovrapposte riportati con identificativo e causa (job 30633, 30638)	importa tests/test_unimer_manifest.py e tests/test_mavis_manifest.py
 tests/test_mavis.py	test	storico	test di codice storico mantenuto importabile	-
 tests/test_mavis_gen.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
@@ -349,6 +353,7 @@ tests/test_mavis_manifest.py	test	corrente	test CPU del manifest candidato di MA
 tests/test_normuon.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
 tests/test_panel.py	test	corrente	test CPU del pannello e della convenzione delle immagini: irrisolti per gruppo, testo conservativo, vicini pHash, PNG trasparenti, recupero dal nuovo indice, split di ChartQA, confronto fra versioni con metrica_primaria e formato v2 (slurm/tests_cpu.sbatch, job 30468, 30517)	-
 tests/test_panel_decontam.py	test	corrente	test CPU della decontaminazione esterna di UniMER e MAVIS (90 controlli, job 30675): regole testuali esplicite (enumerazione dei punti coperta solo nella descrizione del loader legata al manifest; problema specifico ripetuto in più di 25 record, con duplicati e varianti nello stesso gruppo, che resta candidato, mentre lo stesso test fallisce col filtro di f163a81 letto da git; corrispondenza coperta accanto a una specifica; propagazione al gruppo con stati e compiti conservati); riesame di un candidato-2 costruito sul fixture col codice di f163a81, con verifica della catena e versioni o descrizioni alterate rifiutate; decisioni pure (conferma, candidati, formula breve senza effetto, controlli mancanti, gruppo senza riammissioni anche fra formula e riga ritagliata con la stessa chiave, compiti di MAVIS, ritaglio uguale a quello del loader); percorso completo su fixture con zip, indice, pannello, OCRBench e MathVerse fittizi (originale identico anche RGBA nella convenzione rgb-su-bianco/1, un pixel diverso non promosso, ritaglio identico, formule lunghe e brevi, run2 riconciliato, pHash e 10-gram di MAVIS, shape_type conservato); arresti (sha256 di manifest o indice, convenzione storica, shard alterato, prova limitata, identità scambiata, versione nuova alterata)	importa tests/test_unimer_manifest.py e tests/test_mavis_manifest.py
+tests/test_reader_manifest.py	test	corrente	test CPU di C7 per UniMER e MAVIS su manifest costruiti coi fixture di test_unimer_manifest e test_mavis_manifest: epoche train e dev esatte coi motivi dei saltati, validazione dal dev, rietichettature dal manifest applicate e verificate, righe ritagliate con la loro decisione (chiave condivisa con la formula), shape_type mai emessa e domande bloccate contate, digest di domande e descrizione, selezione riproducibile, record senza compiti utilizzabili, arresti (tipo, insieme, sha256, liste della config, lista delle rietichettature, revisione, shard alterato, shard reali senza manifest), flusso col processor di Violetto	importa torch; importa tests/test_unimer_manifest.py e tests/test_mavis_manifest.py
 tests/test_replay.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
 tests/test_stem_audit.py	test	storico-congelato	test di codice storico mantenuto importabile	-
 tests/test_synth.py	test	corrente	test CPU (slurm/tests_cpu.sbatch)	-

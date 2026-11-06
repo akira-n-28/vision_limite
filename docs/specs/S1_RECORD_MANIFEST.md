@@ -121,7 +121,9 @@ record. Si estende al gruppo solo se il motivo riguarda il gruppo, come la conta
   - token di input, token visivi, target-token;
   - scarti dopo l'ammissione, per errore e per `too_long`.
 
-  Oggi esistono solo `errors/<sorgente>` (`stream.py:247`) e `too_long` in totale (`collator.py:71`).
+  Oggi esistono `errors/<sorgente>`, `manifest_errors/<sorgente>`, `senza_compiti/<sorgente>`, `too_long` in totale e
+  per sorgente, i contatori dei reader coi motivi dei saltati e, per UniMER e MAVIS, `compiti/<sorgente>/<compito>` e
+  `compiti_bloccati/<sorgente>/<compito>` (C7, §9). Mancano `uid`, gruppi unici, ripetizioni e token per compito.
 - Se gli scarti dopo l'ammissione cambiano in modo rilevante popolazione o pesi, si aggiornano copertura e
   denominatori.
 
@@ -185,10 +187,11 @@ Serve a rappresentare e applicare il candidato v4 (S2 §2.7). Il codice è in `s
   dell'ultimo shard non si usa.
 - **Reader (§6), in parte.**
   - `Source` riceve manifest e split, e il reader legge solo i record ammessi di quello split.
-  - Ogni record consegnato deve avere gli sha256 di JSON e PNG del manifest. Uno diverso è un errore contato nel flusso
-    (`manifest_errors/<sorgente>`) e ferma la validazione.
-  - Il `meta` di ogni micro-batch porta i contatori dei reader (letti, saltati, consegnati) e gli esempi caricati per
-    sorgente.
+  - Ogni record consegnato deve avere gli sha256 di JSON e PNG del manifest. Dal C7 di UniMER e MAVIS il controllo si fa
+    nel reader, sui byte dello shard e prima di ogni trasformazione: uno diverso è un errore contato dal reader
+    (`errori_manifest`) e ferma la validazione.
+  - Il `meta` di ogni micro-batch porta i contatori dei reader (letti, saltati con il motivo, errori, consegnati) e gli
+    esempi caricati per sorgente.
 - **File (§7).** `data/manifests/<nome>-<versione>/`, scritto una volta sola:
   - `records.jsonl.gz`, con righe in ordine fisso e gzip senza data;
   - `manifest.json`, con shard e ingressi con sha256, conteggi per insieme, split, stato, famiglia e compito, sha256 dei
@@ -215,8 +218,9 @@ Serve a rappresentare e applicare il candidato v4 (S2 §2.7). Il codice è in `s
 - **Indice globale (§4) e liste storiche (§5).** I gruppi sono solo quelli dei legami esatti dentro i sintetici v4;
   `liste_importate` è vuota.
 - **Ammissione della singola QA (§6).** Non serve a questo candidato.
-- **Contatori per compito e target-token nel flusso (§6).** I conteggi per compito sono nel controllo
-  (`manifest_check.py`); `too_long` resta in totale.
+- **Contatori per compito e target-token nel flusso (§6).** Per i sintetici i conteggi per compito sono nel controllo
+  (`manifest_check.py`); dal C7 di UniMER e MAVIS il flusso conta compiti emessi e bloccati per sorgente, e `too_long`
+  anche per sorgente. I target-token mancano.
 - **Collaudi del contratto e delle chiavi storiche (§8).**
 
 **Estensione a UniMER-1M** (2026-11-05, `scripts/unimer_manifest.py`, `data/manifests/unimer-candidato-1`, job 30625;
@@ -303,3 +307,65 @@ il modello della versione 2 dei sintetici (§2.9 di S2):
     - candidato-3 con le decisioni ricalcolate dalla scansione e dalle descrizioni del riesame, legate al manifest da
       `descrizione_sha256`;
     - l'elenco completo dei cambi rispetto a candidato-2.
+
+**Reader col manifest di UniMER e MAVIS (C7, 2026-11-06)** (`manifest.TASKED`, `stream.make_sources`, `data`; test
+`tests/test_reader_manifest.py`, job 30686-30688; smoke test sui dati reali `scripts/reader_smoke.py`, job 30688).
+- **Manifest obbligatorio e identificato.**
+  - Gli shard di `data/shards/unimer` e `data/shards/mavis-geometry` sono in `MANIFEST_REQUIRED`, anche le varianti
+    non registrate in un manifest: senza manifest `make_sources` si ferma prima di leggerli.
+  - La sorgente indica `manifest` e `manifest_sha256` (lo sha256 di manifest.json, obbligatorio), e `split`. Non si
+    cerca "l'ultima versione".
+  - Esclusioni e rietichettature vengono solo dal manifest: liste `exclude` o `relabel` nella config sono un errore, e
+    le liste storiche di `data_lists.REQUIRED`, tutte vuote, non si richiedono.
+- **Ingressi verificati.**
+  - Il tipo di loader legge la sorgente e l'insieme del manifest: `unimer_formula` le formule (`train`, compito
+    transcribe), `unimer_line` e `unimer_line_select` le righe ritagliate (`righe`), `mavis_f1` MAVIS.
+  - Un altro tipo col manifest di UniMER o di MAVIS è un errore, per esempio `mavis_caption`, i cui compiti il
+    manifest non registra.
+  - La revisione dichiarata dal manifest dello sharding di ogni cartella deve essere quella del manifest.
+  - Ogni shard deve essere registrato, con sha256 e dimensione su disco; si verifica una volta per manifest, in
+    parallelo, anche se più sorgenti o split lo usano.
+  - Il reader controlla gli sha256 di JSON e PNG di ogni record consegnato sui byte dello shard.
+- **Ammissione per record, split e compito.**
+  - Si leggono solo i record `ammesso` dello split che hanno il compito del tipo (UniMER) o almeno un compito ammesso
+    con domande (MAVIS).
+  - Gli altri si saltano col motivo (`saltati_manifest/<motivo>`: altro split, quarantena, escluso, compito non
+    ammesso, nessun compito ammesso).
+  - Gruppi e split non si ricalcolano. La validazione è il dev dello stesso manifest.
+- **Decisione allegata.** Il reader aggiunge ai file del campione la decisione del record (`ammissione`): compiti
+  ammessi e bloccati, digest delle domande e della descrizione per MAVIS, sha256 dell'etichetta nuova per una formula
+  rietichettata. Stream, validazione e prompt di generazione costruiscono gli esempi dagli stessi file, quindi
+  applicano la stessa decisione.
+- **UniMER.**
+  - Formula e riga ritagliata hanno la stessa chiave e lo stesso record_id, ma stanno in insiemi e shard diversi con
+    decisioni proprie: una formula ammessa non ammette la sua riga, e una riga di formula rietichettata resta in
+    quarantena.
+  - Le rietichettature sono quelle di `liste_importate` (sha256 ricontrollato): ogni trasformazione `rietichettatura`
+    deve trovare la sua riga, con lo sha256 dell'etichetta dello shard e di quella nuova. Il loader rifiuta una formula
+    rietichettata senza l'etichetta nuova.
+  - Ritagli e scelta della riga restano quelli di `data`.
+- **MAVIS.**
+  - `mavis_f1` lega il pool delle domande (`qa`) e la descrizione (`descrizione_sha256`) ai digest del manifest, toglie
+    le domande dei compiti non ammessi (`shape_type`) e poi sceglie, deterministicamente per chiave, sul pool filtrato.
+  - Se la famiglia scelta dalla chiave non ha compiti ammessi usa l'altra; senza nessun compito ammesso dà
+    `NoAdmittedTask`.
+  - Il reader salta prima i record senza compiti, e il flusso si ferma dopo `FAILURE_LIMIT` esempi di seguito non
+    costruibili.
+  - Opzioni, risposte e valori razionali sono invariati (C9 non è fatto).
+- **Contatori.** Contatori del reader con i motivi; per sorgente `loaded/`, `errors/`, `manifest_errors/`,
+  `senza_compiti/`, `compiti/<sorgente>/<compito>`, `compiti_bloccati/<sorgente>/<compito>` e `too_long/<sorgente>`.
+  `Admission.describe` dà identità, attesi per split, stato e compito, e la decisione: "ammesso" è la decisione
+  operativa del candidato, non gold.
+- **Esito** (job 30688, `docs/reader_smoke/c7-2.json`): 22 controlli su 22.
+  - Il primo shard di ogni sorgente, letto per intero in train e in dev, consegna nell'ordine dello shard esattamente i
+    record ammessi secondo i record grezzi del manifest, e salta gli altri coi motivi attesi.
+  - Gli esempi a campione col processor contengono solo compiti ammessi: `shape_type` mai, con 463 domande bloccate in
+    train e 328 in dev; 45 rietichettature controllate.
+  - Un breve flusso misto (20 micro-batch, 701 esempi) contiene solo record ammessi di train.
+  - Sono letture parziali: non è una verifica completa del flusso.
+- **Non protetti:**
+  - i loader chiamati direttamente su file letti con `iter_shard` (strumenti di ispezione, test storici), che non
+    hanno la decisione e scelgono come prima;
+  - gli script "da adeguare" che non passano da `make_sources`.
+
+  Nessuna cache di campioni nel percorso dati.

@@ -6,3 +6,7 @@ Vuota di proposito dal 2026-10-28. Le config della strategia precedente sono in
 Una config entra qui solo quando sono implementati e collaudati il manifest dei dati, il trainer e i contratti che
 usa (`docs/F0_IMPLEMENTATION_PLAN.md`) e l'utente ha approvato dati, architettura e budget del run. Una config di
 prova di un collaudo F0 dichiara nel campo `notes` che non è una ricetta di training.
+
+Config di collaudo presenti, nessuna è una ricetta:
+- `f0-c7-reader-unimer-mavis.json`: le sorgenti di UniMER (formule e righe ritagliate) e di MAVIS coi manifest candidati
+  identificati dal loro sha256, per lo smoke test di C7 (`scripts/reader_smoke.py`, `slurm/reader_smoke.sbatch`).
