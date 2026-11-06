@@ -464,18 +464,35 @@ Unioni per tipo di legame:
   - **MAVIS, testi.** 10-gram di `normalize_words` (max_df 25 dell'indice) per caption, diagram_generation, le tre
     domande e il CoT di `text_en`, e per la descrizione canonica e le domande del loader. text_zh, text.jpg e
     vision_dominant.jpg non sono negli shard e non si confrontano;
-  - **n-gram di rito della sorgente.** Un 10-gram presente in più di 25 record diversi di MAVIS è una frase a modello
-    del generatore: la corrispondenza resta registrata, senza effetto sullo stato. È la soglia di rito dell'indice
-    applicata alla sorgente, introdotta dopo la prova limitata del job 30647: lì 1.705 record su 16.500 erano legati
-    a un solo problema di AIME 2025 dalla sequenza delle lettere dei punti (`a b c d e f g h i j`) della descrizione
-    canonica, senza nessun contenuto in comune.
+  - **regole testuali esplicite** (`panel-decontam/2`, correzione del 2026-11-06). La frequenza di un 10-gram nella
+    sorgente non decide nulla: serve solo a raggruppare e ordinare i casi da esaminare. Una corrispondenza testuale è
+    senza effetto solo se tutti i suoi 10-gram sono coperti da una regola esplicita del suo campo, verificata sul testo
+    del record; un altro 10-gram, o un'altra corrispondenza dello stesso record, lo lascia candidato. La regola è una
+    sola, `enumerazione_punti_loader` (`TEXT_RULES` in `panel_decontam.py`, versione 1, sha256 registrato nei manifest):
+    - vale solo nel campo `descrizione_del_loader`;
+    - copre un 10-gram che, in ogni sua occorrenza, è una sequenza di dieci etichette consecutive della riga `Points:`
+      della descrizione canonica (`f1_schema.render_geometry`: una lettera maiuscola per punto, in ordine alfabetico);
+    - la descrizione si ricalcola dal JSON del record e deve avere lo sha256 `descrizione_sha256` del manifest;
+    - la stessa sequenza in una didascalia, in una domanda o nel CoT resta un candidato.
+
+    La riga è scritta dal loader e contiene solo le lettere dei punti, nulla del problema: in comune con le dodici
+    lettere A-L di un problema di AIME 2025 I non indica contaminazione.
+
+    La regola precedente (`panel-decontam/1`, job 30647-30652) ignorava in ogni campo i 10-gram presenti in più di 25
+    record di MAVIS. È abolita: un problema specifico ripetuto in molte varianti perdeva così tutti i candidati
+    testuali. Il caso è quello delle 50 domande verso MathVision 753. Anche la deduplicazione dei testi dell'indice
+    (`TextIndex`, max_df 25) è un'altra cosa: riguarda le formule di rito del pannello.
 - **UniMER e MAVIS, esiti** (job 30651-30652, versioni nuove `unimer-candidato-2` e `mavis-geometry-candidato-2`).
   Tutti i record sono scansionati, con shard e zip verificati per sha256, e nessun controllo manca.
 
   | Sorgente | Confermate | Candidati | Evidenze senza effetto | Cambi di stato |
   | --- | --- | --- | --- | --- |
   | UniMER, 1.016.135 record | 2 record (1 gruppo): l'immagine di UniMER-Test già esclusa da run2 | 404 formule lunghe di UniMER-Test, le quarantene di run2 | 152.413 record con formule brevi di UniMER-Test, 4 con formule brevi di OCRBench | nessuno |
-  | MAVIS, 199.050 record | nessuna, nemmeno verso MathVerse | 664 record in 109 gruppi: pHash verso MathVision 587, MV-MATH 119, We-Math 12, MathVerse 8, MathVista 1; testo verso UniMER-Test 5 (cifre ripetute) | 20.116 record con soli 10-gram di rito | 693 record da ammesso a quarantena |
+  | MAVIS, 199.050 record, `mavis-geometry-candidato-3` (job 30676) | nessuna, nemmeno verso MathVerse | 714 record in 156 gruppi: pHash verso MathVision 587, MV-MATH 119, We-Math 12, MathVerse 8, MathVista 1; testo verso MathVision 753 50 (domande di MAVIS) e verso UniMER-Test 5 (cifre ripetute) | 20.066 record con sole enumerazioni dei punti coperte dalla regola | 2.284 record in quarantena: 693 da candidato-2, 1.591 dal riesame |
+
+  `mavis-geometry-candidato-2` (job 30652) aveva deciso con la regola di frequenza abolita: 664 candidati, i 50 record
+  verso MathVision 753 ignorati, 693 record in quarantena. `candidato-3` ne riesamina le decisioni testuali sulla
+  stessa scansione, senza riammissioni (S2 §3).
 
   Le versioni nuove ereditano split e gruppi; la verifica ricalcola le transizioni dalla scansione. Nessun candidato è
   risolto: la verifica a vista dei gruppi in quarantena deciderà, in una versione nuova, quali riammettere. Il pannello

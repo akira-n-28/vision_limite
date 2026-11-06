@@ -1549,11 +1549,19 @@ riverificata per la nuova configurazione (pipeline §5.7).
   - **Testi.** 10-gram di `normalize_words` (max_df 25 dell'indice) per caption, diagram_generation, le tre domande e il
     CoT di `text_en`, e per la descrizione canonica e le domande costruite dal loader. text_zh, text.jpg e
     vision_dominant.jpg non sono negli shard: non si confrontano e non si dichiarano coperti.
-  - **10-gram di rito della sorgente.** Un 10-gram presente in più di 25 record diversi di MAVIS è una frase a modello
-    del generatore: la corrispondenza resta nella scansione e nell'evidenza, senza effetto sullo stato. La regola nasce
-    dalla prova limitata del job 30647, in cui 1.705 record su 16.500 erano candidati per una sola sequenza di lettere
-    dei punti (`a b c d e f g h i j`) della descrizione canonica, in comune con un problema di AIME 2025 sulle dodici
-    lettere A-L. Con la regola, nella stessa prova (job 30649), i candidati scendono a 62 record.
+  - **Corrispondenze testuali senza effetto** (regole esplicite `panel-decontam/2`, dal riesame del 2026-11-06; testo
+    della regola in `docs/PANNELLO_VALUTAZIONE.md` §6.2). Una corrispondenza resta senza effetto solo se tutti i suoi
+    10-gram sono coperti da una regola del suo campo, verificata sul testo del record. L'unica regola,
+    `enumerazione_punti_loader`, copre nel solo campo `descrizione_del_loader` le sequenze di dieci etichette
+    consecutive della riga `Points:` della descrizione canonica, ricalcolata dal JSON e legata al manifest da
+    `descrizione_sha256`.
+    - La stessa sequenza in un altro campo resta un candidato, e così ogni altro 10-gram del record.
+    - La frequenza nella sorgente serve solo a ordinare i casi.
+  - **Regola abolita.** Dopo la prova limitata del job 30647 (1.705 record su 16.500 candidati per la sola sequenza
+    `a b c d e f g h i j` della descrizione canonica, in comune con le dodici lettere A-L di un problema di AIME 2025 I),
+    la versione 2 (job 30649-30652, `panel-decontam/1`) ignorava in ogni campo i 10-gram presenti in più di 25 record di
+    MAVIS. Era sufficiente la frequenza, senza un motivo specifico: così un problema specifico del benchmark ripetuto in
+    più di 25 varianti perdeva tutti i candidati testuali.
   - **Provenienza.** I record di RuleBaseGeo non dichiarano una provenienza. Delle fonti dichiarate da MathVerse
     (colonna `metadata`) nessuna cita MAVIS o RuleBaseGeo. Le stesse impaginazioni o gli stessi autori non sono prove.
   - **Candidati storici.** Le scansioni `p6` e `f1eval` (convenzione `grigio-diretto/0`, sugli shard) hanno liste
@@ -1563,26 +1571,41 @@ riverificata per la nuova configurazione (pipeline §5.7).
     confrontati sono tutti presenti: 199.050 per ogni campo di `text_en` e per la descrizione, 3.139.028 domande del
     loader (228.994 di almeno 10 parole). Nessun controllo manca.
 
+    Esiti con le regole esplicite (`panel-decontam/2`, riesame del job 30676, versione 3), dalle stesse evidenze:
+
     | Esito | Record | Che cosa |
     | --- | --- | --- |
     | corrispondenza confermata | 0 | nessun pixel identico, né dell'originale né del PNG, nemmeno verso MathVerse |
-    | candidato | 664, in 109 gruppi | pHash entro 4 bit: MathVision 587 (test ammesso), MV-MATH 119 (test ammesso), We-Math 12, MathVerse 8 e MathVista 1. Testo: 5 record verso UniMER-Test |
-    | evidenza senza effetto | 20.116 | soli 10-gram di rito |
+    | candidato | 714, in 156 gruppi | pHash entro 4 bit: MathVision 587 (test ammesso), MV-MATH 119 (test ammesso), We-Math 12, MathVerse 8 e MathVista 1. Testo: 50 record verso MathVision 753 (test ammesso) e 5 verso UniMER-Test |
+    | evidenza senza effetto | 20.066 | sole enumerazioni dei punti, coperte da `enumerazione_punti_loader` |
     | nessuna corrispondenza | gli altri | nei controlli eseguiti |
 
-    - **Rito.** I 10-gram di rito sono 3. Due sono sequenze di lettere dei punti nella descrizione canonica del loader
-      (`a b c d e f g h i j` in 20.071 record, `b c d e f g h i j k` in 7.612), in comune col problema 6 di AIME 2025 I.
-      Il terzo è `is equal to 1 what is the area of the`, in 50 record (domande di `text_lite` e `text_dominant`),
-      verso MathVision 753.
+    Nella decisione di candidato-2 (`panel-decontam/1`, regola di frequenza abolita) i candidati erano 664 in 109
+    gruppi: i 50 record verso MathVision 753 erano ignorati, e i record con sole corrispondenze ignorate 20.116.
+
+    - **Corrispondenze testuali.** La scansione ha 5 10-gram distinti in comune col pannello; la frequenza serve solo
+      a ordinarli.
+      - `a b c d e f g h i j` (20.071 record) e `b c d e f g h i j k` (7.612) verso l'elemento `aime2025-I:6` (dodici
+        lettere A-L, sviluppo): sempre e solo nella descrizione del loader, sempre dentro la riga `Points:`. Sono coperte
+        tutte e restano senza effetto.
+      - `is equal to 1 what is the area of the` verso MathVision 753 (test ammesso, metrica primaria): 50 record e 47
+        gruppi, in 54 domande (36 `text_lite_question`, 18 `text_dominant_question`). In ogni caso la sequenza comune
+        più lunga è il 10-gram stesso, di 10 parole: soggetto e figura cambiano (per esempio "AB is equal to 1. What
+        is the area of the entire shape ABCD?" contro "The shaded area is equal to 1. What is the area of the square
+        ABCD?"). La frase sembra un modello del generatore di MAVIS, ma il generatore non è nel repository e la regola
+        non si può legare al suo formato: nessuna regola deterministica adeguata, quindi restano candidati.
     - **I 5 candidati testuali** hanno sequenze di cifre ripetute nel CoT (`3 3 3 3 3 3 3 3 3 3` verso `hwe-0003515`,
       `2 2 2 2 2 2 2 2 2 2` verso `cpe-0001708`): sono somiglianze di forma, non prove, e restano da verificare.
     - **MathVerse:** 8 record con candidati pHash verso elementi di sviluppo; nessun pixel, nessun testo. Le sue fonti
       dichiarate sono GeoQA 1.182, Functions_collected 966, Geo2D_collected 882, Geometry3K 774, Geo3D_collected 714 e
       GEOS 210: nessuna è MAVIS o RuleBaseGeo.
-    - **Candidati storici:** 598 dei 648 di `p6` sono di nuovo candidati. Gli altri 50 sono i candidati testuali verso
-      MathVision 753, ora di rito.
+    - **Candidati storici:** 598 dei 648 di `p6` sono di nuovo candidati nella decisione di candidato-2. Gli altri 50
+      sono i candidati testuali verso MathVision 753, che candidato-2 ignorava per frequenza e che in candidato-3 sono
+      di nuovo candidati.
   - **Versione 2** `data/manifests/mavis-geometry-candidato-2` (job 30652): `manifest.json` `8c549a23…`,
-    `records.jsonl.gz` `adf9b28c…` (154 MiB), riepilogo `docs/manifests/mavis-geometry-candidato-2.json`.
+    `records.jsonl.gz` `adf9b28c…` (154 MiB), riepilogo `docs/manifests/mavis-geometry-candidato-2.json`. È decisa con
+    la regola di frequenza, ora abolita. Resta immutata come genitore di candidato-3, che ne riesamina le decisioni
+    testuali.
     - **Stati.** 693 record passano da ammesso a quarantena, cioè i 109 gruppi dei candidati: 683 di train, 10 di dev.
       Per profondità sono d0 643, d1 33, d2 15, d3 2. Nessuna esclusione e nessuna riammissione.
     - **Compiti.** Seguono il record; `shape_type` resta in quarantena in tutti i 177.944 record che l'hanno.
@@ -1592,8 +1615,40 @@ riverificata per la nuova configurazione (pipeline §5.7).
     - Verifica di compatibilità 24 su 24. Verifica della versione nuova 21 su 21: il genitore con
       `mavis_manifest.verify` (15 su 15), poi le transizioni e i compiti ricalcolati dalla scansione.
     - Il job dura 56 min 9 s in tutto, con 8 CPU; la RSS arriva a 8,8 GiB.
-  - **Da rivedere a vista** (nessun candidato è risolto): i 109 gruppi in quarantena, a partire dai pHash verso il test
-    ammesso di MathVision e MV-MATH, e i 3 10-gram di rito, per confermare che sono frasi a modello.
+  - **Versione 3** `data/manifests/mavis-geometry-candidato-3` (job 30676, `panel_decontam.py riesame`, codice
+    `85b835a`):
+    `manifest.json` `f3cca473…`, `records.jsonl.gz` `8d199336…` (162 MiB), riepilogo
+    `docs/manifests/mavis-geometry-candidato-3.json`.
+    - **Derivazione.** Viene da candidato-2: stessi record, gruppi e split; evidenze e motivi di candidato-2
+      conservati. La catena è candidato-1 → candidato-2 → candidato-3 (S1 §9).
+    - **Riesame.** Decisioni ricalcolate sulla scansione originale, senza rileggere immagini:
+      - lette solo le intestazioni dei tar (398.100) e i JSON dei 20.121 record con corrispondenze testuali, 251 MiB
+        su 9,2 GiB degli shard, in 133 s;
+      - le 20.071 descrizioni ricalcolate hanno tutte lo sha256 del manifest.
+
+      Uscite in `data/decontam/pannello-v3/mavis-geometry-riesame-1`: regole, decisioni per record (`6ba9eddb…`),
+      riepilogo coi contesti dei casi.
+    - **Cambi rispetto a candidato-2**, tutti per i 50 record verso MathVision 753, ora candidati:
+      - i loro 47 gruppi passano da nessuna corrispondenza a candidato;
+      - 1.591 record vanno da ammesso a quarantena: train 1.577, dev 14; per profondità d0 1.524, d1 40, d2 16, d3 11;
+      - 1.406 di questi stanno in due gruppi di figure identiche di profondità 0 (763 e 643 record), con 4 e 1 record
+        che hanno la domanda.
+
+      Nessun esito diventa meno grave, nessuna riammissione, nessuno stato dipende dalla sola decisione precedente.
+      L'elenco completo, con le cause, è nel riepilogo.
+    - **Motivi.** Ognuno dei 1.591 record ha il motivo nuovo del riesame, accanto a quelli di candidato-2.
+    - **Compiti.** Seguono il record; `shape_type` resta in quarantena.
+    - **Ammessi.** Train 186.839 e dev 9.927 (d0 2.454, d1 2.491, d2 2.493, d3 2.489); quarantena 2.284.
+    - **Verifica della catena 25 su 25.** Comprende:
+      - candidato-2 con la sua regola storica (23 su 23) e candidato-1 con `mavis_manifest.verify`;
+      - decisioni, evidenze, motivi, stati e compiti ricalcolati;
+      - l'elenco dei cambi uguale a quello ricalcolato.
+    - Il job dura 7 min 25 s con 4 CPU; la RSS arriva a 10,6 GiB.
+  - **Da rivedere a vista** (nessun candidato è risolto): i 156 gruppi in quarantena di candidato-3, a partire dai
+    pHash verso il test ammesso di MathVision e MV-MATH e dai 47 gruppi della domanda verso MathVision 753.
+    - Una regola che declassi quella domanda va motivata e approvata prima: per esempio legata al modello delle domande
+      di MAVIS, sequenza comune di sole 10 parole, soggetto diverso.
+    - Senza una regola approvata, quei gruppi restano in quarantena.
   - **Limiti.**
     - Il pHash non riconosce la stessa figura disegnata in un altro stile o con un'altra impaginazione.
     - text_zh, text.jpg e vision_dominant.jpg non sono confrontati.

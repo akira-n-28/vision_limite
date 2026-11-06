@@ -282,4 +282,24 @@ il modello della versione 2 dei sintetici (§2.9 di S2):
 - **Verifica della versione derivata** (`panel_decontam.py verifica-manifest`). Il genitore si verifica col
   verificatore della sua costruzione (`unimer_manifest.verify`, `mavis_manifest.verify`) e con le evidenze obbligatorie.
   Le transizioni si ricalcolano dalla scansione, senza fidarsi delle evidenze scritte. I verificatori della costruzione
-  e `manifest_recheck.py` non si applicano alla versione 2, i cui stati dipendono anche dalla decontaminazione.
+  e `manifest_recheck.py` non si applicano alla versione 2, i cui stati dipendono anche dalla decontaminazione:
+  `verifica-manifest` rifiuta un genitore che sia già una versione derivata (con `split.ereditato_da`).
+  - Decisioni `panel-decontam/1` (le versioni 2 di UniMER e MAVIS): si riverificano con la loro regola storica, quella
+    di frequenza per MAVIS, ricalcolata dalle righe e confrontata con quella registrata.
+  - Decisioni `panel-decontam/2`: regole testuali esplicite (§6.2 del pannello).
+- **Riesame di MAVIS** (`panel_decontam.py riesame`, 2026-11-06, job 30676, S2 §3). La versione 3
+  `mavis-geometry-candidato-3` ricalcola le decisioni testuali di candidato-2 senza la regola di frequenza, sulla stessa
+  scansione e senza rileggere immagini. La parentela effettiva è candidato-1 (job 30630, assegna gruppi e split) →
+  candidato-2 (job 30652, `panel-decontam/1`) → candidato-3 (`panel-decontam/2`).
+  - `precedente` e `split.ereditato_da` indicano candidato-2, con gli sha256. `catena_delle_versioni` elenca i tre
+    anelli.
+  - Evidenze e motivi di candidato-2 restano, e ogni record ha una sola evidenza nuova `panel-decontam/2` con l'esito
+    precedente accanto.
+  - Un motivo nuovo si aggiunge solo dove l'esito del gruppo cambia. Lo stato è il più grave fra quello di candidato-2
+    e quello del gruppo nella decisione nuova: nessuna riammissione.
+  - `verifica-riesame` verifica tutta la catena:
+    - candidato-1 con `mavis_manifest.verify`;
+    - candidato-2 con la sua regola storica;
+    - candidato-3 con le decisioni ricalcolate dalla scansione e dalle descrizioni del riesame, legate al manifest da
+      `descrizione_sha256`;
+    - l'elenco completo dei cambi rispetto a candidato-2.

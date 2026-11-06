@@ -366,8 +366,24 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
     - Candidati in 664 record (109 gruppi): pHash verso MathVision, MV-MATH, We-Math, MathVerse e MathVista; 5 testi
       con cifre ripetute verso UniMER-Test. 693 record passano in quarantena per gruppo; `shape_type` resta in
       quarantena.
-    - I 10-gram presenti in più di 25 record di MAVIS sono di rito, senza effetto (prova del job 30647).
+    - Decisa con una regola di frequenza (`panel-decontam/1`) ora abolita: ignorava in ogni campo i 10-gram presenti
+      in più di 25 record. Resta immutata come genitore della versione 3.
     - Verifica della versione nuova 21 su 21. Nessun candidato è risolto.
+  - Versione 3 `data/manifests/mavis-geometry-candidato-3` (job 30676, `85b835a`, `panel_decontam.py riesame`, S2 §3):
+    decisioni testuali di candidato-2 ricalcolate sulla stessa scansione, senza rileggere immagini (soli JSON dagli
+    shard).
+    - **Regole testuali esplicite** (`panel-decontam/2`). La frequenza nella sorgente non decide nulla: una
+      corrispondenza è senza effetto solo se ogni suo 10-gram è coperto da una regola del suo campo.
+      - L'unica regola è `enumerazione_punti_loader`: dieci etichette consecutive della riga `Points:` della
+        descrizione del loader, legata al manifest da `descrizione_sha256`.
+      - In ogni altro campo la stessa sequenza resta un candidato.
+    - I 50 record con `is equal to 1 what is the area of the` verso MathVision 753 tornano candidati: senza una regola
+      deterministica adeguata, i loro 47 gruppi vanno in quarantena. Sono 1.591 record in più, 1.406 dei quali in due
+      gruppi di figure identiche di profondità 0.
+    - Nessuna riammissione; stessi record, gruppi e split di candidato-2; evidenze e motivi conservati.
+    - Verifica della catena 25 su 25: candidato-1, candidato-2 con la sua regola storica, poi candidato-3.
+    - `verifica-manifest` non si applica a un genitore già derivato. Nessun candidato è risolto e non è letto dai
+      loader.
 - UniMER @ 2343ddd9 (job 29436, 29438): l'immagine `images/<indice>.png` ha come formula la riga `<indice>` di
   `train.txt`; le righe vuote sono HME100K (tolto per copyright) e le formule a mano di CROHME (meno dell'1%) non si
   separano per indice. Shard in `data/shards/unimer/2343ddd9/` (985.450 campioni, test spe/cpe/sce/hwe in `test/`),
