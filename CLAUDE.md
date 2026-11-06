@@ -359,6 +359,15 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
     - Riverificato in sola lettura (job 30635, e job 30640 con le evidenze obbligatorie vincolate al manifest): 15
       controlli su 15. Il controllo sul cambio di seme è stato tolto dalle verifiche di MAVIS e UniMER: la dipendenza
       dal seme si prova nei test.
+  - Versione 2 `data/manifests/mavis-geometry-candidato-2` (job 30652, `scripts/panel_decontam.py`, S2 §3): la
+    versione 1 con la decontaminazione esterna contro `pannello-v3`, sugli originali di `RuleBaseGeo.zip` e sui PNG.
+    Non è letta dai loader e non certifica nulla.
+    - Nessun pixel identico, nemmeno verso MathVerse.
+    - Candidati in 664 record (109 gruppi): pHash verso MathVision, MV-MATH, We-Math, MathVerse e MathVista; 5 testi
+      con cifre ripetute verso UniMER-Test. 693 record passano in quarantena per gruppo; `shape_type` resta in
+      quarantena.
+    - I 10-gram presenti in più di 25 record di MAVIS sono di rito, senza effetto (prova del job 30647).
+    - Verifica della versione nuova 21 su 21. Nessun candidato è risolto.
 - UniMER @ 2343ddd9 (job 29436, 29438): l'immagine `images/<indice>.png` ha come formula la riga `<indice>` di
   `train.txt`; le righe vuote sono HME100K (tolto per copyright) e le formule a mano di CROHME (meno dell'1%) non si
   separano per indice. Shard in `data/shards/unimer/2343ddd9/` (985.450 campioni, test spe/cpe/sce/hwe in `test/`),
@@ -368,13 +377,20 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
   - Manifest candidato `data/manifests/unimer-candidato-1` (job 30625, `scripts/unimer_manifest.py`, S2 §4), sugli
     shard densi: 985.450 formule e 30.685 righe ritagliate, coi loro genitori, in gruppi per stessi byte del PNG.
   - run4 e run2 sono importati per chiave e ricalcolati dalle regole correnti, uguali ai loro file. Dev al 5%, seme 0.
-  - Non certifica nulla e i loader non lo leggono; manca la decontaminazione esterna.
+  - Non certifica nulla e i loader non lo leggono.
   - Riverificato in sola lettura coi verificatori di `c271d6e` (job 30634, `scripts/manifest_recheck.py`) e coi
     controlli di `aed2e2b` (job 30639): 28 controlli su 28, nessuna anomalia.
     - Le 30.685 righe ritagliate hanno il PNG della formula e fasce strutturalmente valide; ogni stato è il più grave
       richiesto dalle evidenze.
     - La classificazione degli shard è quella dei record; le 8 evidenze obbligatorie sono registrate e uguali su disco.
     - Le fasce non provano la corrispondenza visiva.
+  - Versione 2 `data/manifests/unimer-candidato-2` (job 30651, `scripts/panel_decontam.py`, S2 §4): la versione 1
+    con la decontaminazione esterna contro `pannello-v3`. Pixel sugli originali di `UniMER-1M.zip`, sui PNG e sui
+    ritagli; formule contro UniMER-Test e OCRBench; nessun pHash sulle formule. Non è letta dai loader.
+    - Ritrova solo i casi di run2: l'immagine di UniMER-Test (un gruppo, già escluso) e le 404 formule lunghe (già in
+      quarantena). Nessun cambio di stato.
+    - Formule brevi uguali: evidenze senza effetto.
+    - Verifica della versione nuova 20 su 20.
 - Sintetici v3 (`data/shards/synth/v3`, job 29756; il codice attuale ne riproduce esattamente le domande): `intersections`
   conta entro ±R mentre il disegno arriva a ±(R+1), con 37 target errati e 364 domande al bordo disegnato;
   `shape_type` e `label_type` sono domande aperte con più risposte vere (`docs/specs/S2_AMMISSIONE_PRIME_FAMIGLIE.md`
@@ -481,7 +497,8 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
     - Il confronto pHash è completo, senza troncamenti.
     - Il test utilizzabile è il campo `metrica_primaria` di `elements.jsonl.gz`. Anche il confronto fra versioni
       (`compare_panels`) lo usa quando c'è; la regola di v2 vale solo per i formati precedenti (job 30517).
-  - Sorgenti di training confrontate: solo i sintetici v4 (job 30518, scansione in `data/decontam/pannello-v3/synth-v4`).
+  - Sorgenti di training confrontate: i sintetici v4 (job 30518, scansione in `data/decontam/pannello-v3/synth-v4`),
+    UniMER e MAVIS (job 30651-30652, `data/decontam/pannello-v3/unimer` e `mavis-geometry`).
     Sette record di sviluppo sintetico hanno candidati verso sette elementi di test: materiale per `pannello-v4`
     (`docs/PANNELLO_VALUTAZIONE.md` §8).
   - `pannello-v1` (job 30465) e `pannello-v2` (job 30466) sono superati e mai usati.

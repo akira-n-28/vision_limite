@@ -265,3 +265,21 @@ riga ha in più:
 
 I gruppi sono i legami esatti dentro la sorgente: stessi byte del PNG oppure stesso diagram_generation. Lo split si
 verifica come per UniMER, col seme dichiarato e senza il controllo sul cambio di seme (job 30633).
+
+**Decontaminazione esterna di UniMER e MAVIS** (2026-11-06, `scripts/panel_decontam.py`; esiti in S2 §§3-4, regole in
+`docs/PANNELLO_VALUTAZIONE.md` §6.2). Le versioni derivate `unimer-candidato-2` e `mavis-geometry-candidato-2` seguono
+il modello della versione 2 dei sintetici (§2.9 di S2):
+- **Identità.** Dentro il manifest un record è (insieme, chiave). In UniMER formula e riga ritagliata hanno la stessa
+  chiave e lo stesso record_id: la scansione le tiene distinte per insieme, shard e posizione, e la verifica le
+  riconduce ciascuna al suo record.
+- **Immagini.** Gli shard hanno immagini ridimensionate (UniMER fino a 4x, MAVIS a 2304 patch), che non possono avere
+  i pixel di un originale. L'identità dei pixel si controlla quindi sull'immagine originale dello snapshot, lo stesso
+  tipo di immagine che il pannello indicizza, e anche sul PNG dello shard e sui ritagli delle righe.
+- **Stati.** Lo stato vale per gruppo e non diminuisce mai. Split, gruppi, evidenze, motivi e rietichettature sono
+  ereditati. Ogni record ha una sola evidenza nuova `decontaminazione_pannello`, con un'anteprima delle corrispondenze
+  e il riferimento alla scansione completa. In MAVIS i compiti seguono lo stato del record, e `shape_type` resta almeno
+  in quarantena.
+- **Verifica della versione derivata** (`panel_decontam.py verifica-manifest`). Il genitore si verifica col
+  verificatore della sua costruzione (`unimer_manifest.verify`, `mavis_manifest.verify`) e con le evidenze obbligatorie.
+  Le transizioni si ricalcolano dalla scansione, senza fidarsi delle evidenze scritte. I verificatori della costruzione
+  e `manifest_recheck.py` non si applicano alla versione 2, i cui stati dipendono anche dalla decontaminazione.

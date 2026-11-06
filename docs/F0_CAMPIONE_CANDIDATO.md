@@ -120,7 +120,9 @@ per `p10-pannello`.
 6. **Decontaminazione contro `pannello-v3`.**
    - **Fatta per v4** (job 30517-30518, S2 §2.9): nessuna corrispondenza confermata e 264 candidati pHash, in
      quarantena per gruppo nel manifest `synth-v4-candidato-2`.
-   - Per MAVIS, UniMER, PixMo e LLaVA serve una scansione con pixel, pHash e testo, e poi la risoluzione dei candidati.
+   - **Fatta per UniMER e MAVIS** (job 30651-30652, S2 §§3-4), con le versioni nuove `unimer-candidato-2` e
+     `mavis-geometry-candidato-2`: corrispondenze confermate escluse e candidati in quarantena per gruppo, da risolvere.
+   - Per PixMo e LLaVA serve ancora una scansione con pixel, pHash e testo, e poi la risoluzione dei candidati.
 7. **Verifica visiva:**
    - l'audit di v4 (S2 §2.8, D5): campione di 380 unità e 175 casi mirati, con i fogli corretti di `campione-2` (S2
      §2.11), revisione non fatta;
@@ -164,6 +166,10 @@ né agenti.
    dai loader.
 4. **Scansione di MAVIS, UniMER, PixMo e LLaVA contro `pannello-v3`** (pixel e pHash, testo dove c'è). Dà candidati da
    mettere in quarantena, non esclusioni automatiche. La durata va misurata prima su uno shard per sorgente.
+
+   UniMER e MAVIS fatti il 2026-11-06 (`scripts/panel_decontam.py`, S2 §§3-4), dopo prove limitate (job 30646, 30647,
+   30649): pixel sugli originali dello snapshot, sui PNG e sui ritagli; formule contro UniMER-Test e OCRBench; pHash e
+   10-gram per MAVIS, con la regola di rito della sorgente. Restano PixMo e LLaVA.
 
 Dopo D3 vengono C3, C4 e le varianti (`variant_id`), poi il punto 4 (più immagini) e il valutatore (punto 7).
 

@@ -8,6 +8,8 @@
 - Il 2026-11-02:
   - il confronto fra versioni usa `metrica_primaria` (§8). `pannello-v3` non cambia;
   - i sintetici v4 sono la prima sorgente di training confrontata con `pannello-v3` (job 30518, §6.2, S2 §2.9).
+- Il 2026-11-06 UniMER e MAVIS sono confrontati con `pannello-v3` (job 30651-30652, §6.2, S2 §§3-4). Il pannello non
+  cambia.
 
 Collegamenti: piano F0 (`docs/F0_IMPLEMENTATION_PLAN.md`, decisione D6, punti 3 e 7), campione candidato
 (`docs/F0_CAMPIONE_CANDIDATO.md`), pipeline §§5.5, 5.8, 6.1, 15, S1 §§3-4.
@@ -24,6 +26,9 @@ Collegamenti: piano F0 (`docs/F0_IMPLEMENTATION_PLAN.md`, decisione D6, punti 3 
   corretto e collaudato nei job 30517 e 30523 (`tests/test_panel.py`, 64 controlli);
 - decontaminazione dei sintetici v4 contro `pannello-v3`: job 30517-30518 (`data/decontam/pannello-v3/synth-v4`) e
   revisione dei candidati nel job 30522 (`outputs/decontam_review/campione-1`), S2 §§2.9-2.10;
+- decontaminazione di UniMER e MAVIS contro `pannello-v3`: prove limitate nei job 30646, 30647 e 30649, scansioni
+  complete nei job 30651-30652 (`data/decontam/pannello-v3/unimer`, `data/decontam/pannello-v3/mavis-geometry`), S2
+  §§3-4;
 - storiche: sovrapposizioni per pHash fra i benchmark già indicizzati (job 30459, `outputs/panel_overlaps/run1`),
   stati dei sintetici v4 già presenti in v3 (job 30460);
 - fonti primarie: API e schede di Hugging Face, articoli e repository ufficiali, consultati il 2026-10-30.
@@ -413,7 +418,8 @@ Unioni per tipo di legame:
   MathVista, 1 in OCRBench.
 - **Testi di solo testo.** La forma conservativa non riconosce lo stesso problema scritto con un LaTeX diverso: quei
   casi restano candidati (§8).
-- **Sorgenti di training.** Solo i sintetici v4 sono confrontati con questo indice (§6.2).
+- **Sorgenti di training.** Sono confrontati con questo indice i sintetici v4, UniMER e MAVIS (§6.2); le altre
+  sorgenti locali no.
 
 ## 6. Piano minimo di decontaminazione
 
@@ -422,7 +428,7 @@ Unioni per tipo di legame:
 | Benchmark | Materiale | Strumenti | Adattamenti indispensabili | Copertura |
 | --- | --- | --- | --- | --- |
 | Tutti i benchmark visivi del pannello | `pannello-v3` | `decontam.py scan` con la convenzione dell'indice, `decontam_review.py` (correlazione dei pixel a 64×64, immagini esatte dal nuovo indice) | portare lo sha256 dei pixel nella scansione delle sorgenti di training | pixel, pHash, testo, provenienza dichiarata |
-| UniMER-Test | immagini e formule | `scripts/unimer_test_overlap.py`, `latex.despace` e `visible_tokens` | indice delle formule normalizzate, da confrontare con tutte le sorgenti con formule (MMFineReason, HME100K di OCRBench) | formule, pixel |
+| UniMER-Test | immagini e formule | `scripts/unimer_test_overlap.py` (run2); `scripts/panel_decontam.py` con `latex.despace` e `visible_tokens` | formule normalizzate di UniMER-Test e delle risposte HME100K di OCRBench, confrontate con UniMER-1M il 2026-11-06 (§6.2); restano le altre sorgenti con formule (MMFineReason) | formule, pixel |
 | Suite testuale, GSM8K, IFEval | testi | `replay_decontam.py` (copertura degli n-gram) | estendere il confronto a MMFineReason e alle domande delle altre sorgenti; individuare il quarto problema in comune di APEX | testo |
 
 **Somiglianze non confermate.** pHash e n-gram danno solo candidati (S1 §4).
@@ -444,9 +450,41 @@ Unioni per tipo di legame:
   La somiglianza dei pixel non supera mai 0,80 (job 30522). I candidati vanno in quarantena per gruppo, nel manifest
   `data/manifests/synth-v4-candidato-2`, finché la verifica visiva non li risolve. v4 non ha legami di provenienza: è
   generata.
-- **Quando entrano le altre sorgenti locali:**
-  - MAVIS (stessi autori di MathVerse) contro le geometrie del pannello;
-  - UniMER contro UniMER-Test (già fatto, `outputs/unimer_overlap/run2`) e HME100K di OCRBench;
+- **UniMER e MAVIS, metodo** (2026-11-06, `scripts/panel_decontam.py`, S2 §§3-4). Ogni record contro tutte le voci
+  dell'indice, in ogni ruolo, come per v4. Adattamenti specifici:
+  - **immagini originali.** Gli shard hanno immagini ridimensionate (UniMER fino a 4x, MAVIS a 2304 patch): i loro
+    pixel non possono coincidere con quelli di un originale. L'identità dei pixel si controlla quindi sull'immagine
+    originale dello zip dello snapshot, lo stesso tipo di immagine che il pannello indicizza, e anche sul PNG dello
+    shard e, per le righe ritagliate di UniMER, sui ritagli costruiti come li costruisce il loader;
+  - **UniMER, formule.** La formula visibile di run2 (`latex.effective_label`, `visible_tokens`) contro UniMER-Test
+    (le formule del pannello) e contro le risposte delle 100 domande HME100K di OCRBench, lette dal parquet della
+    revisione del pannello. Oltre 20 token visibili è un candidato; le formule più brevi restano evidenze senza
+    effetto, come in run2. Il pHash delle formule non si usa (§5, Limiti). Le righe ritagliate confrontano le righe del
+    LaTeX, che sono i loro target;
+  - **MAVIS, testi.** 10-gram di `normalize_words` (max_df 25 dell'indice) per caption, diagram_generation, le tre
+    domande e il CoT di `text_en`, e per la descrizione canonica e le domande del loader. text_zh, text.jpg e
+    vision_dominant.jpg non sono negli shard e non si confrontano;
+  - **n-gram di rito della sorgente.** Un 10-gram presente in più di 25 record diversi di MAVIS è una frase a modello
+    del generatore: la corrispondenza resta registrata, senza effetto sullo stato. È la soglia di rito dell'indice
+    applicata alla sorgente, introdotta dopo la prova limitata del job 30647: lì 1.705 record su 16.500 erano legati
+    a un solo problema di AIME 2025 dalla sequenza delle lettere dei punti (`a b c d e f g h i j`) della descrizione
+    canonica, senza nessun contenuto in comune.
+- **UniMER e MAVIS, esiti** (job 30651-30652, versioni nuove `unimer-candidato-2` e `mavis-geometry-candidato-2`).
+  Tutti i record sono scansionati, con shard e zip verificati per sha256, e nessun controllo manca.
+
+  | Sorgente | Confermate | Candidati | Evidenze senza effetto | Cambi di stato |
+  | --- | --- | --- | --- | --- |
+  | UniMER, 1.016.135 record | 2 record (1 gruppo): l'immagine di UniMER-Test già esclusa da run2 | 404 formule lunghe di UniMER-Test, le quarantene di run2 | 152.413 record con formule brevi di UniMER-Test, 4 con formule brevi di OCRBench | nessuno |
+  | MAVIS, 199.050 record | nessuna, nemmeno verso MathVerse | 664 record in 109 gruppi: pHash verso MathVision 587, MV-MATH 119, We-Math 12, MathVerse 8, MathVista 1; testo verso UniMER-Test 5 (cifre ripetute) | 20.116 record con soli 10-gram di rito | 693 record da ammesso a quarantena |
+
+  Le versioni nuove ereditano split e gruppi; la verifica ricalcola le transizioni dalla scansione. Nessun candidato è
+  risolto: la verifica a vista dei gruppi in quarantena deciderà, in una versione nuova, quali riammettere. Il pannello
+  non cambia, perché i record di training non sono suoi elementi.
+
+  La decontaminazione dice solo se un record coincide con un elemento del pannello o gli somiglia, nei controlli
+  dichiarati. Non dice se la risposta del record è corretta (golden answer: checker, revisione e stima di S4) e non è una
+  certificazione statistica (C8 non è applicato). Un record "nessuna corrispondenza" non è certificato pulito.
+- **Ancora da confrontare:**
   - MMFineReason contro tutto il pannello. Fra le sue sorgenti dichiarate (`data/lang/mmfinereason/stats.json`) ci sono
     `FineVision-geometry3k`, che tocca le figure di Geometry3K in MathVista, MathVerse e Geoperception, e WeMath2, degli
     autori di We-Math. Ci sono anche AI2D e ScienceQA, da cui vengono 196 e 69 domande di MMStar. MMR1 (1,27 milioni di
@@ -536,8 +574,9 @@ verificato a vista.
   prerequisito per avanzare (§7, punto 2);
 - le 23 unioni testuali ora candidate e il quarto problema in comune di APEX: confronto a vista o con una regola
   testuale più fine, da decidere;
-- delle sorgenti di training solo i sintetici v4 sono confrontati con `pannello-v3` (§6.2). Le scansioni storiche e
-  gli indici `p6` e `f1eval` restano nella convenzione `grigio-diretto/0`, e non si mescolano con quella nuova;
+- delle sorgenti di training sono confrontati con `pannello-v3` i sintetici v4, UniMER e MAVIS (§6.2). Le scansioni
+  storiche e gli indici `p6` e `f1eval` restano nella convenzione `grigio-diretto/0`, e non si mescolano con quella
+  nuova;
 - il pannello copre solo i benchmark scaricati. I due gruppi molto grandi di MUIRBench restano indivisibili (§3.2).
 
 **Confronto fra versioni** (correzione del 2026-11-02, codice `fe85a97`). `compare_panels` dava il test utilizzabile

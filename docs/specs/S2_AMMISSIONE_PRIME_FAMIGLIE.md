@@ -1520,7 +1520,8 @@ riverificata per la nuova configurazione (pipeline §5.7).
   l'esatto non è nel record (C9).
 - **Limiti.**
   - Manca la fedeltà all'immagine: revisione visiva e stima di S4.
-  - Manca la decontaminazione esterna contro `pannello-v3`, che comprende le geometrie di MathVerse, degli stessi autori.
+  - La decontaminazione esterna contro `pannello-v3`, che comprende le geometrie di MathVerse, degli stessi autori, è
+    nella versione 2 (sotto, 2026-11-06).
   - C9 non è implementato.
   - Il loader attuale può ancora scegliere `shape_type`: un reader col manifest (C7) deve escluderla.
 - **Riverifica in sola lettura** (2026-11-05, job 30635, `scripts/manifest_recheck.py`). Il manifest è stato
@@ -1539,6 +1540,66 @@ riverificata per la nuova configurazione (pipeline §5.7).
     15 controlli su 15, nessuna anomalia.
     Rapporto: `docs/manifests/riverifica-2/mavis-geometry-candidato-1-dc0f264c.json`.
   - Non prova la fedeltà all'immagine e non completa la decontaminazione.
+- **Decontaminazione esterna contro `pannello-v3`** (2026-11-06, `scripts/panel_decontam.py`, codice `861aba8`; regole
+  in `docs/PANNELLO_VALUTAZIONE.md` §6.2, versione derivata in S1 §9). Ogni record contro tutte le voci dell'indice, in
+  ogni ruolo, con attenzione alle geometrie di MathVerse, degli stessi autori.
+  - **Immagini.** Il PNG dello shard è caption.jpg portato a 2304 patch, quindi l'identità dei pixel si controlla
+    sull'originale `<cartella>/<n>_caption.jpg` (zip con sha256 ricalcolato, dimensioni uguali al JSON) e anche sul PNG.
+    Il pHash entro 4 bit si calcola su entrambi.
+  - **Testi.** 10-gram di `normalize_words` (max_df 25 dell'indice) per caption, diagram_generation, le tre domande e il
+    CoT di `text_en`, e per la descrizione canonica e le domande costruite dal loader. text_zh, text.jpg e
+    vision_dominant.jpg non sono negli shard: non si confrontano e non si dichiarano coperti.
+  - **10-gram di rito della sorgente.** Un 10-gram presente in più di 25 record diversi di MAVIS è una frase a modello
+    del generatore: la corrispondenza resta nella scansione e nell'evidenza, senza effetto sullo stato. La regola nasce
+    dalla prova limitata del job 30647, in cui 1.705 record su 16.500 erano candidati per una sola sequenza di lettere
+    dei punti (`a b c d e f g h i j`) della descrizione canonica, in comune con un problema di AIME 2025 sulle dodici
+    lettere A-L. Con la regola, nella stessa prova (job 30649), i candidati scendono a 62 record.
+  - **Provenienza.** I record di RuleBaseGeo non dichiarano una provenienza. Delle fonti dichiarate da MathVerse
+    (colonna `metadata`) nessuna cita MAVIS o RuleBaseGeo. Le stesse impaginazioni o gli stessi autori non sono prove.
+  - **Candidati storici.** Le scansioni `p6` e `f1eval` (convenzione `grigio-diretto/0`, sugli shard) hanno liste
+    finali vuote. I loro candidati grezzi si confrontano coi nuovi solo per diagnostica, e non si importano.
+  - **Scansione completa** (job 30652): tutti i 199.050 record in 53 min con 8 CPU. Gli 11 shard e lo sha256 di
+    `RuleBaseGeo.zip` (26 GB) sono uguali a quelli registrati, e tutti gli originali e i PNG sono letti. I testi
+    confrontati sono tutti presenti: 199.050 per ogni campo di `text_en` e per la descrizione, 3.139.028 domande del
+    loader (228.994 di almeno 10 parole). Nessun controllo manca.
+
+    | Esito | Record | Che cosa |
+    | --- | --- | --- |
+    | corrispondenza confermata | 0 | nessun pixel identico, né dell'originale né del PNG, nemmeno verso MathVerse |
+    | candidato | 664, in 109 gruppi | pHash entro 4 bit: MathVision 587 (test ammesso), MV-MATH 119 (test ammesso), We-Math 12, MathVerse 8 e MathVista 1. Testo: 5 record verso UniMER-Test |
+    | evidenza senza effetto | 20.116 | soli 10-gram di rito |
+    | nessuna corrispondenza | gli altri | nei controlli eseguiti |
+
+    - **Rito.** I 10-gram di rito sono 3. Due sono sequenze di lettere dei punti nella descrizione canonica del loader
+      (`a b c d e f g h i j` in 20.071 record, `b c d e f g h i j k` in 7.612), in comune col problema 6 di AIME 2025 I.
+      Il terzo è `is equal to 1 what is the area of the`, in 50 record (domande di `text_lite` e `text_dominant`),
+      verso MathVision 753.
+    - **I 5 candidati testuali** hanno sequenze di cifre ripetute nel CoT (`3 3 3 3 3 3 3 3 3 3` verso `hwe-0003515`,
+      `2 2 2 2 2 2 2 2 2 2` verso `cpe-0001708`): sono somiglianze di forma, non prove, e restano da verificare.
+    - **MathVerse:** 8 record con candidati pHash verso elementi di sviluppo; nessun pixel, nessun testo. Le sue fonti
+      dichiarate sono GeoQA 1.182, Functions_collected 966, Geo2D_collected 882, Geometry3K 774, Geo3D_collected 714 e
+      GEOS 210: nessuna è MAVIS o RuleBaseGeo.
+    - **Candidati storici:** 598 dei 648 di `p6` sono di nuovo candidati. Gli altri 50 sono i candidati testuali verso
+      MathVision 753, ora di rito.
+  - **Versione 2** `data/manifests/mavis-geometry-candidato-2` (job 30652): `manifest.json` `8c549a23…`,
+    `records.jsonl.gz` `adf9b28c…` (154 MiB), riepilogo `docs/manifests/mavis-geometry-candidato-2.json`.
+    - **Stati.** 693 record passano da ammesso a quarantena, cioè i 109 gruppi dei candidati: 683 di train, 10 di dev.
+      Per profondità sono d0 643, d1 33, d2 15, d3 2. Nessuna esclusione e nessuna riammissione.
+    - **Compiti.** Seguono il record; `shape_type` resta in quarantena in tutti i 177.944 record che l'hanno.
+    - **Ammessi.** Train 188.416 e dev 9.941 (d0 2.466, d1 2.493, d2 2.493, d3 2.489).
+    - Ogni record ha l'evidenza `decontaminazione_pannello`, che rimanda alla scansione completa
+      (`data/decontam/pannello-v3/mavis-geometry/records.jsonl.gz`, `f953c323…`, 49 MiB).
+    - Verifica di compatibilità 24 su 24. Verifica della versione nuova 21 su 21: il genitore con
+      `mavis_manifest.verify` (15 su 15), poi le transizioni e i compiti ricalcolati dalla scansione.
+    - Il job dura 56 min 9 s in tutto, con 8 CPU; la RSS arriva a 8,8 GiB.
+  - **Da rivedere a vista** (nessun candidato è risolto): i 109 gruppi in quarantena, a partire dai pHash verso il test
+    ammesso di MathVision e MV-MATH, e i 3 10-gram di rito, per confermare che sono frasi a modello.
+  - **Limiti.**
+    - Il pHash non riconosce la stessa figura disegnata in un altro stile o con un'altra impaginazione.
+    - text_zh, text.jpg e vision_dominant.jpg non sono confrontati.
+    - L'esposizione pregressa resta.
+    - La fedeltà all'immagine resta da verificare (S4).
+    - La decontaminazione non dice nulla sulla correttezza delle risposte e non è una certificazione statistica.
 
 ## 4. UniMER (`data/shards/unimer/2343ddd9-dense`, `latex.py`, `outputs/unimer_check/run4`)
 
@@ -1584,7 +1645,7 @@ MiB). Il riepilogo versionato è `docs/manifests/unimer-candidato-1.json`.
 
   Solo `immagine_vuota`, che decodifica i pixel, non è ricalcolata: in run4 non ha casi.
 - **Limiti.**
-  - Manca la decontaminazione esterna contro `pannello-v3`.
+  - La decontaminazione esterna contro `pannello-v3` è nella versione 2 (sotto, 2026-11-06).
   - 152.376 formule del training uguali a una formula breve del test restano un'evidenza senza cambio di stato: la
     metrica senza contaminazione usa i casi mai visti di run2.
   - Il dev misura immagini nuove, non formule nuove.
@@ -1629,6 +1690,54 @@ MiB). Il riepilogo versionato è `docs/manifests/unimer-candidato-1.json`.
     le fasce danno gli stessi numeri di `riverifica-1`.
     Rapporto: `docs/manifests/riverifica-2/unimer-candidato-1-bcc85198.json`.
   - Non prova la corrispondenza visiva delle fasce e non completa la decontaminazione.
+- **Decontaminazione esterna contro `pannello-v3`** (2026-11-06, `scripts/panel_decontam.py`, codice `861aba8`; regole
+  in `docs/PANNELLO_VALUTAZIONE.md` §6.2, versione derivata in S1 §9). Ogni record contro tutte le 99.713 voci
+  dell'indice, in ogni ruolo.
+  - **Identità.** Formula e riga ritagliata hanno la stessa chiave e lo stesso record_id. La scansione le distingue per
+    insieme, shard e posizione; la verifica riconduce ogni riga al suo record coi digest di JSON e PNG del manifest.
+  - **Immagini.** Gli shard densi sono ingranditi fino a 4x, e i loro pixel non possono coincidere con quelli di un
+    originale. L'identità dei pixel si controlla quindi sull'originale `UniMER-1M/images/<indice>.png` (zip con sha256
+    ricalcolato, dimensioni uguali al JSON), sul PNG dello shard e, per le righe, sui ritagli di tutte le fasce,
+    costruiti come `data.unimer_line_sample`. Il ritaglio si confronta solo per identità: la stessa riga tagliata con
+    margini diversi non si riconosce.
+  - **Formule.** La formula visibile di run2 contro UniMER-Test (dal pannello) e contro le 146 risposte delle 100
+    domande HME100K di OCRBench. Oltre 20 token visibili è un candidato; le formule più brevi restano evidenze senza
+    effetto. Le righe ritagliate confrontano le righe del LaTeX, cioè i loro target. Il pHash delle formule non si usa.
+  - **Riconciliazione con run2.** UniMER-Test di run2 è quello del pannello (23.757 chiavi). Per ogni formula, la
+    corrispondenza ritrovata dal pannello deve essere quella di run2 (breve, lunga o nessuna). Il record con
+    l'immagine del test di run2 deve essere ritrovato dall'identità dei pixel degli originali; il dato è riportato, e lo
+    stato dato da run2 resta in ogni caso.
+  - **Prova limitata** (job 30646): 24.000 record in 44 s con 6 CPU, nessun problema; verifica parziale 25 su 25.
+  - **Scansione completa** (job 30651): tutti i 1.016.135 record (985.450 formule, 30.685 righe) in 19 min con 4 CPU.
+    I 6 shard hanno sha256, byte e campioni del manifest; lo sha256 di `UniMER-1M.zip` è ricalcolato e uguale. Tutti
+    gli originali e i PNG sono letti, e i ritagli coprono tutte le 81.606 fasce. Nessun controllo manca.
+
+    | Esito | Record | Che cosa |
+    | --- | --- | --- |
+    | corrispondenza confermata | 2, un gruppo | `train-0281221` e la sua riga: pixel dell'originale identici a un elemento di UniMER-Test (test ammesso). È l'immagine del test di run2, già esclusa |
+    | candidato | 404 | formula lunga uguale a una di UniMER-Test: le quarantene di run2. Nessuna formula lunga di OCRBench, nessuna riga ritagliata con una formula lunga |
+    | evidenza senza effetto | 152.413 e 4 | formule brevi uguali a UniMER-Test (152.376 formule, come in run2, e 37 righe) e a OCRBench |
+    | nessuna corrispondenza | tutti gli altri | nei controlli eseguiti: nessun pixel identico verso gli altri benchmark, nessun ritaglio identico |
+
+    Il record con l'immagine di run2 ha anche una formula lunga del test: i due casi restano distinti nell'evidenza
+    (pixel, confermato; formula lunga, candidato). La riconciliazione per record coincide con run2: 152.376 brevi, 404
+    lunghe, 1 immagine, 832.669 nessuna.
+  - **Versione 2** `data/manifests/unimer-candidato-2` (job 30651): `manifest.json` `97af1033…`, `records.jsonl.gz`
+    `7b33bc25…` (285 MiB), riepilogo `docs/manifests/unimer-candidato-2.json`.
+    - **Nessun cambio di stato.** I 405 gruppi toccati (495 record) erano già esclusi o in quarantena per run2. Hanno il
+      motivo nuovo, ma conteggi e chiavi ammesse restano quelli della versione 1.
+    - Ogni record ha l'evidenza `decontaminazione_pannello`, che rimanda alla scansione completa
+      (`data/decontam/pannello-v3/unimer/records.jsonl.gz`, `2de700c4…`, 234 MiB).
+    - Verifica di compatibilità 26 su 26. Verifica della versione nuova 20 su 20: il genitore con
+      `unimer_manifest.verify` (23 su 23), poi le transizioni ricalcolate dalla scansione.
+    - Il job dura 27 min 47 s in tutto, con 4 CPU; la RSS arriva a 20,3 GiB nella verifica della versione nuova.
+  - **Limiti.**
+    - Il pHash delle formule non si usa.
+    - Le formule dentro i testi dei problemi degli altri benchmark non si confrontano.
+    - Il ritaglio si confronta solo per identità: non riconosce lo stesso contenuto con altri margini.
+    - L'esposizione pregressa di SigLIP2 e Violetto resta.
+    - Le 404 formule lunghe restano da riesaminare (S1 §5): la decontaminazione non le risolve.
+    - La decontaminazione non dice nulla sulla correttezza delle trascrizioni e non è una certificazione statistica.
 
 ## 5. Collaudi (CPU, `tests_cpu`)
 

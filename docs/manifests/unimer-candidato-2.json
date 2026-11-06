@@ -1,0 +1,224 @@
+{
+ "schema": "limite-vl-manifest-riepilogo/1",
+ "manifest": "data/manifests/unimer-candidato-2",
+ "nome": "unimer-candidato",
+ "versione": "2",
+ "job_id": "30651",
+ "manifest_sha256": "97af10332520c01717b80ae2e7b094f87cb5e435a6d03b0ead656175b837c126",
+ "records_sha256": "7b33bc25a5d68a325bb4340871c6288bd149c1622b6b60904a22d0c9ff8224fa",
+ "righe": 1016135,
+ "sorgente": "unimer",
+ "revisione": "2343ddd963290469da36ca83e3a56c66e068add9",
+ "precedente": {
+  "percorso": "data/manifests/unimer-candidato-1",
+  "versione": "1",
+  "manifest_sha256": "bcc851982598a80cdcf60ab00eb2adb0ff0adf581180ec7b296ed3d498d4dfcb",
+  "records_sha256": "c183b95526fa55955f98976bf9f6035f06f1c6ad2f820161ca797f228559d92c"
+ },
+ "decontaminazione": {
+  "esiti_propri": {
+   "righe/corrispondenza_confermata": 1,
+   "righe/nessuna_corrispondenza": 30684,
+   "train/candidato": 404,
+   "train/corrispondenza_confermata": 1,
+   "train/nessuna_corrispondenza": 985045
+  },
+  "esiti_dei_gruppi": {
+   "candidato": 404,
+   "corrispondenza_confermata": 1,
+   "nessuna_corrispondenza": 933465
+  },
+  "cambi_di_stato": {},
+  "record_con_corrispondenze_per_benchmark_tipo": {
+   "ocrbench/formula_breve": 4,
+   "unimer_test/formula_breve": 152413,
+   "unimer_test/formula_lunga": 405,
+   "unimer_test/pixel": 2
+  },
+  "corrispondenze_per_benchmark_ruolo_tipo": {
+   "ocrbench/sviluppo/formula_breve": 4,
+   "unimer_test/diagnostica/formula_breve": 7710,
+   "unimer_test/diagnostica/formula_lunga": 21,
+   "unimer_test/sviluppo/formula_breve": 87026,
+   "unimer_test/sviluppo/formula_lunga": 39,
+   "unimer_test/test_ammesso/formula_breve": 579828,
+   "unimer_test/test_ammesso/formula_lunga": 417,
+   "unimer_test/test_ammesso/pixel": 2
+  },
+  "gruppi_toccati": 405,
+  "riconciliazione_run2": {
+   "per_esito": {
+    "run2 formula_breve_del_test / nuova formula_breve": 152376,
+    "run2 formula_lunga_del_test / nuova formula_lunga": 404,
+    "run2 immagine_del_test / nuova formula_lunga / pixel": 1,
+    "run2 nessuna_corrispondenza / nuova nessuna": 832669
+   },
+   "immagine_del_test_ritrovata_dai_pixel": 1,
+   "immagine_del_test_non_ritrovata": [],
+   "nota": "l'identità di run2 era sui byte del PNG ridimensionato; quella nuova sui pixel degli originali. Lo stato dato da run2 resta in ogni caso"
+  },
+  "candidati_storici": null,
+  "ngram_di_rito_della_sorgente": 0,
+  "record_con_soli_ngram_di_rito": 0,
+  "testo_di_rito": null,
+  "indice_sha256": "02fb3cbfc36cbfd17bba92e4511c18a5760d330bc0145855fff2e7aa5130d127",
+  "scansione_records_sha256": "2de700c4a7e54c475473b1f2f6f0aef8aa695be65b8f6006cd511be2d0d4de9f"
+ },
+ "conteggi": {
+  "per_insieme_split_stato": {
+   "righe/dev/ammesso": 1533,
+   "righe/train/ammesso": 29055,
+   "righe/train/escluso": 6,
+   "righe/train/quarantena": 91,
+   "train/dev/ammesso": 49195,
+   "train/train/ammesso": 934680,
+   "train/train/escluso": 52,
+   "train/train/quarantena": 1523
+  },
+  "per_compito_split_stato": {
+   "transcribe/dev/ammesso": 49195,
+   "transcribe/train/ammesso": 934680,
+   "transcribe/train/escluso": 52,
+   "transcribe/train/quarantena": 1523,
+   "transcribe_line/dev/ammesso": 1533,
+   "transcribe_line/train/ammesso": 29055,
+   "transcribe_line/train/escluso": 6,
+   "transcribe_line/train/quarantena": 91,
+   "transcribe_line_select/dev/ammesso": 1533,
+   "transcribe_line_select/train/ammesso": 29055,
+   "transcribe_line_select/train/escluso": 6,
+   "transcribe_line_select/train/quarantena": 91
+  },
+  "per_motivo": {
+   "dalla formula: formula di UniMER-Test con più di 20 token visibili, immagine diversa": 89,
+   "dalla formula: stessa immagine di UniMER-Test": 1,
+   "dalla formula: unimer_check/4: comando_non_reso": 5,
+   "dalla formula: unimer_check/4: rietichettato_graffe_codificate": 2,
+   "decontaminazione_pannello: formula con più di 20 token visibili uguale a una di UniMER-Test o di OCRBench": 493,
+   "decontaminazione_pannello: pixel identici a un'immagine di pannello-v3": 2,
+   "formula di UniMER-Test con più di 20 token visibili, immagine diversa": 404,
+   "formula rietichettata: le righe vengono dall'etichetta originale": 2,
+   "stessa immagine di UniMER-Test": 1,
+   "unimer_check/4: comando_non_reso": 51,
+   "unimer_check/4: conflitto_irrisolto": 1116,
+   "unimer_check/4: marcatori_non_riparabili": 3,
+   "unimer_check/4: proporzioni_fuori_norma": 7,
+   "unimer_check/4: rietichettato_graffe_codificate": 256,
+   "unimer_check/4: rietichettato_indice_isolato": 18975
+  },
+  "gruppi_per_split": {
+   "dev": 46647,
+   "train": 887223
+  },
+  "trasformazioni": {
+   "rietichettatura": 18827,
+   "righe": 30685
+  }
+ },
+ "split_ammessi": {
+  "dev/righe": 1533,
+  "dev/train": 49195,
+  "train/righe": 29055,
+  "train/train": 934680
+ },
+ "controlli": [
+  {
+   "controllo": "genitore: manifest.json con lo sha256 atteso, letto e verificato da manifest.load",
+   "esito": true
+  },
+  {
+   "controllo": "versione nuova: letta e verificata da manifest.load (sha256 dei record, record_id ricalcolati, un solo split per gruppo, conteggi per shard)",
+   "esito": true
+  },
+  {
+   "controllo": "versione nuova: precedente ed ereditato_da indicano il genitore, con gli sha256 registrati",
+   "esito": true
+  },
+  {
+   "controllo": "evidenze obbligatorie del genitore registrate con sha256 uguali su disco, nel genitore e nella versione nuova",
+   "esito": true
+  },
+  {
+   "controllo": "classificazione degli shard uguale all'insieme dei loro record, nel genitore e nella versione nuova",
+   "esito": true
+  },
+  {
+   "controllo": "genitore: verifica della costruzione (unimer_manifest.verify), 23 su 23",
+   "esito": true
+  },
+  {
+   "controllo": "identità: stessi record (insieme, chiave), e ogni campo uguale al genitore salvo stato, motivi, evidenze e stati dei compiti (gruppi, split, posizioni, digest, trasformazioni e genitori invariati)",
+   "esito": true
+  },
+  {
+   "controllo": "scansione: records.jsonl.gz con lo sha256 registrato nel manifest",
+   "esito": true
+  },
+  {
+   "controllo": "scansione: una riga per record, con shard, posizione e digest del manifest",
+   "esito": true
+  },
+  {
+   "controllo": "decontaminazione_pannello: evidenze del genitore conservate",
+   "esito": true
+  },
+  {
+   "controllo": "decontaminazione_pannello: una e una sola evidenza nuova per record",
+   "esito": true
+  },
+  {
+   "controllo": "decontaminazione_pannello: esito proprio, esito del gruppo, cause e corrispondenze dell'evidenza uguali a quelli ricalcolati dalla scansione",
+   "esito": true
+  },
+  {
+   "controllo": "decontaminazione_pannello: motivi del genitore conservati",
+   "esito": true
+  },
+  {
+   "controllo": "decontaminazione_pannello: un motivo nuovo per gruppo toccato, quello della regola, e nessun altro",
+   "esito": true
+  },
+  {
+   "controllo": "decontaminazione_pannello: ogni cambio di stato ha il suo motivo nuovo",
+   "esito": true
+  },
+  {
+   "controllo": "decontaminazione_pannello: stato = il più grave fra quello del genitore e quello dell'esito del gruppo (ricalcolato dalla scansione)",
+   "esito": true
+  },
+  {
+   "controllo": "nessun record torna ammesso o passa a uno stato meno grave",
+   "esito": true
+  },
+  {
+   "controllo": "un solo esito per gruppo",
+   "esito": true
+  },
+  {
+   "controllo": "conteggi uguali a manifest.json (ricalcolati dai record)",
+   "esito": true
+  },
+  {
+   "controllo": "file derivati (keys/) uguali alle chiavi ricalcolate e ai loro sha256",
+   "esito": true
+  }
+ ],
+ "esito_verifica": true,
+ "fuori_dal_sottoinsieme": [
+  "variant_id e uid (S1 §1): dipendono dal contratto di risposta (S3, D3). L'ammissione è per record e compito; il ritaglio della riga e la scelta della riga sono decisi dal loader con la chiave (data._unimer_line)",
+  "hash dei token di input e di target, tokenizer, template e contratto (S1 §2, §7): dipendono dal contratto",
+  "indice globale fra sorgenti (S1 §4): i gruppi sono i legami esatti dentro UniMER-1M; nessun confronto con le altre sorgenti di training",
+  "decontaminazione esterna contro pannello-v3 (evidenza decontaminazione_pannello): pixel delle immagini originali, dei PNG degli shard e dei ritagli delle righe contro tutte le immagini del pannello; formule visibili contro UniMER-Test e OCRBench (HME100K). Non coperti: pHash delle formule (non informativo), formule dentro i testi dei problemi degli altri benchmark, stessa riga ritagliata con margini diversi",
+  "reader col manifest (C7): gli shard di UniMER non sono in manifest.MANIFEST_REQUIRED e i loader non applicano questo manifest; è un candidato, non autorizza il training",
+  "campo gold (S2 §4): nessuno; target_controllato richiede la stima campionaria di S4 e la revisione visiva",
+  "equivalenza matematica delle formule: il target è l'uguaglianza dei token LaTeX senza spazi (latex.same_latex)"
+ ],
+ "verifiche_mancanti": [
+  "verifica dei candidati della decontaminazione esterna (gruppi in quarantena, formule lunghe uguali a UniMER-Test o OCRBench): nessun candidato è risolto",
+  "stima campionaria della correttezza e dell'osservabilità alla risoluzione scelta (S4, revisione competente)",
+  "controllo immagine_vuota di run4 non ricalcolato (decodifica dei pixel); in run4 nessun caso",
+  "quarantene da riesaminare: conflitti irrisolti di run4 e formule lunghe del test con immagine diversa",
+  "manoscritti incidentali di CROHME (meno dell'1%): non si separano per indice e restano (v1.5)"
+ ],
+ "nota": "decontaminazione esterna nei controlli dichiarati: non certifica le risposte, non stima la qualità e non autorizza il training"
+}

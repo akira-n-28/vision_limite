@@ -1,0 +1,318 @@
+{
+ "schema": "limite-vl-manifest-riepilogo/1",
+ "manifest": "data/manifests/mavis-geometry-candidato-2",
+ "nome": "mavis-geometry-candidato",
+ "versione": "2",
+ "job_id": "30652",
+ "manifest_sha256": "8c549a23d60934d68f3b4db1ee3d2a24e26ec822b5c5a079bb5411a5f9c81f67",
+ "records_sha256": "adf9b28cd8711e6356f647cca2700ad4201ba9fbec305f1cbe7e4da49afe5bae",
+ "righe": 199050,
+ "sorgente": "mavis-geometry",
+ "revisione": "9c80fff300f4f2cb3a76f71e03428eebdd571907",
+ "precedente": {
+  "percorso": "data/manifests/mavis-geometry-candidato-1",
+  "versione": "1",
+  "manifest_sha256": "dc0f264c60c1549cc1c9412ccae15d0fa6040ef1e55ac99cda0046957d6dbc2e",
+  "records_sha256": "f2a1c212303d7f5baa9fbf6580ec03d77af07b0d17c0145697d32fa94d81dd5f"
+ },
+ "decontaminazione": {
+  "esiti_propri": {
+   "train/candidato": 664,
+   "train/nessuna_corrispondenza": 198386
+  },
+  "esiti_dei_gruppi": {
+   "candidato": 109,
+   "nessuna_corrispondenza": 157909
+  },
+  "cambi_di_stato": {
+   "train/dev: ammesso -> quarantena": 10,
+   "train/train: ammesso -> quarantena": 683
+  },
+  "record_con_corrispondenze_per_benchmark_tipo": {
+   "aime25/testo_di_rito": 20071,
+   "mathverse/phash": 8,
+   "mathvision/phash": 587,
+   "mathvision/testo_di_rito": 50,
+   "mathvista/phash": 1,
+   "mvmath/phash": 119,
+   "unimer_test/testo": 5,
+   "wemath/phash": 12
+  },
+  "corrispondenze_per_benchmark_ruolo_tipo": {
+   "aime25/sviluppo/testo_di_rito": 20071,
+   "mathverse/sviluppo/phash": 64,
+   "mathvision/test_ammesso/phash": 1170,
+   "mathvision/test_ammesso/testo_di_rito": 54,
+   "mathvista/solo_decontaminazione/phash": 2,
+   "mathvista/sviluppo/phash": 2,
+   "mvmath/test_ammesso/phash": 256,
+   "unimer_test/diagnostica/testo": 3,
+   "unimer_test/test_ammesso/testo": 2,
+   "wemath/sviluppo/phash": 28
+  },
+  "gruppi_toccati": 109,
+  "riconciliazione_run2": null,
+  "candidati_storici": [
+   {
+    "cartella": "data/decontam/p6/mavis",
+    "exclude": {
+     "path": "/home/prignano/vision_limite/data/decontam/p6/mavis/exclude.txt",
+     "bytes": 5707,
+     "sha256": "036c8fb626b9da447d4114debbeabbc8373c8eea28be8df66e915eca002f5f35"
+    },
+    "exclude_final": {
+     "path": "/home/prignano/vision_limite/data/decontam/p6/mavis/exclude_final.txt",
+     "bytes": 0,
+     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "candidati_storici": 648,
+    "lista_finale": 0,
+    "storici_fra_i_record_letti": 648,
+    "storici_anche_candidati_nuovi": 598,
+    "storici_non_candidati_nuovi_esempi": [
+     "d0-12624",
+     "d0-17177",
+     "d0-19307",
+     "d0-21576",
+     "d0-33300",
+     "d0-3534",
+     "d0-37081",
+     "d0-42918",
+     "d0-4452",
+     "d0-45501"
+    ],
+    "nota": "convenzione grigio-diretto/0 sugli shard ridimensionati; diagnostico, non importato"
+   },
+   {
+    "cartella": "data/decontam/f1eval/mavis",
+    "exclude": {
+     "path": "/home/prignano/vision_limite/data/decontam/f1eval/mavis/exclude.txt",
+     "bytes": 0,
+     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "exclude_final": {
+     "path": "/home/prignano/vision_limite/data/decontam/f1eval/mavis/exclude_final.txt",
+     "bytes": 0,
+     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "candidati_storici": 0,
+    "lista_finale": 0,
+    "storici_fra_i_record_letti": 0,
+    "storici_anche_candidati_nuovi": 0,
+    "storici_non_candidati_nuovi_esempi": [],
+    "nota": "convenzione grigio-diretto/0 sugli shard ridimensionati; diagnostico, non importato"
+   }
+  ],
+  "ngram_di_rito_della_sorgente": 3,
+  "record_con_soli_ngram_di_rito": 20116,
+  "testo_di_rito": {
+   "max_df_sorgente": 25,
+   "ngram": [
+    "a b c d e f g h i j",
+    "b c d e f g h i j k",
+    "is equal to 1 what is the area of the"
+   ]
+  },
+  "indice_sha256": "02fb3cbfc36cbfd17bba92e4511c18a5760d330bc0145855fff2e7aa5130d127",
+  "scansione_records_sha256": "f953c323cbbd00a0394c4443c88145d64ea60f4c02d910a0d20cbcf5b223b864"
+ },
+ "conteggi": {
+  "per_split_famiglia_stato": {
+   "dev/d0/ammesso": 2466,
+   "dev/d0/quarantena": 6,
+   "dev/d1/ammesso": 2493,
+   "dev/d1/quarantena": 4,
+   "dev/d2/ammesso": 2493,
+   "dev/d3/ammesso": 2489,
+   "train/d0/ammesso": 46339,
+   "train/d0/quarantena": 637,
+   "train/d1/ammesso": 47423,
+   "train/d1/quarantena": 29,
+   "train/d2/ammesso": 47361,
+   "train/d2/quarantena": 15,
+   "train/d3/ammesso": 47293,
+   "train/d3/quarantena": 2
+  },
+  "per_compito_split_stato": {
+   "angle_val/dev/ammesso": 9941,
+   "angle_val/dev/quarantena": 10,
+   "angle_val/train/ammesso": 188416,
+   "angle_val/train/quarantena": 683,
+   "count_points/dev/ammesso": 9941,
+   "count_points/dev/quarantena": 10,
+   "count_points/train/ammesso": 188416,
+   "count_points/train/quarantena": 683,
+   "describe/dev/ammesso": 9941,
+   "describe/dev/quarantena": 10,
+   "describe/train/ammesso": 188416,
+   "describe/train/quarantena": 683,
+   "direction/dev/ammesso": 4815,
+   "direction/train/ammesso": 91669,
+   "direction/train/quarantena": 9,
+   "exists_point/dev/ammesso": 9941,
+   "exists_point/dev/quarantena": 10,
+   "exists_point/train/ammesso": 188416,
+   "exists_point/train/quarantena": 683,
+   "exists_shape/dev/ammesso": 9941,
+   "exists_shape/dev/quarantena": 10,
+   "exists_shape/train/ammesso": 188416,
+   "exists_shape/train/quarantena": 683,
+   "removed_side/dev/ammesso": 4815,
+   "removed_side/train/ammesso": 91669,
+   "removed_side/train/quarantena": 9,
+   "shape_type/dev/quarantena": 8877,
+   "shape_type/train/quarantena": 169067,
+   "shared_side/dev/ammesso": 7475,
+   "shared_side/dev/quarantena": 4,
+   "shared_side/train/ammesso": 142077,
+   "shared_side/train/quarantena": 46,
+   "side_len/dev/ammesso": 9941,
+   "side_len/dev/quarantena": 10,
+   "side_len/train/ammesso": 188416,
+   "side_len/train/quarantena": 683
+  },
+  "domande_per_tipo_stato": {
+   "angle_val/ammesso": 497327,
+   "angle_val/quarantena": 762,
+   "count_points/ammesso": 198357,
+   "count_points/quarantena": 693,
+   "direction/ammesso": 114488,
+   "direction/quarantena": 9,
+   "exists_point/ammesso": 396714,
+   "exists_point/quarantena": 1386,
+   "exists_shape/ammesso": 396714,
+   "exists_shape/quarantena": 1386,
+   "removed_side/ammesso": 114488,
+   "removed_side/quarantena": 9,
+   "shape_type/quarantena": 383592,
+   "shared_side/ammesso": 298970,
+   "shared_side/quarantena": 69,
+   "side_len/ammesso": 733268,
+   "side_len/quarantena": 796
+  },
+  "per_motivo": {
+   "decontaminazione_pannello: candidato da verificare (pHash entro 4 bit o 10-gram in comune; gruppo in quarantena)": 693
+  },
+  "gruppi_per_split": {
+   "dev": 7788,
+   "train": 150230
+  },
+  "misure_razionali": {
+   "record_con_misure_razionali": 22712
+  }
+ },
+ "split_ammessi": {
+  "dev/d0": 2466,
+  "dev/d1": 2493,
+  "dev/d2": 2493,
+  "dev/d3": 2489,
+  "train/d0": 46339,
+  "train/d1": 47423,
+  "train/d2": 47361,
+  "train/d3": 47293
+ },
+ "controlli": [
+  {
+   "controllo": "genitore: manifest.json con lo sha256 atteso, letto e verificato da manifest.load",
+   "esito": true
+  },
+  {
+   "controllo": "versione nuova: letta e verificata da manifest.load (sha256 dei record, record_id ricalcolati, un solo split per gruppo, conteggi per shard)",
+   "esito": true
+  },
+  {
+   "controllo": "versione nuova: precedente ed ereditato_da indicano il genitore, con gli sha256 registrati",
+   "esito": true
+  },
+  {
+   "controllo": "evidenze obbligatorie del genitore registrate con sha256 uguali su disco, nel genitore e nella versione nuova",
+   "esito": true
+  },
+  {
+   "controllo": "genitore: verifica della costruzione (mavis_manifest.verify), 15 su 15",
+   "esito": true
+  },
+  {
+   "controllo": "identità: stessi record (insieme, chiave), e ogni campo uguale al genitore salvo stato, motivi, evidenze e stati dei compiti (gruppi, split, posizioni, digest, trasformazioni e genitori invariati)",
+   "esito": true
+  },
+  {
+   "controllo": "scansione: records.jsonl.gz con lo sha256 registrato nel manifest",
+   "esito": true
+  },
+  {
+   "controllo": "scansione: una riga per record, con shard, posizione e digest del manifest",
+   "esito": true
+  },
+  {
+   "controllo": "testo: 10-gram di rito della sorgente ricalcolati dalle righe (in più di 25 record), uguali a quelli registrati nel manifest",
+   "esito": true
+  },
+  {
+   "controllo": "decontaminazione_pannello: evidenze del genitore conservate",
+   "esito": true
+  },
+  {
+   "controllo": "decontaminazione_pannello: una e una sola evidenza nuova per record",
+   "esito": true
+  },
+  {
+   "controllo": "decontaminazione_pannello: esito proprio, esito del gruppo, cause e corrispondenze dell'evidenza uguali a quelli ricalcolati dalla scansione",
+   "esito": true
+  },
+  {
+   "controllo": "decontaminazione_pannello: motivi del genitore conservati",
+   "esito": true
+  },
+  {
+   "controllo": "decontaminazione_pannello: un motivo nuovo per gruppo toccato, quello della regola, e nessun altro",
+   "esito": true
+  },
+  {
+   "controllo": "decontaminazione_pannello: ogni cambio di stato ha il suo motivo nuovo",
+   "esito": true
+  },
+  {
+   "controllo": "decontaminazione_pannello: stato = il più grave fra quello del genitore e quello dell'esito del gruppo (ricalcolato dalla scansione)",
+   "esito": true
+  },
+  {
+   "controllo": "nessun record torna ammesso o passa a uno stato meno grave",
+   "esito": true
+  },
+  {
+   "controllo": "un solo esito per gruppo",
+   "esito": true
+  },
+  {
+   "controllo": "compiti: seguono lo stato del record, shape_type mai ammessa, nessun compito meno grave del genitore",
+   "esito": true
+  },
+  {
+   "controllo": "conteggi uguali a manifest.json (ricalcolati dai record)",
+   "esito": true
+  },
+  {
+   "controllo": "file derivati (keys/) uguali alle chiavi ricalcolate e ai loro sha256",
+   "esito": true
+  }
+ ],
+ "esito_verifica": true,
+ "fuori_dal_sottoinsieme": [
+  "variant_id e uid (S1 §1): dipendono dal contratto di risposta (S3, D3). Il loader sceglie dalla chiave il compito (descrizione o domande), il prompt della descrizione e da 1 a 5 domande; il manifest elenca tutte le domande possibili del record con il loro digest",
+  "hash dei token di input e di target, tokenizer, template e contratto (S1 §2, §7): dipendono dal contratto",
+  "indice globale fra sorgenti (S1 §4): i gruppi sono i legami esatti dentro MAVIS-Geometry; le altre due immagini della cartella (text.jpg, vision_dominant.jpg) non sono negli shard",
+  "decontaminazione esterna contro pannello-v3 (evidenza decontaminazione_pannello): pixel e pHash di caption.jpg originale e del PNG dello shard, 10-gram dei testi di text_en e del loader contro tutti i testi dell'indice. Non coperti: text_zh, text.jpg e vision_dominant.jpg (non negli shard), la stessa figura disegnata in un altro stile o con un'altra impaginazione",
+  "reader col manifest (C7): gli shard di MAVIS non sono in manifest.MANIFEST_REQUIRED e il loader attuale (data.mavis_f1_sample) può ancora scegliere shape_type; un reader che applichi il manifest deve escluderla",
+  "C9: opzioni di shape_type costruite dalle misure note, valore visualizzato ed esatto nel record; qui solo il conteggio delle misure razionali disegnate come decimali",
+  "campo gold (S2 §3): nessuno; target_controllato dopo il campione di S4"
+ ],
+ "verifiche_mancanti": [
+  "fedeltà all'immagine: il renderer di MAVIS non è nostro, nessuna invariante; revisione visiva campionaria e stima di S4 da fare (finora 40 immagini guardate, outputs/f1_mavis/contact_run1)",
+  "verifica visiva dei candidati della decontaminazione esterna (gruppi in quarantena per pHash o testo): nessun candidato è risolto",
+  "osservabilità alla risoluzione scelta (oggi 2304 patch, oltre le 1024 di addestramento di NaFlex)",
+  "shape_type in quarantena finché C9 non costruisce le opzioni",
+  "valori razionali: la risposta è il decimale disegnato; l'esatto non è nel record (C9)"
+ ],
+ "nota": "decontaminazione esterna nei controlli dichiarati: non certifica le risposte, non stima la qualità e non autorizza il training"
+}
