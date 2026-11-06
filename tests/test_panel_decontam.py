@@ -17,6 +17,15 @@ Controlla:
 - MAVIS, percorso completo: originale identico a un elemento di MathVerse (gruppo escluso, duplicato compreso), copia con
   un pixel diverso solo candidato pHash, 10-gram della didascalia candidato testuale, stati dei compiti conservati
   (shape_type in quarantena), provenienze di MathVerse, candidati storici solo diagnostici;
+- regole testuali esplicite (panel-decontam/2): la frequenza nella sorgente non decide nulla. Un problema specifico del
+  benchmark ripetuto in più di 25 record, senza corrispondenze visive, resta candidato, anche con duplicati e varianti
+  nello stesso gruppo; lo stesso test fallisce col filtro di f163a81 (letto da git). L'enumerazione delle lettere dei
+  punti è ignorata solo nella descrizione del loader (riga `Points:`, testo legato al manifest), non negli altri campi;
+  una corrispondenza coperta accanto a una specifica lascia il record candidato; propagazione al gruppo con stati
+  precedenti e compiti conservati;
+- riesame di una versione decisa col filtro precedente (candidato-2 costruito dal codice di f163a81 sul fixture): solo
+  JSON letti, versione nuova derivata dal genitore senza riammissioni, catena verificata (il verificatore della
+  costruzione non si applica a una versione derivata), versioni o descrizioni alterate rifiutate;
 - arresti e incompatibilità: sha256 del manifest o dell'indice diversi da quelli attesi, indice nella convenzione storica,
   shard alterato dopo la costruzione, prova limitata usata come scansione completa, righe della scansione con un'identità
   scambiata, versione nuova alterata (stato riammesso, evidenza tolta, shape_type ammessa)."""
@@ -29,9 +38,11 @@ import json
 import os
 import random
 import shutil
+import subprocess
 import sys
 import tarfile
 import tempfile
+import types
 import zipfile
 from pathlib import Path
 
@@ -49,17 +60,33 @@ import unimer_manifest as um  # noqa: E402
 from limite_vl import decontam as dc  # noqa: E402
 from limite_vl import manifest as mf  # noqa: E402
 from limite_vl.data import _unimer_line, unimer_line_sample  # noqa: E402
+from limite_vl.f1_mavis import mavis_truth  # noqa: E402
+from limite_vl.f1_schema import render_geometry  # noqa: E402
 from limite_vl.processing import to_rgb  # noqa: E402
 from limite_vl.provenance import sha256_file  # noqa: E402
-from test_mavis_gen import MULTI_CAP  # noqa: E402
+from test_mavis_gen import MULTI_CAP, SEMI_GEN  # noqa: E402
 
 FAILS = []
 DONE = []
 LONG2 = "p+q+r+s+t+u+v+w+x+y+z"  # 21 token visibili, solo in OCRBench
 ARRAY2 = "\\begin{array}{l}a+b+c+d+e+f+g+h+i+j+k\\\\z\\end{array}"  # prima riga = formula lunga di UniMER-Test
 HME = "Handwritten Mathematical Expression Recognition"
-TEMPLATE = "ABCD takes on a rectangular shape. Angle BAD measures 90 degrees. Side AB is"  # nei 24 rettangoli di MAVIS
-TEST_SOURCE_MAX_DF = 20  # soglia di rito della sorgente nel fixture MAVIS (30 record); quella dei dati è 25
+OLD_COMMIT = "f163a81"  # panel_decontam.py col filtro di frequenza (panel-decontam/1, mavis-geometry-candidato-2)
+# un problema specifico di un benchmark, ripetuto nelle domande di 27 record MAVIS del fixture (più di 25)
+SPECIFIC = ("Two equal squares ABCD and EFGH overlap so that the shaded region has area equal to 1. What is the area "
+            "of the square ABCD?")
+SPECIFIC_GRAMS = [" ".join(g) for g in [tuple(dc.normalize_words(SPECIFIC)[k:k + 10])
+                                        for k in range(len(dc.normalize_words(SPECIFIC)) - 9)]]
+# enumerazione di lettere in un problema (come le dodici lettere di AIME 2025 I) e in una domanda MAVIS
+LETTERS = "The twelve letters A, B, C, D, E, F, G, H, I, J, K, and L are randomly grouped into six pairs of letters."
+LETTER_QUESTION = "The points A, B, C, D, E, F, G, H, I, J are marked on the figure; which one is the apex?"
+ENUM = "a b c d e f g h i j"
+# figura a quattro forme con dieci punti A-J (sector, rettangolo con triangolo equilatero, triangolo rettangolo,
+# rettangolo con semicerchio): la riga Points della descrizione canonica ha dieci etichette
+CAP10 = ("ABC takes the form of a sector. CBDFE is a rectangle, although its side DE extends into an equilateral triangle "
+         "beyond the rectangle. FDG is a right triangle. HGIJ is a rectangle, featuring an extension of the side IJ into "
+         "a semi-circle. Angle BAD equals 90 degrees.")
+GEN10 = SEMI_GEN
 os.environ.setdefault("SLURM_JOB_ID", "test")
 
 
@@ -213,6 +240,42 @@ def failing(result: dict) -> set[str]:
     return {c["controllo"] for c in result["controlli"] if not c["esito"]}
 
 
+def old_module():
+    """scripts/panel_decontam.py di OLD_COMMIT (filtro di frequenza), letto da git e caricato come modulo
+    `panel_decontam_v1`: i processi del pool lo ritrovano col fork."""
+    if "panel_decontam_v1" in sys.modules:
+        return sys.modules["panel_decontam_v1"]
+    src = subprocess.run(["git", "-C", str(ROOT), "show", f"{OLD_COMMIT}:scripts/panel_decontam.py"], check=True,
+                         capture_output=True, text=True).stdout
+    mod = types.ModuleType("panel_decontam_v1")
+    mod.__file__ = str(ROOT / "scripts" / "panel_decontam.py")
+    sys.modules["panel_decontam_v1"] = mod
+    exec(compile(src, f"{OLD_COMMIT}:scripts/panel_decontam.py", "exec"), mod.__dict__)
+    return mod
+
+
+def attempt_any(fn, args) -> tuple[object, str]:
+    """Come attempt, anche per le eccezioni del modulo di OLD_COMMIT."""
+    old = old_module()
+    try:
+        return fn(args), ""
+    except (pd.Failed, old.Failed, um.Problem, pd.mr.Problem) as exc:
+        return None, str(exc) or "rifiutato"
+
+
+def text_detail(field: str, grams: list[str], element: str = "mathvision/test:753") -> dict:
+    return {"tipo": "testo", "campo": field, "ngram": grams[0], "ngram_tutti": list(grams), "elemento": element,
+            "benchmark": element.split("/")[0], "posizione": None}
+
+
+def text_row(key: str, details: list[dict], **found) -> dict:
+    """Riga di scansione di MAVIS con le corrispondenze testuali date (e gli altri tipi in found)."""
+    r = row(testo=len(details), **found) if details else row(**found)
+    r.update(insieme="train", record=key, dettagli=list(details),
+             ngram_in_comune=sorted({g for d in details for g in d["ngram_tutti"]}))
+    return r
+
+
 # ---------------------------------------------------------------- 1. decisioni pure
 
 def row(insieme="train", **found) -> dict:
@@ -222,23 +285,110 @@ def row(insieme="train", **found) -> dict:
     return {"insieme": insieme, "corrispondenze": found, "controlli": checks, "problemi": []}
 
 
+def repeated_problem_stays_candidate(outcome_of) -> bool:
+    """Il caso della correzione: lo stesso problema specifico di un benchmark nelle domande di 30 record MAVIS (più di
+    25), senza corrispondenze visive. Dieci record stanno in un gruppo, con duplicati (stesso testo) e varianti (testo
+    con un prefisso diverso), e il gruppo ha un membro senza testi in comune; gli altri venti sono gruppi da soli. Il
+    test passa se tutti i trenta restano candidati e i gruppi vanno in quarantena, membro senza testo compreso, senza
+    toccare lo stato escluso del genitore. outcome_of(righe) -> {identità: esito}."""
+    detail = text_detail("text_lite_question", SPECIFIC_GRAMS)
+    rows = [text_row(f"k{n:02d}", [detail]) for n in range(30)] + [text_row("k99", [])]
+    recs = [{"insieme": "train", "record": f"k{n:02d}", "gruppo": "GA" if n < 10 else f"G{n}",
+             "stato": "escluso" if n == 3 else "ammesso"} for n in range(30)]
+    recs.append({"insieme": "train", "record": "k99", "gruppo": "GA", "stato": "ammesso"})
+    out = outcome_of(rows)
+    d = pd.decide(recs, out)
+    return (all(out[("train", f"k{n:02d}")] == "candidato" for n in range(30))
+            and out[("train", "k99")] == "nessuna_corrispondenza"
+            and all(d[("train", r["record"])]["stato"] == ("escluso" if r["record"] == "k03" else "quarantena")
+                    for r in recs))
+
+
+def test_rules():
+    """Regola enumerazione_punti_loader e legame delle descrizioni col manifest."""
+    desc12 = render_geometry({"points": list("ABCDEFGHIJKL"), "shapes": [], "sides": {}, "angles": {}})
+    windows = {"a b c d e f g h i j", "b c d e f g h i j k", "c d e f g h i j k l"}
+    cov = pd.rule_coverage("descrizione_del_loader", desc12)
+    check("regola: nella descrizione del loader copre le finestre di 10 etichette della riga Points, e solo quelle",
+          set(cov) == windows and set(cov.values()) == {"enumerazione_punti_loader"}
+          and "points a b c d e f g h i" not in cov, sorted(cov))
+    check("regola: nessun altro campo è coperto, nemmeno con lo stesso testo (didascalia, domande, CoT, domande del "
+          "loader)", all(pd.rule_coverage(f, desc12) == {} for f in ("caption", "text_lite_question", "CoT_reasoning",
+                                                                     "domande_del_loader", "diagram_generation")))
+    desc7 = render_geometry({"points": list("ABCDEFG"), "shapes": [], "sides": {}, "angles": {}})
+    bad = [desc12.replace("Points: A, B,", "Points: AB, B,"), desc12.replace("Points: A, B,", "Points: B, A,"),
+           desc12.replace("Figure: geometry diagram.", "Figure: a diagram."), desc12.replace("Points: ", "Vertices: ")]
+    check("regola: meno di dieci punti, etichette non di una lettera, non ordinate o formato diverso: nulla coperto",
+          pd.rule_coverage("descrizione_del_loader", desc7) == {}
+          and all(pd.rule_coverage("descrizione_del_loader", t) == {} for t in bad))
+    outside = desc12 + "\nNote: a b c d e f g h i j."
+    check("regola: un 10-gram che compare anche fuori dalla riga Points non è coperto, gli altri sì",
+          set(pd.rule_coverage("descrizione_del_loader", outside)) == windows - {"a b c d e f g h i j"})
+    check("regole: un solo campo autorizzato e sha256 dichiarato delle regole",
+          pd.RULE_FIELDS == {"descrizione_del_loader"}
+          and pd.TEXT_RULES_SHA256 == mf.sha256_text(mf.canonical(pd.TEXT_RULES)))
+    truth, why = mavis_truth(CAP10, GEN10)
+    real = render_geometry(truth) if truth else ""
+    check("preparazione: la figura a quattro forme del fixture ha i dieci punti A-J e la descrizione canonica ne copre "
+          "solo l'enumerazione", truth is not None and truth["points"] == list("ABCDEFGHIJ")
+          and set(pd.rule_coverage("descrizione_del_loader", real)) == {ENUM}, (why, real[:200]))
+    # legame col manifest: testo presente, sha256 di descrizione_sha256, 10-gram della corrispondenza presenti
+    enum = text_detail("descrizione_del_loader", sorted(windows), "aime25/aime2025-I:6")
+    rows = {("train", k): text_row(k, [enum]) for k in ("e1", "e2", "e3")}
+    rows[("train", "e4")] = text_row("e4", [text_detail("descrizione_del_loader", ["x " * 9 + "y"], "aime25/x")])
+    records = {("train", "e1"): {"descrizione_sha256": mf.sha256_text(desc12)},
+               ("train", "e2"): {"descrizione_sha256": "0" * 64}, ("train", "e3"): {"descrizione_sha256": None},
+               ("train", "e4"): {"descrizione_sha256": mf.sha256_text(desc12)}}
+    texts = {i: {"descrizione_del_loader": desc12} for i in rows}
+    texts.pop(("train", "e3"))
+    cov, problems = pd.bind_rule_texts(rows, records, texts)
+    check("legame: copre solo la descrizione con lo sha256 del manifest; sha256 diverso, testo mancante o 10-gram "
+          "assenti dal testo sono problemi e non coprono nulla", set(cov) == {("train", "e1")} and len(problems) == 3
+          and pd.record_outcome(rows[("train", "e1")], "mavis", cov.get(("train", "e1"))) == "nessuna_corrispondenza"
+          and pd.record_outcome(rows[("train", "e2")], "mavis", cov.get(("train", "e2"))) == "candidato", problems)
+
+
 def test_decisions():
     o = pd.record_outcome
-    t_rito = {"tipo": "testo", "ngram": "a b", "ngram_tutti": ["a b", "b c"]}
-    t_info = {"tipo": "testo", "ngram": "a b", "ngram_tutti": ["a b", "x y"]}
-    rito = frozenset({"a b", "b c"})
+    t_info = text_detail("caption", ["a b", "x y"])
+    enum = text_detail("descrizione_del_loader", [ENUM], "aime25/aime2025-I:6")
+    specific = text_detail("text_lite_question", SPECIFIC_GRAMS)
+    covered = {"descrizione_del_loader": {ENUM: "enumerazione_punti_loader"}}
     check("esito: pixel identici confermati, anche con altre somiglianze",
           o(row(pixel=1, phash=3), "mavis") == "corrispondenza_confermata")
     check("esito: pHash, testo e formula lunga sono candidati, non prove",
           o(row(phash=1), "mavis") == o(dict(row(testo=1), dettagli=[t_info]), "mavis")
           == o(row(formula_lunga=1), "unimer") == "candidato")
     check("esito: formula breve uguale, solo evidenza", o(row(formula_breve=4), "unimer") == "nessuna_corrispondenza")
-    check("esito: un 10-gram di rito della sorgente è solo evidenza, uno specifico resta candidato",
-          o(dict(row(testo=1), dettagli=[t_rito]), "mavis", rito) == "nessuna_corrispondenza"
-          and o(dict(row(testo=2), dettagli=[t_rito, t_info]), "mavis", rito) == "candidato"
-          and o(dict(row(testo=1), dettagli=[t_rito]), "mavis") == "candidato"
-          and pd.rito_of(pd.source_ngrams([{"ngram_in_comune": ["g"]}] * (pd.SOURCE_MAX_DF + 1)
-                                          + [{"ngram_in_comune": ["h"]}] * pd.SOURCE_MAX_DF)) == {"g"})
+    check("esito: l'enumerazione dei punti coperta nella descrizione del loader è solo evidenza; nello stesso record "
+          "una corrispondenza specifica, o un pHash, lascia il record candidato",
+          o(text_row("e", [enum]), "mavis", covered) == "nessuna_corrispondenza"
+          and o(text_row("e", [enum, specific]), "mavis", covered) == "candidato"
+          and o(text_row("e", [enum], phash=1), "mavis", covered) == "candidato"
+          and o(text_row("e", [enum]), "mavis") == "candidato")
+    check("esito: la stessa enumerazione in un altro campo resta candidata (la copertura vale per il suo campo)",
+          o(text_row("e", [text_detail("text_lite_question", [ENUM])]), "mavis", covered) == "candidato")
+    check("problema specifico ripetuto in più di 25 record, senza corrispondenze visive, con duplicati e varianti nello "
+          "stesso gruppo: resta candidato e il gruppo va in quarantena (filtro corretto)",
+          repeated_problem_stays_candidate(lambda rows: {pd.ident(r): o(r, "mavis") for r in rows}))
+    old = old_module()
+
+    def old_filter(rows):
+        rito = old.rito_of(old.source_ngrams(rows))
+        return {pd.ident(r): old.record_outcome(r, "mavis", rito) for r in rows}
+
+    check(f"regressione: lo stesso test fallisce col filtro di {OLD_COMMIT} (frequenza nella sorgente)",
+          not repeated_problem_stays_candidate(old_filter))
+    rows = [text_row(f"k{n:02d}", [specific]) for n in range(30)]
+    check("regola storica (solo per riverificare candidato-2): ricalcolata dalle righe come in "
+          f"{OLD_COMMIT}, e come copertura riproduce i suoi esiti",
+          pd.frequency_rule_v1(rows) == old.rito_of(old.source_ngrams(rows)) == frozenset(SPECIFIC_GRAMS)
+          and all(o(r, "mavis", pd.frequency_coverage_v1(r, pd.frequency_rule_v1(rows))) == "nessuna_corrispondenza"
+                  for r in rows))
+    check("motivi del riesame: uno per una transizione più grave e uno per una meno grave, nessuno senza cambio",
+          pd.transition_reason("nessuna_corrispondenza", "candidato") == pd.REASON_RIESAME["piu_grave"]
+          and pd.transition_reason("candidato", "nessuna_corrispondenza") == pd.REASON_RIESAME["meno_grave"]
+          and pd.transition_reason("candidato", "candidato") is None)
     check("esito: un controllo richiesto non eseguito rende il record non verificabile",
           o(row(checks={"pixel_originale": False}), "unimer") == "non_verificabile"
           and o(row("righe", checks={"pixel_ritagli": False}), "unimer") == "non_verificabile"
@@ -541,8 +691,51 @@ def test_unimer(tmp: Path) -> None:
 
 # ---------------------------------------------------------------- 3. MAVIS
 
-def mavis_fixture(tmp: Path) -> dict:
+CARRIERS = {**{f"d0-{91000 + n}": f"Variant {n}. {SPECIFIC}" for n in range(6, 26)},
+            "d0-9323": SPECIFIC, "d0-90001": SPECIFIC, "d0-90002": SPECIFIC,  # duplicati; immagine in conflitto
+            "d1-95001": SPECIFIC, "d1-95002": SPECIFIC, "d1-95003": f"Variant 95. {SPECIFIC}",
+            "d3-97003": f"Variant 97. {SPECIFIC}"}
+GROUP5 = ("d1-95001", "d1-95002", "d1-95003", "d1-95004")  # stesso diagram_generation: un gruppo
+
+
+def mavis_spec() -> dict:
+    """Il fixture di test_mavis_manifest con le domande (text_lite_question) dei casi della correzione:
+    - SPECIFIC, problema specifico di un benchmark, in 27 record (più di 25): le 20 varianti dei rettangoli, i duplicati
+      d0-9323 e d0-90001 (pixel identici a MathVerse), d0-90002 (in conflitto con d0-48357), d3-97003 e il gruppo
+      GROUP5 con un duplicato (d1-95002, stesso PNG), una variante (d1-95003) e un membro senza la domanda (d1-95004);
+    - d3-97000: figura con i punti A-J, enumerazione nella descrizione del loader (coperta dalla regola);
+    - d0-97002: la stessa enumerazione in una domanda (non coperta);
+    - d3-97003: enumerazione nella descrizione e SPECIFIC in una domanda (candidato)."""
     s = tm.spec()
+    cap, gen = tm.REAL["d0-9323"]
+
+    def asking(item, text):
+        key, image, meta = item
+        meta = json.loads(json.dumps(meta))
+        meta["text_en"]["text_lite_question"] = text
+        return key, image, meta
+
+    def variant(n):
+        return cap.replace("Side AB is 3", f"Side AB is {n}"), gen.replace("side ab is 3", f"side ab is {n}")
+
+    c40, g40 = variant(40)
+    cap60 = CAP10.replace("Angle BAD equals 90 degrees.", "Angle BAD equals 60 degrees.")
+    gen60 = GEN10.replace("angle bad equals 90 degrees.", "angle bad equals 60 degrees.")
+    extra = [tm.sample("d1-95001", c40, g40, tm.png(80)), tm.sample("d1-95002", c40, g40, tm.png(80)),
+             tm.sample("d1-95003", c40, g40, tm.png(81)), tm.sample("d1-95004", c40, g40, tm.png(82)),
+             tm.sample("d3-97000", CAP10, GEN10, tm.png(70)),
+             asking(tm.sample("d0-97002", *variant(41), tm.png(72)), LETTER_QUESTION),
+             tm.sample("d3-97003", cap60, gen60, tm.png(73))]
+    shards = []
+    for n, (name, items) in enumerate(s["shards"]):
+        items = items + (extra if n == len(s["shards"]) - 1 else [])
+        shards.append((name, [asking(it, CARRIERS[it[0]]) if it[0] in CARRIERS else it for it in items]))
+    s["shards"] = shards
+    return s
+
+
+def mavis_fixture(tmp: Path) -> dict:
+    s = mavis_spec()
     originals = {}
     for _, items in s["shards"]:
         for key, image, meta in items:
@@ -567,9 +760,12 @@ def mavis_fixture(tmp: Path) -> dict:
                {"benchmark": "geoperception", "file": "data/train.parquet", "item": "train:3",
                 "image": encode(drawing(7777, (50, 50))), "text": f"Consider the figure. {words} What is x?",
                 "ruolo": "diagnostica"},
-               # la frase a modello delle didascalie dei rettangoli (24 record): di rito della sorgente
-               {"benchmark": "aime25", "file": "aime2025-I.jsonl", "item": "aime2025-I:4", "image": None,
-                "text": TEMPLATE + " the longest side here.", "ruolo": "sviluppo"}]
+               # problema specifico, nelle domande di 27 record MAVIS; nessuna immagine in comune
+               {"benchmark": "mathvision", "file": "data/test.parquet", "item": "test:753", "image": None,
+                "text": SPECIFIC + "\n<image1>", "ruolo": "test", "metrica": True},
+               # dodici lettere in fila: la stessa sequenza della riga Points di una figura con dieci punti
+               {"benchmark": "aime25", "file": "aime2025-I.jsonl", "item": "aime2025-I:6", "image": None,
+                "text": LETTERS, "ruolo": "sviluppo"}]
     index_dir, panel_dir, isha = panel_fixture(tmp, entries + fillers())
     mv = [tmp / "mathverse" / "testmini.parquet", tmp / "mathverse" / "testmini_text_only.parquet"]
     parquet(mv[0], [{"sample_index": "1", "problem_index": "1", "metadata": {"source": "GeoQA", "split": "testmini"}},
@@ -583,22 +779,34 @@ def mavis_fixture(tmp: Path) -> dict:
             "msha": sha256_file(args.out / "manifest.json"), "near": (dc.hamming(h1, h2), p1 != p2)}
 
 
+def last(rec: dict) -> dict:
+    return pd.last_check(rec)
+
+
+def by_key(m: mf.Manifest) -> dict[str, dict]:
+    return {k: rec for rows_ in m.by_shard.values() for k, rec in rows_.items()}
+
+
+SPECIFIC_ONLY = [k for k in CARRIERS if k not in ("d0-9323", "d0-90001")]  # senza pixel identici
+
+
 def test_mavis(tmp: Path) -> None:
-    """Col fixture di 30 record la soglia di rito della sorgente è TEST_SOURCE_MAX_DF (nei dati 25): i processi del
-    pool la ereditano col fork."""
-    saved = pd.SOURCE_MAX_DF
-    pd.SOURCE_MAX_DF = TEST_SOURCE_MAX_DF
-    try:
-        mavis_case(tmp)
-    finally:
-        pd.SOURCE_MAX_DF = saved
-
-
-def mavis_case(tmp: Path) -> None:
     fx = mavis_fixture(tmp)
     a = fx["args"]
     check("preparazione MAVIS: la copia con un pixel diverso ha pixel diversi e pHash entro 4 bit",
           fx["near"][1] and fx["near"][0] <= 4, fx["near"])
+    v1 = by_key(mf.load(a.out))
+    check("preparazione MAVIS: GROUP5 è un solo gruppo coi quattro record ammessi; d3-97000 ha la verità e la descrizione "
+          "canonica", len({v1[k]["gruppo"] for k in GROUP5}) == 1 and all(v1[k]["stato"] == "ammesso" for k in GROUP5)
+          and v1["d3-97000"]["descrizione_sha256"] is not None,
+          {k: (v1[k]["gruppo"][:8], v1[k]["stato"]) for k in (*GROUP5, "d3-97000")})
+    mavis_new_rules(tmp, fx, v1)
+    mavis_riesame(tmp, fx)
+
+
+def mavis_new_rules(tmp: Path, fx: dict, v1: dict) -> None:
+    """Percorso completo col codice nuovo: scansione panel-decontam-scan/2, verifica, versione 2 con le regole esplicite."""
+    a = fx["args"]
     common = ["--manifest", a.out, "--manifest-sha256", fx["msha"], "--index", fx["index"], "--index-sha256", fx["isha"]]
     scan = tmp / "scan"
     summary, why = attempt(pd.cmd_scan, args_of("scan", "mavis", *common, "--out", scan, "--workers", 2,
@@ -619,63 +827,96 @@ def mavis_case(tmp: Path) -> None:
           any(d["tipo"] == "testo" and d["campo"] == "caption" and d["elemento"] == "geoperception/train:3"
               and len(d["ngram"].split()) == 10 for d in r["d2-90010"]["dettagli"]))
     tf = summary["statistiche"]["testi_per_campo"]
-    check("mavis: campi confrontati dichiarati (caption e diagram_generation in ogni record, testi del loader)",
-          tf["caption"]["testi"] == tf["diagram_generation"]["testi"] == 30 and tf["domande_del_loader"]["testi"] > 0
-          and tf["text_dominant_question"]["testi"] == 0, tf)
+    check("mavis: campi confrontati dichiarati (caption e diagram_generation in ogni record, domande e testi del loader)",
+          tf["caption"]["testi"] == tf["diagram_generation"]["testi"] == len(v1) and tf["domande_del_loader"]["testi"] > 0
+          and tf["text_lite_question"]["testi"] == len(CARRIERS) + 1 and tf["text_dominant_question"]["testi"] == 0, tf)
     prov = summary["mathverse_provenienze"]
     check("mavis: provenienze dichiarate di MathVerse lette, legame con MAVIS segnalato",
           prov["con_mavis_o_rulebasegeo"] == ["2"] and prov["fonti"].get("GeoQA") == 1, prov)
+
+    def texts_of(k):
+        return [d for d in rows[("train", k)]["dettagli"] if d["tipo"] == "testo"]
+
+    check("mavis, scansione: il problema specifico ritrovato nella domanda di tutti i 27 record, e solo lì",
+          all(any(d["campo"] == "text_lite_question" and d["elemento"] == "mathvision/test:753" for d in texts_of(k))
+              for k in CARRIERS)
+          and sum(any(d["elemento"] == "mathvision/test:753" for d in texts_of(k)) for k in v1) == len(CARRIERS) == 27)
+    desc = rows[("train", "d3-97000")].get("testi_delle_regole") or {}
+    check("mavis, scansione: enumerazione A-J nella descrizione del loader (d3-97000, d3-97003) e in una domanda "
+          "(d0-97002); il testo della regola registrato solo per la descrizione, con lo sha256 del manifest",
+          [d["campo"] for d in texts_of("d3-97000")] == ["descrizione_del_loader"]
+          and texts_of("d3-97000")[0]["ngram_tutti"] == [ENUM]
+          and any(d["campo"] == "text_lite_question" and ENUM in d["ngram_tutti"] for d in texts_of("d0-97002"))
+          and set(desc) == {"descrizione_del_loader"} and rows[("train", "d0-97002")]["testi_delle_regole"] == {}
+          and mf.sha256_text(desc.get("descrizione_del_loader", "")) == v1["d3-97000"]["descrizione_sha256"],
+          [(d["campo"], d["ngram_tutti"][:1]) for d in texts_of("d3-97000")])
     ti = summary["testi_in_comune"]
-    rito_rows = {x["ngram"]: x for x in ti["ngram_di_rito_della_sorgente"]}
-    first = " ".join(dc.normalize_words(TEMPLATE)[:10])
-    check("mavis: la frase a modello dei 24 rettangoli è di rito della sorgente, con record, elemento e campo",
-          first in rito_rows and rito_rows[first]["record"] == 24 and rito_rows[first]["elementi"] == ["aime25/aime2025-I:4"]
-          and set(rito_rows[first]["campi"]) == {"caption"} and ti["max_df_sorgente"] == TEST_SOURCE_MAX_DF
-          and ti["record_con_soli_ngram_di_rito"] >= 20, (list(rito_rows)[:3], ti.get("record_con_soli_ngram_di_rito")))
-    check("mavis: corrispondenza di rito registrata ma senza effetto, la specifica resta candidata",
-          any(d["tipo"] == "testo" and d["benchmark"] == "aime25" for d in r["d0-91007"]["dettagli"])
-          and pd.record_outcome(r["d0-91007"], "mavis", frozenset(rito_rows)) == "nessuna_corrispondenza"
-          and pd.record_outcome(r["d2-90010"], "mavis", frozenset(rito_rows)) == "candidato")
+    freq = {x["ngram"]: x for x in ti["ngram_piu_frequenti"]}
+    top = freq.get(SPECIFIC_GRAMS[0]) or {}
+    check("mavis, riepilogo della scansione: frequenze solo per ordinare i casi (record, campi, coperture), regole "
+          "dichiarate, nessuna soglia di frequenza", summary["schema"] == pd.SCAN_SCHEMA
+          and ti["regole_testuali_sha256"] == pd.TEXT_RULES_SHA256 and top.get("record") == 27
+          and top.get("corrispondenze_per_regola") == {"non_coperta": 27}
+          and (freq.get(ENUM) or {}).get("corrispondenze_per_regola") == {"enumerazione_punti_loader": 2, "non_coperta": 1}
+          and "max_df_sorgente" not in ti, (top, freq.get(ENUM)))
     ver = ["--panel", fx["panel"], "--historical", fx["hist"]]
     code, why = attempt(pd.cmd_verifica, args_of("verifica", "mavis", *common, *ver, "--scan", scan, "--report",
                                                  tmp / "pd-verifica"))
     path = tmp / "pd-verifica/report.json"
     report = json.loads(path.read_text()) if path.exists() else {}
     hist = (report.get("candidati_storici") or [{}])[0]
-    check("mavis, verifica superata; candidati storici solo confrontati",
+    check("mavis, verifica superata (descrizioni del loader legate al manifest); candidati storici solo confrontati",
           code == 0 and not report.get("falliti") and hist.get("candidati_storici") == 2
-          and hist.get("storici_anche_candidati_nuovi") == 1, (why, report.get("falliti"), hist))
+          and hist.get("storici_anche_candidati_nuovi") == 2, (why, report.get("falliti"), hist))
     new, rep, summ = tmp / "manifest-2", tmp / "verifica-2", tmp / "riepilogo-2.json"
     code, why = attempt(pd.cmd_manifest, args_of("manifest", "mavis", *common, *ver, "--scan", scan, "--new", new,
                                                  "--report", rep, "--summary", summ, "--version", "2",
                                                  "--evidence", a.evidence))
     result = json.loads((rep / "verifica.json").read_text()) if (rep / "verifica.json").exists() else {}
-    check("mavis, versione 2 scritta e verificata", code == 0 and result.get("esito"),
+    check("mavis, versione 2 con le regole esplicite scritta e verificata", code == 0 and result.get("esito"),
           (why, failing(result) if result else None))
     if code != 0:
         return
-    m1, m2 = mf.load(a.out), mf.load(new)
-    old = {k: rec for rows_ in m1.by_shard.values() for k, rec in rows_.items()}
-    cur = {k: rec for rows_ in m2.by_shard.values() for k, rec in rows_.items()}
+    m2 = mf.load(new)
+    cur = by_key(m2)
     s = {k: rec["stato"] for k, rec in cur.items()}
     tasks = {k: {t["compito"]: t["stato"] for t in rec["compiti"]} for k, rec in cur.items()}
-    check("mavis, stati: pixel identici escludono il gruppo; pHash e testo in quarantena; il resto invariato",
+    check("mavis, stati: pixel identici escludono il gruppo; pHash, didascalia e problema specifico in quarantena",
           s["d0-9323"] == s["d0-90001"] == "escluso" and s["d0-91006"] == s["d2-90010"] == "quarantena"
-          and s["d0-91007"] == "ammesso" and s["d0-90003"] == old["d0-90003"]["stato"] == "quarantena"
-          and all(pd.SEVERITY[cur[k]["stato"]] >= pd.SEVERITY[o["stato"]] for k, o in old.items()))
-    check("mavis, compiti: seguono il record, shape_type in quarantena anche nei record ammessi",
-          set(tasks["d0-9323"].values()) == {"escluso"} and set(tasks["d0-91006"].values()) == {"quarantena"}
-          and tasks["d0-91007"]["shape_type"] == "quarantena" and tasks["d0-91007"]["side_len"] == "ammesso"
-          and old["d0-91007"]["compiti"] == cur["d0-91007"]["compiti"])
-    ev7 = [e for e in cur["d0-91007"]["evidenze"] if e.get("controllo") == pd.CHECK]
-    check("mavis, evidenze: la corrispondenza di rito è conservata nell'evidenza, con l'n-gram, senza cambio di stato",
-          len(ev7) == 1 and ev7[0]["esito"] == "nessuna_corrispondenza" and ev7[0]["testo_di_rito"] >= 1
-          and any(x["tipo"] == "testo_di_rito" and x["ngram"] for x in ev7[0]["elementi"])
-          and m2.meta["decontaminazione"]["testo_di_rito"]["max_df_sorgente"] == TEST_SOURCE_MAX_DF, ev7)
+          and all(s[k] == "quarantena" for k in SPECIFIC_ONLY))
+    e95 = last(cur["d1-95004"])
+    check("mavis: problema specifico ripetuto in 27 record (più di 25), senza corrispondenze visive: ogni record resta "
+          "candidato, anche duplicati e varianti dello stesso gruppo, e il gruppo va in quarantena col membro senza la "
+          "domanda", all(last(cur[k])["esito"] == "candidato" for k in SPECIFIC_ONLY)
+          and s["d1-95004"] == "quarantena" and e95["esito"] == "nessuna_corrispondenza"
+          and e95["esito_gruppo"] == "candidato"
+          and set(e95["cause_nel_gruppo"]) == {"train/d1-95001", "train/d1-95002", "train/d1-95003"}, e95)
+    e0, e2, e3 = last(cur["d3-97000"]), last(cur["d0-97002"]), last(cur["d3-97003"])
+    check("mavis, enumerazione: senza effetto nella descrizione del loader (stato del candidato), candidata nella "
+          "domanda; una corrispondenza specifica accanto a quella coperta lascia il record candidato",
+          e0["esito"] == "nessuna_corrispondenza" and s["d3-97000"] == v1["d3-97000"]["stato"] and e0["testo_coperto"] == 1
+          and any(x["tipo"] == "testo_coperto" and x["regole"] == ["enumerazione_punti_loader"] for x in e0["elementi"])
+          and e2["esito"] == "candidato" and s["d0-97002"] == "quarantena" and e2["testo_coperto"] == 0
+          and e3["esito"] == "candidato" and e3["testo_coperto"] == 1 and s["d3-97003"] == "quarantena", (e0, e3))
+    check("mavis, stati precedenti conservati: quarantene del candidato (d0-90003, conflitto d0-48357 e d0-90002), "
+          "esclusioni, nessuna riammissione", s["d0-90003"] == v1["d0-90003"]["stato"] == "quarantena"
+          and s["d0-48357"] == s["d0-90002"] == "quarantena"
+          and all(pd.SEVERITY[cur[k]["stato"]] >= pd.SEVERITY[o["stato"]] for k, o in v1.items()))
+    check("mavis, compiti: seguono il record (anche nel gruppo propagato), shape_type mai ammessa",
+          set(tasks["d0-9323"].values()) == {"escluso"} and set(tasks["d1-95004"].values()) == {"quarantena"}
+          and all(t["stato"] != "ammesso" for rec in cur.values() for t in rec["compiti"] if t["compito"] == "shape_type")
+          and all(cur[k]["compiti"] == pd.task_states(v1[k]["compiti"], s[k]) for k in v1))
+    dec = m2.meta["decontaminazione"]
+    check("mavis, manifest: decisioni panel-decontam/2, regole testuali registrate, nessuna regola di frequenza",
+          dec["versione"] == pd.SCHEMA and dec["regole_testuali"] == {"regole": pd.TEXT_RULES, "sha256": pd.TEXT_RULES_SHA256}
+          and "testo_di_rito" not in dec and all(last(rec)["versione"] == pd.SCHEMA for rec in cur.values()))
     vm = [*common, "--scan", scan, "--evidence", a.evidence]
+    target = next((k for k, rec in cur.items() if rec["stato"] == "ammesso"
+                   and any(t["compito"] == "shape_type" for t in rec["compiti"])), None)
+    check("preparazione: un record ammesso con il compito shape_type da alterare", target is not None)
 
     def shape_admitted(rec):
-        if rec["record"] == "d0-91007":
+        if rec["record"] == target:
             for t in rec["compiti"]:
                 if t["compito"] == "shape_type":
                     t["stato"] = "ammesso"
@@ -687,8 +928,168 @@ def mavis_case(tmp: Path) -> None:
     check("mavis, versione alterata: shape_type ammessa è rifiutata", code == 1
           and any(c.startswith("compiti") for c in failing(res)), sorted(failing(res)))
 
+    def forged(rows_):  # descrizione della scansione diversa da quella del manifest
+        for x in rows_:
+            if x["record"] == "d3-97003":
+                x["testi_delle_regole"]["descrizione_del_loader"] += "\n"
+
+    forged_scan = rewrite_scan(scan, tmp / "scan-descrizione", forged)
+    _, why = attempt(pd.cmd_manifest, args_of("manifest", "mavis", *common, *ver, "--scan", forged_scan, "--new",
+                                              tmp / "m-fd", "--report", tmp / "r-fd", "--summary", tmp / "fd.json",
+                                              "--version", "2", "--evidence", a.evidence))
+    check("mavis, legame: una descrizione della scansione senza lo sha256 del manifest non copre nulla e ferma il "
+          "manifest", "testo: per ogni corrispondenza" in why and not (tmp / "m-fd" / "manifest.json").exists(),
+          why[:200])
+
+
+def mavis_riesame(tmp: Path, fx: dict) -> None:
+    """Riesame di un candidato-2 costruito sul fixture dal codice di OLD_COMMIT (filtro di frequenza)."""
+    old = old_module()
+    a = fx["args"]
+    common = ["--manifest", a.out, "--manifest-sha256", fx["msha"], "--index", fx["index"], "--index-sha256", fx["isha"]]
+    scan1 = tmp / "scan-v1"
+    argv = ["scan", "mavis", *common, "--out", scan1, "--workers", 2, "--mathverse", *fx["mathverse"]]
+    summary, why = attempt_any(old.cmd_scan, old.parser().parse_args([str(x) for x in argv]))
+    check(f"riesame, preparazione: scansione col codice di {OLD_COMMIT} (panel-decontam-scan/1, senza testi della regola)",
+          summary is not None and summary["schema"] == "panel-decontam-scan/1", why)
+    if summary is None:
+        return
+    v2dir = tmp / "manifest-2-v1"
+    argv = ["manifest", "mavis", *common, "--panel", fx["panel"], "--scan", scan1, "--new", v2dir, "--report",
+            tmp / "verifica-2-v1", "--summary", tmp / "riepilogo-2-v1.json", "--version", "2", "--evidence", a.evidence]
+    code, why = attempt_any(old.cmd_manifest, old.parser().parse_args([str(x) for x in argv]))
+    check(f"riesame, preparazione: candidato-2 costruito e verificato col filtro di {OLD_COMMIT}", code == 0, why)
+    if code != 0:
+        return
+    m2 = mf.load(v2dir)
+    old2 = by_key(m2)
+    s2 = {k: rec["stato"] for k, rec in old2.items()}
+    check(f"regressione: col filtro di {OLD_COMMIT} il problema ripetuto in 27 record non è candidato e i suoi record "
+          "restano ammessi (il test del problema ripetuto fallisce); l'enumerazione, in soli 3 record, è candidata",
+          all(last(old2[k])["esito"] == "nessuna_corrispondenza" for k in SPECIFIC_ONLY
+              if k not in ("d0-91006", "d3-97003"))  # pHash; enumerazione nella descrizione
+          and s2["d0-91007"] == s2["d1-95001"] == s2["d1-95004"] == "ammesso"
+          and last(old2["d3-97000"])["esito"] == "candidato" and s2["d3-97000"] == "quarantena",
+          {k: s2[k] for k in ("d0-91007", "d1-95001", "d1-95004", "d3-97000")})
+    _, why = attempt(pd.cmd_manifest, args_of("manifest", "mavis", *common, "--panel", fx["panel"], "--scan", scan1,
+                                              "--new", tmp / "m-x", "--report", tmp / "r-x", "--summary", tmp / "x.json",
+                                              "--version", "2", "--evidence", a.evidence))
+    check("riesame: una scansione panel-decontam-scan/1 non decide un manifest col codice nuovo (si riesamina)",
+          "panel-decontam-scan/2" in why and not (tmp / "m-x" / "manifest.json").exists(), why[:200])
+    v2sha = sha256_file(v2dir / "manifest.json")
+    rargs = ["--origine", a.out, "--origine-sha256", fx["msha"], "--manifest", v2dir, "--manifest-sha256", v2sha,
+             "--index", fx["index"], "--index-sha256", fx["isha"], "--panel", fx["panel"], "--scan", scan1,
+             "--evidence", a.evidence]
+    new2 = tmp / "manifest-2"  # deciso col codice nuovo: non si riesamina
+    if (new2 / "manifest.json").exists():
+        alt = [x if x not in (v2dir, v2sha, scan1) else {v2dir: new2, v2sha: sha256_file(new2 / "manifest.json"),
+                                                         scan1: tmp / "scan"}[x] for x in rargs]
+        _, why = attempt(pd.cmd_riesame, args_of("riesame", "mavis", *alt, "--out", tmp / "rs-x", "--new", tmp / "m3-x",
+                                                 "--version", "3", "--report", tmp / "r3-x", "--summary", tmp / "s3x"))
+        check("riesame: una versione già decisa con panel-decontam/2 non si riesamina", "panel-decontam/1" in why
+              and not (tmp / "m3-x" / "manifest.json").exists(), why[:200])
+    v3dir, rep3, out = tmp / "manifest-3", tmp / "verifica-3", tmp / "riesame"
+    code, why = attempt(pd.cmd_riesame, args_of("riesame", "mavis", *rargs, "--out", out, "--new", v3dir, "--version",
+                                                "3", "--report", rep3, "--summary", tmp / "riepilogo-3.json"))
+    result = json.loads((rep3 / "verifica.json").read_text()) if (rep3 / "verifica.json").exists() else {}
+    check("riesame: versione 3 scritta e verificata (genitore con la sua regola storica e candidato iniziale, catena, "
+          "decisioni ricalcolate)", code == 0 and result.get("esito"), (why, failing(result) if result else None))
+    if code != 0:
+        return
+    m3 = mf.load(v3dir)
+    cur = by_key(m3)
+    s3 = {k: rec["stato"] for k, rec in cur.items()}
+    rs = json.loads((out / "summary.json").read_text())
+    with_text = sum(any(d["tipo"] == "testo" for d in r_["dettagli"]) for r_ in scan_rows(scan1).values())
+    check("riesame: letti solo i JSON dei record con corrispondenze testuali, saltando le immagini",
+          rs["letture"]["json_letti"] == rs["conteggi"]["record"]["con_corrispondenze_testuali"] == with_text
+          and rs["letture"]["byte_letti"] < rs["letture"]["byte_degli_shard_aperti"], rs["letture"])
+    check("riesame: il problema ripetuto, che candidato-2 ignorava per frequenza, è candidato; i record ammessi e il "
+          "loro gruppo vanno in quarantena (lo stesso test, che falliva col filtro precedente, passa)",
+          all(last(cur[k])["esito"] == "candidato" for k in SPECIFIC_ONLY)
+          and all(s3[k] == "quarantena" for k in SPECIFIC_ONLY) and s3["d1-95004"] == "quarantena")
+    e0 = last(cur["d3-97000"])
+    check("riesame: nessuna riammissione; d3-97000 (enumerazione coperta, prima candidato) resta in quarantena col motivo "
+          "della transizione meno grave; esclusioni conservate", e0["esito"] == "nessuna_corrispondenza"
+          and e0["esito_precedente"] == "candidato" and s3["d3-97000"] == "quarantena"
+          and cur["d3-97000"]["motivo"][-1] == pd.REASON_RIESAME["meno_grave"]
+          and "train/d3-97000" in rs["stati_mantenuti_dalla_sola_decisione_precedente"]
+          and s3["d0-9323"] == s3["d0-90001"] == "escluso"
+          and all(pd.SEVERITY[cur[k]["stato"]] >= pd.SEVERITY[o["stato"]] for k, o in old2.items()), e0)
+    check("riesame: evidenze e motivi del genitore conservati; un motivo nuovo solo dove l'esito del gruppo cambia, anche "
+          "senza cambio di stato (d0-48357, già in quarantena)",
+          all(cur[k]["evidenze"][:len(o["evidenze"])] == o["evidenze"] and cur[k]["motivo"][:len(o["motivo"])] == o["motivo"]
+              for k, o in old2.items())
+          and cur["d0-48357"]["motivo"][-1] == pd.REASON_RIESAME["piu_grave"] and s3["d0-48357"] == "quarantena"
+          and cur["d0-91006"]["motivo"] == old2["d0-91006"]["motivo"])
+    check("riesame: stessi gruppi e split del genitore; compiti dal nuovo stato, shape_type mai ammessa",
+          all((cur[k]["gruppo"], cur[k]["split"]) == (o["gruppo"], o["split"]) for k, o in old2.items())
+          and all(cur[k]["compiti"] == pd.task_states(o["compiti"], s3[k]) for k, o in old2.items())
+          and all(t["stato"] != "ammesso" for rec in cur.values() for t in rec["compiti"] if t["compito"] == "shape_type"))
+    changes = {c["record"]: c for c in rs["cambi"]}
+    expected = {k for k, o in old2.items() if (last(o)["esito"], last(o)["esito_gruppo"], o["stato"])
+                != (last(cur[k])["esito"], last(cur[k])["esito_gruppo"], cur[k]["stato"])}
+    check("riesame: elenco completo dei cambi, con la causa e la decisione precedente accanto",
+          set(changes) == expected and changes["d1-95004"]["causa"].startswith("esito del gruppo")
+          and changes["d0-91007"]["causa"].startswith("esito proprio")
+          and changes["d0-91007"]["corrispondenze_cambiate"][0]["prima"] == "ignorata_per_frequenza"
+          and changes["d0-91007"]["stato"] == ["ammesso", "quarantena"], sorted(set(changes) ^ expected))
+    row_ = next((x for x in rs["ngram"] if x["ngram"] == SPECIFIC_GRAMS[0]), {})
+    case = next((c for c in rs["casi_testuali_informativi"] if c["elemento"] == "mathvision/test:753"), {})
+    check("riesame: frequenze solo per ordinare (27 record, 24 gruppi, 23 testi distinti) e casi coi contesti",
+          (row_.get("record"), row_.get("gruppi"), row_.get("testi_distinti")) == (27, 24, 23)
+          and row_.get("ignorato_dalla_regola_precedente") is True and case.get("record") == 27
+          and all(x["parole_comuni_consecutive"] == 25 for x in case.get("casi") or [{}])
+          and rs["elementi_dei_casi"]["mathvision/test:753"]["testi"][0].startswith("Two equal squares"),
+          (row_, {k: v for k, v in case.items() if k != "casi"}))
+    check("riesame: parentela documentata (candidato iniziale, candidato-2, versione 3) e regola precedente citata",
+          [c["percorso"] for c in m3.meta["catena_delle_versioni"]] == [pd.rel(a.out), pd.rel(v2dir), pd.rel(v3dir)]
+          and m3.meta["split"]["ereditato_da"]["manifest_sha256"] == m2.manifest_sha256
+          and m3.meta["decontaminazione"]["decisione_precedente"]["regola"] == m2.meta["decontaminazione"]["testo_di_rito"])
+    # ---- verifiche che devono rifiutare
+    _, why = attempt(pd.cmd_verifica_manifest, args_of("verifica-manifest", "mavis", "--manifest", v2dir,
+                                                        "--manifest-sha256", v2sha, "--scan", scan1, "--evidence",
+                                                        a.evidence, "--new", v3dir, "--report", tmp / "vm-catena"))
+    res = json.loads((tmp / "vm-catena/verifica.json").read_text())
+    check("riesame: il verificatore della costruzione non si applica a un genitore derivato (stati della "
+          "decontaminazione): verifica-manifest rifiuta e rimanda alla catena",
+          not res["esito"] and any(c.startswith("genitore: candidato iniziale") for c in failing(res)), sorted(failing(res)))
+    vr = [*rargs, "--riesame", out]
+
+    def readmit(rec):  # d3-97000: quarantena del genitore che il riesame non toglie; d0-91008: quarantena nuova
+        if rec["record"] in ("d3-97000", "d0-91008"):
+            rec["stato"] = "ammesso"
+
+    bad = altered_manifest(v3dir, tmp / "m3-riammesso", "mavis", readmit)
+    code, _ = attempt(pd.cmd_verifica_riesame, args_of("verifica-riesame", "mavis", *vr, "--new", bad, "--report",
+                                                       tmp / "vr-1"))
+    res = json.loads((tmp / "vr-1/verifica.json").read_text())
+    wrong = next((c["dettaglio"] for c in res["controlli"] if "il più grave" in c["controllo"]), {})
+    check("riesame, versione alterata: la quarantena del genitore riammessa e quella nuova tolta sono rifiutate (stato, "
+          "nessuna riammissione, elenco dei cambi)", code == 1 and wrong.get("casi") == 2
+          and any(c.startswith("nessuna riammissione") for c in failing(res))
+          and any("elenco dei cambi" in c for c in failing(res)), sorted(failing(res)))
+    out_bad, v3_bad = tmp / "riesame-alterato", tmp / "m3-descrizione"
+    shutil.copytree(out, out_bad)
+    lines = [json.loads(x) for x in gzip.decompress((out_bad / "decisioni.jsonl.gz").read_bytes()).decode().splitlines()]
+    for x in lines:
+        if x["record"] == "d3-97000":
+            x["descrizione_del_loader"] = x["descrizione_del_loader"].replace("Points: ", "Points: A, ") + " "
+    (out_bad / "decisioni.jsonl.gz").unlink()
+    dsha, _ = um.write_records_gz(out_bad / "decisioni.jsonl.gz", (json.dumps(x, sort_keys=True) for x in lines))
+    shutil.copytree(v3dir, v3_bad)
+    meta = json.loads((v3_bad / "manifest.json").read_text())
+    meta["decontaminazione"]["riesame"]["decisioni"]["sha256"] = dsha
+    (v3_bad / "manifest.json").write_text(json.dumps(meta, indent=1, ensure_ascii=False))
+    code, _ = attempt(pd.cmd_verifica_riesame, args_of("verifica-riesame", "mavis", *rargs, "--riesame", out_bad,
+                                                       "--new", v3_bad, "--report", tmp / "vr-2"))
+    res = json.loads((tmp / "vr-2/verifica.json").read_text())
+    check("riesame, descrizione alterata: senza lo sha256 del manifest non copre nulla e la versione è rifiutata",
+          code == 1 and any(c.startswith("testo: una descrizione del riesame") for c in failing(res)), sorted(failing(res)))
+
 
 def main() -> None:
+    test_rules()
     test_decisions()
     for test in (test_unimer, test_mavis):
         with tempfile.TemporaryDirectory(prefix="panel_decontam_") as tmp:

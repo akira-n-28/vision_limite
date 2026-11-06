@@ -25,9 +25,12 @@ Controlli per sorgente (ogni campione contro tutte le voci dell'indice, in ogni 
 - mavis: pixel e pHash dell'originale `<cartella>/<n>_caption.jpg` e del PNG dello shard; 10-gram dei testi di
   text_en (caption, diagram_generation, text_dominant_question, text_lite_question, vision_dominant_question,
   CoT_reasoning) e dei testi costruiti dal loader (descrizione canonica e domande di f1_mavis) contro i testi
-  dell'indice. text_zh, text.jpg e vision_dominant.jpg non sono negli shard e non si confrontano. Un 10-gram presente
-  in più di 25 record diversi della sorgente è una frase a modello del generatore (SOURCE_MAX_DF: la soglia di rito
-  dell'indice applicata alla sorgente, dopo la prova del job 30647): la corrispondenza resta registrata, senza effetto.
+  dell'indice. text_zh, text.jpg e vision_dominant.jpg non sono negli shard e non si confrontano. La frequenza di un
+  10-gram nella sorgente non decide nulla (serve solo a ordinare i casi): una corrispondenza testuale si ignora solo se
+  tutti i suoi 10-gram sono coperti da una regola esplicita di TEXT_RULES, ristretta al suo campo e verificata sul
+  testo del record. Oggi c'è una sola regola: l'enumerazione delle etichette dei punti nella riga `Points:` della
+  descrizione canonica del loader. La regola di panel-decontam/1 (10-gram in più di 25 record ignorati in ogni campo,
+  job 30652) è abolita: `riesame` ricalcola le decisioni di una scansione già fatta e ne scrive la versione nuova.
 
 Esiti per record: `corrispondenza_confermata` (pixel identici, in una delle immagini), `candidato` (pHash, testo o
 formula lunga uguale: somiglianze da verificare, non prove), `non_verificabile` (un controllo richiesto non eseguito:
@@ -47,7 +50,14 @@ Comandi:
   manifest          la verifica completa, poi la versione nuova del manifest (--new, scritta una volta) e la sua verifica.
   verifica-manifest rilegge una versione derivata: il genitore con la sua verifica (unimer_manifest.verify o
                     mavis_manifest.verify, evidenze obbligatorie vincolate) e le transizioni dovute alla
-                    decontaminazione, ricalcolate dalla scansione.
+                    decontaminazione, ricalcolate dalla scansione (per candidato-2 con la sua regola storica).
+  riesame           MAVIS: decisioni testuali ricalcolate con TEXT_RULES su una scansione già fatta, senza rileggere
+                    immagini: legge soltanto i JSON degli shard dei record con corrispondenze testuali (descrizione del
+                    loader legata al manifest dal suo sha256, testi di contesto), scrive --out (regole, decisioni per
+                    record e riepilogo, con la decisione precedente accanto alla nuova), la versione nuova del manifest
+                    derivata dal precedente (--precedente) e la sua verifica (verifica-riesame).
+  verifica-riesame  rilegge la versione del riesame: genitore e nonno con le loro verifiche, decisioni ricalcolate dalla
+                    scansione e dalle descrizioni del riesame, transizioni, compiti, nessuna riammissione.
 
     srun $RUN_PYTHON -u -B scripts/panel_decontam.py scan unimer|mavis --manifest DIR --manifest-sha256 HEX \\
         --index DIR --index-sha256 HEX --out DIR [--limit N] [--workers N]
@@ -55,10 +65,14 @@ Comandi:
         --index DIR --index-sha256 HEX --panel DIR --scan DIR --report DIR [--partial] [--overlap DIR] [--historical DIR]
     srun $RUN_PYTHON -u -B scripts/panel_decontam.py manifest ... --new DIR --version 2 --summary FILE \\
         (--check DIR --overlap DIR | --evidence DIR)
+    srun $RUN_PYTHON -u -B scripts/panel_decontam.py riesame mavis --origine DIR --origine-sha256 HEX \\
+        --manifest DIR --manifest-sha256 HEX --index DIR --index-sha256 HEX --panel DIR --scan DIR --evidence DIR \\
+        --out DIR --new DIR --version 3 --report DIR --summary FILE
 """
 from __future__ import annotations
 
 import argparse
+import difflib
 import gc
 import gzip
 import hashlib
@@ -96,14 +110,31 @@ from limite_vl.provenance import code_identity, file_entry, sha256_file, write_n
 Image.MAX_IMAGE_PIXELS = None  # diagrammi di MAVIS fino a ~12k px di lato, file del dataset verificati
 
 CHECK = sd.CHECK  # "decontaminazione_pannello", come per i sintetici v4
-SCHEMA = "panel-decontam/1"
-SCAN_SCHEMA = "panel-decontam-scan/1"
+SCHEMA = "panel-decontam/2"  # /2: decisioni testuali con regole esplicite, senza la frequenza nella sorgente
+OLD_SCHEMA = "panel-decontam/1"  # candidato-2 (job 30652): 10-gram in più di 25 record ignorati in ogni campo
+OLD_MAX_DF = 25  # soglia della regola storica, solo per riverificare candidato-2: non decide più nulla
+SCAN_SCHEMA = "panel-decontam-scan/2"
 SEVERITY, OUTCOMES, GROUP_STATE = sd.SEVERITY, sd.OUTCOMES, sd.GROUP_STATE
 RADIUS, NGRAM, MAX_DF = 4, 10, 25  # valori documentati di decontam.py scan (PANNELLO_VALUTAZIONE §§3.1, 6.2)
-# la stessa soglia di rito dal lato della sorgente: un 10-gram in più di 25 record diversi è una frase a modello del
-# generatore (prova limitata del job 30647: 1.705 record di MAVIS su 16.500 legati per un 10-gram a un solo problema
-# di AIME 2025). Le sue corrispondenze restano registrate, senza effetto sullo stato
-SOURCE_MAX_DF = MAX_DF
+# Regole esplicite per le corrispondenze testuali non informative: ristrette a un campo, motivate dal contenuto e
+# verificate sul testo del record. Un 10-gram coperto non conta; ogni altro 10-gram della corrispondenza sì.
+TEXT_RULES = {
+    "enumerazione_punti_loader": {
+        "versione": 1,
+        "campo": "descrizione_del_loader",
+        "condizione": "il 10-gram è una sequenza contigua di 10 etichette della riga `Points:` della descrizione "
+                      "canonica del record (f1_schema.render_geometry: prima riga `Figure: geometry diagram.`, seconda "
+                      "`Points: ` seguito dalle etichette ordinate dei punti della verità, ciascuna una sola lettera "
+                      "maiuscola, separate da virgole). La descrizione è ricalcolata dal JSON del record e legata al "
+                      "manifest dal suo sha256 (descrizione_sha256)",
+        "motivo": "la riga è scritta dal loader e contiene solo le lettere dei punti in ordine alfabetico, nulla del "
+                  "problema; una sequenza di lettere in comune con un benchmark (le dodici lettere A-L del problema 6 "
+                  "di AIME 2025 I) non indica contaminazione",
+        "non_si_applica": "agli altri campi: la stessa sequenza in una didascalia, una domanda, un CoT o una domanda "
+                          "del loader resta un candidato"},
+}
+TEXT_RULES_SHA256 = mf.sha256_text(mf.canonical(TEXT_RULES))
+FREQUENT = 30  # 10-gram più frequenti riportati per ordinare i casi da esaminare
 LONG = um.LONG  # 20 token visibili: soglia di run2 per le formule lunghe
 MAX_EVIDENCE = 10  # corrispondenze riportate nell'evidenza di un record; l'elenco completo sta nella scansione
 BATCH = {"unimer": 2048, "mavis": 192}  # campioni per blocco del pool: immagini piccole o grandi
@@ -139,14 +170,15 @@ RULES = {
     "candidato_unimer": "formula visibile (latex.effective_label, visible_tokens) uguale a una di UniMER-Test o di "
                         "OCRBench, con più di 20 token visibili (soglia di run2). Il pHash delle formule non si usa",
     "candidato_mavis": "pHash entro 4 bit dell'originale o del PNG dello shard, oppure un 10-gram di normalize_words "
-                       "in comune fra un testo del record e un testo dell'indice (senza gli n-gram di rito, in più di "
-                       "25 testi diversi). Una somiglianza non dimostra contaminazione",
+                       "in comune fra un testo del record e un testo dell'indice (dal lato dell'indice senza gli n-gram "
+                       "in più di 25 testi diversi del pannello) che non sia coperto da una regola esplicita del suo "
+                       "campo. Una somiglianza non dimostra contaminazione",
     "evidenza_senza_effetto": "formula visibile uguale con al più 20 token visibili: registrata, stato invariato (una "
                               "formula breve o comune non identifica un problema; run2 e S1 §5)",
-    "testo_di_rito": "10-gram presente in più di 25 record diversi della sorgente: frase a modello del generatore, "
-                     "registrata senza effetto sullo stato. È la regola di rito dell'indice (n-gram in più di 25 testi "
-                     "diversi del pannello) applicata anche alla sorgente, introdotta dopo la prova limitata del job "
-                     "30647 (1.705 record su 16.500 legati per un 10-gram a un solo problema di AIME 2025)",
+    "testo_coperto": "corrispondenza testuale i cui 10-gram sono tutti coperti da una regola esplicita di TEXT_RULES "
+                     "(oggi solo enumerazione_punti_loader, nel solo campo descrizione_del_loader, verificata sul testo "
+                     "del record): registrata, stato invariato. Basta un 10-gram non coperto, o un'altra corrispondenza "
+                     "del record, perché il record resti candidato. La frequenza nella sorgente non decide",
     "non_verificabile": "un controllo richiesto non eseguito: immagine assente o illeggibile, formula vuota, testi della "
                         "verità mancanti",
     "nessuna_corrispondenza": "nessuna corrispondenza nei controlli eseguiti; non certifica la risposta né l'assenza di "
@@ -370,24 +402,116 @@ def text_hits(text: str) -> list[tuple[int, list[str]]]:
     return sorted(hits.items())
 
 
-def source_ngrams(rows) -> Counter:
-    """Per ogni 10-gram in comune col pannello, il numero di record diversi della sorgente che lo contengono."""
+# ---------------------------------------------------------------- regole esplicite per le corrispondenze testuali
+
+DESCRIPTION_HEAD, POINTS_PREFIX = "Figure: geometry diagram.", "Points: "  # f1_schema.render_geometry
+RULE_FIELDS = frozenset(r["campo"] for r in TEXT_RULES.values())
+
+
+def points_span(description: str) -> tuple[list[str], int, int] | None:
+    """Parole normalizzate della descrizione canonica e intervallo [inizio, fine) delle etichette della sua riga
+    `Points:`, se la descrizione ha il formato di f1_schema.render_geometry (prima riga fissa; seconda riga `Points: `,
+    etichette ordinate, distinte, ciascuna una sola lettera maiuscola, separate da `, `, punto finale). None se il
+    formato è un altro: la regola non si applica e le corrispondenze restano candidati."""
+    lines = description.split("\n")
+    if len(lines) < 2 or lines[0] != DESCRIPTION_HEAD or not lines[1].startswith(POINTS_PREFIX) \
+            or not lines[1].endswith("."):
+        return None
+    labels = lines[1][len(POINTS_PREFIX):-1].split(", ")
+    if any(not re.fullmatch(r"[A-Z]", x) for x in labels) or labels != sorted(set(labels)):
+        return None
+    words = normalize_words(description)
+    start = len(normalize_words(DESCRIPTION_HEAD + "\n" + POINTS_PREFIX))
+    end = start + len(labels)
+    if words[start:end] != [x.lower() for x in labels]:
+        return None
+    return words, start, end
+
+
+def rule_coverage(field: str, text) -> dict[str, str]:
+    """{10-gram: regola} dei 10-gram di un testo coperti da TEXT_RULES nel suo campo. enumerazione_punti_loader: nella
+    descrizione del loader, un 10-gram è coperto se ogni sua occorrenza fra le parole normalizzate cade dentro le
+    etichette della riga `Points:`. In ogni altro campo nessun 10-gram è coperto."""
+    if field != TEXT_RULES["enumerazione_punti_loader"]["campo"] or not isinstance(text, str):
+        return {}
+    span = points_span(text)
+    if span is None:
+        return {}
+    words, start, end = span
+    where: dict[tuple, list[int]] = defaultdict(list)
+    for i in range(len(words) - NGRAM + 1):
+        where[tuple(words[i:i + NGRAM])].append(i)
+    return {" ".join(g): "enumerazione_punti_loader" for g, pos in where.items()
+            if all(start <= i and i + NGRAM <= end for i in pos)}
+
+
+def coverage_of(texts: dict[str, str] | None) -> dict[str, dict[str, str]]:
+    """{campo: {10-gram: regola}} dai testi dei campi con una regola (la descrizione del loader di un record)."""
+    return {f: c for f, t in (texts or {}).items() if f in RULE_FIELDS and (c := rule_coverage(f, t))}
+
+
+def informative(d: dict, coverage: dict | None = None) -> bool:
+    """Una corrispondenza testuale conta come candidato se almeno uno dei suoi 10-gram non è coperto da una regola
+    esplicita del suo campo. La frequenza del 10-gram nella sorgente non conta."""
+    if d["tipo"] != "testo":
+        return True
+    covered = (coverage or {}).get(d["campo"]) or {}
+    return any(g not in covered for g in d.get("ngram_tutti") or [d.get("ngram")])
+
+
+RULE_BINDING = {"descrizione_del_loader": "descrizione_sha256"}  # campo -> sha256 del suo testo nel record del manifest
+
+
+def bind_rule_texts(rows: dict, records: dict, texts: dict | None = None) -> tuple[dict, list[str]]:
+    """Coperture per record dalle corrispondenze testuali che cadono in un campo con una regola. Il testo del campo
+    (dalla riga della scansione panel-decontam-scan/2, oppure da `texts` nel riesame di una scansione /1) deve esserci,
+    avere lo sha256 registrato nel record del manifest (RULE_BINDING) e contenere ogni 10-gram delle corrispondenze del
+    campo. Restituisce {identità: {campo: {10-gram: regola}}} e i problemi; un testo non legato non copre nulla."""
+    coverage, problems = {}, []
+    for i, row in rows.items():
+        details = [d for d in row.get("dettagli") or [] if d["tipo"] == "testo" and d["campo"] in RULE_FIELDS]
+        if not details:
+            continue
+        given = (texts.get(i) if texts is not None else row.get("testi_delle_regole")) or {}
+        bound = {}
+        for f in sorted({d["campo"] for d in details}):
+            t, digest = given.get(f), (records.get(i) or {}).get(RULE_BINDING.get(f, ""))
+            if not isinstance(t, str):
+                problems.append(f"{label_of(i)}: testo di {f} mancante")
+            elif digest is None or mf.sha256_text(t) != digest:
+                problems.append(f"{label_of(i)}: {f} senza lo sha256 registrato nel manifest ({RULE_BINDING.get(f)})")
+            else:
+                grams = {" ".join(g) for g in word_ngrams(normalize_words(t), NGRAM)}
+                absent = [g for d in details if d["campo"] == f for g in d["ngram_tutti"] if g not in grams]
+                if absent:
+                    problems.append(f"{label_of(i)}: 10-gram della corrispondenza assenti da {f}: {absent[:2]}")
+                else:
+                    bound[f] = t
+        if cov := coverage_of(bound):
+            coverage[i] = cov
+    return coverage, problems
+
+
+def covered_rules(d: dict, coverage: dict | None) -> list[str]:
+    covered = (coverage or {}).get(d.get("campo")) or {}
+    return sorted({covered[g] for g in d.get("ngram_tutti") or [] if g in covered})
+
+
+def frequency_rule_v1(rows) -> frozenset:
+    """SOLO STORICO: la regola abolita di panel-decontam/1 (candidato-2, job 30652), che ignorava in ogni campo i 10-gram
+    in comune presenti in più di OLD_MAX_DF record della sorgente. Serve soltanto a riverificare le decisioni di
+    candidato-2; non decide nulla di nuovo."""
     df: Counter = Counter()
     for row in rows:
         df.update(set(row.get("ngram_in_comune") or ()))
-    return df
+    return frozenset(g for g, n in df.items() if n > OLD_MAX_DF)
 
 
-def rito_of(df: Counter) -> frozenset:
-    """10-gram di rito della sorgente: in più di SOURCE_MAX_DF record diversi. È la regola di rito del pannello (n-gram in
-    più di 25 testi diversi dell'indice: formule di rito, non indizi di un problema preciso) applicata anche al lato
-    della sorgente, dove le frasi a modello del generatore si ripetono in migliaia di record."""
-    return frozenset(g for g, n in df.items() if n > SOURCE_MAX_DF)
-
-
-def informative(d: dict, rito: frozenset) -> bool:
-    """Una corrispondenza testuale conta come candidato solo con almeno un 10-gram che non è di rito della sorgente."""
-    return d["tipo"] != "testo" or any(g not in rito for g in d.get("ngram_tutti") or [d.get("ngram")])
+def frequency_coverage_v1(row: dict, frequent: frozenset) -> dict[str, dict[str, str]]:
+    """SOLO STORICO: la regola di panel-decontam/1 nella forma di una copertura: ogni 10-gram frequente, in ogni campo
+    della riga (la regola non guardava il campo)."""
+    fields = {d["campo"] for d in row.get("dettagli") or [] if d["tipo"] == "testo"}
+    return {f: dict.fromkeys(frequent, "frequenza_v1") for f in fields}
 
 
 def examine(task: tuple) -> dict:
@@ -453,6 +577,9 @@ def examine(task: tuple) -> dict:
                       for j, gs in text_hits(text)]
         row["testi"] = stats
         row["ngram_in_comune"] = sorted({g for d in found if d["tipo"] == "testo" for g in d["ngram_tutti"]})
+        # i testi dei campi con una regola esplicita, se vi cade una corrispondenza: la decisione li rilegge
+        matched = {d["campo"] for d in found if d["tipo"] == "testo"} & RULE_FIELDS
+        row["testi_delle_regole"] = {f: t for f, t in texts if f in matched and isinstance(t, str)}
         checks["testo"] = bool(caption and generation)
     else:
         formulas = [("etichetta", meta.get("label"))] if insieme == "train" else \
@@ -488,14 +615,14 @@ def examine(task: tuple) -> dict:
     return row
 
 
-def record_outcome(row: dict, source: str, rito: frozenset = frozenset()) -> str:
-    """Esito della decontaminazione di un record dalla sua riga della scansione; `rito`: i 10-gram di rito della
-    sorgente, le cui corrispondenze restano evidenze senza effetto."""
+def record_outcome(row: dict, source: str, coverage: dict | None = None) -> str:
+    """Esito della decontaminazione di un record dalla sua riga della scansione; `coverage`: {campo: {10-gram: regola}}
+    dei 10-gram coperti da una regola esplicita (coverage_of), le cui corrispondenze restano evidenze senza effetto."""
     found = row.get("corrispondenze") or {}
     if found.get("pixel"):
         return "corrispondenza_confermata"
     if found.get("phash") or found.get("formula_lunga") or any(
-            d["tipo"] == "testo" and informative(d, rito) for d in row.get("dettagli") or []):
+            d["tipo"] == "testo" and informative(d, coverage) for d in row.get("dettagli") or []):
         return "candidato"
     checks = row.get("controlli") or {}
     if row.get("problemi") or not all(checks.get(c) for c in REQUIRED[(source, row["insieme"])]):
@@ -613,10 +740,12 @@ def cmd_scan(args) -> dict:
              "corrispondenze_per_benchmark_tipo": Counter(), "record_con_corrispondenze_per_benchmark_tipo": Counter(),
              "problemi": Counter(), "testi_per_campo": defaultdict(Counter), "formule": Counter()}
     examples: dict[str, list] = defaultdict(list)
-    compact: list[dict] = []  # MAVIS: righe ridotte per gli esiti, che dipendono dagli n-gram di rito della sorgente
+    # MAVIS: frequenze dei 10-gram in comune, solo per ordinare i casi da esaminare (non decidono nulla)
     df: Counter = Counter()
     ngram_elements: dict[str, set] = defaultdict(set)
     ngram_fields: dict[str, Counter] = defaultdict(Counter)
+    ngram_covered: dict[str, Counter] = defaultdict(Counter)
+    only_covered = [0]  # record con corrispondenze testuali tutte coperte da una regola
     shards_out = []
     raw_records = gzip.GzipFile(args.out / "records.jsonl.gz", "wb", mtime=0)
     writer = io.TextIOWrapper(raw_records, encoding="utf-8")
@@ -625,17 +754,19 @@ def cmd_scan(args) -> dict:
         for row in results:
             writer.write(json.dumps(row, sort_keys=True, ensure_ascii=False, separators=(",", ":")) + "\n")
             stats["righe"][row["insieme"]] += 1
+            coverage = coverage_of(row.get("testi_delle_regole"))
             if args.source == "mavis":
                 texts = [d for d in row["dettagli"] if d["tipo"] == "testo"]
-                compact.append({k: row[k] for k in ("insieme", "corrispondenze", "controlli", "problemi")}
-                               | {"dettagli": texts})
                 df.update(set(row["ngram_in_comune"]))
                 for d in texts:
+                    cov = (coverage.get(d["campo"]) or {})
                     for g in d["ngram_tutti"]:
                         ngram_elements[g].add(d["elemento"])
                         ngram_fields[g][d["campo"]] += 1
-            else:
-                stats["esiti_propri"][f"{row['insieme']}/{record_outcome(row, args.source)}"] += 1
+                        ngram_covered[g][cov.get(g, "non_coperta")] += 1
+                if texts and not any(informative(d, coverage) for d in texts):
+                    only_covered[0] += 1
+            stats["esiti_propri"][f"{row['insieme']}/{record_outcome(row, args.source, coverage)}"] += 1
             for c, v in row["controlli"].items():
                 stats["controlli_eseguiti" if v else "controlli_non_eseguiti"][f"{row['insieme']}/{c}"] += 1
             stats["lettura_originale"][row["originale"]["lettura"]] += 1
@@ -711,23 +842,19 @@ def cmd_scan(args) -> dict:
     zinfo["membri_con_immagine"] = len(members)
     texts_summary = None
     if args.source == "mavis":
-        rito = rito_of(df)
-        for r in compact:
-            stats["esiti_propri"][f"{r['insieme']}/{record_outcome(r, args.source, rito)}"] += 1
-
         def ngram_row(g: str) -> dict:
             return {"ngram": g, "record": df[g], "elementi": sorted(ngram_elements[g])[:5],
-                    "elementi_totali": len(ngram_elements[g]), "campi": dict(ngram_fields[g].most_common())}
+                    "elementi_totali": len(ngram_elements[g]), "campi": dict(ngram_fields[g].most_common()),
+                    "corrispondenze_per_regola": dict(ngram_covered[g].most_common())}
 
         texts_summary = {
-            "max_df_sorgente": SOURCE_MAX_DF, "ngram_in_comune_distinti": len(df),
-            "ngram_di_rito_della_sorgente": [ngram_row(g) for g, _ in df.most_common() if g in rito],
-            "altri_ngram_piu_frequenti": [ngram_row(g) for g, _ in df.most_common() if g not in rito][:30],
-            "record_con_soli_ngram_di_rito": sum(1 for r in compact if r["dettagli"]
-                                                 and not any(informative(d, rito) for d in r["dettagli"])),
-            "regola": "10-gram in più di max_df_sorgente record diversi della sorgente: frasi a modello del generatore, "
-                      "corrispondenze registrate senza effetto (la soglia di rito dell'indice applicata alla sorgente)"}
-        del compact
+            "regole_testuali": TEXT_RULES, "regole_testuali_sha256": TEXT_RULES_SHA256,
+            "ngram_in_comune_distinti": len(df),
+            "ngram_piu_frequenti": [ngram_row(g) for g, _ in df.most_common(FREQUENT)],
+            "record_con_sole_corrispondenze_testuali_coperte": only_covered[0],
+            "nota": "la frequenza (record per 10-gram) serve solo a ordinare i casi da esaminare e non decide nulla: una "
+                    "corrispondenza è senza effetto solo se tutti i suoi 10-gram sono coperti da una regola esplicita "
+                    "del suo campo"}
     records_file = file_entry(args.out / "records.jsonl.gz")
     summary = {
         "schema": SCAN_SCHEMA, "sorgente": args.source, "job_id": os.environ.get("SLURM_JOB_ID"),
@@ -893,23 +1020,25 @@ def load_and_bind(args, partial: bool, checks: list[dict]) -> dict:
     unknown = Counter(d.get("benchmark") for row in scan.values() for d in row["dettagli"]
                       if d.get("elemento") not in elements)
     check("corrispondenze: ogni elemento citato esiste nel pannello", not unknown, dict(unknown))
-    rito = frozenset()
+    coverage = {}
     if args.source == "mavis":
-        rito = rito_of(source_ngrams(scan.values()))
-        declared = (scan_summary.get("testi_in_comune") or {})
-        check(f"testo: 10-gram di rito della sorgente (in più di {SOURCE_MAX_DF} record) ricalcolati dalle righe, uguali "
-              "a quelli della scansione", {x["ngram"] for x in declared.get("ngram_di_rito_della_sorgente") or []}
-              == set(rito) and declared.get("max_df_sorgente") == SOURCE_MAX_DF, len(rito))
+        check("scansione: schema panel-decontam-scan/2, coi testi dei campi con una regola esplicita (una scansione "
+              "/1 di MAVIS si ridecide con `riesame`)", scan_summary.get("schema") == SCAN_SCHEMA,
+              scan_summary.get("schema"))
+        coverage, bad = bind_rule_texts(scan, {ident(r): r for r in records})
+        check("testo: per ogni corrispondenza in un campo con una regola, il testo del campo è nella scansione, ha lo "
+              "sha256 del manifest e contiene i 10-gram della corrispondenza", not bad, {"casi": len(bad),
+                                                                                      "esempi": bad[:3]})
     n_items = len(items)
     del loaded, items
     inp = {"index_sha": isha, "index_voci": n_items, "convention": convention, "verifica": verifica,
            "panel_summary": panel_summary, "elements": elements, "perimeter": perimeter, "manifest": m,
            "records": records, "base": base, "scan_summary": scan_summary, "scan": scan, "scan_sha": scan_sha,
-           "check": check, "partial": partial, "rito": rito}
+           "check": check, "partial": partial, "coverage": coverage}
     if args.source == "unimer":
         reconcile_run2(args, inp, check)
     else:
-        inp["storiche"] = historical(args, scan, rito)
+        inp["storiche"] = historical(args, scan, coverage)
     return inp
 
 
@@ -975,11 +1104,12 @@ def reconcile_run2(args, inp: dict, check) -> None:
           "(riportato, non bloccante)", True, {"ritrovate": image_found, "non_ritrovate": len(image_missing)})
 
 
-def historical(args, scan: dict, rito: frozenset) -> list[dict]:
+def historical(args, scan: dict, coverage: dict) -> list[dict]:
     """MAVIS: candidati storici (data/decontam/p6/mavis e f1eval/mavis, convenzione grigio-diretto/0 sugli shard): solo
     un confronto diagnostico coi candidati nuovi. Le liste finali sono vuote e non si importano."""
     out = []
-    new = {k for (_, k), row in scan.items() if record_outcome(row, args.source, rito) != "nessuna_corrispondenza"}
+    new = {k for (s, k), row in scan.items()
+           if record_outcome(row, args.source, coverage.get((s, k))) != "nessuna_corrispondenza"}
     for folder in args.historical or []:
         folder = Path(folder)
         if not (folder / "exclude.txt").is_file() or not (folder / "exclude_final.txt").is_file():
@@ -996,20 +1126,20 @@ def historical(args, scan: dict, rito: frozenset) -> list[dict]:
 
 def binding_report(inp: dict, args) -> dict:
     """Conteggi della verifica: esiti propri e di gruppo, corrispondenze per benchmark, ruolo e tipo."""
-    scan, elements, rito = inp["scan"], inp["elements"], inp["rito"]
-    outcomes = {i: record_outcome(row, args.source, rito) for i, row in scan.items()}
+    scan, elements, coverage = inp["scan"], inp["elements"], inp["coverage"]
+    outcomes = {i: record_outcome(row, args.source, coverage.get(i)) for i, row in scan.items()}
     recs = [r for r in inp["records"] if ident(r) in scan]
     decisions = decide(recs, outcomes)
     per_bench, records_per_bench, by_kind = Counter(), Counter(), Counter()
     details_by_kind = Counter()
-    only_rito = 0
+    only_covered = 0
     for i, row in scan.items():
         seen = set()
         texts = [d for d in row["dettagli"] if d["tipo"] == "testo"]
-        only_rito += bool(texts) and not any(informative(d, rito) for d in texts)
+        only_covered += bool(texts) and not any(informative(d, coverage.get(i)) for d in texts)
         for d in row["dettagli"]:
             e = elements.get(d["elemento"])
-            kind = d["tipo"] if informative(d, rito) else "testo_di_rito"
+            kind = d["tipo"] if informative(d, coverage.get(i)) else "testo_coperto"
             k = f"{d['benchmark']}/{role_of(e)}/{kind}"
             per_bench[k] += 1
             seen.add(f"{d['benchmark']}/{kind}")
@@ -1027,7 +1157,7 @@ def binding_report(inp: dict, args) -> dict:
             "corrispondenze_per_benchmark_ruolo_tipo": dict(sorted(per_bench.items())),
             "record_con_corrispondenze_per_benchmark_tipo": dict(sorted(records_per_bench.items())),
             "corrispondenze_per_tipo": dict(sorted(details_by_kind.items())),
-            "ngram_di_rito_della_sorgente": len(rito), "record_con_soli_ngram_di_rito": only_rito,
+            "record_con_sole_corrispondenze_testuali_coperte": only_covered,
             "gruppi_toccati": sum(n for o, n in groups.items() if o in GROUP_STATE)}, outcomes, decisions
 
 
@@ -1056,22 +1186,28 @@ def cmd_verifica(args) -> int:
 
 # ---------------------------------------------------------------- versione nuova del manifest
 
-def evidence_of(row: dict, decision: dict, elements: dict, ref: dict, job, rito: frozenset) -> dict:
+def evidence_of(row: dict, decision: dict, elements: dict, ref: dict, job, coverage: dict | None,
+                extra: dict | None = None) -> dict:
     """Evidenza `decontaminazione_pannello` di un record: esiti, controlli, conteggi e un'anteprima di al più
-    MAX_EVIDENCE corrispondenze (prima le più gravi e le testuali informative); l'elenco completo sta nella scansione."""
-    found = sorted(row["dettagli"], key=lambda d: (TYPE_ORDER.index(d["tipo"]), not informative(d, rito)))
+    MAX_EVIDENCE corrispondenze (prima le più gravi e le testuali informative); l'elenco completo sta nella scansione.
+    Le corrispondenze testuali coperte da una regola esplicita compaiono come `testo_coperto`, con la regola."""
+    found = sorted(row["dettagli"], key=lambda d: (TYPE_ORDER.index(d["tipo"]), not informative(d, coverage)))
     preview = []
     for d in found[:MAX_EVIDENCE]:
         e = elements.get(d["elemento"]) or {}
-        preview.append({"tipo": d["tipo"] if informative(d, rito) else "testo_di_rito", "elemento": d["elemento"],
-                        "posizione": d.get("posizione"), "immagine": d.get("immagine"), "campo": d.get("campo"),
-                        "distanza": d.get("distanza"), "ngram": d.get("ngram"), "ruolo": role_of(e),
-                        "gruppo_pannello": e.get("gruppo"), "metrica_primaria": e.get("metrica_primaria")})
+        item = {"tipo": d["tipo"] if informative(d, coverage) else "testo_coperto", "elemento": d["elemento"],
+                "posizione": d.get("posizione"), "immagine": d.get("immagine"), "campo": d.get("campo"),
+                "distanza": d.get("distanza"), "ngram": d.get("ngram"), "ruolo": role_of(e),
+                "gruppo_pannello": e.get("gruppo"), "metrica_primaria": e.get("metrica_primaria")}
+        if item["tipo"] == "testo_coperto":
+            item["regole"] = covered_rules(d, coverage)
+        preview.append(item)
     return {"controllo": CHECK, "versione": SCHEMA, "job": job, "esito": decision["esito"],
             "esito_gruppo": decision["esito_gruppo"], "cause_nel_gruppo": decision["cause"],
             "controlli": row["controlli"], "corrispondenze": row["corrispondenze"],
-            "testo_di_rito": sum(d["tipo"] == "testo" and not informative(d, rito) for d in found), "elementi": preview,
-            "corrispondenze_nella_scansione": len(found), "rif": ref}
+            "testo_coperto": sum(d["tipo"] == "testo" and not informative(d, coverage) for d in found),
+            "regole_testuali_sha256": TEXT_RULES_SHA256, "elementi": preview,
+            "corrispondenze_nella_scansione": len(found), "rif": ref, **(extra or {})}
 
 
 def derived_keys(source: str, recs: list[dict]) -> dict[str, list[str]]:
@@ -1118,7 +1254,8 @@ def cmd_manifest(args) -> int:
     for r in parent_lines(m):
         d = decisions[ident(r)]
         rec = dict(r)
-        rec["evidenze"] = list(r["evidenze"] or []) + [evidence_of(scan[ident(r)], d, elements, ref, job, inp["rito"])]
+        rec["evidenze"] = list(r["evidenze"] or []) + [evidence_of(scan[ident(r)], d, elements, ref, job,
+                                                                   inp["coverage"].get(ident(r)))]
         if d["stato_gruppo"]:
             rec["motivo"] = list(r["motivo"] or []) + [reasons[d["esito_gruppo"]]]
         rec["stato"] = d["stato"]
@@ -1171,7 +1308,7 @@ def cmd_manifest(args) -> int:
                               "job": job, "codice": scan_summary.get("codice"), "soglie": scan_summary.get("soglie"),
                               "zip": scan_summary.get("zip"), "shard": scan_summary.get("shard"), **sources},
                 "riconciliazione_run2": inp.get("riconciliazione_run2"), "candidati_storici": inp.get("storiche"),
-                "testo_di_rito": {"max_df_sorgente": SOURCE_MAX_DF, "ngram": sorted(inp["rito"])}
+                "regole_testuali": {"regole": TEXT_RULES, "sha256": TEXT_RULES_SHA256}
                 if args.source == "mavis" else None,
                 "controlli_di_compatibilita": checks, **stats},
             "conteggi": summarize(args.source, new),
@@ -1197,8 +1334,7 @@ def cmd_manifest(args) -> int:
                "decontaminazione": {k: meta["decontaminazione"].get(k) for k in (
                    "esiti_propri", "esiti_dei_gruppi", "cambi_di_stato", "record_con_corrispondenze_per_benchmark_tipo",
                    "corrispondenze_per_benchmark_ruolo_tipo", "gruppi_toccati", "riconciliazione_run2",
-                   "candidati_storici", "ngram_di_rito_della_sorgente", "record_con_soli_ngram_di_rito",
-                   "testo_di_rito")}
+                   "candidati_storici", "record_con_sole_corrispondenze_testuali_coperte", "regole_testuali")}
                | {"indice_sha256": meta["decontaminazione"]["indice"]["sha256"],
                   "scansione_records_sha256": meta["decontaminazione"]["scansione"]["records"]["sha256"]},
                "conteggi": meta["conteggi"], "split_ammessi": split["ammessi_dopo_la_decontaminazione"],
@@ -1222,6 +1358,34 @@ def cmd_manifest(args) -> int:
 STATE_FIELDS = ("stato", "motivo", "evidenze", "compiti")
 
 
+def old_or_new_coverage(ok, source: str, version, dec: dict, rows: dict, records: dict, scan_dir: Path):
+    """Coperture con cui una versione derivata è stata decisa, e il campo dell'evidenza che conta le corrispondenze
+    testuali senza effetto. panel-decontam/1 (mavis-geometry-candidato-2, unimer-candidato-2): la regola storica di
+    frequenza, ricalcolata dalle righe e confrontata con quella registrata, solo per riverificare quelle versioni.
+    panel-decontam/2: le regole esplicite, coi testi della scansione legati al manifest."""
+    if version == OLD_SCHEMA:
+        frequent = frequency_rule_v1(rows.values()) if source == "mavis" else frozenset()
+        if source == "mavis":
+            declared = dec.get("testo_di_rito") or {}
+            ok(f"testo, regola storica di {OLD_SCHEMA} (abolita, ricalcolata solo per riverificare): 10-gram in più di "
+               f"{OLD_MAX_DF} record ricalcolati dalle righe, uguali a quelli registrati nel manifest",
+               set(declared.get("ngram") or []) == set(frequent) and declared.get("max_df_sorgente") == OLD_MAX_DF,
+               sorted(frequent))
+        coverage = {i: frequency_coverage_v1(row, frequent) for i, row in rows.items()} if frequent else {}
+        return coverage, "testo_di_rito"
+    coverage = {}
+    if source == "mavis":
+        summary = json.loads((scan_dir / "summary.json").read_text(encoding="utf-8"))
+        ok("scansione: schema panel-decontam-scan/2, coi testi dei campi con una regola esplicita",
+           summary.get("schema") == SCAN_SCHEMA, summary.get("schema"))
+        coverage, bad = bind_rule_texts(rows, records)
+        ok("testo: per ogni corrispondenza in un campo con una regola, il testo del campo è nella scansione, ha lo sha256 "
+           "del manifest e contiene i 10-gram della corrispondenza", not bad, {"casi": len(bad), "esempi": bad[:3]})
+        ok("regole testuali registrate nel manifest uguali a quelle del codice (TEXT_RULES e sha256)",
+           dec.get("regole_testuali") == {"regole": TEXT_RULES, "sha256": TEXT_RULES_SHA256})
+    return coverage, "testo_coperto"
+
+
 def verify_manifest(args) -> dict:
     """Rilegge la versione derivata (--new) e il genitore (--manifest, --manifest-sha256): verifica del genitore con il
     suo verificatore e le sue evidenze obbligatorie; transizioni dovute alla decontaminazione ricalcolate dalla
@@ -1240,6 +1404,13 @@ def verify_manifest(args) -> dict:
            parent.manifest_sha256)
     except mr.Problem as exc:
         ok("genitore: manifest.json con lo sha256 atteso, letto e verificato da manifest.load", False, str(exc))
+        return finish(checks, args)
+    # il verificatore della costruzione vale solo per il candidato iniziale: un genitore già derivato (stati dovuti a
+    # una decontaminazione) si verifica con la sua catena (verifica-riesame), non con le aspettative del candidato
+    ok("genitore: candidato iniziale (senza split.ereditato_da), a cui si applica il verificatore della costruzione",
+       not (parent.meta.get("split") or {}).get("ereditato_da"),
+       ((parent.meta.get("split") or {}).get("ereditato_da") or {}).get("percorso"))
+    if (parent.meta.get("split") or {}).get("ereditato_da"):
         return finish(checks, args)
     try:
         child = mf.load(args.new)
@@ -1311,13 +1482,11 @@ def verify_manifest(args) -> dict:
            if i in rows))
     if set(rows) != set(new):
         return finish(checks, args)
-    rito = rito_of(source_ngrams(rows.values())) if source == "mavis" else frozenset()
-    if source == "mavis":
-        declared = dec.get("testo_di_rito") or {}
-        ok(f"testo: 10-gram di rito della sorgente ricalcolati dalle righe (in più di {SOURCE_MAX_DF} record), uguali a "
-           "quelli registrati nel manifest", set(declared.get("ngram") or []) == set(rito)
-           and declared.get("max_df_sorgente") == SOURCE_MAX_DF, len(rito))
-    outcomes = {i: record_outcome(row, source, rito) for i, row in rows.items()}
+    version = dec.get("versione")
+    ok("decontaminazione: versione delle decisioni riconosciuta (panel-decontam/1 storica, panel-decontam/2)",
+       version in (OLD_SCHEMA, SCHEMA), version)
+    coverage, counted = old_or_new_coverage(ok, source, version, dec, rows, new, scan_dir)
+    outcomes = {i: record_outcome(row, source, coverage.get(i)) for i, row in rows.items()}
     decisions = decide(list(old.values()), outcomes)
     # ---- evidenze e motivi
     kept, one_new, wrong_ev, kept_reasons, bad_reason, unexplained = [], [], [], [], [], []
@@ -1334,10 +1503,11 @@ def verify_manifest(args) -> dict:
         e = added[0]
         if (e.get("esito"), e.get("esito_gruppo"), e.get("cause_nel_gruppo")) != (d["esito"], d["esito_gruppo"],
                                                                                  d["cause"]) \
+                or e.get("versione") != version \
                 or e.get("rif", {}).get("sha256") != scan_sha or e.get("corrispondenze") != rows[i]["corrispondenze"] \
                 or e.get("corrispondenze_nella_scansione") != len(rows[i]["dettagli"]) \
-                or e.get("testo_di_rito") != sum(x["tipo"] == "testo" and not informative(x, rito)
-                                                 for x in rows[i]["dettagli"]):
+                or e.get(counted) != sum(x["tipo"] == "testo" and not informative(x, coverage.get(i))
+                                         for x in rows[i]["dettagli"]):
             wrong_ev.append(label_of(i))
         mo, pmo = r["motivo"] or [], p["motivo"] or []
         if mo[:len(pmo)] != pmo:
@@ -1407,6 +1577,707 @@ def cmd_verifica_manifest(args) -> int:
     return 0 if result["esito"] else 1
 
 
+# ---------------------------------------------------------------- riesame delle decisioni testuali (MAVIS)
+
+RIESAME_SCHEMA = "panel-decontam-riesame/1"
+REASON_RIESAME = {
+    "piu_grave": "decontaminazione_pannello, riesame panel-decontam/2: corrispondenza testuale da verificare, non coperta "
+                 "da una regola esplicita, che la regola di frequenza abolita ignorava (gruppo in quarantena)",
+    "meno_grave": "decontaminazione_pannello, riesame panel-decontam/2: le corrispondenze testuali che rendevano il "
+                  "gruppo candidato sono coperte da una regola esplicita; resta lo stato della versione precedente "
+                  "(nessuna riammissione senza una decisione)"}
+CONTEXT_WORDS, MAX_TEXT = 15, 2000  # parole attorno al primo 10-gram e caratteri dei testi riportati nei casi
+
+
+def transition_reason(before: str | None, after: str | None) -> str | None:
+    """Motivo nuovo del riesame quando l'esito del gruppo cambia (più grave o meno grave); None se non cambia."""
+    if before == after:
+        return None
+    if before not in OUTCOMES or after not in OUTCOMES:
+        return f"decontaminazione_pannello, riesame: esito del gruppo non riconosciuto ({before} -> {after})"
+    worse = OUTCOMES.index(after) < OUTCOMES.index(before)
+    return REASON_RIESAME["piu_grave" if worse else "meno_grave"]
+
+
+def last_check(r: dict) -> dict:
+    """L'ultima evidenza della decontaminazione esterna di un record: quella della versione che lo ha deciso."""
+    mine = [e for e in r.get("evidenze") or [] if e.get("controllo") == CHECK]
+    return mine[-1] if mine else {}
+
+
+class CountingFile(io.FileIO):
+    """File senza buffer che conta i byte letti: il riesame dichiara quanto ha letto degli shard."""
+    letti = 0
+
+    def read(self, size=-1):
+        data = super().read(size)
+        self.letti += len(data or b"")
+        return data
+
+    def readinto(self, b):
+        n = super().readinto(b)
+        self.letti += n or 0
+        return n
+
+
+def record_texts(m: mf.Manifest, wanted: dict) -> tuple[dict, dict, list[str]]:
+    """Soli JSON dei record di `wanted` ({identità: campi}) dagli shard del manifest, senza leggere immagini: le
+    intestazioni del tar si leggono in sequenza saltando i dati (512 byte per membro, file senza buffer) e ogni JSON
+    scelto deve avere lo json_sha256 e la posizione del record. Per ogni record la descrizione canonica del loader è
+    ricalcolata come nella scansione (mavis_truth, describe con la chiave del tar), le domande del loader con
+    mavis_questions, gli altri testi sono quelli di text_en. Restituisce testi, conteggi della lettura e problemi."""
+    recs = {ident(r): r for rows in m.by_shard.values() for r in rows.values()}
+    by_shard: dict[str, dict[str, tuple]] = defaultdict(dict)
+    for i in wanted:
+        by_shard[recs[i]["shard"]][recs[i]["record"]] = i
+    out, problems, stats = {}, [], Counter()
+    t0 = time.time()
+    for shard in sorted(by_shard):
+        keys = by_shard[shard]
+        pos, last, found = -1, None, 0
+        with CountingFile(mf.shard_path(shard), "rb") as raw, tarfile.open(fileobj=raw, mode="r:") as tar:
+            for member in tar:
+                stats["intestazioni_lette"] += 1
+                if not member.isfile():
+                    continue
+                stem, _, ext = member.name.rpartition("/")[2].partition(".")
+                if stem != last:
+                    pos, last = pos + 1, stem
+                if ext != "json" or stem not in keys:
+                    continue
+                i = keys[stem]
+                data = tar.extractfile(member).read()
+                stats["json_letti"] += 1
+                r = recs[i]
+                if i in out:
+                    problems.append(f"{label_of(i)}: JSON ripetuto nello shard")
+                    continue
+                if hashlib.sha256(data).hexdigest() != r["json_sha256"] or pos != r["indice"]:
+                    problems.append(f"{label_of(i)}: JSON con sha256 o posizione diversi dal manifest")
+                    continue
+                te = json.loads(data).get("text_en") or {}
+                caption, generation = te.get("caption"), te.get("diagram_generation")
+                truth = mavis_truth(caption, generation)[0] if caption and generation else None
+                texts = {}
+                for f in wanted[i]:
+                    if f == "descrizione_del_loader":
+                        texts[f] = describe(stem, truth)[1] if truth is not None else None
+                    elif f == "domande_del_loader":
+                        texts[f] = [q["q"] for q in mavis_questions(stem, truth)] if truth is not None else []
+                    else:
+                        texts[f] = te.get(f)
+                out[i] = {"json_sha256": r["json_sha256"], "testi": texts}
+                found += 1
+            stats["byte_letti"] += raw.letti
+        stats["shard_aperti"] += 1
+        print(f"{Path(shard).name}: {found} JSON su {len(keys)} cercati ({time.time() - t0:.0f} s)", flush=True)
+    missing = [label_of(i) for i in wanted if i not in out]
+    if missing:
+        problems.append(f"{len(missing)} record senza JSON letto, es. {missing[:3]}")
+    stats["byte_degli_shard_aperti"] = sum(mf.shard_path(s).stat().st_size for s in by_shard)
+    stats["secondi"] = round(time.time() - t0, 1)
+    return out, dict(stats), problems
+
+
+def element_texts(index_dir: Path, wanted: set[str]) -> dict[str, list[str]]:
+    """Testi dell'indice degli elementi richiesti (ogni voce distinta una volta)."""
+    loaded, _ = read_index(index_dir)
+    out: dict[str, list[str]] = {}
+    for it in loaded["items"]:
+        e, text = element_of(it), (it.get("text") or "").strip()
+        if e in wanted and text and text not in out.setdefault(e, []):
+            out[e].append(text)
+    del loaded
+    gc.collect()
+    return out
+
+
+def word_position(words: list[str], gram: str) -> int | None:
+    g = gram.split()
+    for k in range(len(words) - len(g) + 1):
+        if words[k:k + len(g)] == g:
+            return k
+    return None
+
+
+def case_context(field_text, bench_texts: list[str], grams: list[str]) -> dict:
+    """Contesto di una corrispondenza testuale informativa per chi la esamina: il testo del record (fra le domande del
+    loader quella che contiene il 10-gram), il testo del benchmark che lo contiene, la sequenza comune più lunga in
+    parole normalizzate e le parole attorno al primo 10-gram. Non decide nulla."""
+    if isinstance(field_text, list):
+        field_text = next((q for q in field_text if word_position(normalize_words(q), grams[0]) is not None), "")
+    bench = next((t for t in bench_texts if word_position(normalize_words(t), grams[0]) is not None),
+                 bench_texts[0] if bench_texts else "")
+    a, b = normalize_words(field_text or ""), normalize_words(bench)
+    m = difflib.SequenceMatcher(None, a, b, autojunk=False).find_longest_match(0, len(a), 0, len(b))
+    ka, kb = word_position(a, grams[0]), word_position(b, grams[0])
+
+    def around(ws, k):
+        return None if k is None else " ".join(ws[max(0, k - CONTEXT_WORDS):k + NGRAM + CONTEXT_WORDS])
+
+    return {"testo_del_record": (field_text or "")[:MAX_TEXT], "testo_del_benchmark": bench[:MAX_TEXT],
+            "parole_del_record": len(a), "parole_del_benchmark": len(b), "parole_comuni_consecutive": m.size,
+            "sequenza_comune_piu_lunga": " ".join(a[m.a:m.a + m.size]),
+            "contesto_nel_record": around(a, ka), "contesto_nel_benchmark": around(b, kb)}
+
+
+def riesame_inputs(args, check) -> dict:
+    """Ingressi del riesame: il genitore (versione decisa con panel-decontam/1) derivato dal candidato iniziale; la sua
+    scansione, l'indice e il pannello invariati (sha256 registrati nel genitore); la derivazione riverificata con la
+    regola storica (verify_manifest, che verifica anche il candidato iniziale con mavis_manifest.verify)."""
+    parent_meta, _ = manifest_meta(args.manifest, args.manifest_sha256)
+    origin_meta, _ = manifest_meta(args.origine, args.origine_sha256)
+    pdec = parent_meta.get("decontaminazione") or {}
+    prev = parent_meta.get("precedente") or {}
+    inherited = (parent_meta.get("split") or {}).get("ereditato_da") or {}
+    check("genitore: derivato dal candidato iniziale indicato (precedente ed ereditato_da con lo sha256 di --origine), "
+          "che non eredita da altre versioni",
+          prev.get("manifest_sha256") == inherited.get("manifest_sha256") == args.origine_sha256
+          and prev.get("percorso") == inherited.get("percorso") == rel(args.origine)
+          and not (origin_meta.get("split") or {}).get("ereditato_da"))
+    check("genitore: MAVIS, decisioni panel-decontam/1 con la regola di frequenza da riesaminare",
+          parent_meta.get("sorgente") == SOURCES["mavis"] and pdec.get("controllo") == CHECK
+          and pdec.get("versione") == OLD_SCHEMA and bool(pdec.get("testo_di_rito")), pdec.get("versione"))
+    scan_ref, panel_ref = pdec.get("scansione") or {}, pdec.get("pannello") or {}
+    scan_rec, scan_sum = sha256_file(args.scan / "records.jsonl.gz"), sha256_file(args.scan / "summary.json")
+    check("scansione originale invariata: records.jsonl.gz e summary.json con gli sha256 registrati nel genitore",
+          scan_rec == (scan_ref.get("records") or {}).get("sha256")
+          and scan_sum == (scan_ref.get("summary") or {}).get("sha256"), scan_rec)
+    isha = sha256_file(args.index / "index.json")
+    check("indice invariato: index.json con lo sha256 atteso, lo stesso registrato nel genitore",
+          isha == args.index_sha256 == (pdec.get("indice") or {}).get("sha256"), isha)
+    check("pannello invariato: elements.jsonl.gz e summary.json con gli sha256 registrati nel genitore",
+          sha256_file(args.panel / "elements.jsonl.gz") == (panel_ref.get("elements") or {}).get("sha256")
+          and sha256_file(args.panel / "summary.json") == (panel_ref.get("summary") or {}).get("sha256"))
+    if not all(c["esito"] for c in check.done):
+        return {}
+    ns = argparse.Namespace(source="mavis", manifest=args.origine, manifest_sha256=args.origine_sha256,
+                            new=args.manifest, check=None, overlap=None, evidence=args.evidence, scan=args.scan)
+    res = verify_manifest(ns)
+    check(f"genitore: derivazione dal candidato iniziale riverificata con la sua regola storica (verifica-manifest, "
+          f"{res['superati']} su {res['totale']}, compreso mavis_manifest.verify del candidato iniziale)", res["esito"],
+          [c["controllo"] for c in res["controlli"] if not c["esito"]])
+    gc.collect()
+    return {"pdec": pdec, "scan_rec": scan_rec, "scan_sum": scan_sum, "isha": isha,
+            "verifica_genitore": {k: res[k] for k in ("superati", "totale", "esito")}}
+
+
+def cmd_riesame(args) -> int:
+    t0 = time.time()
+    if args.source != "mavis":
+        raise Failed("riesame: solo MAVIS ha decisioni testuali da ricalcolare")
+    for p in (args.out, args.new, args.report):
+        if p.exists() and any(p.iterdir()):
+            raise Failed(f"{p} non è vuota: il riesame si scrive in cartelle nuove")
+    if args.summary.exists():
+        raise Failed(f"{args.summary} esiste già")
+    checks: list[dict] = []
+
+    def check(name: str, cond, detail=None) -> bool:
+        checks.append({"controllo": name, "esito": bool(cond), "dettaglio": detail})
+        print(("ok   " if cond else "FAIL ") + name + (f"  ({str(detail)[:300]})" if detail is not None else ""),
+              flush=True)
+        return bool(cond)
+
+    check.done = checks
+
+    def stop_if_failed(what: str) -> None:
+        failed = [c["controllo"] for c in checks if not c["esito"]]
+        if failed:
+            raise Failed(f"riesame: {what}, nessuna uscita scritta: " + "; ".join(failed[:5]))
+
+    inp = riesame_inputs(args, check)
+    stop_if_failed("ingressi non verificati")
+    pdec = inp["pdec"]
+    origin = mr.load_expected(args.origine, args.origine_sha256)
+    parent = mr.load_expected(args.manifest, args.manifest_sha256)
+    v1 = {ident(r): r for rs in origin.by_shard.values() for r in rs.values()}
+    v2 = {ident(r): r for rs in parent.by_shard.values() for r in rs.values()}
+    rows = {ident(r): r for r in read_rows(args.scan / "records.jsonl.gz")}
+    check("scansione, genitore e candidato iniziale: gli stessi record", set(rows) == set(v2) == set(v1), len(rows))
+    stop_if_failed("record diversi")
+    # ---- testi dei record con corrispondenze testuali: solo JSON, nessuna immagine
+    wanted = {i: sorted({d["campo"] for d in row["dettagli"] if d["tipo"] == "testo"}) for i, row in rows.items()
+              if any(d["tipo"] == "testo" for d in row["dettagli"])}
+    texts, reading, bad = record_texts(parent, wanted)
+    check("JSON dei record con corrispondenze testuali letti dagli shard, una volta ciascuno, con lo sha256 e la "
+          "posizione del manifest (immagini saltate)", not bad, {"record": len(wanted), "problemi": bad[:3], **reading})
+    descriptions = {i: {f: t["testi"][f] for f in RULE_FIELDS if isinstance(t["testi"].get(f), str)}
+                    for i, t in texts.items()}
+    descriptions = {i: d for i, d in descriptions.items() if d}
+    coverage, bad = bind_rule_texts(rows, v2, descriptions)
+    check("testo: per ogni corrispondenza nella descrizione del loader, la descrizione ricalcolata dal JSON ha lo sha256 "
+          "del manifest (descrizione_sha256) e contiene i 10-gram della corrispondenza", not bad,
+          {"casi": len(bad), "esempi": bad[:3]})
+    # ---- decisione precedente (regola storica) e decisione nuova (regole esplicite)
+    frequent = frequency_rule_v1(rows.values())
+    check("regola storica ricalcolata dalle righe, solo per il confronto: gli stessi 10-gram registrati nel genitore",
+          set(frequent) == set((pdec.get("testo_di_rito") or {}).get("ngram") or []), sorted(frequent))
+    old_cov = {i: frequency_coverage_v1(row, frequent) for i, row in rows.items() if row["dettagli"]}
+    old_out = {i: record_outcome(row, "mavis", old_cov.get(i)) for i, row in rows.items()}
+    new_out = {i: record_outcome(row, "mavis", coverage.get(i)) for i, row in rows.items()}
+    before = {i: last_check(r) for i, r in v2.items()}
+    check("decisione precedente: esiti propri ricalcolati con la regola storica uguali a quelli delle evidenze "
+          "panel-decontam/1 del genitore", all(before[i].get("esito") == old_out[i]
+                                               and before[i].get("versione") == OLD_SCHEMA for i in v2))
+    stop_if_failed("decisioni non ricalcolabili")
+    d3 = decide(list(v2.values()), new_out)
+    d1 = decide(list(v1.values()), new_out)
+    kept_by_old = sorted(label_of(i) for i in v2 if d3[i]["stato"] != d1[i]["stato"])
+    del origin, v1, d1
+    gc.collect()
+
+    def flipped(i) -> list[dict]:
+        return [{"campo": x["campo"], "elemento": x["elemento"], "ngram_tutti": x["ngram_tutti"],
+                 "prima": "candidato" if informative(x, old_cov.get(i)) else "ignorata_per_frequenza",
+                 "dopo": "candidato" if informative(x, coverage.get(i))
+                 else "coperta: " + ", ".join(covered_rules(x, coverage.get(i)))}
+                for x in rows[i]["dettagli"]
+                if x["tipo"] == "testo" and informative(x, old_cov.get(i)) != informative(x, coverage.get(i))]
+
+    changes = []
+    for i, r in v2.items():
+        b, d = before[i], d3[i]
+        if (b.get("esito"), b.get("esito_gruppo"), r["stato"]) == (d["esito"], d["esito_gruppo"], d["stato"]):
+            continue
+        if b.get("esito") != d["esito"]:
+            worse = OUTCOMES.index(d["esito"]) < OUTCOMES.index(b.get("esito"))
+            cause = ("esito proprio: corrispondenza testuale non coperta da una regola esplicita, prima ignorata per la "
+                     "sola frequenza" if worse else "esito proprio: corrispondenze testuali coperte da una regola "
+                                                         "esplicita")
+        else:
+            cause = "esito del gruppo, per " + ", ".join(d["cause"][:5]) + (" e altri" if len(d["cause"]) > 5 else "")
+        changes.append({"insieme": r["insieme"], "record": r["record"], "gruppo": r["gruppo"], "split": r["split"],
+                        "esito": [b.get("esito"), d["esito"]], "esito_gruppo": [b.get("esito_gruppo"), d["esito_gruppo"]],
+                        "stato": [r["stato"], d["stato"]], "causa": cause, "corrispondenze_cambiate": flipped(i),
+                        "cause_nel_gruppo": d["cause"], "motivo_nuovo": transition_reason(b.get("esito_gruppo"),
+                                                                                          d["esito_gruppo"])})
+    changes.sort(key=lambda c: (c["gruppo"], c["insieme"], c["record"]))
+    changed = {(c["insieme"], c["record"]) for c in changes}
+    # ---- frequenze dei 10-gram: solo per ordinare i casi
+    table: dict[str, dict] = {}
+    for i in wanted:
+        for d in rows[i]["dettagli"]:
+            if d["tipo"] != "testo":
+                continue
+            src = texts[i]["testi"].get(d["campo"])
+            src_id = mf.sha256_text(" ".join(normalize_words(src if isinstance(src, str) else " ".join(src or []))))
+            for g in d["ngram_tutti"]:
+                t = table.setdefault(g, {"record": set(), "gruppi": set(), "testi": set(), "campi": Counter(),
+                                         "elementi": set(), "per_regola": Counter()})
+                t["record"].add(i)
+                t["gruppi"].add(v2[i]["gruppo"])
+                t["testi"].add(src_id)
+                t["campi"][d["campo"]] += 1
+                t["elementi"].add(d["elemento"])
+                t["per_regola"][((coverage.get(i) or {}).get(d["campo"]) or {}).get(g, "non_coperta")] += 1
+    ngrams = [{"ngram": g, "record": len(t["record"]), "gruppi": len(t["gruppi"]), "testi_distinti": len(t["testi"]),
+               "campi": dict(t["campi"].most_common()), "elementi": sorted(t["elementi"])[:5],
+               "elementi_totali": len(t["elementi"]), "corrispondenze_per_regola": dict(t["per_regola"].most_common()),
+               "ignorato_dalla_regola_precedente": g in frequent}
+              for g, t in sorted(table.items(), key=lambda kv: (-len(kv[1]["record"]), kv[0]))]
+    del table
+    # ---- casi testuali informativi, coi contesti (record, benchmark)
+    cases = [(i, d) for i in sorted(wanted) for d in rows[i]["dettagli"]
+             if d["tipo"] == "testo" and informative(d, coverage.get(i))]
+    bench = element_texts(args.index, {d["elemento"] for _, d in cases})
+    elements = {e["chiave"]: e for e in sd.read_jsonl_gz(args.panel / "elements.jsonl.gz")}
+    by_case: dict[tuple, list] = defaultdict(list)
+    for i, d in cases:
+        ctx = case_context(texts[i]["testi"].get(d["campo"]), bench.get(d["elemento"]) or [], d["ngram_tutti"])
+        by_case[(d["elemento"], d["campo"])].append({
+            "record": i[1], "gruppo": v2[i]["gruppo"], "split": v2[i]["split"], "stato": [v2[i]["stato"], d3[i]["stato"]],
+            "esito": [old_out[i], new_out[i]], "ngram_tutti": d["ngram_tutti"],
+            "ignorata_dalla_regola_precedente": not informative(d, old_cov.get(i)),
+            **{k: v for k, v in ctx.items() if k != "testo_del_benchmark"}})
+    case_rows = [{"elemento": e, "campo": f, "record": len(rs), "gruppi": len({x["gruppo"] for x in rs}),
+                  "ignorati_dalla_regola_precedente": sum(x["ignorata_dalla_regola_precedente"] for x in rs),
+                  "parole_comuni_consecutive_max": max(x["parole_comuni_consecutive"] for x in rs), "casi": rs}
+                 for (e, f), rs in sorted(by_case.items(), key=lambda kv: (-len(kv[1]), kv[0]))]
+    case_elements = {e: {"benchmark": (elements.get(e) or {}).get("benchmark"), "ruolo": role_of(elements.get(e)),
+                         "gruppo_pannello": (elements.get(e) or {}).get("gruppo"),
+                         "metrica_primaria": (elements.get(e) or {}).get("metrica_primaria"),
+                         "testi": [t[:MAX_TEXT] for t in bench.get(e) or []]} for e in sorted({e for e, _ in by_case})}
+    # ---- conteggi prima e dopo, per record e per gruppo
+
+    def tally(values) -> dict:
+        return dict(sorted(Counter(values).items()))
+
+    g_before = {r["gruppo"]: before[i].get("esito_gruppo") for i, r in v2.items()}
+    g_after = {r["gruppo"]: d3[i]["esito_gruppo"] for i, r in v2.items()}
+    counts = {
+        "record": {"esiti_propri_prima": tally(old_out.values()), "esiti_propri_dopo": tally(new_out.values()),
+                   "transizioni_degli_esiti_propri": tally(f"{old_out[i]} -> {new_out[i]}" for i in v2
+                                                           if old_out[i] != new_out[i]),
+                   "stati_prima": tally(r["stato"] for r in v2.values()), "stati_dopo": tally(d3[i]["stato"] for i in v2),
+                   "cambi_di_stato": tally(f"{r['split']}: {r['stato']} -> {d3[i]['stato']}" for i, r in v2.items()
+                                           if r["stato"] != d3[i]["stato"]),
+                   "ammessi_per_split_prima": tally(r["split"] for r in v2.values() if r["stato"] == "ammesso"),
+                   "ammessi_per_split_dopo": tally(r["split"] for i, r in v2.items() if d3[i]["stato"] == "ammesso"),
+                   "con_corrispondenze_testuali": len(wanted), "cambiati": len(changes)},
+        "gruppi": {"totali": len(g_before), "esiti_prima": tally(g_before.values()), "esiti_dopo": tally(g_after.values()),
+                   "transizioni": tally(f"{g_before[g]} -> {g_after[g]}" for g in g_before if g_before[g] != g_after[g]),
+                   "toccati_prima": sum(o in GROUP_STATE for o in g_before.values()),
+                   "toccati_dopo": sum(o in GROUP_STATE for o in g_after.values()),
+                   "con_un_cambio_di_stato": len({v2[i]["gruppo"] for i in v2 if v2[i]["stato"] != d3[i]["stato"]})}}
+    # ---- uscite del riesame: regole, decisioni per record, riepilogo (scritte una volta)
+    args.out.mkdir(parents=True, exist_ok=True)
+    rules_doc = {"schema": RIESAME_SCHEMA + "-regole", "versione_decisioni": SCHEMA, "regole_testuali": TEXT_RULES,
+                 "sha256": TEXT_RULES_SHA256, "regole": RULES,
+                 "regola_precedente": {"versione": OLD_SCHEMA, "registrata_nel_genitore": pdec.get("testo_di_rito"),
+                                       "ricalcolata": sorted(frequent),
+                                       "stato": "abolita: la frequenza di un 10-gram nella sorgente non è un motivo "
+                                                "sufficiente per ignorare una corrispondenza"},
+                 "frequenza": "solo per raggruppare e ordinare i casi da esaminare (summary.json, ngram)",
+                 "codice": code_identity()}
+    write_new_json(args.out / "regole.json", rules_doc)
+
+    def decision_line(i) -> str:
+        r, b, d = v2[i], before[i], d3[i]
+        row = rows[i]
+        return json.dumps({
+            "insieme": i[0], "record": i[1], "gruppo": r["gruppo"], "split": r["split"], "json_sha256": r["json_sha256"],
+            "descrizione_sha256": r.get("descrizione_sha256"),
+            "descrizione_del_loader": (descriptions.get(i) or {}).get("descrizione_del_loader"),
+            "dettagli_testuali": [{"campo": x["campo"], "elemento": x["elemento"], "ngram_tutti": x["ngram_tutti"],
+                                   "regole": covered_rules(x, coverage.get(i)), "informativa": informative(x, coverage.get(i)),
+                                   "ignorata_dalla_regola_precedente": not informative(x, old_cov.get(i))}
+                                  for x in row["dettagli"] if x["tipo"] == "testo"],
+            "esito": [b.get("esito"), d["esito"]], "esito_gruppo": [b.get("esito_gruppo"), d["esito_gruppo"]],
+            "stato": [r["stato"], d["stato"]]}, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+
+    dsha, n_dec = um.write_records_gz(args.out / "decisioni.jsonl.gz",
+                                      (decision_line(i) for i in sorted(set(wanted) | changed)))
+    summary = {
+        "schema": RIESAME_SCHEMA, "sorgente": "mavis", "job_id": os.environ.get("SLURM_JOB_ID"),
+        "codice": code_identity(), "args": {k: str(v) for k, v in vars(args).items() if k != "func"},
+        "ingressi": {"origine": {"percorso": rel(args.origine), "manifest_sha256": args.origine_sha256},
+                     "genitore": {"percorso": rel(args.manifest), "manifest_sha256": args.manifest_sha256,
+                                  "versione_decisioni": OLD_SCHEMA},
+                     "scansione": {"records": file_entry(args.scan / "records.jsonl.gz", inp["scan_rec"]),
+                                   "summary": file_entry(args.scan / "summary.json", inp["scan_sum"]),
+                                   "job": (pdec.get("scansione") or {}).get("job")},
+                     "indice": file_entry(args.index / "index.json", inp["isha"]),
+                     "pannello": {"elements": file_entry(args.panel / "elements.jsonl.gz"),
+                                  "summary": file_entry(args.panel / "summary.json")}},
+        "verifica_del_genitore": inp["verifica_genitore"],
+        "regole": {"file": file_entry(args.out / "regole.json"), "regole_testuali_sha256": TEXT_RULES_SHA256,
+                   "regola_precedente_ricalcolata": sorted(frequent)},
+        "letture": reading, "decisioni": {"file": file_entry(args.out / "decisioni.jsonl.gz", dsha), "righe": n_dec},
+        "conteggi": counts, "ngram": ngrams, "casi_testuali_informativi": case_rows, "elementi_dei_casi": case_elements,
+        "cambi": changes, "stati_mantenuti_dalla_sola_decisione_precedente": kept_by_old,
+        "nota": "la decisione nuova non usa la frequenza: le tabelle ngram servono solo a ordinare i casi. Nessun "
+                "candidato è risolto; nessuna riammissione",
+        "controlli": checks, "secondi": round(time.time() - t0, 1), "rss_max_mib": um.rss_mib()}
+    write_new_json(args.out / "summary.json", summary)
+    print(json.dumps({"cambi": len(changes), "conteggi": counts}, ensure_ascii=False)[:4000], flush=True)
+    # ---- versione nuova del manifest, derivata dal genitore
+    job = os.environ.get("SLURM_JOB_ID")
+    ref = {"file": rel(args.scan / "records.jsonl.gz"), "sha256": inp["scan_rec"]}
+    dref = {"file": rel(args.out / "decisioni.jsonl.gz"), "sha256": dsha}
+    stats, _, _ = binding_report({"scan": rows, "elements": elements, "coverage": coverage,
+                                  "records": list(v2.values())}, args)
+    new, lines = [], []
+    for r in parent_lines(parent):
+        i = ident(r)
+        b, d = before[i], d3[i]
+        rec = dict(r)
+        extra = {"esito_precedente": b.get("esito"), "esito_gruppo_precedente": b.get("esito_gruppo"),
+                 "versione_precedente": b.get("versione"), "job_della_scansione": b.get("job"), "riesame": dref}
+        rec["evidenze"] = list(r["evidenze"] or []) + [evidence_of(rows[i], d, elements, ref, job, coverage.get(i),
+                                                                   extra)]
+        reason = transition_reason(b.get("esito_gruppo"), d["esito_gruppo"])
+        if reason:
+            rec["motivo"] = list(r["motivo"] or []) + [reason]
+        rec["stato"] = d["stato"]
+        rec["compiti"] = task_states(r["compiti"], d["stato"])
+        new.append({k: rec[k] for k in ("record", "insieme", "split", "stato", "gruppo", "compiti", "motivo",
+                                        "trasformazione", "famiglia", "misure_razionali_come_decimali") if k in rec})
+        lines.append(json.dumps(rec, sort_keys=True, ensure_ascii=False, separators=(",", ":")))
+    args.new.mkdir(parents=True, exist_ok=True)
+    data_sha, n_lines = um.write_records_gz(args.new / "records.jsonl.gz", iter(lines))
+    del lines
+    (args.new / "keys").mkdir()
+    derived = {}
+    for name, ks in derived_keys("mavis", new).items():
+        text = "".join(k + "\n" for k in sorted(ks))
+        (args.new / "keys" / name).write_text(text, encoding="utf-8")
+        derived[f"keys/{name}"] = {**file_entry(args.new / "keys" / name, mf.sha256_text(text)), "righe": len(ks)}
+    meta0 = parent.meta
+    split = dict(meta0["split"])
+    split["ereditato_da"] = {"percorso": rel(args.manifest), "versione": meta0["versione"],
+                             "manifest_sha256": parent.manifest_sha256}
+    admitted = Counter(f"{x['split']}/{x.get('famiglia') or x['insieme']}" for x in new if x["stato"] == "ammesso")
+    split["ammessi_dopo_la_decontaminazione"] = dict(sorted(admitted.items()))
+    chain = [{"versione": (meta0.get("precedente") or {}).get("versione"), "percorso": rel(args.origine),
+              "manifest_sha256": args.origine_sha256, "decisione": "candidato iniziale (mavis_manifest.py): assegna "
+                                                                   "gruppi e split"},
+             {"versione": meta0["versione"], "percorso": rel(args.manifest), "manifest_sha256": parent.manifest_sha256,
+              "job": meta0.get("job_id"), "decisione": "decontaminazione esterna contro pannello-v3 con "
+                                                       f"{OLD_SCHEMA} (regola di frequenza nella sorgente, abolita)"},
+             {"versione": args.version, "percorso": rel(args.new), "manifest_sha256": None, "job": job,
+              "decisione": f"riesame delle decisioni testuali con {SCHEMA} (regole esplicite), sulla stessa scansione"}]
+    meta = {**meta0,
+            "versione": args.version, "job_id": job, "codice": code_identity(),
+            "precedente": {"percorso": rel(args.manifest), "versione": meta0["versione"],
+                           "manifest_sha256": parent.manifest_sha256, "records_sha256": meta0["records"]["sha256"]},
+            "split": split, "catena_delle_versioni": chain,
+            "decontaminazione": {
+                "controllo": CHECK, "versione": SCHEMA, "regole": RULES,
+                "regole_testuali": {"regole": TEXT_RULES, "sha256": TEXT_RULES_SHA256},
+                "indice": pdec["indice"], "pannello": pdec["pannello"], "scansione": pdec["scansione"],
+                "riesame": {"regole": file_entry(args.out / "regole.json"),
+                            "decisioni": file_entry(args.out / "decisioni.jsonl.gz", dsha),
+                            "summary": file_entry(args.out / "summary.json"), "job": job, "letture": reading},
+                "decisione_precedente": {"versione": OLD_SCHEMA, "manifest": rel(args.manifest),
+                                         "manifest_sha256": parent.manifest_sha256, "regola": pdec.get("testo_di_rito"),
+                                         "stato": "abolita; i suoi esiti restano nelle evidenze panel-decontam/1"},
+                "candidati_storici": pdec.get("candidati_storici"),
+                "controlli_di_compatibilita": checks, **stats},
+            "conteggi": summarize("mavis", new),
+            "records": {"file": "records.jsonl.gz", "sha256": data_sha, "righe": n_lines},
+            "derivati": derived,
+            "secondi_costruzione": round(time.time() - t0, 1), "rss_max_mib": um.rss_mib()}
+    write_new_json(args.new / "manifest.json", meta)
+    del new, rows, v2, parent, d3, before, texts, descriptions, coverage, old_cov
+    gc.collect()
+    args.riesame = args.out
+    result = verify_riesame(args)
+    result.update({"job_id": job, "codice": code_identity(), "secondi_totali": round(time.time() - t0, 1),
+                   "rss_max_mib": um.rss_mib()})
+    args.report.mkdir(parents=True, exist_ok=True)
+    write_new_json(args.report / "verifica.json", result)
+    git_summary = {
+        "schema": "limite-vl-manifest-riepilogo/1", "manifest": rel(args.new), "nome": meta["nome"],
+        "versione": args.version, "job_id": job, "manifest_sha256": sha256_file(args.new / "manifest.json"),
+        "records_sha256": data_sha, "righe": n_lines, "sorgente": meta["sorgente"], "revisione": meta["revisione"],
+        "precedente": meta["precedente"], "catena_delle_versioni": chain,
+        # in git niente testi interi di benchmark o sorgente (non si ridistribuiscono): stanno in --out/summary.json
+        "riesame": {"regole_testuali": TEXT_RULES, "regole_testuali_sha256": TEXT_RULES_SHA256,
+                    "regola_precedente": rules_doc["regola_precedente"], "conteggi": counts, "ngram": ngrams,
+                    "casi_testuali_informativi": [
+                        {**{k: v for k, v in c.items() if k != "casi"},
+                         "casi": [{k: x[k] for k in ("record", "gruppo", "split", "stato", "esito",
+                                                     "ignorata_dalla_regola_precedente", "parole_comuni_consecutive",
+                                                     "sequenza_comune_piu_lunga")} for x in c["casi"]]}
+                        for c in case_rows],
+                    "elementi_dei_casi": {e: {k: v for k, v in x.items() if k != "testi"}
+                                          for e, x in case_elements.items()},
+                    "cambi": changes,
+                    "stati_mantenuti_dalla_sola_decisione_precedente": kept_by_old, "letture": reading,
+                    "file": {k: meta["decontaminazione"]["riesame"][k] for k in ("regole", "decisioni", "summary")}},
+        "decontaminazione": {k: meta["decontaminazione"].get(k) for k in (
+            "esiti_propri", "esiti_dei_gruppi", "cambi_di_stato", "record_con_corrispondenze_per_benchmark_tipo",
+            "corrispondenze_per_benchmark_ruolo_tipo", "gruppi_toccati",
+            "record_con_sole_corrispondenze_testuali_coperte")}
+        | {"indice_sha256": pdec["indice"]["sha256"], "scansione_records_sha256": inp["scan_rec"]},
+        "conteggi": meta["conteggi"], "split_ammessi": split["ammessi_dopo_la_decontaminazione"],
+        "controlli": [{k: c[k] for k in ("controllo", "esito")} for c in result["controlli"]],
+        "esito_verifica": result["esito"], "fuori_dal_sottoinsieme": meta["fuori_dal_sottoinsieme"],
+        "verifiche_mancanti": meta["verifiche_mancanti"],
+        "nota": "riesame delle decisioni testuali sulla scansione esistente: nessuna immagine riletta, nessun candidato "
+                "risolto, nessuna riammissione; non certifica le risposte e non autorizza il training"}
+    args.summary.parent.mkdir(parents=True, exist_ok=True)
+    write_new_json(args.summary, git_summary)
+    print(json.dumps({"righe": n_lines, "cambi": len(changes), "verifica": f"{result['superati']}/{result['totale']}",
+                      "secondi": result["secondi_totali"], "rss_max_mib": result["rss_max_mib"]}, ensure_ascii=False))
+    if not result["esito"]:
+        raise Failed("verifica della versione del riesame fallita: vedi " + str(args.report / "verifica.json"))
+    return 0
+
+
+def verify_riesame(args) -> dict:
+    """Rilegge la versione del riesame (--new) senza fidarsi di quanto il riesame ha scritto: il genitore (--manifest)
+    con la sua regola storica e il candidato iniziale (--origine) con mavis_manifest.verify; la catena delle versioni;
+    scansione, indice e pannello invariati; le descrizioni del riesame legate al manifest; le decisioni ricalcolate
+    con TEXT_RULES dalla scansione; evidenze, motivi, stati e compiti; il confronto completo col genitore e l'elenco dei
+    cambi del riepilogo."""
+    checks = []
+
+    def ok(name: str, cond, detail=None) -> None:
+        checks.append({"controllo": name, "esito": bool(cond), "dettaglio": detail})
+        print(("ok   " if cond else "FAIL ") + name + (f"  ({str(detail)[:300]})" if detail is not None else ""),
+              flush=True)
+
+    ns = argparse.Namespace(source="mavis", manifest=args.origine, manifest_sha256=args.origine_sha256,
+                            new=args.manifest, check=None, overlap=None, evidence=args.evidence, scan=args.scan)
+    res = verify_manifest(ns)
+    ok(f"genitore: derivazione dal candidato iniziale con la sua regola storica, {res['superati']} su {res['totale']} "
+       "(compreso mavis_manifest.verify del candidato iniziale)", res["esito"],
+       [c["controllo"] for c in res["controlli"] if not c["esito"]])
+    gc.collect()
+    try:
+        parent = mr.load_expected(args.manifest, args.manifest_sha256)
+        child = mf.load(args.new)
+        ok("versione nuova: letta e verificata da manifest.load (sha256 dei record, record_id ricalcolati, un solo "
+           "split per gruppo, conteggi per shard)", True, child.manifest_sha256)
+    except (mr.Problem, mf.ManifestError) as exc:
+        ok("versione nuova e genitore letti e verificati da manifest.load", False, str(exc))
+        return finish(checks, args)
+    meta, pm = child.meta, parent.meta
+    dec, pdec = meta.get("decontaminazione") or {}, pm.get("decontaminazione") or {}
+    prev, inherited = meta.get("precedente") or {}, (meta.get("split") or {}).get("ereditato_da") or {}
+    pinh = (pm.get("split") or {}).get("ereditato_da") or {}
+    ok("catena: la versione nuova eredita dal genitore e il genitore dal candidato iniziale (precedente ed ereditato_da "
+       "con gli sha256); stesso nome, versione diversa",
+       prev.get("manifest_sha256") == inherited.get("manifest_sha256") == parent.manifest_sha256
+       and prev.get("percorso") == inherited.get("percorso") == rel(args.manifest)
+       and prev.get("records_sha256") == pm["records"]["sha256"]
+       and pinh.get("manifest_sha256") == args.origine_sha256 and pinh.get("percorso") == rel(args.origine)
+       and meta.get("nome") == pm.get("nome") and meta.get("versione") != pm.get("versione"))
+    chain = meta.get("catena_delle_versioni") or []
+    ok("parentela documentata (catena_delle_versioni) uguale alla catena effettiva",
+       [(c.get("percorso"), c.get("manifest_sha256")) for c in chain]
+       == [(rel(args.origine), args.origine_sha256), (rel(args.manifest), parent.manifest_sha256), (rel(args.new), None)],
+       [c.get("percorso") for c in chain])
+    ok("decisioni: panel-decontam/2 con le regole testuali del codice (TEXT_RULES e il loro sha256)",
+       dec.get("controllo") == CHECK and dec.get("versione") == SCHEMA
+       and dec.get("regole_testuali") == {"regole": TEXT_RULES, "sha256": TEXT_RULES_SHA256}
+       and mf.sha256_text(mf.canonical(TEXT_RULES)) == TEXT_RULES_SHA256)
+    old_rule = dec.get("decisione_precedente") or {}
+    ok("decisione precedente citata: panel-decontam/1, manifest del genitore e regola storica come registrata",
+       old_rule.get("versione") == OLD_SCHEMA == pdec.get("versione")
+       and old_rule.get("manifest_sha256") == parent.manifest_sha256 and old_rule.get("regola") == pdec.get("testo_di_rito"))
+    scan_dir = Path(args.scan)
+    scan_rec = sha256_file(scan_dir / "records.jsonl.gz")
+    ok("scansione, indice e pannello: gli stessi del genitore, invariati su disco",
+       dec.get("scansione") == pdec.get("scansione") and dec.get("indice") == pdec.get("indice")
+       and dec.get("pannello") == pdec.get("pannello") and scan_rec == pdec["scansione"]["records"]["sha256"]
+       and sha256_file(scan_dir / "summary.json") == pdec["scansione"]["summary"]["sha256"]
+       and sha256_file(Path(args.index) / "index.json") == pdec["indice"]["sha256"] == args.index_sha256
+       and sha256_file(Path(args.panel) / "elements.jsonl.gz") == pdec["pannello"]["elements"]["sha256"]
+       and sha256_file(Path(args.panel) / "summary.json") == pdec["pannello"]["summary"]["sha256"])
+    rdir, rref = Path(args.riesame), dec.get("riesame") or {}
+    names = {"regole": "regole.json", "decisioni": "decisioni.jsonl.gz", "summary": "summary.json"}
+    files_ok = all((rdir / n).is_file() and sha256_file(rdir / n) == (rref.get(k) or {}).get("sha256")
+                   for k, n in names.items())
+    ok("riesame: regole, decisioni e riepilogo con gli sha256 registrati nel manifest", files_ok)
+    if not files_ok:
+        return finish(checks, args, child)
+    rules_doc = json.loads((rdir / "regole.json").read_text(encoding="utf-8"))
+    ok("riesame: regole.json con le regole del codice, il loro sha256 e la regola precedente come registrata nel "
+       "genitore", rules_doc.get("regole_testuali") == TEXT_RULES and rules_doc.get("sha256") == TEXT_RULES_SHA256
+       and (rules_doc.get("regola_precedente") or {}).get("registrata_nel_genitore") == pdec.get("testo_di_rito"))
+    old = {ident(r): r for rs in parent.by_shard.values() for r in rs.values()}
+    recs = [r for rs in child.by_shard.values() for r in rs.values()]
+    new = {ident(r): r for r in recs}
+    same_keys = set(old) == set(new) and len(new) == len(recs)
+    differ = [label_of(i) for i, r in new.items() if i in old and any(
+        r.get(k) != old[i].get(k) for k in set(r) | set(old[i]) if k not in STATE_FIELDS)]
+    differ += [label_of(i) for i, r in new.items() if i in old and [{k: v for k, v in t.items() if k != "stato"}
+                                                                    for t in r["compiti"]]
+               != [{k: v for k, v in t.items() if k != "stato"} for t in old[i]["compiti"]]]
+    ok("confronto col genitore: stessi record, gruppi, split, posizioni e digest; cambiano solo stato, motivi, "
+       "evidenze e stati dei compiti", same_keys and not differ, {"diversi": len(differ), "esempi": differ[:5]})
+    if not same_keys:
+        return finish(checks, args, child)
+    rows = {ident(r): r for r in read_rows(scan_dir / "records.jsonl.gz")}
+    ok("scansione: una riga per record, con shard, posizione e digest del manifest",
+       set(rows) == set(new) and all(
+           (rows[i]["shard"], rows[i]["indice"], rows[i]["json_sha256"], rows[i]["png_sha256"])
+           == (r["shard"], r["indice"], r["json_sha256"], r["immagini"][0]["sha256"]) for i, r in new.items()
+           if i in rows))
+    if set(rows) != set(new):
+        return finish(checks, args, child)
+    drows = {(x["insieme"], x["record"]): x for x in read_rows(rdir / "decisioni.jsonl.gz")}
+    descriptions = {i: {"descrizione_del_loader": x["descrizione_del_loader"]} for i, x in drows.items()
+                    if isinstance(x.get("descrizione_del_loader"), str)}
+    del drows
+    coverage, bad = bind_rule_texts(rows, old, descriptions)
+    ok("testo: una descrizione del riesame per ogni corrispondenza nella descrizione del loader, con lo sha256 del "
+       "manifest (descrizione_sha256) e i 10-gram della corrispondenza", not bad, {"casi": len(bad), "esempi": bad[:3]})
+    outcomes = {i: record_outcome(row, "mavis", coverage.get(i)) for i, row in rows.items()}
+    decisions = decide(list(old.values()), outcomes)
+    kept, one_new, wrong_ev, kept_reasons, bad_reason, unexplained = [], [], [], [], [], []
+    for i, r in new.items():
+        p, d, b = old[i], decisions[i], last_check(old[i])
+        ev, pev = r["evidenze"] or [], p["evidenze"] or []
+        if ev[:len(pev)] != pev:
+            kept.append(label_of(i))
+        added = ev[len(pev):]
+        if len(added) != 1 or added[0].get("controllo") != CHECK:
+            one_new.append(label_of(i))
+            continue
+        e = added[0]
+        if (e.get("esito"), e.get("esito_gruppo"), e.get("cause_nel_gruppo")) != (d["esito"], d["esito_gruppo"],
+                                                                                 d["cause"]) \
+                or e.get("versione") != SCHEMA or e.get("regole_testuali_sha256") != TEXT_RULES_SHA256 \
+                or (e.get("esito_precedente"), e.get("esito_gruppo_precedente"), e.get("versione_precedente")) \
+                != (b.get("esito"), b.get("esito_gruppo"), b.get("versione")) \
+                or (e.get("rif") or {}).get("sha256") != scan_rec \
+                or (e.get("riesame") or {}).get("sha256") != rref["decisioni"]["sha256"] \
+                or e.get("corrispondenze") != rows[i]["corrispondenze"] \
+                or e.get("corrispondenze_nella_scansione") != len(rows[i]["dettagli"]) \
+                or e.get("testo_coperto") != sum(x["tipo"] == "testo" and not informative(x, coverage.get(i))
+                                                 for x in rows[i]["dettagli"]):
+            wrong_ev.append(label_of(i))
+        mo, pmo = r["motivo"] or [], p["motivo"] or []
+        if mo[:len(pmo)] != pmo:
+            kept_reasons.append(label_of(i))
+        extra = mo[len(pmo):]
+        reason = transition_reason(b.get("esito_gruppo"), d["esito_gruppo"])
+        if extra != ([reason] if reason else []):
+            bad_reason.append(label_of(i))
+        if r["stato"] != p["stato"] and not extra:
+            unexplained.append(label_of(i))
+    ok(f"{CHECK}: evidenze del genitore conservate (compresa la decisione panel-decontam/1)", not kept, len(kept))
+    ok(f"{CHECK}: una e una sola evidenza nuova per record", not one_new, len(one_new))
+    ok(f"{CHECK}: evidenza nuova uguale alla decisione ricalcolata con le regole esplicite, con la decisione precedente "
+       "accanto e i riferimenti a scansione e riesame", not wrong_ev, {"casi": len(wrong_ev), "esempi": wrong_ev[:3]})
+    ok(f"{CHECK}: motivi del genitore conservati", not kept_reasons, len(kept_reasons))
+    ok(f"{CHECK}: un motivo nuovo solo dove l'esito del gruppo cambia, quello della transizione", not bad_reason,
+       {"casi": len(bad_reason), "esempi": bad_reason[:3]})
+    ok(f"{CHECK}: ogni cambio di stato ha il suo motivo nuovo", not unexplained, len(unexplained))
+    wrong_state = [label_of(i) for i, r in new.items() if r["stato"] != decisions[i]["stato"]]
+    better = [label_of(i) for i, r in new.items() if SEVERITY[r["stato"]] < SEVERITY[old[i]["stato"]]]
+    ok(f"{CHECK}: stato = il più grave fra quello del genitore e quello dell'esito del gruppo ricalcolato con le regole "
+       "esplicite", not wrong_state, {"casi": len(wrong_state), "esempi": wrong_state[:3]})
+    ok("nessuna riammissione: nessun record passa a uno stato meno grave del genitore", not better, len(better))
+    group_outcome = defaultdict(set)
+    for r in recs:
+        group_outcome[r["gruppo"]].add(last_check(r).get("esito_gruppo"))
+    ok("un solo esito per gruppo", all(len(v) == 1 for v in group_outcome.values()))
+    bad_tasks = [label_of(i) for i, r in new.items() if r["compiti"] != task_states(old[i]["compiti"], r["stato"])
+                 or any(SEVERITY[t["stato"]] < SEVERITY[pt["stato"]] for t, pt in zip(r["compiti"], old[i]["compiti"]))
+                 or any(t["compito"] in mm.QUARANTINED_TASKS and t["stato"] == "ammesso" for t in r["compiti"])]
+    ok("compiti: seguono lo stato del record, shape_type mai ammessa, nessun compito meno grave del genitore",
+       not bad_tasks, bad_tasks[:5])
+    ok("conteggi uguali a manifest.json (ricalcolati dai record)", summarize("mavis", recs) == meta.get("conteggi"))
+    keys_ok = []
+    for name, ks in derived_keys("mavis", recs).items():
+        entry = (meta.get("derivati") or {}).get(f"keys/{name}") or {}
+        path = Path(args.new) / "keys" / name
+        text = path.read_text(encoding="utf-8") if path.is_file() else None
+        keys_ok.append(text == "".join(k + "\n" for k in sorted(ks)) and entry.get("righe") == len(ks)
+                       and mf.sha256_text(text or "") == entry.get("sha256"))
+    ok("file derivati (keys/) uguali alle chiavi ricalcolate e ai loro sha256", all(keys_ok) and len(keys_ok) == len(
+        meta.get("derivati") or {}), keys_ok)
+    summary = json.loads((rdir / "summary.json").read_text(encoding="utf-8"))
+    recomputed = sorted((i[0], i[1], last_check(old[i]).get("esito"), decisions[i]["esito"],
+                         last_check(old[i]).get("esito_gruppo"), decisions[i]["esito_gruppo"], old[i]["stato"],
+                         new[i]["stato"]) for i in new
+                        if (last_check(old[i]).get("esito"), last_check(old[i]).get("esito_gruppo"), old[i]["stato"])
+                        != (decisions[i]["esito"], decisions[i]["esito_gruppo"], new[i]["stato"]))
+    listed = sorted((c["insieme"], c["record"], *c["esito"], *c["esito_gruppo"], *c["stato"])
+                    for c in summary.get("cambi") or [])
+    ok("confronto col genitore: l'elenco dei cambi del riesame è completo e uguale a quello ricalcolato (esiti propri, "
+       "esiti dei gruppi, stati)", recomputed == listed, {"ricalcolati": len(recomputed), "elencati": len(listed)})
+    return finish(checks, args, child)
+
+
+def cmd_verifica_riesame(args) -> int:
+    if args.report.exists() and any(args.report.iterdir()):
+        raise Failed(f"{args.report} non è vuota")
+    t0 = time.time()
+    result = verify_riesame(args)
+    result.update({"job_id": os.environ.get("SLURM_JOB_ID"), "codice": code_identity(),
+                   "secondi": round(time.time() - t0, 1), "rss_max_mib": um.rss_mib()})
+    args.report.mkdir(parents=True, exist_ok=True)
+    write_new_json(args.report / "verifica.json", result)
+    print(f"{result['superati']} controlli superati su {result['totale']}")
+    return 0 if result["esito"] else 1
+
+
 # ---------------------------------------------------------------- argomenti
 
 def parser() -> argparse.ArgumentParser:
@@ -1442,6 +2313,27 @@ def parser() -> argparse.ArgumentParser:
         if name == "manifest":
             p.add_argument("--version", required=True)
             p.add_argument("--summary", required=True, type=Path, help="rapporto sintetico per git")
+    for name in ("riesame", "verifica-riesame"):
+        p = sub.add_parser(name)
+        p.add_argument("source", choices=["mavis"])
+        p.add_argument("--origine", required=True, type=Path, help="candidato iniziale (assegna gruppi e split)")
+        p.add_argument("--origine-sha256", required=True, help="sha256 atteso del suo manifest.json")
+        p.add_argument("--manifest", required=True, type=Path, help="versione da riesaminare, decisa con panel-decontam/1")
+        p.add_argument("--manifest-sha256", required=True, help="sha256 atteso del suo manifest.json")
+        p.add_argument("--index", required=True, type=Path)
+        p.add_argument("--index-sha256", required=True)
+        p.add_argument("--panel", required=True, type=Path)
+        p.add_argument("--scan", required=True, type=Path, help="la scansione da cui il genitore è stato deciso")
+        p.add_argument("--evidence", required=True, type=Path, help="cartella outputs con le evidenze del candidato")
+        p.add_argument("--new", required=True, type=Path, help="cartella della versione nuova")
+        p.add_argument("--report", required=True, type=Path, help="cartella nuova della verifica")
+        if name == "riesame":
+            p.add_argument("--out", required=True, type=Path, help="cartella nuova del riesame (regole, decisioni, "
+                                                                   "riepilogo)")
+            p.add_argument("--version", required=True)
+            p.add_argument("--summary", required=True, type=Path, help="riepilogo per git")
+        else:
+            p.add_argument("--riesame", required=True, type=Path, help="cartella del riesame")
     return ap
 
 
@@ -1466,6 +2358,10 @@ def main() -> None:
             code = cmd_verifica(args)
         elif args.cmd == "manifest":
             code = cmd_manifest(args)
+        elif args.cmd == "riesame":
+            code = cmd_riesame(args)
+        elif args.cmd == "verifica-riesame":
+            code = cmd_verifica_riesame(args)
         else:
             code = cmd_verifica_manifest(args)
     except (Failed, mr.Problem) as exc:

@@ -10,6 +10,12 @@
 #     scansione completa -> data/decontam/pannello-v3/<unimer|mavis-geometry>, verifica completa
 #     -> outputs/panel_decontam/NOME/verifica, versione nuova data/manifests/<candidato>-VERSIONE con la sua verifica
 #     -> outputs/manifest_check/<candidato>-VERSIONE/verifica.json e il riepilogo docs/manifests/<candidato>-VERSIONE.json
+#   sbatch [--cpus-per-task 4 --time 01:30:00] slurm/panel_decontam.sbatch riesame mavis NOME VERSIONE
+#     decisioni testuali di mavis-geometry-candidato-2 (panel-decontam/1, regola di frequenza) ricalcolate con le
+#     regole esplicite sulla scansione esistente data/decontam/pannello-v3/mavis-geometry, senza rileggere immagini:
+#     regole, decisioni e riepilogo -> data/decontam/pannello-v3/mavis-geometry-NOME, versione nuova
+#     data/manifests/mavis-geometry-candidato-VERSIONE derivata da candidato-2, verifica della catena
+#     -> outputs/manifest_check/mavis-geometry-candidato-VERSIONE, riepilogo docs/manifests/mavis-geometry-candidato-VERSIONE.json
 #SBATCH --job-name=lvl-panel-decontam
 #SBATCH --partition=mat
 #SBATCH --nodes=1
@@ -22,10 +28,12 @@
 
 set -euo pipefail
 : "${SLURM_JOB_ID:?Submit through SLURM}"
-usage() { echo "uso: panel_decontam.sbatch prova unimer|mavis NOME LIMITE | completo unimer|mavis NOME VERSIONE" >&2; exit 2; }
+usage() { echo "uso: panel_decontam.sbatch prova unimer|mavis NOME LIMITE | completo unimer|mavis NOME VERSIONE" \
+  "| riesame mavis NOME VERSIONE" >&2; exit 2; }
 (( $# == 4 )) || usage
 MODE=$1 SOURCE=$2 NAME=$3 ARG=$4
-[[ ($MODE == prova || $MODE == completo) && ($SOURCE == unimer || $SOURCE == mavis) ]] || usage
+[[ ($MODE == prova || $MODE == completo) && ($SOURCE == unimer || $SOURCE == mavis) ]] \
+  || [[ $MODE == riesame && $SOURCE == mavis ]] || usage
 [[ $NAME =~ ^[A-Za-z0-9._-]+$ && $ARG =~ ^[0-9]+$ ]] || { echo "nome, limite o versione non validi" >&2; exit 2; }
 source /home/prignano/vision_limite/config/paths.env
 export SEED=0 CONFIG_PATH=-
@@ -66,6 +74,31 @@ if ! srun "$RUN_PYTHON" -B tests/test_panel_decontam.py; then
   exit 1
 fi
 common=(--manifest "$MANIFEST" --manifest-sha256 "$MANIFEST_SHA256" --index "$INDEX" --index-sha256 "$INDEX_SHA256")
+if [[ $MODE == riesame ]]; then
+  # genitore: candidato-2 (job 30652, panel-decontam/1); origine: candidato-1 (job 30630); la scansione di candidato-2
+  PARENT="$DATA_ROOT/manifests/mavis-geometry-candidato-2"
+  PARENT_SHA256=8c549a23d60934d68f3b4db1ee3d2a24e26ec822b5c5a079bb5411a5f9c81f67  # job 30652
+  SCAN="$INDEX/mavis-geometry"
+  RIESAME="$INDEX/mavis-geometry-$NAME"
+  NEW="$DATA_ROOT/manifests/$CANDIDATE-$ARG"
+  CHECK="$OUTPUT_ROOT/manifest_check/$CANDIDATE-$ARG"
+  SUMMARY="$PROJECT_ROOT/docs/manifests/$CANDIDATE-$ARG.json"
+  for f in "$PARENT/manifest.json" "$SCAN/records.jsonl.gz" "$SCAN/summary.json"; do
+    test -s "$f" || { echo "ingresso mancante: $f" >&2; ledger_note failed "panel_decontam riesame $NAME: manca $f"; exit 1; }
+  done
+  [[ ! -e $RIESAME && ! -e $NEW && ! -e $CHECK && ! -e $SUMMARY ]] || {
+    echo "uscite già presenti: $RIESAME, $NEW, $CHECK o $SUMMARY" >&2; exit 1; }
+  if srun "$RUN_PYTHON" -u -B scripts/panel_decontam.py riesame mavis --origine "$MANIFEST" \
+      --origine-sha256 "$MANIFEST_SHA256" --manifest "$PARENT" --manifest-sha256 "$PARENT_SHA256" --index "$INDEX" \
+      --index-sha256 "$INDEX_SHA256" --panel "$PANEL" --scan "$SCAN" "${EVIDENCE[@]}" --out "$RIESAME" --new "$NEW" \
+      --version "$ARG" --report "$CHECK" --summary "$SUMMARY"; then
+    ledger_note ok "panel_decontam riesame mavis $NAME: decisioni -> $RIESAME, manifest -> $NEW, verifica -> $CHECK/verifica.json, riepilogo -> $SUMMARY"
+  else
+    ledger_note failed "panel_decontam riesame mavis $NAME: riesame o sua verifica -> $RIESAME, $NEW, $CHECK"
+    exit 1
+  fi
+  exit 0
+fi
 if [[ $MODE == prova ]]; then
   SCAN="$OUT/scan"
   if ! srun "$RUN_PYTHON" -u -B scripts/panel_decontam.py scan "$SOURCE" "${common[@]}" --out "$SCAN" --limit "$ARG"; then
