@@ -302,18 +302,19 @@ def test_reader():
                                   "manifest": str(t["folder"]), "split": "train"}])
         bad = "t5"
         e = train.admission.entries[bad]
-        train.admission.entries[bad] = (e[0], e[1], "0" * 64, e[3])
+        train.admission.entries[bad] = (e[0], e[1], "0" * 64, *e[3:])
         stream = MixedRowStream([train], processor, max_len=2048, micro_rows=1, seed=0, shuffle_buffer=2, pack_buffer=2)
-        keys, stats = [], {}
+        keys, stats, readers = [], {}, {}
         for n, batch in enumerate(stream.iter_worker(0, 1)):
             keys += [k.split("/", 1)[1] for k in batch["meta"]["keys"]]
-            stats = batch["meta"]["stats"]
+            stats, readers = batch["meta"]["stats"], batch["meta"]["readers"]
             if n >= 6:
                 break
         admitted = {k for k, r in t["records"].items() if r["split"] == "train" and r["stato"] == "ammesso"}
-        check("flusso: solo chiavi ammesse di train, il record alterato saltato e contato",
-              set(keys) <= admitted - {bad} and stats.get("manifest_errors/s", 0) >= 1 and stats.get("loaded/s", 0) > 0,
-              (sorted(set(keys)), stats))
+        check("flusso: solo chiavi ammesse di train, il record alterato saltato e contato dal reader (sha256 controllati "
+              "sui byte dello shard, prima di ogni trasformazione)",
+              set(keys) <= admitted - {bad} and readers.get("s", {}).get("errori_manifest", 0) >= 1
+              and stats.get("loaded/s", 0) > 0, (sorted(set(keys)), stats, readers))
 
 
 if __name__ == "__main__":

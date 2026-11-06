@@ -5,7 +5,9 @@ Le liste di decontaminazione approvate (data/decontam/*/<sorgente>/exclude_final
 `exclude` di ogni sorgente della loro famiglia: train_f1.py e check_train_config.py rifiutano una config che ne
 dimentica una. Le altre liste (qualità, incerti, duplicati della validazione, contaminazione di UniMER-Test,
 rietichettature) sono scelte della config: non obbligatorie, ma registrate nel manifest con hash e righe, così un run
-dice esattamente quali chiavi ha saltato o cambiato. Solo libreria standard.
+dice esattamente quali chiavi ha saltato o cambiato. Per UniMER e MAVIS con un manifest delle ammissioni (MANIFEST_FAMILIES)
+le liste non servono: le evidenze storiche e la decontaminazione sono nel manifest, e make_sources rifiuta liste in
+più. Solo libreria standard.
 """
 from __future__ import annotations
 
@@ -23,6 +25,8 @@ REQUIRED = {
     "mmfinereason": ("data/decontam/p6/mmfinereason/exclude_final.txt",),
     "llava-pretrain": ("data/decontam/p6/llava/exclude_final.txt",),
 }
+# famiglie lette con un manifest delle ammissioni per compito (manifest.TASKED): niente liste obbligatorie
+MANIFEST_FAMILIES = ("unimer", "mavis-geometry")
 
 
 def family(shards: str) -> str | None:
@@ -36,6 +40,8 @@ def missing_required(specs: list[dict], root: Path = ROOT) -> list[str]:
     errors = []
     for spec in specs:
         fam = family(spec["shards"])
+        if fam in MANIFEST_FAMILIES and spec.get("manifest"):
+            continue
         have = {Path(p).resolve() for p in spec.get("exclude", [])}
         for req in REQUIRED.get(fam, ()):
             if (root / req).resolve() not in have:
@@ -58,6 +64,7 @@ def provenance(specs: list[dict]) -> dict:
                  "exclude": [_entry(p) for p in spec.get("exclude", [])],
                  "relabel": [_entry(p) for p in spec.get("relabel", [])]}
         if spec.get("manifest"):
-            entry["manifest"] = {**file_entry(Path(spec["manifest"]) / "manifest.json"), "split": spec.get("split")}
+            entry["manifest"] = {**file_entry(Path(spec["manifest"]) / "manifest.json"), "split": spec.get("split"),
+                                 "sha256_dichiarato": spec.get("manifest_sha256")}
         out[spec["name"]] = entry
     return out

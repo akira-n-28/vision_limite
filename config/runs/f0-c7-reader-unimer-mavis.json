@@ -1,0 +1,41 @@
+{
+ "notes": "Collaudo F0 di C7: reader col manifest delle ammissioni di UniMER-1M e MAVIS-Geometry (scripts/reader_smoke.py). Non è una ricetta di training e non autorizza nessun run: pesi, durate e mix non sono decisi. I manifest candidati sono identificati dallo sha256 di manifest.json; la validazione è lo split dev degli stessi manifest. 'Ammesso' è la decisione operativa del candidato, non gold.",
+ "sources": [
+  {
+   "name": "unimer",
+   "kind": "unimer_formula",
+   "shards": "data/shards/unimer/2343ddd9-dense/unimer-train-*.tar",
+   "weight": 1.0,
+   "manifest": "data/manifests/unimer-candidato-2",
+   "manifest_sha256": "97af10332520c01717b80ae2e7b094f87cb5e435a6d03b0ead656175b837c126",
+   "split": "train"
+  },
+  {
+   "name": "unimer_line",
+   "kind": "unimer_line",
+   "shards": "data/shards/unimer/2343ddd9-dense/lines/unimer-lines-*.tar",
+   "weight": 1.0,
+   "manifest": "data/manifests/unimer-candidato-2",
+   "manifest_sha256": "97af10332520c01717b80ae2e7b094f87cb5e435a6d03b0ead656175b837c126",
+   "split": "train"
+  },
+  {
+   "name": "unimer_line_select",
+   "kind": "unimer_line_select",
+   "shards": "data/shards/unimer/2343ddd9-dense/lines/unimer-lines-*.tar",
+   "weight": 1.0,
+   "manifest": "data/manifests/unimer-candidato-2",
+   "manifest_sha256": "97af10332520c01717b80ae2e7b094f87cb5e435a6d03b0ead656175b837c126",
+   "split": "train"
+  },
+  {
+   "name": "mavis",
+   "kind": "mavis_f1",
+   "shards": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-*.tar",
+   "weight": 1.0,
+   "manifest": "data/manifests/mavis-geometry-candidato-3",
+   "manifest_sha256": "f3cca47367799ccd8a7c8f4d6b63c5c37e0cd06e22d921daa5507c6aa442b9c6",
+   "split": "train"
+  }
+ ]
+}

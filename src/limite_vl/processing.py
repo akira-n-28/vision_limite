@@ -121,6 +121,8 @@ class Example:
     grids: list[tuple[int, int]] = field(default_factory=list)
     source: str = ""  # tipo di sorgente e chiave del campione (data.build_example), per statistiche e test
     key: str = ""
+    tasks: tuple = ()  # compiti svolti dal campione (data.Sample.tasks), per i contatori per compito
+    blocked: dict = field(default_factory=dict)  # domande bloccate per compito non ammesso (data.Sample.blocked)
 
     def __len__(self) -> int:
         return len(self.input_ids)

@@ -10,9 +10,15 @@ training (`validation_samples`).
 Con un manifest delle ammissioni (limite_vl.manifest, S1; campi `manifest` e `split` della sorgente) si leggono
 solo i record `ammesso` dello split richiesto, e la validazione è lo split dev del manifest. Gli shard di
 manifest.MANIFEST_REQUIRED si leggono solo così. Ogni record consegnato deve avere gli sha256 di JSON e PNG del
-manifest; uno diverso è un errore contato (`manifest_errors/<sorgente>`), mai un passaggio silenzioso. I contatori
-dei reader (letti, saltati per il manifest o per le liste, consegnati) e gli esempi costruiti per sorgente
-(`loaded/<sorgente>`) sono nel `meta` di ogni micro-batch.
+manifest, controllati sui byte dello shard prima di ogni trasformazione: uno diverso è un errore contato dal reader
+(`errori_manifest`), mai un passaggio silenzioso. Per UniMER e MAVIS (manifest.TASKED) il manifest va anche
+identificato (`manifest_sha256`), l'ammissione vale per record e compito, esclusioni e rietichettature vengono solo dal
+manifest e il reader allega al campione la decisione del record (manifest.ADMISSION_FILE), che stream, validazione e
+prompt di generazione usano allo stesso modo. I contatori dei reader (letti, saltati per il manifest con il motivo o
+per le liste, errori del manifest, consegnati) e quelli degli esempi per sorgente (`loaded/`, `errors/`,
+`manifest_errors/`, `senza_compiti/`, `compiti/<sorgente>/<compito>`, `compiti_bloccati/<sorgente>/<compito>`,
+`too_long/<sorgente>`) sono nel `meta` di ogni micro-batch. Una sorgente che non costruisce più nessun esempio
+(FAILURE_LIMIT errori di seguito) ferma il flusso invece di girare a vuoto.
 
 Per ogni esempio il worker sceglie la sorgente con probabilità proporzionale al peso, prende un
 campione dal buffer di mescolamento della sorgente, costruisce l'Example, impacchetta le righe
@@ -39,10 +45,12 @@ from typing import Iterator
 from torch.utils.data import IterableDataset, get_worker_info
 
 from .collator import PackedCollator, iter_packed_rows
-from .data import SAMPLE_LOADERS, build_example, iter_shard
+from .data import SAMPLE_LOADERS, NoAdmittedTask, build_example, iter_shard
 from .manifest import Admission, ManifestError, manifest_required
 from .manifest import load as load_manifest
 from .processing import LimiteVLProcessor
+
+FAILURE_LIMIT = 1000  # esempi di seguito non costruibili di una sorgente: oltre, il flusso si ferma con un errore
 
 
 @dataclass
@@ -65,14 +73,17 @@ class Source:
 
 
 def make_sources(specs: list[dict]) -> list[Source]:
-    """[{name, kind, shards: glob, weight, exclude: [file], relabel: [file], manifest: cartella, split}] -> Source, con
-    controlli su tipi, nomi e shard presenti. `exclude` (facoltativo) elenca file con una chiave per riga, da saltare
-    sempre; per f2_solution vale anche come chiave del problema (campo `problem` del JSON). `relabel` (facoltativo)
-    elenca file JSONL {key, label, new_label}: il campo `label` del JSON del campione diventa new_label, solo se
-    coincide con `label` (altrimenti la lista è vecchia e il campione fa fallire il training). `uncertified_reason` lo
-    legge train_f2.py. `manifest` e `split` (insieme) legano la sorgente a un manifest delle ammissioni
-    (limite_vl.manifest.load, Manifest.admission): manifest mancante o incoerente, shard non registrati o diversi
-    sono errori; gli shard di MANIFEST_REQUIRED senza manifest anche."""
+    """[{name, kind, shards: glob, weight, exclude: [file], relabel: [file], manifest: cartella, manifest_sha256,
+    split}] -> Source, con controlli su tipi, nomi e shard presenti. `exclude` (facoltativo) elenca file con una chiave
+    per riga, da saltare sempre; per f2_solution vale anche come chiave del problema (campo `problem` del JSON).
+    `relabel` (facoltativo) elenca file JSONL {key, label, new_label}: il campo `label` del JSON del campione diventa
+    new_label, solo se coincide con `label` (altrimenti la lista è vecchia e il campione fa fallire il training).
+    `uncertified_reason` lo legge train_f2.py. `manifest` e `split` (insieme) legano la sorgente a un manifest delle
+    ammissioni (limite_vl.manifest.load, Manifest.admission): manifest mancante o incoerente, shard non registrati o
+    diversi sono errori; gli shard di MANIFEST_REQUIRED senza manifest anche. `manifest_sha256`, se indicato, deve
+    essere lo sha256 di manifest.json; per i tipi e i manifest di manifest.TASKED (UniMER, MAVIS) è obbligatorio, e
+    `exclude` e `relabel` non si accettano: esclusioni e rietichettature sono quelle del manifest
+    (Manifest.relabels). Ogni manifest si legge e i suoi shard si verificano una volta per chiamata."""
     sources, names, manifests = [], set(), {}
     for spec in specs:
         if spec["kind"] not in SAMPLE_LOADERS:
@@ -97,13 +108,23 @@ def make_sources(specs: list[dict]) -> list[Source]:
                         r = json.loads(line)
                         relabel[r["key"]] = (r["label"], r["new_label"])
         admission = None
-        if "manifest" in spec or "split" in spec:
+        if "manifest" in spec or "split" in spec or "manifest_sha256" in spec:
             if not spec.get("manifest") or not spec.get("split"):
                 raise ManifestError(f"sorgente {spec['name']}: 'manifest' e 'split' vanno indicati insieme")
             folder = str(spec["manifest"])
             if folder not in manifests:
                 manifests[folder] = load_manifest(folder)
-            admission = manifests[folder].admission(shards, spec["split"])
+            m = manifests[folder]
+            tasked = m.tasked_source(spec["kind"])
+            if (tasked or spec.get("manifest_sha256")) and spec.get("manifest_sha256") != m.manifest_sha256:
+                raise ManifestError(f"sorgente {spec['name']}: {folder}/manifest.json ha sha256 {m.manifest_sha256}, "
+                                    f"la config indica {spec.get('manifest_sha256')!r} (manifest da identificare)")
+            if tasked and (spec.get("exclude") or spec.get("relabel")):
+                raise ManifestError(f"sorgente {spec['name']}: con il manifest di {tasked} esclusioni e rietichettature "
+                                    "vengono dal manifest, non da liste della config")
+            admission = m.admission(shards, spec["split"], kind=spec["kind"])
+            if tasked and admission.task == "transcribe":
+                relabel = m.relabels(admission)
         elif manifest_required(shards):
             raise ManifestError(f"sorgente {spec['name']}: gli shard {manifest_required(shards)[:2]} si leggono solo "
                                 "con un manifest delle ammissioni (campi 'manifest' e 'split')")
@@ -187,9 +208,15 @@ class SourceReader:
             if admission is None and self._path == self.source.val_shard and index < self.val_count:
                 self.counts["saltati_validazione"] += 1
                 continue
-            if admission is not None and not admission.allows(key):  # non ammesso, o di un altro split (dev compreso)
-                self.counts["saltati_manifest"] += 1
-                continue
+            if admission is not None:
+                why = admission.refusal(key)  # non ammesso, di un altro split (dev compreso), senza il compito
+                if why is not None:
+                    self.counts["saltati_manifest"] += 1
+                    self.counts[f"saltati_manifest/{why}"] += 1
+                    continue
+                if admission.check(key, files) is not None:  # byte dello shard diversi da quelli ammessi
+                    self.counts["errori_manifest"] += 1
+                    continue
             if key in self.source.exclude:
                 self.counts["saltati_lista"] += 1
                 continue
@@ -200,7 +227,8 @@ class SourceReader:
                 self.counts["saltati_lista"] += 1
                 continue
             self.counts["consegnati"] += 1
-            return key, apply_relabel(self.source, key, files)
+            files = apply_relabel(self.source, key, files)
+            return key, files if admission is None else admission.attach(key, files)
 
 
 class Shuffler:
@@ -273,19 +301,28 @@ class MixedRowStream(IterableDataset):
 
         def examples():
             nonlocal mix_draws
+            failures: Counter = Counter()  # esempi di seguito non costruibili, per sorgente
             while True:
                 source = self._pick(u01(self.seed, "mix", worker, mix_draws))
                 mix_draws += 1
-                key, files = shufflers[source.name].next()
-                if source.admission is not None and source.admission.check(key, files) is not None:
-                    stats[f"manifest_errors/{source.name}"] += 1  # record diverso da quello ammesso: contato e saltato
-                    continue
+                key, files = shufflers[source.name].next()  # il reader ha già controllato gli sha256 del manifest
                 try:
                     example = build_example(self.processor, source.kind, key, files)
-                except Exception:  # noqa: BLE001 - campione illeggibile: contato e saltato
-                    stats[f"errors/{source.name}"] += 1
+                except Exception as exc:  # noqa: BLE001 - campione non costruibile: contato e saltato
+                    kind = ("senza_compiti" if isinstance(exc, NoAdmittedTask)
+                            else "manifest_errors" if isinstance(exc, ManifestError) else "errors")
+                    stats[f"{kind}/{source.name}"] += 1
+                    failures[source.name] += 1
+                    if failures[source.name] >= FAILURE_LIMIT:
+                        raise RuntimeError(f"{source.name}: {FAILURE_LIMIT} esempi di seguito non costruibili, "
+                                           f"l'ultimo {key}: {exc}") from exc
                     continue
+                failures[source.name] = 0
                 stats[f"loaded/{source.name}"] += 1
+                for t in example.tasks:
+                    stats[f"compiti/{source.name}/{t}"] += 1
+                for t, n in example.blocked.items():
+                    stats[f"compiti_bloccati/{source.name}/{t}"] += n
                 example.source = source.name
                 yield example
 
@@ -305,8 +342,8 @@ class MixedRowStream(IterableDataset):
 
 def validation_samples(source: Source, count: int) -> list[tuple[str, dict[str, bytes]]]:
     """I primi `count` campioni dell'ultimo shard: la parte esclusa dal training. Con un manifest, i primi `count`
-    record ammessi dello split dev, nell'ordine degli shard della sorgente; un record diverso da quello ammesso ferma la
-    validazione."""
+    record ammessi dello split dev (con un compito ammesso per il tipo, per UniMER e MAVIS), nell'ordine degli shard
+    della sorgente, con la decisione del manifest allegata; un record diverso da quello ammesso ferma la validazione."""
     if source.admission is not None:
         picked: list[tuple[str, dict[str, bytes]]] = []
         for path in source.shards:
@@ -318,7 +355,7 @@ def validation_samples(source: Source, count: int) -> list[tuple[str, dict[str, 
                 problem = source.admission.check(key, files)
                 if problem:
                     raise ManifestError(f"{source.name}: {key} di validazione: {problem}")
-                picked.append((key, apply_relabel(source, key, files)))
+                picked.append((key, source.admission.attach(key, apply_relabel(source, key, files))))
         return picked
     out = []
     for index, (key, files) in enumerate(iter_shard(source.val_shard)):

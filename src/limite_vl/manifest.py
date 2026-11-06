@@ -8,13 +8,18 @@ il candidato dei sintetici v4 (S1 §9). Solo libreria standard.
 - Split per gruppo (S1 §3, `assign_splits`): i gruppi con record di valutazione vanno in `test`; fra gli altri una quota
   di dev stratificata per famiglia, con un seme e gruppi indivisibili.
 - Lettura verificata (`load`): sha256 di records.jsonl.gz, record_id ricalcolati, un solo split per gruppo, conteggi per
-  shard. `Manifest.admission` lega il manifest agli shard di una sorgente (sha256 e dimensione su disco) e restituisce
-  il filtro dei reader (`Admission`). Ogni incoerenza è un `ManifestError`: il caricamento si ferma, senza ripiegare
-  sull'intero dataset.
+  shard. `Manifest.admission` lega il manifest agli shard di una sorgente (sha256 e dimensione su disco, verificati una
+  volta per manifest) e restituisce il filtro dei reader (`Admission`). Ogni incoerenza è un `ManifestError`: il
+  caricamento si ferma, senza ripiegare sull'intero dataset.
+- Ammissione per compito (C7, UniMER-1M e MAVIS-Geometry, `TASKED`): il tipo di loader legge un solo insieme di record
+  e svolge compiti registrati nel manifest; il manifest deve essere della sorgente e della revisione degli shard. Si
+  leggono solo i record ammessi dello split che hanno almeno un compito ammesso per quel tipo; il reader allega al
+  campione la decisione del record (`ADMISSION_FILE`), che il loader applica prima di scegliere il compito. Le
+  rietichettature vengono dalla lista registrata nel manifest (`Manifest.relabels`). "Ammesso" è la decisione operativa
+  del candidato: non è gold e non certifica le risposte.
 
 Fuori da questo sottoinsieme (S1 §9): `variant_id` e `uid`, che dipendono dal contratto di risposta (S3, D3); hash dei
-token di input e di target; indice globale fra sorgenti (S1 §4) e import delle esclusioni storiche (S1 §5); ammissione
-della singola QA dentro un record ammesso.
+token di input e di target; indice globale fra sorgenti (S1 §4) e import delle esclusioni storiche (S1 §5).
 """
 from __future__ import annotations
 
@@ -22,7 +27,9 @@ import gzip
 import hashlib
 import json
 import re
+import sys
 from collections import Counter, defaultdict
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -32,7 +39,21 @@ SPLITS = ("train", "dev", "test")
 STATES = ("ammesso", "quarantena", "escluso")
 HEX64 = re.compile(r"^[0-9a-f]{64}$")
 # Cartelle di shard che si leggono solo attraverso un manifest: una sorgente senza manifest si ferma (stream.make_sources).
-MANIFEST_REQUIRED = ("data/shards/synth/v4",)
+# Per UniMER e MAVIS tutte le varianti: quelle non registrate in un manifest non si leggono affatto (UniMER-Test, in
+# unimer/*/test, è valutazione e lo leggono gli strumenti del pannello, non make_sources).
+MANIFEST_REQUIRED = ("data/shards/synth/v4", "data/shards/unimer", "data/shards/mavis-geometry")
+# Ammissione per compito (C7): sorgente del manifest -> per ogni tipo di loader (data.SAMPLE_LOADERS) l'insieme dei
+# record che legge e il suo compito; None = i compiti per domanda del record, scelti dal loader fra quelli ammessi.
+TASKED = {
+    "unimer": {"unimer_formula": ("train", "transcribe"), "unimer_line": ("righe", "transcribe_line"),
+               "unimer_line_select": ("righe", "transcribe_line_select")},
+    "mavis-geometry": {"mavis_f1": ("train", None)},
+}
+# File aggiunto dal reader ai file di un campione di una sorgente TASKED: la decisione del manifest per il record (JSON
+# canonico). Non è un file dello shard.
+ADMISSION_FILE = "ammissione"
+MAVIS_QA_FIELDS = ("type", "q", "answer")  # campi del digest di una domanda di MAVIS (scripts/mavis_manifest.qa_sha)
+HASH_THREADS = 4  # shard verificati in parallelo (hashlib rilascia il GIL)
 
 
 class ManifestError(ValueError):
@@ -107,6 +128,16 @@ def qa_digest(digests: Digests, qa: dict) -> str:
     return digests({k: qa[k] for k in ("type", "q", "options", "answer")})
 
 
+def qa_item_sha256(q: dict, fields: tuple[str, ...] = MAVIS_QA_FIELDS) -> str:
+    """Digest di una domanda come lo registra il manifest di MAVIS (tipo, testo e risposta)."""
+    return sha256_text(canonical({k: q[k] for k in fields}))
+
+
+def qa_list_sha256(pairs) -> str:
+    """Digest dell'elenco ordinato [tipo, digest] delle domande di un record: lega il pool del loader al manifest."""
+    return sha256_text(canonical([[t, s] for t, s in pairs]))
+
+
 # ---------------------------------------------------------------- split
 
 def split_rank(seed: int, group: str) -> str:
@@ -159,26 +190,55 @@ def manifest_required(shards: list[str]) -> list[str]:
 @dataclass
 class Admission:
     """Filtro dei reader per una sorgente: i suoi shard, verificati contro il manifest, e per ogni chiave (split, stato,
-    sha256 del JSON, sha256 del PNG). Si leggono solo i record `ammesso` dello split richiesto; la validazione usa quelli
-    `ammesso` dello split dev (S1 §3)."""
+    sha256 del JSON, sha256 del PNG, compiti ammessi, compiti bloccati, dati per il loader). Si leggono solo i record
+    `ammesso` dello split richiesto; la validazione usa quelli `ammesso` dello split dev (S1 §3). Per una sorgente
+    TASKED (`tasked`) il record deve avere anche il compito del tipo di loader (`task`) o, se `task` è None, almeno un
+    compito ammesso; il reader gli allega la decisione (`attach`)."""
 
     manifest: str  # percorso di manifest.json
     manifest_sha256: str
     split: str
     shards: list[str]
-    entries: dict[str, tuple[str, str, str, str | None]] = field(repr=False)
+    entries: dict[str, tuple] = field(repr=False)
     expected: dict[str, int] = field(default_factory=dict)  # "split/stato" -> record in questi shard
+    task: str | None = None
+    tasked: bool = False
+    identity: dict = field(default_factory=dict)  # sorgente, revisione, nome e versione del manifest, insieme, tipo
+    expected_tasks: dict[str, int] = field(default_factory=dict)  # "split/stato del compito/compito" -> record
+    percorsi: list[str] = field(default_factory=list, repr=False)  # gli shard come li registra il manifest
+
+    def _admitted(self, e: tuple) -> bool:
+        if e[1] != "ammesso":
+            return False
+        if not self.tasked:
+            return True
+        return self.task in e[4] if self.task else bool(e[4])
 
     def allows(self, key: str) -> bool:
         e = self.entries.get(key)
-        return e is not None and e[0] == self.split and e[1] == "ammesso"
+        return e is not None and e[0] == self.split and self._admitted(e)
 
     def validation(self, key: str) -> bool:
         e = self.entries.get(key)
-        return e is not None and e[0] == "dev" and e[1] == "ammesso"
+        return e is not None and e[0] == "dev" and self._admitted(e)
+
+    def refusal(self, key: str, split: str | None = None) -> str | None:
+        """Motivo per cui il record non entra nello split (quello della sorgente se None): None se entra. Motivi:
+        assente, split_<altro>, quarantena, escluso, compito_non_ammesso/<compito>, nessun_compito_ammesso."""
+        e = self.entries.get(key)
+        if e is None:
+            return "assente"
+        if e[0] != (split or self.split):
+            return f"split_{e[0]}"
+        if e[1] != "ammesso":
+            return e[1]
+        if not self._admitted(e):
+            return f"compito_non_ammesso/{self.task}" if self.task else "nessun_compito_ammesso"
+        return None
 
     def check(self, key: str, files: dict[str, bytes]) -> str | None:
-        """Motivo per cui il record letto non è quello ammesso (JSON o PNG con altri byte), oppure None."""
+        """Motivo per cui il record letto non è quello ammesso (JSON o PNG con altri byte), oppure None. Va fatto sui
+        byte dello shard, prima di ogni trasformazione (rietichettatura)."""
         e = self.entries.get(key)
         if e is None:
             return "chiave assente dal manifest"
@@ -188,10 +248,28 @@ class Admission:
             return "PNG diverso da quello del manifest"
         return None
 
+    def attach(self, key: str, files: dict[str, bytes]) -> dict[str, bytes]:
+        """I file del campione con la decisione del manifest per il record (ADMISSION_FILE), per una sorgente TASKED;
+        gli altri invariati."""
+        if not self.tasked:
+            return files
+        e = self.entries[key]
+        doc = {"manifest_sha256": self.manifest_sha256, "split": e[0], "stato": e[1], "compito": self.task,
+               "compiti_ammessi": list(e[4]), "compiti_bloccati": list(e[5]), **(e[6] or {})}
+        return {**files, ADMISSION_FILE: canonical(doc).encode()}
+
     def describe(self) -> dict:
+        admitted = sum(1 for k in self.entries if self.allows(k))
         return {"manifest": self.manifest, "manifest_sha256": self.manifest_sha256, "split": self.split,
+                **self.identity, "compito_del_tipo": self.task,
                 "shards": [Path(p).name for p in self.shards], "attesi": dict(self.expected),
-                "ammessi_nello_split": sum(1 for k in self.entries if self.allows(k))}
+                "attesi_per_compito": dict(self.expected_tasks),
+                "ammessi_nello_split": admitted, "record_in_questi_shard": len(self.entries),
+                "decisione": "ammesso = decisione operativa del manifest candidato, non gold: non certifica le risposte"}
+
+
+def _family(kind: str) -> str | None:
+    return next((src for src, kinds in TASKED.items() if kind in kinds), None)
 
 
 @dataclass
@@ -200,36 +278,169 @@ class Manifest:
     meta: dict
     manifest_sha256: str
     by_shard: dict[str, dict[str, dict]]  # percorso relativo dello shard -> chiave -> record
+    # shard già verificati su disco (sha256 e dimensione) per questo manifest: una volta sola per processo
+    verified: set = field(default_factory=set, repr=False)
 
-    def admission(self, shards: list[str], split: str) -> Admission:
+    def tasked_source(self, kind: str) -> str | None:
+        """Sorgente TASKED del tipo di loader, se c'è. Errore se tipo e sorgente del manifest non vanno insieme: un tipo
+        di UniMER o di MAVIS vuole il manifest della sua sorgente, e un manifest di UniMER o di MAVIS si legge solo coi
+        tipi i cui compiti registra."""
+        by_kind, mine = _family(kind), self.meta.get("sorgente")
+        by_meta = mine if mine in TASKED else None
+        if by_kind != by_meta:
+            raise ManifestError(f"{self.folder}: il tipo di loader {kind!r} non legge il manifest della sorgente "
+                                f"{mine!r} (tipi ammessi: {sorted(TASKED.get(mine, {}))})")
+        return by_kind
+
+    def _verify_shards(self, items: list[tuple[Path, dict]]) -> None:
+        """sha256 e dimensione su disco degli shard non ancora verificati, in parallelo: ogni shard si legge una volta
+        per manifest, anche se più sorgenti (tipi o split diversi) lo usano."""
+        todo = []
+        for path, s in items:
+            if not path.is_file():
+                raise ManifestError(f"shard mancante: {path}")
+            if path.stat().st_size != s["bytes"]:
+                raise ManifestError(f"{path}: dimensione diversa da quella del manifest {self.folder}")
+            if str(path) not in self.verified:
+                todo.append((path, s))
+        with ThreadPoolExecutor(max_workers=max(1, min(HASH_THREADS, len(todo)))) as pool:
+            digests = list(pool.map(lambda x: _sha256_file(x[0]), todo))
+        for (path, s), digest in zip(todo, digests):
+            if digest != s["sha256"]:
+                raise ManifestError(f"{path}: sha256 diverso da quello del manifest {self.folder}")
+            self.verified.add(str(path))
+
+    def _check_revision(self, paths: list[Path]) -> None:
+        """La sorgente dichiarata dal manifest dello sharding di ogni cartella di shard (`source`: repository@revisione)
+        deve essere quella del manifest."""
+        want = f"{(self.meta.get('identita') or {}).get('repository')}@{self.meta.get('revisione')}"
+        for folder in sorted({p.parent for p in paths}):
+            sharding = folder / "manifest.json"
+            try:
+                got = json.loads(sharding.read_text(encoding="utf-8")).get("source")
+            except (OSError, ValueError) as exc:
+                raise ManifestError(f"{sharding}: manifest dello sharding illeggibile ({exc})") from None
+            if got != want:
+                raise ManifestError(f"{folder}: shard di {got!r}, il manifest {self.folder} è di {want!r}")
+
+    def admission(self, shards: list[str], split: str, kind: str | None = None) -> Admission:
         """Filtro per gli shard di una sorgente e uno split. Errore se uno shard non è nel manifest, se su disco ha
-        sha256 o dimensione diversi, se una chiave compare in due shard o se lo split non ha record ammessi."""
+        sha256 o dimensione diversi, se una chiave compare in due shard o se lo split non ha record ammessi. Con un
+        tipo di loader TASKED (`kind`): manifest della sua sorgente, revisione degli shard uguale, shard tutti
+        dell'insieme che il tipo legge, compito del tipo registrato in ogni record; si contano compiti ammessi e
+        bloccati per record."""
         if split not in SPLITS:
             raise ManifestError(f"split {split!r}: atteso uno di {SPLITS}")
+        if kind is None and self.meta.get("sorgente") in TASKED:
+            raise ManifestError(f"{self.folder}: manifest con ammissione per compito, serve il tipo di loader")
+        source = self.tasked_source(kind) if kind is not None else None
+        insieme, task = TASKED[source][kind] if source else (None, None)
         known = {str(shard_path(s["percorso"])): s for s in self.meta["shards"]}
         unknown = [p for p in shards if str(Path(p).resolve()) not in known]
         if unknown:
             raise ManifestError(f"{self.folder}: shard non registrati nel manifest: {unknown[:3]}")
+        items = [(Path(p).resolve(), known[str(Path(p).resolve())]) for p in shards]
+        if source:
+            wrong = [s["nome"] for _, s in items if s.get("insieme") != insieme]
+            if wrong:
+                raise ManifestError(f"{self.folder}: il tipo {kind} legge l'insieme {insieme!r}, gli shard {wrong[:3]} "
+                                    "sono di un altro insieme")
+            self._check_revision([p for p, _ in items])
+        self._verify_shards(items)
         entries: dict[str, tuple] = {}
         expected: Counter = Counter()
-        for p in shards:
-            s = known[str(Path(p).resolve())]
-            path = Path(p)
-            if not path.is_file():
-                raise ManifestError(f"shard mancante: {p}")
-            if path.stat().st_size != s["bytes"] or _sha256_file(path) != s["sha256"]:
-                raise ManifestError(f"{p}: sha256 o dimensione diversi da quelli del manifest {self.folder}")
+        expected_tasks: Counter = Counter()
+        shared: dict = {}  # tuple di compiti e stringhe uguali condivise fra i record (memoria)
+        for _, s in items:
             for key, r in self.by_shard.get(s["percorso"], {}).items():
                 if key in entries:
                     raise ManifestError(f"{key}: in due shard della stessa sorgente")
                 images = r.get("immagini") or [{}]
-                entries[key] = (r["split"], r["stato"], r["json_sha256"], images[0].get("sha256"))
+                split_r, state = sys.intern(r["split"]), sys.intern(r["stato"])
+                admitted, blocked, extra = (), (), None
+                if source:
+                    if r.get("insieme") != insieme:
+                        raise ManifestError(f"{key}: record dell'insieme {r.get('insieme')!r}, il tipo {kind} legge "
+                                            f"{insieme!r}")
+                    admitted, blocked, extra = _record_tasks(key, r, task, expected_tasks)
+                    admitted = shared.setdefault(admitted, admitted)
+                    blocked = shared.setdefault(blocked, blocked)
+                entries[key] = (split_r, state, r["json_sha256"], images[0].get("sha256"), admitted, blocked, extra)
                 expected[f"{r['split']}/{r['stato']}"] += 1
+        identity = {"sorgente": self.meta.get("sorgente"), "revisione": self.meta.get("revisione"),
+                    "nome": self.meta.get("nome"), "versione": self.meta.get("versione")}
+        if source:
+            identity.update(insieme=insieme, tipo=kind)
         adm = Admission(str(self.folder / "manifest.json"), self.manifest_sha256, split, [str(p) for p in shards],
-                        entries, dict(sorted(expected.items())))
+                        entries, dict(sorted(expected.items())), task=task, tasked=bool(source), identity=identity,
+                        expected_tasks=dict(sorted(expected_tasks.items())), percorsi=[s["percorso"] for _, s in items])
         if not any(adm.allows(k) for k in entries):
             raise ManifestError(f"{self.folder}: nessun record ammesso nello split {split} di questi shard")
         return adm
+
+    def relabels(self, adm: Admission) -> dict[str, tuple[str, str]]:
+        """Rietichettature dei record della sorgente (trasformazione `rietichettatura`), dalla lista registrata in
+        liste_importate (sha256 ricontrollato su disco): chiave -> (etichetta dello shard, etichetta nuova). Ogni record
+        rietichettato deve averla, con lo sha256 dell'etichetta dello shard (etichetta_sha256) e di quella nuova (della
+        trasformazione); una riga della lista per un record della sorgente senza trasformazione è un errore."""
+        records = {k: r for perc in adm.percorsi for k, r in self.by_shard.get(perc, {}).items()}
+        wanted = {k: r["trasformazione"] for k, r in records.items()
+                  if (r.get("trasformazione") or {}).get("nome") == "rietichettatura"}
+        out: dict[str, tuple[str, str]] = {}
+        loaded: dict[str, dict] = {}
+        for lista in sorted({t.get("lista") for t in wanted.values()}):
+            entry = ((self.meta.get("liste_importate") or {}).get(lista) or {}).get("file", {}).get("relabel.jsonl")
+            if not entry or not entry.get("path") or not HEX64.match(str(entry.get("sha256", ""))):
+                raise ManifestError(f"{self.folder}: rietichettature di {lista!r} senza relabel.jsonl registrato")
+            path = Path(entry["path"])
+            if not path.is_file() or _sha256_file(path) != entry["sha256"]:
+                raise ManifestError(f"{path}: relabel.jsonl mancante o diverso da quello registrato nel manifest")
+            with open(path, encoding="utf-8") as fh:
+                for line in fh:
+                    if line.strip():
+                        x = json.loads(line)
+                        loaded[x["key"]] = x
+        stray = sorted(k for k in loaded if k in records and k not in wanted)
+        if stray:
+            raise ManifestError(f"{self.folder}: rietichettature della lista per record senza trasformazione: {stray[:3]}")
+        for k, t in wanted.items():
+            x = loaded.get(k)
+            if x is None:
+                raise ManifestError(f"{k}: rietichettatura registrata nel manifest ma assente dalla lista")
+            if sha256_text(x["label"]) != records[k]["etichetta_sha256"] \
+                    or sha256_text(x["new_label"]) != t.get("etichetta_sha256"):
+                raise ManifestError(f"{k}: etichette della lista diverse dagli sha256 del manifest")
+            out[k] = (x["label"], x["new_label"])
+        return out
+
+
+def _record_tasks(key: str, r: dict, task: str | None, counter: Counter) -> tuple[tuple, tuple, dict | None]:
+    """(compiti ammessi, compiti bloccati, dati per il loader) di un record TASKED. UniMER: compiti come nomi, con lo
+    stato del record; MAVIS: compiti con il loro stato (shape_type in quarantena), digest delle domande e della
+    descrizione. Un compito ammesso del record vuole un record ammesso; un compito di domande vuole almeno una domanda."""
+    tasks = r.get("compiti") or []
+    if task is not None:  # compiti come nomi: lo stato è quello del record
+        names = [t if isinstance(t, str) else t.get("compito") for t in tasks]
+        if task not in names:
+            raise ManifestError(f"{key}: il record non registra il compito {task!r} ({names})")
+        for t in names:
+            counter[f"{r['split']}/{r['stato']}/{t}"] += 1
+        ok = r["stato"] == "ammesso"
+        admitted = tuple(sorted(names)) if ok else ()
+        blocked = () if ok else tuple(sorted(names))
+        t = r.get("trasformazione") or {}
+        extra = {"etichetta_sha256": t["etichetta_sha256"]} if t.get("nome") == "rietichettatura" else None
+        return admitted, blocked, extra
+    admitted, blocked = [], []
+    for t in tasks:
+        name, state = t["compito"], t["stato"]
+        counter[f"{r['split']}/{state}/{name}"] += 1
+        usable = name == "describe" or t.get("domande", 0) > 0
+        (admitted if r["stato"] == "ammesso" and state == "ammesso" and usable else blocked).append(name)
+    qa = r.get("qa") or []
+    extra = {"qa_sha256": qa_list_sha256((q["tipo"], q["sha256"]) for q in qa),
+             "descrizione_sha256": r.get("descrizione_sha256")}
+    return tuple(sorted(admitted)), tuple(sorted(blocked)), extra
 
 
 def _sha256_file(path: Path, chunk: int = 1 << 20) -> str:

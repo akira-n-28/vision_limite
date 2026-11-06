@@ -4,6 +4,13 @@ Ogni tipo di sorgente ha un loader `(chiave, file del campione) -> Sample`: mess
 (l'ultimo è la risposta dell'assistente con il suo prefill), immagine e budget di patch. Da un Sample
 si costruiscono sia l'esempio di training (`build_example`) sia il prompt per la generazione
 (`generation_prompt`: gli stessi messaggi senza la risposta, con lo stesso prefill).
+
+Con un manifest delle ammissioni per compito (manifest.TASKED: UniMER e MAVIS) il reader aggiunge ai file del campione
+la decisione del record (manifest.ADMISSION_FILE). I loader di UniMER vogliono allora il compito del loro tipo fra i
+compiti ammessi e, per una formula rietichettata, l'etichetta nuova registrata; mavis_f1 sceglie il compito e le
+domande solo fra quelli ammessi (shape_type no), dopo aver legato il pool delle domande e la descrizione ai digest del
+manifest. Il Sample dice i compiti svolti e le domande bloccate. Senza la decisione il loader fa come prima: gli shard
+di UniMER e MAVIS però si leggono solo col manifest (manifest.MANIFEST_REQUIRED).
 """
 from __future__ import annotations
 
@@ -11,12 +18,14 @@ import hashlib
 import io
 import json
 import tarfile
+from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Iterator
 
 from PIL import Image
 
+from .manifest import ADMISSION_FILE, ManifestError, qa_item_sha256, qa_list_sha256, sha256_text
 from .processing import (DIAGRAM_MAX_PATCHES, F1_PREFILL, Example, LimiteVLProcessor, capped_size,
                          exact_patches, to_rgb)
 
@@ -68,6 +77,25 @@ class Sample:
     messages: list[dict]  # l'ultimo è l'assistente (content = target, prefill facoltativo)
     image: Image.Image | None  # None: esempio di solo testo (replay testuale)
     max_patches: int | None = None  # None = budget di default del processor
+    tasks: tuple[str, ...] = ()  # compiti svolti (una voce per domanda), se il loader li conosce
+    blocked: dict[str, int] | None = None  # domande tolte dal pool perché il loro compito non è ammesso
+
+
+class NoAdmittedTask(ValueError):
+    """Il record non offre un compito ammesso per questo tipo di loader: si salta, senza ripiegare su un compito
+    vietato."""
+
+
+def admission_of(files: dict[str, bytes]) -> dict | None:
+    """La decisione del manifest allegata dal reader (manifest.ADMISSION_FILE), o None."""
+    raw = files.get(ADMISSION_FILE)
+    return None if raw is None else json.loads(raw)
+
+
+def _require_task(key: str, files: dict[str, bytes], task: str) -> None:
+    adm = admission_of(files)
+    if adm is not None and task not in adm["compiti_ammessi"]:
+        raise NoAdmittedTask(f"{key}: compito {task} non ammesso dal manifest")
 
 
 def iter_shard(path: Path | str) -> Iterator[tuple[str, dict[str, bytes]]]:
@@ -128,11 +156,16 @@ def mavis_caption_sample(key: str, files: dict[str, bytes]) -> Sample:
 
 def unimer_formula_sample(key: str, files: dict[str, bytes]) -> Sample:
     """UniMER (scripts/shard_unimer.py): PNG già alla dimensione finale (capped_size), LaTeX senza gli spazi
-    fra token (latex.despace) come target, richiesta scelta dalla chiave."""
+    fra token (latex.despace) come target, richiesta scelta dalla chiave. Col manifest: compito transcribe ammesso e,
+    per una formula rietichettata, l'etichetta nuova (applicata dal reader) con lo sha256 della trasformazione."""
     meta = json.loads(files["json"])
+    _require_task(key, files, "transcribe")
+    expected = (admission_of(files) or {}).get("etichetta_sha256")
+    if expected is not None and sha256_text(meta["label"]) != expected:
+        raise ManifestError(f"{key}: etichetta diversa dalla rietichettatura registrata nel manifest")
     messages = [{"role": "user", "content": [{"type": "image"}, {"type": "text", "text": pick_prompt(key, FORMULA_PROMPTS)}]},
                 {"role": "assistant", "content": meta["label"], "prefill": F1_PREFILL}]
-    return Sample(messages, open_image(files["png"]), meta["max_patches"])
+    return Sample(messages, open_image(files["png"]), meta["max_patches"], tasks=("transcribe",))
 
 
 def pixmo_caption_sample(key: str, files: dict[str, bytes]) -> Sample:
@@ -211,20 +244,52 @@ def mavis_count_caption_sample(key: str, files: dict[str, bytes]) -> Sample:
 
 def mavis_f1_sample(key: str, files: dict[str, bytes]) -> Sample:
     """MAVIS-Geometry per F1-clean (f1_mavis): verità da diagram_generation confermata dalla didascalia. Metà dei
-    campioni, scelti dalla chiave, chiede la descrizione canonica di f1_schema; l'altra metà da 1 a 5 domande brevi."""
-    from .f1_mavis import describe, mavis_truth, questions_example
+    campioni, scelti dalla chiave, chiede la descrizione canonica di f1_schema; l'altra metà da 1 a 5 domande brevi.
+
+    Col manifest (decisione allegata dal reader): il pool delle domande e la descrizione devono avere i digest del
+    record; le domande di un compito non ammesso (shape_type) si tolgono prima della scelta, che resta deterministica
+    per chiave sul pool filtrato. Se la famiglia scelta dalla chiave non ha compiti ammessi si usa l'altra, se ammessa;
+    senza nessun compito ammesso, NoAdmittedTask."""
+    from .f1_mavis import describe, mavis_questions, mavis_truth, questions_example
+    from .f1c import pick_questions, qa_messages
 
     meta = _mavis_meta(key, files)
     truth, why = mavis_truth(meta["text_en"]["caption"], meta["text_en"]["diagram_generation"])
     if truth is None:
         raise ValueError(f"{key}: verità MAVIS non disponibile ({why})")
-    if int.from_bytes(hashlib.blake2b((key + "/task").encode(), digest_size=8).digest(), "little") % 2 == 0:
-        prompt, answer = describe(key, truth)
+    describe_first = int.from_bytes(hashlib.blake2b((key + "/task").encode(), digest_size=8).digest(), "little") % 2 == 0
+    adm = admission_of(files)
+    blocked: Counter = Counter()
+    if adm is None:  # senza manifest: la scelta di prima, su tutti i compiti
+        if describe_first:
+            prompt, answer = describe(key, truth)
+            tasks = ("describe",)
+        else:
+            prompt, answer, picked = questions_example(key, truth)
+            tasks = tuple(q["type"] for q in picked)
     else:
-        prompt, answer, _ = questions_example(key, truth)
+        pool = mavis_questions(key, truth)
+        if qa_list_sha256((q["type"], qa_item_sha256(q)) for q in pool) != adm.get("qa_sha256"):
+            raise ManifestError(f"{key}: domande diverse da quelle registrate nel manifest")
+        allowed = set(adm["compiti_ammessi"])
+        usable = [q for q in pool if q["type"] in allowed]
+        can_describe = "describe" in allowed
+        if can_describe and (describe_first or not usable):
+            prompt, answer = describe(key, truth)
+            if sha256_text(answer) != adm.get("descrizione_sha256"):
+                raise ManifestError(f"{key}: descrizione diversa da quella registrata nel manifest")
+            tasks = ("describe",)
+        elif usable:
+            picked = pick_questions(key, usable)
+            prompt, answer = qa_messages(picked)
+            tasks = tuple(q["type"] for q in picked)
+            blocked.update(q["type"] for q in pool if q["type"] not in allowed)
+        else:
+            raise NoAdmittedTask(f"{key}: nessun compito ammesso (ammessi {sorted(allowed)})")
     messages = [{"role": "user", "content": [{"type": "image"}, {"type": "text", "text": prompt}]},
                 {"role": "assistant", "content": answer, "prefill": F1_PREFILL}]
-    return Sample(messages, open_image(files["png"]), meta.get("max_patches", DIAGRAM_MAX_PATCHES))
+    return Sample(messages, open_image(files["png"]), meta.get("max_patches", DIAGRAM_MAX_PATCHES), tasks=tasks,
+                  blocked=dict(blocked))
 
 
 def stem_visible_sample(key: str, files: dict[str, bytes]) -> Sample:
@@ -251,8 +316,9 @@ def _unimer_line(key: str, meta: dict) -> int:
 
 def unimer_line_sample(key: str, files: dict[str, bytes]) -> Sample:
     """UniMER, formula su più righe: una riga ritagliata (ingrandita al più 2x entro 1024 patch) e la sua
-    trascrizione."""
+    trascrizione. Col manifest, compito transcribe_line ammesso per la riga ritagliata (non basta la formula)."""
     meta = json.loads(files["json"])
+    _require_task(key, files, "transcribe_line")
     k = _unimer_line(key, meta)
     image = open_image(files["png"])
     lines = meta["lines"]
@@ -267,17 +333,19 @@ def unimer_line_sample(key: str, files: dict[str, bytes]) -> Sample:
         crop = crop.resize((w, h), Image.BICUBIC)
     messages = [{"role": "user", "content": [{"type": "image"}, {"type": "text", "text": pick_prompt(key, FORMULA_PROMPTS)}]},
                 {"role": "assistant", "content": meta["rows"][k], "prefill": F1_PREFILL}]
-    return Sample(messages, crop, exact_patches(h, w))
+    return Sample(messages, crop, exact_patches(h, w), tasks=("transcribe_line",))
 
 
 def unimer_line_select_sample(key: str, files: dict[str, bytes]) -> Sample:
-    """UniMER, formula su più righe: l'immagine intera e la richiesta di trascrivere solo la riga k."""
+    """UniMER, formula su più righe: l'immagine intera e la richiesta di trascrivere solo la riga k. Col manifest,
+    compito transcribe_line_select ammesso per la riga ritagliata."""
     meta = json.loads(files["json"])
+    _require_task(key, files, "transcribe_line_select")
     k = _unimer_line(key, meta)
     prompt = f"Transcribe only line {k + 1} of the formula in the image into LaTeX."
     messages = [{"role": "user", "content": [{"type": "image"}, {"type": "text", "text": prompt}]},
                 {"role": "assistant", "content": meta["rows"][k], "prefill": F1_PREFILL}]
-    return Sample(messages, open_image(files["png"]), meta["max_patches"])
+    return Sample(messages, open_image(files["png"]), meta["max_patches"], tasks=("transcribe_line_select",))
 
 
 def synth_qa_sample(key: str, files: dict[str, bytes]) -> Sample:
@@ -358,6 +426,7 @@ def build_example(processor: LimiteVLProcessor, kind: str, key: str, files: dict
         raise ValueError(f"image_mode {image_mode!r}: atteso uno di {IMAGE_MODES}")
     example = processor.encode(messages, images, max_patches=sample.max_patches)
     example.source, example.key = kind, key
+    example.tasks, example.blocked = sample.tasks, sample.blocked or {}
     return example
 
 

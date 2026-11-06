@@ -46,7 +46,8 @@ def iter_packed_rows(examples: Iterable[Example], max_len: int, buffer_size: int
 
     Raccoglie `buffer_size` esempi, li impacchetta e consegna le righe piene almeno `min_fill`;
     gli esempi delle altre restano nel buffer per il giro successivo. A fine flusso consegna tutto.
-    `stats` (facoltativo) conta esempi, righe, token utili e scartati perché più lunghi di max_len.
+    `stats` (facoltativo) conta esempi, righe, token utili e scartati perché più lunghi di max_len, anche per
+    sorgente (`too_long/<sorgente>`).
     """
     stats = stats if stats is not None else Counter()
     buffer: list[Example] = []
@@ -69,6 +70,7 @@ def iter_packed_rows(examples: Iterable[Example], max_len: int, buffer_size: int
         stats["examples"] += 1
         if len(example) > max_len:
             stats["too_long"] += 1
+            stats[f"too_long/{example.source}"] += 1
             continue
         buffer.append(example)
         if len(buffer) >= buffer_size:
