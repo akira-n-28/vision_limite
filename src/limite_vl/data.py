@@ -246,10 +246,12 @@ def mavis_f1_sample(key: str, files: dict[str, bytes]) -> Sample:
     """MAVIS-Geometry per F1-clean (f1_mavis): verità da diagram_generation confermata dalla didascalia. Metà dei
     campioni, scelti dalla chiave, chiede la descrizione canonica di f1_schema; l'altra metà da 1 a 5 domande brevi.
 
-    Col manifest (decisione allegata dal reader): il pool delle domande e la descrizione devono avere i digest del
+    Col manifest (decisione allegata dal reader): il pool delle domande, nella costruzione dichiarata dal record (storica
+    se non è dichiarata; mavis_c9.CONSTRUCTION per un manifest C9), e la descrizione devono avere i digest del
     record; le domande di un compito non ammesso (shape_type) si tolgono prima della scelta, che resta deterministica
     per chiave sul pool filtrato. Se la famiglia scelta dalla chiave non ha compiti ammessi si usa l'altra, se ammessa;
     senza nessun compito ammesso, NoAdmittedTask."""
+    from . import mavis_c9
     from .f1_mavis import describe, mavis_questions, mavis_truth, questions_example
     from .f1c import pick_questions, qa_messages
 
@@ -268,7 +270,13 @@ def mavis_f1_sample(key: str, files: dict[str, bytes]) -> Sample:
             prompt, answer, picked = questions_example(key, truth)
             tasks = tuple(q["type"] for q in picked)
     else:
-        pool = mavis_questions(key, truth)
+        construction = adm.get("costruzione_qa") or mavis_c9.HISTORICAL
+        if construction == mavis_c9.HISTORICAL:  # i manifest senza costruzione dichiarata: quella storica
+            pool = mavis_questions(key, truth)
+        elif construction == mavis_c9.CONSTRUCTION:
+            pool = mavis_c9.questions(key, truth, meta["text_en"]["diagram_generation"])[0]
+        else:
+            raise ManifestError(f"{key}: costruzione delle domande {construction!r} sconosciuta")
         if qa_list_sha256((q["type"], qa_item_sha256(q)) for q in pool) != adm.get("qa_sha256"):
             raise ManifestError(f"{key}: domande diverse da quelle registrate nel manifest")
         allowed = set(adm["compiti_ammessi"])

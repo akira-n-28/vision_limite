@@ -440,6 +440,8 @@ def _record_tasks(key: str, r: dict, task: str | None, counter: Counter) -> tupl
     qa = r.get("qa") or []
     extra = {"qa_sha256": qa_list_sha256((q["tipo"], q["sha256"]) for q in qa),
              "descrizione_sha256": r.get("descrizione_sha256")}
+    if r.get("costruzione_qa"):  # C9: costruzione delle domande dichiarata dal record; assente = storica
+        extra["costruzione_qa"] = r["costruzione_qa"]
     return tuple(sorted(admitted)), tuple(sorted(blocked)), extra
 
 
