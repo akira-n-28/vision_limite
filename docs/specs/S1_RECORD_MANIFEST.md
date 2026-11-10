@@ -390,3 +390,10 @@ il modello della versione 2 dei sintetici (§2.9 di S2):
   - Verifica (`mavis_c9.py verifica`, 7 su 7) rileggendo genitore e figlio. Le domande di lettura si ricalcolano dal
     visualizzato registrato, le domande `shape_type` dalle opzioni registrate; queste ultime si riverificano col
     controllo indipendente sui fatti registrati.
+  - Dal 2026-11-10 (job 30780-30781) la verifica legge anche i soli JSON originali dagli shard. Posizione e
+    json_sha256 sono quelli del manifest, e le immagini non si leggono. I `valori` si confrontano con le misure
+    ricavate dalle annotazioni: esatto, rappresentazione, visualizzato previsto, risposta di lettura, elementi
+    mancanti, ripetuti o in più. Un controllo scritto a parte guarda la coerenza della rappresentazione.
+  - Riverifica di candidato-4, che resta invariato: 11 controlli su 12. Le 1.232.153 misure non hanno nessuna
+    discrepanza con la fonte; una sola etichetta di rappresentazione è incoerente con la scrittura del renderer
+    (S2 §3, C9).

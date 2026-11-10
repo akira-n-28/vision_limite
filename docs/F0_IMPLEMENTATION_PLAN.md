@@ -23,7 +23,9 @@ codice del repository sul cluster e i requisiti della pipeline.
 - **C9, MAVIS:** implementato e collaudato il 2026-11-10 (job 30773-30779; S2 §3, C9; S1 §9). Valori esatti,
   visualizzati e richiesti nel record e domande `shape_type` con opzioni sono nella versione `mavis-geometry-candidato-4`,
   derivata da candidato-3 e non usata da nessuna configurazione. `shape_type` resta esclusa dal percorso operativo: le
-  118.118 domande recuperabili (30,8% di 383.592) aspettano l'approvazione e la verifica a vista.
+  118.118 domande recuperabili (30,8% di 383.592) aspettano l'approvazione e la verifica a vista. Dal job 30781 la
+  verifica confronta i valori coi JSON originali: nessuna discrepanza su 1.232.153 misure; un'etichetta di
+  rappresentazione incoerente (`d3-44919`, √841), documentata e non corretta.
 - **C3, C4, C6:** non iniziati.
 - **Pannello di valutazione (punto 7):** benchmark scaricati e verificati (job 30463). Indice, gruppi e ruoli sono
   fissati in `pannello-v3` (job 30469), prima di qualsiasi valutazione del modello, e descritti in
@@ -349,6 +351,8 @@ LLaVA** | `stream.py`, `collator.py`, `data_lists.py`, `data.py`, `manifest.py` 
 | 30776 (2026-11-10) | `slurm/mavis_c9.sbatch costruzione c9-1 4` (4 CPU, 48G): test, scansione dei 199.050 record, controllo testuale, candidato-4 e verifica | 11 min 26 s, RSS massima 11,5 GiB. Pool storico e descrizione con i digest di candidato-3 in tutti i record; 118.118 domande `shape_type` recuperabili e 265.474 omesse col motivo; nessuna corrispondenza col pannello nei 721 testi nuovi; `mavis-geometry-candidato-4` (`77e1849e…`), verifica 7 su 7 | che la costruzione predefinita non cambia, che ogni domanda C9 supera il controllo indipendente e che la versione nuova eredita record, gruppi, split e stati; proprietà delle annotazioni, non dei pixel |
 | 30777 (2026-11-10) | `slurm/reader_smoke.sbatch c7-3`, config invariata, dopo le modifiche di `data.py` e `manifest.py` | 6 min 27 s; 22 controlli su 22, riepilogo `docs/reader_smoke/c7-3.json` uguale a c7-2 tolti job, tempi e codice | che il reader di C7 sul candidato corrente non cambia |
 | 30779 (2026-11-10) | `slurm/mavis_c9.sbatch lettore c9-lettore-1 4 77e1849e…` (4 CPU, 32G): primo shard col candidato-4 e col candidato-3, in train e dev | 6 min; 8 controlli su 8 (`docs/reader_smoke/c9-lettore-1.json`): chiavi ammesse uguali (18.060 e 933), stessi messaggi del genitore, digest del pool C9 verificato, `shape_type` mai, pool C9 rifiutato senza la costruzione dichiarata | il collegamento del candidato C9 col reader su uno shard; non il flusso intero |
+| 30780 (2026-11-10) | `slurm/tests_cpu.sbatch` con `tests/test_mavis_c9.py`, `test_reader_manifest` e `test_mavis_manifest`, dopo la correzione della verifica dei valori | 1 min 28 s; `test_mavis_c9` 93 su 93 al primo giro (9 nuovi), `test_reader_manifest` 48 su 48 | che la verifica ritrova i valori validi (decimale esatto e arrotondato) e trova, con gli hash interni aggiornati, esatto o rappresentazione alterati, un esatto alternativo con lo stesso visualizzato e elementi mancanti, ripetuti o in più |
+| 30781 (2026-11-10) | `slurm/mavis_c9.sbatch verifica verifica-valori-1 4 77e1849e…` (4 CPU, 48G): riverifica di candidato-4 invariato, coi soli JSON originali | 2 min 55 s, RSS massima 11,4 GiB; 11 controlli su 12. 199.050 JSON (608,6 MB, nessuna immagine), 1.232.153 misure confrontate, nessuna discrepanza con le annotazioni; un'etichetta di rappresentazione incoerente (`d3-44919` `side:EH`, `√841` scritto `\sqrt{841}`, etichetta `intero` invece di `radice`) | che i valori registrati sono quelli delle annotazioni con la regola della costruzione; rappresentazione prevista, non letta dai pixel |
 
 Calcoli di sola libreria standard sul frontend, il 2026-10-28, a supporto delle specifiche (non sono collaudi):
 - riproduzione delle domande di synth v3 dalle chiavi, con istogrammi identici al manifest del job 29756;
@@ -661,6 +665,11 @@ training. Dal 2026-11-06 i reader applicano `unimer-candidato-2` e `mavis-geomet
     ogni misura; `shape_type` con un insieme fisso di opzioni per famiglia, 118.118 domande recuperabili su 383.592 e
     le altre omesse col motivo; stessi record, gruppi, split e stati di candidato-3; nessun testo nuovo in comune col
     pannello. Non attivo.
+  - *Valori contro le annotazioni* (job 30780-30781, verifica corretta, S2 §3): candidato-4 riverificato coi JSON
+    originali senza modificarlo, 11 controlli su 12. Nessuna discrepanza con la fonte su 1.232.153 misure. Una sola
+    etichetta di rappresentazione è incoerente: in `d3-44919` `side:EH` l'esatto `√841` è scritto `\sqrt{841}` ma
+    etichettato `intero`. La rappresentazione è prevista dalla regola del renderer; la fedeltà ai pixel resta da
+    verificare a vista.
   - *Reader (C7)* (job 30686-30688, S1 §9): `mavis_f1` sceglie solo fra i compiti ammessi, mai `shape_type`. Pool delle
     domande e descrizione sono legati ai digest del manifest. Chiamato fuori dal reader, il loader sceglie ancora come
     prima.

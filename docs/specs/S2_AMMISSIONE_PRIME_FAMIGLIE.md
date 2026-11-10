@@ -1743,6 +1743,35 @@ candidato C9). La costruzione storica (`f1_mavis.mavis_questions`) resta quella 
     registrato; ogni domanda `shape_type` ricalcolata dalle opzioni e riverificata coi fatti registrati; conteggi e
     `keys/`.
   - Nessuna configurazione lo usa: `config/runs/f0-c7-reader-unimer-mavis.json` resta su candidato-3.
+- **Verifica dei valori contro le annotazioni** (correzione della verifica, 2026-11-10, job 30780-30781; rapporto
+  `docs/manifests/verifica-valori-1/mavis-geometry-candidato-4-77e1849e.json`).
+  - *Lacuna.* La verifica del job 30776 controllava solo l'autocoerenza dei valori: risposta di lettura uguale al
+    visualizzato, digest delle domande di lettura. Un esatto sbagliato scritto con hash coerenti l'avrebbe superata.
+  - *Correzione.* `verify_c9` rilegge i soli JSON originali degli shard (`shard_jsons`: posizione e json_sha256 del
+    manifest, immagini saltate). Ricava le misure con la normalizzazione della costruzione (`measure_values`:
+    `mavis_gen.measures` e `facts.norm_value`) e confronta elemento, esatto, rappresentazione, visualizzato previsto e
+    risposta di lettura, contando gli elementi mancanti, ripetuti o in più. Un controllo scritto a parte guarda la
+    coerenza di ogni voce con la regola di rappresentazione. Restano i controlli sui digest delle domande storiche.
+  - *Test* (job 30780, `tests/test_mavis_c9.py` 93 su 93). Validi: un decimale esatto (3/2, 1.5) e uno arrotondato
+    (44/3, 14.67). Con gli hash interni aggiornati la verifica trova esatto alterato, rappresentazione alterata,
+    esatto alternativo con lo stesso visualizzato e voce coerente (44/3 -> 4402/300), elemento mancante, ripetuto o
+    in più.
+  - *Valori rispetto alle annotazioni* (job 30781, candidato-4 invariato, 11 controlli su 12). Su 199.050 record e
+    1.232.153 misure nessuna discrepanza.
+  - *Rappresentazione prevista dal renderer.* Un'incoerenza reale, in `d3-44919` `side:EH`:
+
+    | Campo | Osservato | Atteso | Rispetto alle annotazioni |
+    | --- | --- | --- | --- |
+    | esatto | `√841` (= 29) | `√841` | uguale |
+    | visualizzato previsto | `\sqrt{841}` | `\sqrt{841}` | uguale alla regola del renderer |
+    | risposta di lettura | `\sqrt{841}` | `\sqrt{841}` | uguale al target storico |
+    | rappresentazione | `intero` | `radice` | la regola scrive l'esatto come radice |
+
+    `mavis_c9.representation` classifica sul valore normalizzato (√841 = 29) invece che sulla scrittura. È l'unica
+    misura con un radicando quadrato perfetto. Non tocca i target di lettura né le decisioni di `shape_type`, che
+    usano il valore esatto 29. Non è corretta: candidato-4 resta immutato, e una correzione darebbe una versione
+    nuova.
+  - *Fedeltà ai pixel*: non verificata da nessuno di questi controlli; resta alla verifica a vista.
 - **Reader.**
   - Regressione di C7 sul candidato corrente (job 30777, `docs/reader_smoke/c7-3.json`): 22 controlli su 22, uguale a
     c7-2 tolti job, tempi e codice.

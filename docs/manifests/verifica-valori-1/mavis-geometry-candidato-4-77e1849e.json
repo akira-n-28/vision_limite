@@ -1,0 +1,209 @@
+{
+ "schema": "mavis-c9-verifica/2",
+ "manifest": "data/manifests/mavis-geometry-candidato-4",
+ "genitore": "data/manifests/mavis-geometry-candidato-3",
+ "ingressi": {
+  "candidato": {
+   "percorso": "data/manifests/mavis-geometry-candidato-4",
+   "manifest_sha256": "77e1849e0e09089dea592be577921259675e6cd51ed99a174cbf6a1744f14fa9",
+   "records_sha256": "0c5a7d0a30b0e18f63b89dcef877247c6100485ce42156ac2926e0c881e9c6c8",
+   "righe": 199050
+  },
+  "genitore": {
+   "percorso": "data/manifests/mavis-geometry-candidato-3",
+   "manifest_sha256": "f3cca47367799ccd8a7c8f4d6b63c5c37e0cd06e22d921daa5507c6aa442b9c6",
+   "records_sha256": "8d199336dc2f0bb3acc3475ad20e9ef94450a03e59dd5e06ae41f3a31ae82970"
+  },
+  "rapporto_della_scansione": {
+   "path": "/home/prignano/vision_limite/outputs/mavis_c9/c9-1/report.json",
+   "bytes": 7652,
+   "sha256": "564b0d024b9ec2abee47ac585babbdf9fd4f699cad7b73cfdcee6efb994c2a3f"
+  },
+  "shard": [
+   {
+    "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00000.tar",
+    "sha256": "0a6144be1c6a424944ecbf48a598fa8056646b38a363095678726a8ece3bf6a9",
+    "bytes": 1031505920,
+    "record": 19000
+   },
+   {
+    "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00001.tar",
+    "sha256": "9ead847c1403c8bac953db8ef7509cd47158773d6ff0df5ec7caebbab035139c",
+    "bytes": 1027225600,
+    "record": 19000
+   },
+   {
+    "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00002.tar",
+    "sha256": "a4d5b382657643a52c3697485d5a2584a4e158a091ed2a6cf9ef9c8476a43d1b",
+    "bytes": 957132800,
+    "record": 19000
+   },
+   {
+    "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00003.tar",
+    "sha256": "1be409c665906f5330f042e10e6cdb38e76fe5889dd720f287fe06ecc48bba7d",
+    "bytes": 831549440,
+    "record": 19000
+   },
+   {
+    "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00004.tar",
+    "sha256": "6a878d9754c4760432644fdc2a5fb86bb656ffa4d10d1e595a0f3edeeffe1d99",
+    "bytes": 833996800,
+    "record": 19000
+   },
+   {
+    "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00005.tar",
+    "sha256": "2e8ca055af6d304e2350c1b70d33ed711b382384ba35dd2658bb5c3c4cca23f9",
+    "bytes": 940677120,
+    "record": 19000
+   },
+   {
+    "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00006.tar",
+    "sha256": "c8b75acbf51a9ea3420a713782e470fdc084413a0b33d84985a4ec16c7b1db58",
+    "bytes": 973568000,
+    "record": 19000
+   },
+   {
+    "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00007.tar",
+    "sha256": "6281ca0100eecb05eade4b622fcb6ea36a6c2bfb56b048a7a6463d15bfb47252",
+    "bytes": 964894720,
+    "record": 19000
+   },
+   {
+    "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00008.tar",
+    "sha256": "505cbd3bdd312ef6fe26543f67484075eb4b8271f30538cf0ed7e74e13b5dd79",
+    "bytes": 918968320,
+    "record": 19000
+   },
+   {
+    "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00009.tar",
+    "sha256": "24c21c7fe38c9c455212c0e5218ee9f4c93c333c6981e09798f418c7e7aae4ad",
+    "bytes": 917688320,
+    "record": 19000
+   },
+   {
+    "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00010.tar",
+    "sha256": "c1915023a08332ab1a9aae35ff05c1c03de3024bb83359a5f416f7f449bddd9c",
+    "bytes": 439265280,
+    "record": 9050
+   }
+  ],
+  "nota_shard": "ogni JSON letto ha il json_sha256 e la posizione del suo record; gli sha256 degli shard interi sono quelli registrati, non ricalcolati qui"
+ },
+ "valori": {
+  "record_letti": 199050,
+  "misure_attese": 1232153,
+  "misure_registrate": 1232153,
+  "misure_confrontate": 1232153,
+  "rappresentazioni_attese": {
+   "decimale_arrotondato": 249,
+   "decimale_esatto": 24856,
+   "intero": 1095192,
+   "radice": 111856
+  },
+  "discrepanze": {},
+  "record_con_discrepanze": 0,
+  "incoerenze": 1,
+  "lettura": {
+   "intestazioni": 398100,
+   "json": 199050,
+   "byte_letti": 608562771
+  },
+  "secondi": 77.1
+ },
+ "controlli": [
+  {
+   "controllo": "genitore con lo sha256 atteso",
+   "esito": true,
+   "dettaglio": "f3cca47367799ccd8a7c8f4d6b63c5c37e0cd06e22d921daa5507c6aa442b9c6"
+  },
+  {
+   "controllo": "candidato con lo sha256 atteso",
+   "esito": true,
+   "dettaglio": "77e1849e0e09089dea592be577921259675e6cd51ed99a174cbf6a1744f14fa9"
+  },
+  {
+   "controllo": "rapporto della scansione con lo sha256 registrato nel candidato",
+   "esito": true,
+   "dettaglio": "/home/prignano/vision_limite/outputs/mavis_c9/c9-1/report.json"
+  },
+  {
+   "controllo": "precedente e split.ereditato_da indicano il genitore",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "stessi record negli stessi shard",
+   "esito": true,
+   "dettaglio": [
+    199050,
+    199050
+   ]
+  },
+  {
+   "controllo": "nessuna anomalia nei record (campi ereditati, stati, motivi, evidenze, domande, valori, compiti, esiti)",
+   "esito": true,
+   "dettaglio": {
+    "conteggi": {},
+    "primi": {}
+   }
+  },
+  {
+   "controllo": "conteggi uguali a manifest.json",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "file derivati (keys/) ricalcolati dai record",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "gruppi del controllo testuale ricalcolati dagli esiti",
+   "esito": true,
+   "dettaglio": 0
+  },
+  {
+   "controllo": "valori: JSON originali di tutti i record letti dagli shard, con la posizione e il json_sha256 del manifest, senza le immagini",
+   "esito": true,
+   "dettaglio": {
+    "problemi": [],
+    "record": 199050
+   }
+  },
+  {
+   "controllo": "valori uguali a quelli ricavati dalle annotazioni (misure di diagram_generation con la normalizzazione di facts.norm_value): elemento, esatto, rappresentazione, visualizzato previsto e risposta di lettura; nessun elemento mancante, ripetuto o in più",
+   "esito": true,
+   "dettaglio": {
+    "discrepanze": {},
+    "record_con_discrepanze": 0,
+    "esempi": []
+   }
+  },
+  {
+   "controllo": "valori coerenti con la regola di rappresentazione del renderer (controllo scritto a parte)",
+   "esito": false,
+   "dettaglio": {
+    "incoerenze": 1,
+    "esempi": [
+     {
+      "record": "d3-44919",
+      "elemento": "side:EH",
+      "problema": "rappresentazione 'intero', attesa 'radice' per '√841' -> '\\\\sqrt{841}'"
+     }
+    ]
+   }
+  }
+ ],
+ "superati": 11,
+ "totale": 12,
+ "esito": false,
+ "job_id": "30781",
+ "codice": {
+  "commit": "5048a569927790c574b2eac19dff1041951dd7c2",
+  "dirty": true,
+  "diff_sha256": "ed3fb693a93c09c860fc595ca099975b64ca88b6845313bb8cf480857b6c50be",
+  "untracked": []
+ },
+ "secondi_totali": 157.6,
+ "rss_max_mib": 11658.2
+}

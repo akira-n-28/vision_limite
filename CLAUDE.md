@@ -394,6 +394,11 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
       esistenti si rileggono con gli stessi digest (job 30777, c7-3 uguale a c7-2).
     - **Valori.** Per ogni misura il record ha esatto, visualizzato previsto (regola del renderer di
       `f1_schema.latex_value`, non letto dai pixel) e risposta di lettura (il visualizzato, target invariati).
+      - *Rispetto alle annotazioni*: verificati coi JSON originali (job 30781, verifica corretta, candidato invariato).
+        Nessuna discrepanza su 1.232.153 misure.
+      - *Rappresentazione prevista dal renderer*: un'etichetta incoerente, in `d3-44919` `side:EH` (`√841` scritto
+        `\sqrt{841}` ma etichettato `intero`), documentata e non corretta (S2 §3).
+      - *Fedeltà ai pixel*: da verificare a vista.
     - **`shape_type`.** Insieme fisso per famiglia: acute/right/obtuse triangle; rectangle/rhombus/square.
       - Una sola opzione è vera secondo le annotazioni (tipo dichiarato e misure esatte); le altre sono confutate dalle
         sole misure stampate. Altrimenti la domanda è omessa col motivo.
