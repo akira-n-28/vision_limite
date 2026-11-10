@@ -9,6 +9,10 @@
 #     NOME/report.json, versione nuova data/manifests/mavis-geometry-candidato-VERSIONE derivata da candidato-3, verifica
 #     -> outputs/manifest_check/mavis-geometry-candidato-VERSIONE/verifica.json, riepilogo
 #     docs/manifests/mavis-geometry-candidato-VERSIONE.json
+#   sbatch [--mem 48G] slurm/mavis_c9.sbatch verifica NOME VERSIONE SHA256
+#     prima tests/test_mavis_c9.py; poi verifica del candidato C9 già scritto (sha256 dato), coi valori confrontati coi
+#     JSON originali degli shard -> outputs/manifest_check/mavis-geometry-candidato-VERSIONE-NOME/verifica.json, copia
+#     docs/manifests/NOME/mavis-geometry-candidato-VERSIONE-<sha256 breve>.json; il candidato non cambia
 #   sbatch [--mem 32G] slurm/mavis_c9.sbatch lettore NOME VERSIONE SHA256
 #     collegamento col reader sul primo shard (candidato C9 con lo sha256 dato e candidato-3) -> outputs/mavis_c9/NOME/
 #     lettore.json, copia in docs/reader_smoke/NOME.json
@@ -24,13 +28,14 @@
 
 set -euo pipefail
 : "${SLURM_JOB_ID:?Submit through SLURM}"
-usage() { echo "uso: mavis_c9.sbatch sonda NOME | costruzione NOME VERSIONE | lettore NOME VERSIONE SHA256" >&2; exit 2; }
+usage() { echo "uso: mavis_c9.sbatch sonda NOME | costruzione NOME VERSIONE | verifica NOME VERSIONE SHA256" \
+  "| lettore NOME VERSIONE SHA256" >&2; exit 2; }
 (( $# >= 2 )) || usage
 MODE=$1 NAME=$2
 case $MODE in
   sonda) (( $# == 2 )) || usage ;;
   costruzione) (( $# == 3 )) && [[ $3 =~ ^[0-9]+$ ]] || usage ;;
-  lettore) (( $# == 4 )) && [[ $3 =~ ^[0-9]+$ && $4 =~ ^[0-9a-f]{64}$ ]] || usage ;;
+  verifica|lettore) (( $# == 4 )) && [[ $3 =~ ^[0-9]+$ && $4 =~ ^[0-9a-f]{64}$ ]] || usage ;;
   *) usage ;;
 esac
 [[ $NAME =~ ^[A-Za-z0-9._-]+$ ]] || { echo "nome non valido" >&2; exit 2; }
@@ -79,6 +84,26 @@ case $MODE in
       ledger_note ok "mavis_c9 costruzione $NAME: scansione -> $OUT/report.json, manifest -> $NEW, verifica -> $CHECK/verifica.json, riepilogo -> $SUMMARY ($(( $(date +%s) - t0 )) s)"
     else
       ledger_note failed "mavis_c9 costruzione $NAME: vedi il log"; exit 1
+    fi ;;
+  verifica)
+    VERSION=$3 NEW_SHA256=$4
+    NEW="$DATA_ROOT/manifests/mavis-geometry-candidato-$VERSION"
+    CHECK="$OUTPUT_ROOT/manifest_check/mavis-geometry-candidato-$VERSION-$NAME"
+    DOC="docs/manifests/$NAME/mavis-geometry-candidato-$VERSION-${NEW_SHA256:0:8}.json"
+    for p in "$CHECK" "$DOC"; do [[ ! -e $p ]] || { echo "$p esiste già" >&2; exit 1; }; done
+    test -s "$NEW/manifest.json" || { echo "manca $NEW/manifest.json" >&2; exit 1; }
+    if ! srun "$RUN_PYTHON" -B tests/test_mavis_c9.py; then
+      ledger_note failed "mavis_c9 verifica $NAME: tests/test_mavis_c9.py fallito, nessuna lettura"; exit 1
+    fi
+    if srun "$RUN_PYTHON" -u -B scripts/mavis_c9.py verifica --manifest "$MANIFEST" \
+        --manifest-sha256 "$MANIFEST_SHA256" --new "$NEW" --new-sha256 "$NEW_SHA256" --report "$CHECK" \
+        --workers "${SLURM_CPUS_PER_TASK:-4}"; then
+      mkdir -p "$(dirname "$DOC")"
+      cp "$CHECK/verifica.json" "$DOC"
+      ledger_note ok "mavis_c9 verifica $NAME: $NEW -> $CHECK/verifica.json, copia $DOC ($(( $(date +%s) - t0 )) s)"
+    else
+      if [[ -s $CHECK/verifica.json ]]; then mkdir -p "$(dirname "$DOC")"; cp "$CHECK/verifica.json" "$DOC"; fi
+      ledger_note failed "mavis_c9 verifica $NAME: vedi il log e $CHECK/verifica.json"; exit 1
     fi ;;
   lettore)
     VERSION=$3 NEW_SHA256=$4

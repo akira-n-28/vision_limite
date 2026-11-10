@@ -13,7 +13,11 @@ Le aspettative sono scritte a mano per ogni caso, senza chiamare la funzione che
   e costruzioni non coerenti);
 - derivazione di un candidato C9 da un manifest costruito su shard fittizi, con un testo del pannello in comune che
   manda il gruppo in quarantena, verifica che trova le alterazioni, lettura col reader (stream.make_sources) che dà gli
-  stessi esempi del genitore."""
+  stessi esempi del genitore;
+- valori del candidato contro i JSON originali degli shard (verify_c9): validi con un decimale esatto e uno
+  arrotondato; con gli hash interni aggiornati, un esatto alterato, una rappresentazione alterata, un esatto alternativo
+  con lo stesso visualizzato e la voce coerente, un elemento mancante, ripetuto o in più fanno fallire la verifica dei
+  valori, e i primi quattro solo quella."""
 from __future__ import annotations
 
 import argparse
@@ -404,10 +408,75 @@ def rewrite(folder: Path, dst: Path, edit) -> Path:
     return dst
 
 
+VALUE_CHECKS = ("valori uguali a quelli ricavati dalle annotazioni",
+                "valori coerenti con la regola di rappresentazione")
+
+
+def entry(values: list[dict], elem: str) -> dict:
+    return next(v for v in values if v["elemento"] == elem)
+
+
+def test_values_against_source(tmp: Path, args, parent: Path, parent_sha: str, ver: dict, C: dict) -> None:
+    """Valori del candidato contro i JSON originali (verify_c9): casi validi, poi mutazioni dei valori con gli hash
+    interni aggiornati (rewrite), che devono fallire per incoerenza o per differenza dalla fonte."""
+    v = ver["valori"]
+    check("valori contro la fonte, candidato valido: ogni misura registrata ritrovata nei JSON originali, nessuna "
+          "discrepanza né incoerenza", ver["esito"] and v["record_letti"] == len(C) and v["misure_confrontate"]
+          == v["misure_attese"] == v["misure_registrate"] > 0 and not v["discrepanze"] and v["incoerenze"] == 0, v)
+    exact = entry(C["d0-13996"]["valori"], "side:AD")
+    rounded = entry(C["d0-97044"]["valori"], "side:AD")
+    check("valori validi verificati contro la fonte: decimale esatto (d0-13996, 3/2 -> 1.5) e decimale arrotondato "
+          "(d0-97044, 44/3 -> 14.67)",
+          exact == {"elemento": "side:AD", "esatto": "3/2", "visualizzato_previsto": "1.5",
+                    "rappresentazione": "decimale_esatto", "risposta_lettura": "1.5"}
+          and rounded == {"elemento": "side:AD", "esatto": "44/3", "visualizzato_previsto": "14.67",
+                          "rappresentazione": "decimale_arrotondato", "risposta_lettura": "14.67"}
+          and {"decimale_esatto", "decimale_arrotondato"} <= set(v["rappresentazioni_attese"]), (exact, rounded))
+
+    def side_ad(**new):
+        return lambda vals: entry(vals, "side:AD").update(new)
+
+    # (nome, cartella, record, alterazione, discrepanze attese, voce coerente, falliscono solo i controlli dei valori)
+    cases = (
+        ("esatto alterato (3/2 -> 7/4), target e visualizzato invariati", "esatto", "d0-13996",
+         side_ad(esatto="7/4"), {"esatto"}, False, True),
+        ("rappresentazione alterata (decimale esatto -> decimale arrotondato)", "rappresentazione", "d0-13996",
+         side_ad(rappresentazione="decimale_arrotondato"), {"rappresentazione"}, False, True),
+        ("esatto alternativo con lo stesso visualizzato, voce coerente (44/3 -> 4402/300, sempre 14.67)",
+         "alternativo-44", "d0-97044", side_ad(esatto="4402/300"), {"esatto"}, True, True),
+        ("esatto alternativo con lo stesso visualizzato e la rappresentazione aggiornata (3/2 -> 301/200, sempre 1.5)",
+         "alternativo-3", "d0-13996", side_ad(esatto="301/200", rappresentazione="decimale_arrotondato"),
+         {"esatto", "rappresentazione"}, True, True),
+        ("elemento mancante", "mancante", "d0-13996", lambda vals: vals.remove(entry(vals, "side:AD")),
+         {"mancante"}, True, False),
+        ("elemento ripetuto", "ripetuto", "d0-13996", lambda vals: vals.append(dict(entry(vals, "side:AD"))),
+         {"ripetuto"}, True, False),
+        ("elemento in più, voce coerente", "in-piu", "d0-13996",
+         lambda vals: vals.append({"elemento": "side:ZZ", "esatto": "5", "visualizzato_previsto": "5",
+                                   "rappresentazione": "intero", "risposta_lettura": "5"}), {"in_piu"}, True, False),
+    )
+    for name, slug, key, change, kinds, coherent, only_values in cases:
+        def edit(r, key=key, change=change):
+            if r["record"] == key:
+                change(r["valori"])
+
+        res = job.verify_c9(rewrite(args.new, tmp / f"valori-{slug}", edit), parent, parent_sha,
+                            args.out / "report.json", workers=2)
+        fails = [c["controllo"] for c in res["controlli"] if not c["esito"]]
+        val = res["valori"]
+        cond = (not res["esito"] and set(val["discrepanze"]) == kinds and (val["incoerenze"] == 0) == coherent
+                and val["record_con_discrepanze"] == 1)
+        if only_values:  # hash interni aggiornati: nessun altro controllo se ne accorge
+            cond = cond and bool(fails) and all(f.startswith(VALUE_CHECKS) for f in fails)
+        check(f"verifica dei valori: trova {name}", cond, (fails, val["discrepanze"], val["incoerenze"]))
+
+
 def test_pipeline(tmp: Path) -> None:
     from limite_vl import stream as st
 
     s = tm.spec()
+    cap, gen = REAL["d0-13996"]  # AD = 3/2 (decimale esatto); la copia con 44/3 dà un decimale arrotondato
+    s["shards"][1][1].append(tm.sample("d0-97044", cap.replace("3/2", "44/3"), gen.replace("3/2", "44/3"), tm.png(77)))
     fargs = tm.write_fixture(tmp, s)
     mm.run(fargs)
     parent, parent_sha = fargs.out, sha256_file(fargs.out / "manifest.json")
@@ -475,9 +544,10 @@ def test_pipeline(tmp: Path) -> None:
             ("shape_type ammessa", lambda r: [t.update(stato="ammesso") for t in r["compiti"]
                                               if t["compito"] == "shape_type"] if r["record"] == "d0-91007" else None)):
         bad = rewrite(args.new, tmp / f"alterato-{len(FAILS)}-{name.replace(' ', '_')}", edit)
-        res = job.verify_c9(bad, parent, parent_sha, args.out / "report.json")
+        res = job.verify_c9(bad, parent, parent_sha, args.out / "report.json", workers=2)
         check(f"verifica: trova l'alterazione ({name})", not res["esito"],
               [c["controllo"] for c in res["controlli"] if not c["esito"]])
+    test_values_against_source(tmp, args, parent, parent_sha, ver, C)
     try:
         job.cmd_costruzione(argparse.Namespace(**{**vars(args), "manifest": args.new,
                                                   "manifest_sha256": sha256_file(args.new / "manifest.json"),

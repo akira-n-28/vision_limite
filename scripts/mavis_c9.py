@@ -15,12 +15,17 @@ Sottocomandi:
   Scrive la scansione (--out/report.json), la versione nuova derivata dal genitore (--new: stessi record, gruppi, split,
   evidenze e stati; costruzione_qa, qa, compiti di shape_type, valori, shape_type_c9 ed evidenza mavis-c9 nuovi), la
   verifica (--report/verifica.json) e il riepilogo per git (--summary). Niente manifest se un controllo fallisce.
-- `verifica`: la verifica della versione C9, rileggendo genitore e figlio.
+- `verifica`: la verifica della versione C9, rileggendo genitore e figlio e, per i valori, i soli JSON originali degli
+  shard (posizione e json_sha256 del manifest): esatto, rappresentazione, visualizzato previsto e risposta di lettura
+  di ogni misura devono essere quelli ricavati dalle annotazioni. Rapporto in una cartella nuova; il candidato non
+  cambia.
 - `lettore`: collegamento col reader (C7) sul primo shard, col manifest C9 e col genitore.
 
     srun $RUN_PYTHON -u -B scripts/mavis_c9.py sonda --manifest DIR --manifest-sha256 HEX --out DIR [--workers 4]
     srun $RUN_PYTHON -u -B scripts/mavis_c9.py costruzione --manifest DIR --manifest-sha256 HEX --new DIR --out DIR \\
         --report DIR --index DIR --index-sha256 HEX --summary FILE --version N [--workers 4]
+    srun $RUN_PYTHON -u -B scripts/mavis_c9.py verifica --manifest DIR --manifest-sha256 HEX --new DIR --new-sha256 HEX \\
+        --report DIR [--out DIR] [--workers 4]
     srun $RUN_PYTHON -u -B scripts/mavis_c9.py lettore --manifest DIR --manifest-sha256 HEX --new DIR --new-sha256 HEX \\
         --shards GLOB --out DIR
 """
@@ -509,7 +514,7 @@ def cmd_costruzione(args) -> int:
     write_new_json(args.new / "manifest.json", meta)
     del new
     gc.collect()
-    result = verify_c9(args.new, args.manifest, args.manifest_sha256, args.out / "report.json")
+    result = verify_c9(args.new, args.manifest, args.manifest_sha256, args.out / "report.json", workers=args.workers)
     result.update({"job_id": os.environ.get("SLURM_JOB_ID"), "codice": code_identity(),
                    "secondi_totali": round(time.time() - t0, 1), "rss_max_mib": um.rss_mib()})
     args.report.mkdir(parents=True, exist_ok=True)
@@ -539,13 +544,125 @@ INHERITED = ("record_id", "sorgente", "revisione", "insieme", "shard", "indice",
              "immagini", "json_sha256", "didascalia_sha256", "diagram_generation_sha256", "verita_sha256",
              "descrizione_sha256", "misure_razionali_come_decimali", "rango_f0", "rango_f0_sviluppo", "gold",
              "trasformazione", "genitori")
+VALUE_FIELDS = ("elemento", "esatto", "visualizzato_previsto", "rappresentazione", "risposta_lettura")
+MAX_EXAMPLES = 50  # discrepanze e incoerenze riportate per esteso; i conteggi sono sempre completi
 
 
-def verify_c9(child_dir: Path, parent_dir: Path, parent_sha: str, report_path: Path) -> dict:
-    """Controlli rileggendo il candidato C9 e il genitore (manifest.load), senza gli shard: identità, gruppi, split ed
-    evidenze ereditati; stati cambiati solo per i gruppi del controllo testuale; domande diverse da shape_type uguali al
+def value_problem(v: dict) -> str | None:
+    """Incoerenza di una voce di `valori` con la regola di rappresentazione, scritta a parte da
+    mavis_c9.representation: visualizzato = f1_schema.latex_value dell'esatto registrato; risposta di lettura = il
+    visualizzato (col simbolo dei gradi per un angolo); intero, decimale esatto (il decimale è l'esatto), decimale
+    arrotondato (diverso dall'esatto ma entro 0,005), radice. None se la voce è coerente. Non dice nulla sulla fonte."""
+    import re
+    from fractions import Fraction
+
+    from limite_vl.f1_schema import latex_value
+
+    x, shown, rep = v.get("esatto"), v.get("visualizzato_previsto"), v.get("rappresentazione")
+    if not isinstance(x, str) or not isinstance(shown, str):
+        return "esatto o visualizzato assente"
+    if latex_value(x) != shown:
+        return f"visualizzato {shown!r} diverso dalla regola del renderer applicata all'esatto {x!r}"
+    unit = "°" if str(v.get("elemento", "")).startswith("angle:") else ""
+    if v.get("risposta_lettura") != shown + unit:
+        return f"risposta di lettura {v.get('risposta_lettura')!r} diversa dal visualizzato {shown!r}"
+    m = re.fullmatch(r"(\d+(?:\.\d+)?)(?:/(\d+))?", x)
+    d = re.fullmatch(r"\d+(?:\.\d+)?", shown)
+    if "√" in x:
+        expected = "radice"
+    elif m and int(m.group(2) or 1) > 0:
+        value = Fraction(m.group(1)) / int(m.group(2) or 1)
+        if value.denominator == 1:
+            expected = "intero" if shown == str(value.numerator) else "incoerente"
+        elif d and Fraction(shown) == value:
+            expected = "decimale_esatto"
+        elif d and abs(Fraction(shown) - value) <= Fraction(1, 200):
+            expected = "decimale_arrotondato"
+        else:
+            expected = "incoerente"
+    else:
+        expected = "non_analizzabile"
+    return None if rep == expected else f"rappresentazione {rep!r}, attesa {expected!r} per {x!r} -> {shown!r}"
+
+
+def values_shard(task) -> dict:
+    """Valori registrati di uno shard contro le annotazioni dei JSON originali (nel processo del pool): soli JSON, con
+    la posizione e il json_sha256 del record (shard_jsons); misure attese = mavis_c9.measure_values(diagram_generation),
+    cioè mavis_gen.measures con la normalizzazione di facts.norm_value, se la verità esiste (altrimenti nessuna, come la
+    costruzione). Confronta elemento, esatto, rappresentazione, visualizzato previsto e risposta di lettura; conta
+    elementi mancanti, ripetuti o in più e campi diversi; controlla a parte la coerenza di ogni voce (value_problem)."""
+    path, expected = task
+    t0 = time.time()
+    stats, c, found, odd, problems = Counter(), Counter(), [], [], []
+
+    def note(kind: str, key: str, elem, **detail) -> None:
+        c[f"discrepanze/{kind}"] += 1
+        if len(found) < MAX_EXAMPLES:
+            found.append({"record": key, "elemento": elem, "tipo": kind, **detail})
+
+    try:
+        for key, data in shard_jsons(Path(path), {k: v[:2] for k, v in expected.items()}, stats):
+            recorded = expected[key][2]
+            te = json.loads(data)["text_en"]
+            gen = te["diagram_generation"]
+            want = c9.measure_values(gen) if mavis_truth(te["caption"], gen)[0] is not None else {}
+            before = sum(v for k, v in c.items() if k.startswith("discrepanze/"))
+            c["record"] += 1
+            c["misure_attese"] += len(want)
+            c["misure_registrate"] += len(recorded)
+            got: dict = {}
+            for v in recorded:
+                elem = v.get("elemento")
+                if elem in got:
+                    note("ripetuto", key, elem)
+                    continue
+                got[elem] = v
+                if tuple(sorted(v)) != tuple(sorted(VALUE_FIELDS)):
+                    note("campi", key, elem, osservato=sorted(v))
+                why = value_problem(v)
+                if why:
+                    c["incoerenze"] += 1
+                    if len(odd) < MAX_EXAMPLES:
+                        odd.append({"record": key, "elemento": elem, "problema": why})
+            for elem, w in want.items():
+                g = got.get(elem)
+                if g is None:
+                    note("mancante", key, elem, atteso=w)
+                    continue
+                c["misure_confrontate"] += 1
+                for f in VALUE_FIELDS[1:]:
+                    if g.get(f) != w[f]:
+                        note(f, key, elem, atteso=w[f], osservato=g.get(f))
+            for elem, g in got.items():
+                if elem not in want:
+                    note("in_piu", key, elem, osservato=g)
+            c["record_con_discrepanze"] += sum(v for k, v in c.items() if k.startswith("discrepanze/")) > before
+            for w in want.values():
+                c[f"rappresentazione/{w['rappresentazione']}"] += 1
+    except Failed as exc:
+        problems.append(str(exc))
+    return {"path": path, "c": c, "found": found, "odd": odd, "stats": stats, "problems": problems,
+            "secondi": round(time.time() - t0, 1)}
+
+
+def verify_c9(child_dir: Path, parent_dir: Path, parent_sha: str, report_path: Path, workers: int = 4,
+              child_sha: str | None = None) -> dict:
+    """verify_c9 col pool dei processi creato prima di leggere i manifest (i processi non ereditano i record)."""
+    pool = Pool(workers)
+    try:
+        return _verify_c9(pool, child_dir, parent_dir, parent_sha, report_path, child_sha)
+    finally:
+        pool.terminate()
+
+
+def _verify_c9(pool, child_dir: Path, parent_dir: Path, parent_sha: str, report_path: Path,
+               child_sha: str | None) -> dict:
+    """Controlli rileggendo il candidato C9 e il genitore (manifest.load): identità, gruppi, split ed evidenze
+    ereditati; stati cambiati solo per i gruppi del controllo testuale; domande diverse da shape_type uguali al
     genitore; ogni domanda di lettura ricalcolata dal valore visualizzato registrato; ogni domanda shape_type
-    ricalcolata dalle opzioni e riverificata da mavis_c9.check_question coi fatti registrati; conteggi e file derivati."""
+    ricalcolata dalle opzioni e riverificata da mavis_c9.check_question coi fatti registrati; conteggi e file derivati.
+    Poi i valori contro la fonte: i JSON originali dagli shard (soli JSON, posizione e json_sha256 del manifest) e le
+    misure ricavate dalle annotazioni (values_shard), più la coerenza di ogni voce con la regola di rappresentazione."""
     checks = []
 
     def ok(name, cond, detail=None):
@@ -553,7 +670,13 @@ def verify_c9(child_dir: Path, parent_dir: Path, parent_sha: str, report_path: P
 
     parent, child = mf.load(parent_dir), mf.load(child_dir)
     ok("genitore con lo sha256 atteso", parent.manifest_sha256 == parent_sha, parent.manifest_sha256)
+    if child_sha is not None:
+        ok("candidato con lo sha256 atteso", child.manifest_sha256 == child_sha, child.manifest_sha256)
     pm, cm = parent.meta, child.meta
+    registered = (cm.get("costruzione_qa") or {}).get("report") or {}
+    if registered.get("sha256"):
+        ok("rapporto della scansione con lo sha256 registrato nel candidato",
+           sha256_file(report_path) == registered["sha256"], str(report_path))
     ok("precedente e split.ereditato_da indicano il genitore",
        cm["precedente"]["manifest_sha256"] == parent_sha == cm["split"]["ereditato_da"]["manifest_sha256"]
        and cm["precedente"]["records_sha256"] == pm["records"]["sha256"])
@@ -636,17 +759,70 @@ def verify_c9(child_dir: Path, parent_dir: Path, parent_sha: str, report_path: P
     ok("file derivati (keys/) ricalcolati dai record", keys_ok)
     ok("gruppi del controllo testuale ricalcolati dagli esiti", len(hit_groups) == report[
         "gruppi_in_quarantena_per_il_testo"], len(hit_groups))
+    # ---- valori contro la fonte: JSON originali, misure ricavate dalle annotazioni
+    t0 = time.time()
+    tasks = [(str(mf.shard_path(s)),
+              {k: (r["indice"], r["json_sha256"], r.get("valori") or []) for k, r in rows.items()})
+             for s, rows in sorted(child.by_shard.items())]
+    vc, vstats, found, odd, problems = Counter(), Counter(), [], [], []
+    for res in pool.imap_unordered(values_shard, tasks):
+        vc.update(res["c"])
+        vstats.update(res["stats"])
+        found += res["found"]
+        odd += res["odd"]
+        problems += [f"{Path(res['path']).name}: {p}" for p in res["problems"]]
+    discrepancies = {k.split("/", 1)[1]: v for k, v in sorted(vc.items()) if k.startswith("discrepanze/")}
+    ok("valori: JSON originali di tutti i record letti dagli shard, con la posizione e il json_sha256 del manifest, "
+       "senza le immagini", not problems and vc["record"] == len(C), {"problemi": problems[:5], "record": vc["record"]})
+    ok("valori uguali a quelli ricavati dalle annotazioni (misure di diagram_generation con la normalizzazione di "
+       "facts.norm_value): elemento, esatto, rappresentazione, visualizzato previsto e risposta di lettura; nessun "
+       "elemento mancante, ripetuto o in più", not discrepancies and not problems,
+       {"discrepanze": discrepancies, "record_con_discrepanze": vc["record_con_discrepanze"],
+        "esempi": found[:MAX_EXAMPLES]})
+    ok("valori coerenti con la regola di rappresentazione del renderer (controllo scritto a parte)",
+       vc["incoerenze"] == 0, {"incoerenze": vc["incoerenze"], "esempi": odd[:MAX_EXAMPLES]})
+    values = {"record_letti": vc["record"], "misure_attese": vc["misure_attese"],
+              "misure_registrate": vc["misure_registrate"], "misure_confrontate": vc["misure_confrontate"],
+              "rappresentazioni_attese": {k.split("/", 1)[1]: v for k, v in sorted(vc.items())
+                                          if k.startswith("rappresentazione/")},
+              "discrepanze": discrepancies, "record_con_discrepanze": vc["record_con_discrepanze"],
+              "incoerenze": vc["incoerenze"], "lettura": dict(vstats), "secondi": round(time.time() - t0, 1)}
+    inputs = {"candidato": {"percorso": um.rel(child_dir), "manifest_sha256": child.manifest_sha256,
+                            "records_sha256": cm["records"]["sha256"], "righe": cm["records"]["righe"]},
+              "genitore": {"percorso": um.rel(parent_dir), "manifest_sha256": parent.manifest_sha256,
+                           "records_sha256": pm["records"]["sha256"]},
+              "rapporto_della_scansione": file_entry(report_path),
+              "shard": [{k: s[k] for k in ("percorso", "sha256", "bytes", "record")} for s in cm["shards"]],
+              "nota_shard": "ogni JSON letto ha il json_sha256 e la posizione del suo record; gli sha256 degli shard "
+                            "interi sono quelli registrati, non ricalcolati qui"}
     passed = sum(x["esito"] for x in checks)
-    return {"schema": "mavis-c9-verifica/1", "manifest": um.rel(child_dir), "genitore": um.rel(parent_dir),
-            "controlli": checks, "superati": passed, "totale": len(checks), "esito": passed == len(checks)}
+    return {"schema": "mavis-c9-verifica/2", "manifest": um.rel(child_dir), "genitore": um.rel(parent_dir),
+            "ingressi": inputs, "valori": values, "controlli": checks, "superati": passed, "totale": len(checks),
+            "esito": passed == len(checks)}
 
 
 def cmd_verifica(args) -> int:
-    result = verify_c9(args.new, args.manifest, args.manifest_sha256, args.out / "report.json")
-    print(json.dumps({"verifica": f"{result['superati']}/{result['totale']}"}))
+    """Verifica di una versione C9 già scritta, senza modificarla: --report è una cartella nuova. Il rapporto della
+    scansione è --out/report.json o, senza --out, quello registrato nel candidato (con lo sha256 controllato)."""
+    t0 = time.time()
+    if args.report.exists() and any(args.report.iterdir()):
+        raise Failed(f"{args.report} non è vuota: il rapporto si scrive in una cartella nuova")
+    if args.out is not None:
+        report_path = args.out / "report.json"
+    else:
+        meta = json.loads((args.new / "manifest.json").read_text(encoding="utf-8"))
+        report_path = Path(meta["costruzione_qa"]["report"]["path"])
+    result = verify_c9(args.new, args.manifest, args.manifest_sha256, report_path, workers=args.workers,
+                       child_sha=args.new_sha256)
+    result.update({"job_id": os.environ.get("SLURM_JOB_ID"), "codice": code_identity(),
+                   "secondi_totali": round(time.time() - t0, 1), "rss_max_mib": um.rss_mib()})
     args.report.mkdir(parents=True, exist_ok=True)
-    write_new_json(args.report / "verifica.json", {**result, "job_id": os.environ.get("SLURM_JOB_ID"),
-                                                   "codice": code_identity()})
+    write_new_json(args.report / "verifica.json", result)
+    v = result["valori"]
+    print(json.dumps({"verifica": f"{result['superati']}/{result['totale']}", "record": v["record_letti"],
+                      "misure_confrontate": v["misure_confrontate"], "discrepanze": v["discrepanze"],
+                      "incoerenze": v["incoerenze"], "secondi": result["secondi_totali"],
+                      "rss_max_mib": result["rss_max_mib"]}, ensure_ascii=False))
     return 0 if result["esito"] else 1
 
 
@@ -754,15 +930,18 @@ def parser() -> argparse.ArgumentParser:
         p = sub.add_parser(name)
         p.add_argument("--manifest", type=Path, required=True, help="genitore (mavis-geometry-candidato-3)")
         p.add_argument("--manifest-sha256", required=True)
-        p.add_argument("--new", type=Path, required=True, help="cartella nuova del candidato C9")
-        p.add_argument("--out", type=Path, required=True, help="cartella della scansione (report.json)")
+        p.add_argument("--new", type=Path, required=True, help="cartella del candidato C9")
+        p.add_argument("--out", type=Path, required=name == "costruzione",
+                       help="cartella della scansione (report.json); per verifica, di default quella registrata")
         p.add_argument("--report", type=Path, required=True, help="cartella della verifica")
+        p.add_argument("--workers", type=int, default=4)
         if name == "costruzione":
             p.add_argument("--index", type=Path, required=True, help="indice del pannello (pannello-v3)")
             p.add_argument("--index-sha256", required=True)
             p.add_argument("--summary", type=Path, required=True)
             p.add_argument("--version", required=True)
-            p.add_argument("--workers", type=int, default=4)
+        else:
+            p.add_argument("--new-sha256", help="sha256 atteso del manifest.json del candidato")
     p = sub.add_parser("lettore")
     p.add_argument("--manifest", type=Path, required=True, help="genitore (C7)")
     p.add_argument("--manifest-sha256", required=True)
