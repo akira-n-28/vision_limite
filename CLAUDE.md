@@ -349,7 +349,9 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
   - `src/limite_vl/f1_schema.py` e `f1_mavis.py` costruiscono descrizione canonica e domande da
     `diagram_generation` (job 30033, 30052: andata e ritorno su 199.050). La coerenza fra due descrizioni non prova
     la fedeltà ai pixel (`mavis_gen.py`). I valori razionali (denominatori 2 e 3) sono disegnati come decimali a due
-    cifre (job 30049): valore esatto, visualizzato e richiesto vanno separati (pipeline §5.6).
+    cifre (job 30049): valore esatto, visualizzato e richiesto vanno separati (pipeline §5.6). Separati dal C9
+    (versione 4, sotto): dei 22.712 record con razionali non interi, 22.506 hanno solo decimali esatti (1.5 = 3/2) e
+    206 hanno 249 lati p/3 arrotondati (14.67 per 44/3); i target di lettura restano il visualizzato.
   - Manifest candidato `data/manifests/mavis-geometry-candidato-1` (job 30630, `scripts/mavis_manifest.py`, S2 §3):
     199.050 record in gruppi per stessi byte del PNG o stesso diagram_generation, dev al 5% per profondità.
     - `shape_type` è in quarantena come compito; gli altri compiti restano. Coerenza con le annotazioni verificata,
@@ -384,6 +386,25 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
     - Verifica della catena 25 su 25: candidato-1, candidato-2 con la sua regola storica, poi candidato-3.
     - `verifica-manifest` non si applica a un genitore già derivato. Nessun candidato è risolto.
     - È il manifest che i reader applicano (C7, sotto): `mavis_f1` sceglie solo fra i compiti ammessi, mai `shape_type`.
+  - Versione 4 `data/manifests/mavis-geometry-candidato-4` (C9, job 30776, `scripts/mavis_c9.py`, S2 §3 C9):
+    `manifest.json` `77e1849e…`. Derivata da candidato-3, con stessi record, gruppi, split, stati ed evidenze; **nessuna
+    config la usa**.
+    - **Costruzione.** `src/limite_vl/mavis_c9.py`, `mavis-c9/1`: il loader la usa solo per un record che dichiara
+      `costruzione_qa`. Senza dichiarazione resta la storica (`f1_mavis.mavis_questions`, invariata): i manifest
+      esistenti si rileggono con gli stessi digest (job 30777, c7-3 uguale a c7-2).
+    - **Valori.** Per ogni misura il record ha esatto, visualizzato previsto (regola del renderer di
+      `f1_schema.latex_value`, non letto dai pixel) e risposta di lettura (il visualizzato, target invariati).
+    - **`shape_type`.** Insieme fisso per famiglia: acute/right/obtuse triangle; rectangle/rhombus/square.
+      - Una sola opzione è vera secondo le annotazioni (tipo dichiarato e misure esatte); le altre sono confutate dalle
+        sole misure stampate. Altrimenti la domanda è omessa col motivo.
+      - Escluse `parallelogram` e `sector` (sempre vere), `isosceles` (mai confutabile), `kite` e `trapezoid` (ambigue).
+      - Recuperabili 118.118 su 383.592: isosceli 50.550, rettangoli 57.310, rombi 3.223, triangoli rettangoli coi
+        cateti uguali 7.035. Omessi quadrati, settori, parallelogrammi generici, isosceli con un solo lato e angolo
+        acuto, triangoli rettangoli senza il segno dell'angolo retto come misura (52.748).
+      - **Resta esclusa dal percorso operativo**: non è gold e va approvata con la verifica a vista.
+    - Controllo testuale delle domande nuove contro `pannello-v3`: nessuna corrispondenza. Verifica 7 su 7. Reader col
+      candidato C9 sul primo shard (job 30779, `docs/reader_smoke/c9-lettore-1.json`): 8 su 8, stessi esempi del
+      genitore.
 - UniMER @ 2343ddd9 (job 29436, 29438): l'immagine `images/<indice>.png` ha come formula la riga `<indice>` di
   `train.txt`; le righe vuote sono HME100K (tolto per copyright) e le formule a mano di CROHME (meno dell'1%) non si
   separano per indice. Shard in `data/shards/unimer/2343ddd9/` (985.450 campioni, test spe/cpe/sce/hwe in `test/`),
@@ -427,7 +448,8 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
     - il primo shard di ogni sorgente, letto per intero in train e in dev, consegna esattamente i record ammessi;
     - gli esempi a campione e un breve flusso misto non contengono `shape_type`.
 
-    Sono letture parziali: non verificano tutto il flusso e non collaudano il training.
+    Sono letture parziali: non verificano tutto il flusso e non collaudano il training. Dopo C9 lo smoke test con la
+    stessa config dà gli stessi esiti (job 30777, `docs/reader_smoke/c7-3.json`).
 - Sintetici v3 (`data/shards/synth/v3`, job 29756; il codice attuale ne riproduce esattamente le domande): `intersections`
   conta entro ±R mentre il disegno arriva a ±(R+1), con 37 target errati e 364 domande al bordo disegnato;
   `shape_type` e `label_type` sono domande aperte con più risposte vere (`docs/specs/S2_AMMISSIONE_PRIME_FAMIGLIE.md`
@@ -588,6 +610,7 @@ parametri in `groups.py` sono ipotesi da verificare con `f0_checks.py` (sezione 
     compito di UniMER e MAVIS (`TASKED`, S1 §9);
   - `data_lists.py`: liste obbligatorie e loro provenienza;
   - `latex.py`, `latex_render.py`: formule e confronto fra trascrizioni;
+  - `mavis_c9.py`: valori esatti e visualizzati e `shape_type` con opzioni di MAVIS (C9), col controllo indipendente;
   - `synth.py`, `synth_check.py`, `mavis_gen.py`, `f1_schema.py`, `f1_mavis.py`, `mavis.py`: sintetici, la loro verifica
     indipendente, MAVIS;
   - `decontam.py`, `transcripts.py`, `mmfine.py`, `replay.py`: decontaminazione, PixMo, MMFineReason, replay testuale;

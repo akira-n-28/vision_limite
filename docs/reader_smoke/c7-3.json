@@ -1,0 +1,601 @@
+{
+ "schema": "reader-smoke/1",
+ "job_id": "30777",
+ "codice": {
+  "commit": "68daf5acba7863dc5b57787d8f33faa22bd524b6",
+  "dirty": true,
+  "diff_sha256": "190d3b051967486b16f0f8bdc87f742e30d4489c70bfe7de3902f1dd47587d9c",
+  "untracked": [
+   "scripts/mavis_c9.py",
+   "slurm/mavis_c9.sbatch",
+   "src/limite_vl/mavis_c9.py",
+   "tests/test_mavis_c9.py"
+  ]
+ },
+ "config": {
+  "path": "/home/prignano/vision_limite/config/runs/f0-c7-reader-unimer-mavis.json",
+  "bytes": 1709,
+  "sha256": "4806fa020a55ba5d8525c76819af5e0d6bca3e633d4cc196769bb133502738e3",
+  "notes": "Collaudo F0 di C7: reader col manifest delle ammissioni di UniMER-1M e MAVIS-Geometry (scripts/reader_smoke.py). Non è una ricetta di training e non autorizza nessun run: pesi, durate e mix non sono decisi. I manifest candidati sono identificati dallo sha256 di manifest.json; la validazione è lo split dev degli stessi manifest. 'Ammesso' è la decisione operativa del candidato, non gold."
+ },
+ "fasi": {
+  "make_sources": {
+   "secondi": 119.0,
+   "rss_max_mib": 14174.2
+  },
+  "record_grezzi": {
+   "secondi": 20.4,
+   "rss_max_mib": 14174.2
+  },
+  "sottoinsieme": {
+   "secondi": 37.4,
+   "rss_max_mib": 14174.2
+  },
+  "esempi": {
+   "secondi": 60.6,
+   "rss_max_mib": 14245.9
+  },
+  "flusso": {
+   "secondi": 4.7,
+   "rss_max_mib": 14246.7
+  }
+ },
+ "superati": 22,
+ "totale": 22,
+ "falliti": [],
+ "secondi": 253.8,
+ "rss_max_mib": 14246.7,
+ "nota": "attesi del manifest per la sorgente intera; osservati su un sottoinsieme deterministico (primo shard di ogni tipo) e su letture parziali (esempi, flusso): smoke test, non verifica completa del training. Ammesso = decisione operativa del candidato, non gold",
+ "sorgenti": {
+  "unimer": {
+   "manifest": "data/manifests/unimer-candidato-2/manifest.json",
+   "manifest_sha256": "97af10332520c01717b80ae2e7b094f87cb5e435a6d03b0ead656175b837c126",
+   "sorgente": "unimer",
+   "revisione": "2343ddd963290469da36ca83e3a56c66e068add9",
+   "nome": "unimer-candidato",
+   "versione": "2",
+   "insieme": "train",
+   "tipo": "unimer_formula",
+   "compito_del_tipo": "transcribe",
+   "split": "train",
+   "n_shard": 5,
+   "attesi": {
+    "dev/ammesso": 49195,
+    "train/ammesso": 934680,
+    "train/escluso": 52,
+    "train/quarantena": 1523
+   },
+   "attesi_per_compito": {
+    "dev/ammesso/transcribe": 49195,
+    "train/ammesso/transcribe": 934680,
+    "train/escluso/transcribe": 52,
+    "train/quarantena/transcribe": 1523
+   },
+   "ammessi_nello_split": 934680,
+   "record_in_questi_shard": 985450,
+   "rietichettature": 18827
+  },
+  "unimer_line": {
+   "manifest": "data/manifests/unimer-candidato-2/manifest.json",
+   "manifest_sha256": "97af10332520c01717b80ae2e7b094f87cb5e435a6d03b0ead656175b837c126",
+   "sorgente": "unimer",
+   "revisione": "2343ddd963290469da36ca83e3a56c66e068add9",
+   "nome": "unimer-candidato",
+   "versione": "2",
+   "insieme": "righe",
+   "tipo": "unimer_line",
+   "compito_del_tipo": "transcribe_line",
+   "split": "train",
+   "n_shard": 1,
+   "attesi": {
+    "dev/ammesso": 1533,
+    "train/ammesso": 29055,
+    "train/escluso": 6,
+    "train/quarantena": 91
+   },
+   "attesi_per_compito": {
+    "dev/ammesso/transcribe_line": 1533,
+    "dev/ammesso/transcribe_line_select": 1533,
+    "train/ammesso/transcribe_line": 29055,
+    "train/ammesso/transcribe_line_select": 29055,
+    "train/escluso/transcribe_line": 6,
+    "train/escluso/transcribe_line_select": 6,
+    "train/quarantena/transcribe_line": 91,
+    "train/quarantena/transcribe_line_select": 91
+   },
+   "ammessi_nello_split": 29055,
+   "record_in_questi_shard": 30685,
+   "rietichettature": 0
+  },
+  "unimer_line_select": {
+   "manifest": "data/manifests/unimer-candidato-2/manifest.json",
+   "manifest_sha256": "97af10332520c01717b80ae2e7b094f87cb5e435a6d03b0ead656175b837c126",
+   "sorgente": "unimer",
+   "revisione": "2343ddd963290469da36ca83e3a56c66e068add9",
+   "nome": "unimer-candidato",
+   "versione": "2",
+   "insieme": "righe",
+   "tipo": "unimer_line_select",
+   "compito_del_tipo": "transcribe_line_select",
+   "split": "train",
+   "n_shard": 1,
+   "attesi": {
+    "dev/ammesso": 1533,
+    "train/ammesso": 29055,
+    "train/escluso": 6,
+    "train/quarantena": 91
+   },
+   "attesi_per_compito": {
+    "dev/ammesso/transcribe_line": 1533,
+    "dev/ammesso/transcribe_line_select": 1533,
+    "train/ammesso/transcribe_line": 29055,
+    "train/ammesso/transcribe_line_select": 29055,
+    "train/escluso/transcribe_line": 6,
+    "train/escluso/transcribe_line_select": 6,
+    "train/quarantena/transcribe_line": 91,
+    "train/quarantena/transcribe_line_select": 91
+   },
+   "ammessi_nello_split": 29055,
+   "record_in_questi_shard": 30685,
+   "rietichettature": 0
+  },
+  "mavis": {
+   "manifest": "data/manifests/mavis-geometry-candidato-3/manifest.json",
+   "manifest_sha256": "f3cca47367799ccd8a7c8f4d6b63c5c37e0cd06e22d921daa5507c6aa442b9c6",
+   "sorgente": "mavis-geometry",
+   "revisione": "9c80fff300f4f2cb3a76f71e03428eebdd571907",
+   "nome": "mavis-geometry-candidato",
+   "versione": "3",
+   "insieme": "train",
+   "tipo": "mavis_f1",
+   "compito_del_tipo": null,
+   "split": "train",
+   "n_shard": 11,
+   "attesi": {
+    "dev/ammesso": 9927,
+    "dev/quarantena": 24,
+    "train/ammesso": 186839,
+    "train/quarantena": 2260
+   },
+   "attesi_per_compito": {
+    "dev/ammesso/angle_val": 9927,
+    "dev/ammesso/count_points": 9927,
+    "dev/ammesso/describe": 9927,
+    "dev/ammesso/direction": 4813,
+    "dev/ammesso/exists_point": 9927,
+    "dev/ammesso/exists_shape": 9927,
+    "dev/ammesso/removed_side": 4813,
+    "dev/ammesso/shared_side": 7473,
+    "dev/ammesso/side_len": 9927,
+    "dev/quarantena/angle_val": 24,
+    "dev/quarantena/count_points": 24,
+    "dev/quarantena/describe": 24,
+    "dev/quarantena/direction": 2,
+    "dev/quarantena/exists_point": 24,
+    "dev/quarantena/exists_shape": 24,
+    "dev/quarantena/removed_side": 2,
+    "dev/quarantena/shape_type": 8877,
+    "dev/quarantena/shared_side": 6,
+    "dev/quarantena/side_len": 24,
+    "train/ammesso/angle_val": 186839,
+    "train/ammesso/count_points": 186839,
+    "train/ammesso/describe": 186839,
+    "train/ammesso/direction": 91578,
+    "train/ammesso/exists_point": 186839,
+    "train/ammesso/exists_shape": 186839,
+    "train/ammesso/removed_side": 91578,
+    "train/ammesso/shared_side": 142012,
+    "train/ammesso/side_len": 186839,
+    "train/quarantena/angle_val": 2260,
+    "train/quarantena/count_points": 2260,
+    "train/quarantena/describe": 2260,
+    "train/quarantena/direction": 100,
+    "train/quarantena/exists_point": 2260,
+    "train/quarantena/exists_shape": 2260,
+    "train/quarantena/removed_side": 100,
+    "train/quarantena/shape_type": 169067,
+    "train/quarantena/shared_side": 111,
+    "train/quarantena/side_len": 2260
+   },
+   "ammessi_nello_split": 186839,
+   "record_in_questi_shard": 199050,
+   "rietichettature": 0
+  }
+ },
+ "sottoinsieme": {
+  "unimer@unimer-train-00000/train": {
+   "shard": "unimer-train-00000.tar",
+   "split": "train",
+   "tipo": "unimer_formula",
+   "record_nello_shard": 200000,
+   "attesi_dal_manifest": 189690,
+   "consegnati": 189690,
+   "uguali": true,
+   "motivi_attesi": {
+    "escluso": 8,
+    "quarantena": 325,
+    "split_dev": 9977
+   },
+   "secondi": 15.0,
+   "casi_mirati_tenuti": 40
+  },
+  "unimer@unimer-train-00000/dev": {
+   "shard": "unimer-train-00000.tar",
+   "split": "dev",
+   "tipo": "unimer_formula",
+   "record_nello_shard": 200000,
+   "attesi_dal_manifest": 9977,
+   "consegnati": 9977,
+   "uguali": true,
+   "motivi_attesi": {
+    "split_train": 190023
+   },
+   "secondi": 9.6,
+   "casi_mirati_tenuti": 0
+  },
+  "unimer_line@unimer-lines-00000/train": {
+   "shard": "unimer-lines-00000.tar",
+   "split": "train",
+   "tipo": "unimer_line",
+   "record_nello_shard": 30685,
+   "attesi_dal_manifest": 29055,
+   "consegnati": 29055,
+   "uguali": true,
+   "motivi_attesi": {
+    "escluso": 6,
+    "quarantena": 91,
+    "split_dev": 1533
+   },
+   "secondi": 2.6,
+   "casi_mirati_tenuti": 0
+  },
+  "unimer_line@unimer-lines-00000/dev": {
+   "shard": "unimer-lines-00000.tar",
+   "split": "dev",
+   "tipo": "unimer_line",
+   "record_nello_shard": 30685,
+   "attesi_dal_manifest": 1533,
+   "consegnati": 1533,
+   "uguali": true,
+   "motivi_attesi": {
+    "split_train": 29152
+   },
+   "secondi": 1.7,
+   "casi_mirati_tenuti": 0
+  },
+  "unimer_line_select@unimer-lines-00000/train": {
+   "shard": "unimer-lines-00000.tar",
+   "split": "train",
+   "tipo": "unimer_line_select",
+   "record_nello_shard": 30685,
+   "attesi_dal_manifest": 29055,
+   "consegnati": 29055,
+   "uguali": true,
+   "motivi_attesi": {
+    "escluso": 6,
+    "quarantena": 91,
+    "split_dev": 1533
+   },
+   "secondi": 2.6,
+   "casi_mirati_tenuti": 0
+  },
+  "unimer_line_select@unimer-lines-00000/dev": {
+   "shard": "unimer-lines-00000.tar",
+   "split": "dev",
+   "tipo": "unimer_line_select",
+   "record_nello_shard": 30685,
+   "attesi_dal_manifest": 1533,
+   "consegnati": 1533,
+   "uguali": true,
+   "motivi_attesi": {
+    "split_train": 29152
+   },
+   "secondi": 1.8,
+   "casi_mirati_tenuti": 0
+  },
+  "mavis@mavis-geometry-caption-00000/train": {
+   "shard": "mavis-geometry-caption-00000.tar",
+   "split": "train",
+   "tipo": "mavis_f1",
+   "record_nello_shard": 19000,
+   "attesi_dal_manifest": 18060,
+   "consegnati": 18060,
+   "uguali": true,
+   "motivi_attesi": {
+    "quarantena": 7,
+    "split_dev": 933
+   },
+   "secondi": 1.8,
+   "casi_mirati_tenuti": 40
+  },
+  "mavis@mavis-geometry-caption-00000/dev": {
+   "shard": "mavis-geometry-caption-00000.tar",
+   "split": "dev",
+   "tipo": "mavis_f1",
+   "record_nello_shard": 19000,
+   "attesi_dal_manifest": 933,
+   "consegnati": 933,
+   "uguali": true,
+   "motivi_attesi": {
+    "split_train": 18067
+   },
+   "secondi": 1.1,
+   "casi_mirati_tenuti": 0
+  }
+ },
+ "esempi_train": {
+  "unimer@unimer-train-00000/train": {
+   "costruiti": 327,
+   "n_errori": 0,
+   "compiti_emessi": {
+    "transcribe": 327
+   },
+   "domande_bloccate": {},
+   "token_medi": 227.3,
+   "token_max": 1256,
+   "fuori_dai_compiti_ammessi": [],
+   "n_fuori": 0,
+   "rietichettati_controllati": 40,
+   "rietichettati_sbagliati": [],
+   "righe_con_target_fuori_dal_record": []
+  },
+  "unimer_line@unimer-lines-00000/train": {
+   "costruiti": 300,
+   "n_errori": 0,
+   "compiti_emessi": {
+    "transcribe_line": 300
+   },
+   "domande_bloccate": {},
+   "token_medi": 355.4,
+   "token_max": 917,
+   "fuori_dai_compiti_ammessi": [],
+   "n_fuori": 0,
+   "rietichettati_controllati": 0,
+   "rietichettati_sbagliati": [],
+   "righe_con_target_fuori_dal_record": []
+  },
+  "unimer_line_select@unimer-lines-00000/train": {
+   "costruiti": 300,
+   "n_errori": 0,
+   "compiti_emessi": {
+    "transcribe_line_select": 300
+   },
+   "domande_bloccate": {},
+   "token_medi": 497.6,
+   "token_max": 1243,
+   "fuori_dai_compiti_ammessi": [],
+   "n_fuori": 0,
+   "rietichettati_controllati": 0,
+   "rietichettati_sbagliati": [],
+   "righe_con_target_fuori_dal_record": []
+  },
+  "mavis@mavis-geometry-caption-00000/train": {
+   "costruiti": 300,
+   "n_errori": 0,
+   "compiti_emessi": {
+    "angle_val": 89,
+    "count_points": 23,
+    "describe": 158,
+    "direction": 10,
+    "exists_point": 40,
+    "exists_shape": 39,
+    "removed_side": 18,
+    "shared_side": 73,
+    "side_len": 134
+   },
+   "domande_bloccate": {
+    "shape_type": 463
+   },
+   "token_medi": 718.3,
+   "token_max": 819,
+   "fuori_dai_compiti_ammessi": [],
+   "n_fuori": 0,
+   "rietichettati_controllati": 0,
+   "rietichettati_sbagliati": [],
+   "righe_con_target_fuori_dal_record": []
+  }
+ },
+ "esempi_dev": {
+  "unimer": {
+   "letti": 200,
+   "fuori_dal_dev_ammesso": [],
+   "costruiti": 200,
+   "n_errori": 0,
+   "compiti_emessi": {
+    "transcribe": 200
+   },
+   "domande_bloccate": {},
+   "token_medi": 277.9,
+   "token_max": 1649,
+   "fuori_dai_compiti_ammessi": [],
+   "n_fuori": 0,
+   "rietichettati_controllati": 5,
+   "rietichettati_sbagliati": [],
+   "righe_con_target_fuori_dal_record": []
+  },
+  "unimer_line": {
+   "letti": 200,
+   "fuori_dal_dev_ammesso": [],
+   "costruiti": 200,
+   "n_errori": 0,
+   "compiti_emessi": {
+    "transcribe_line": 200
+   },
+   "domande_bloccate": {},
+   "token_medi": 352.4,
+   "token_max": 592,
+   "fuori_dai_compiti_ammessi": [],
+   "n_fuori": 0,
+   "rietichettati_controllati": 0,
+   "rietichettati_sbagliati": [],
+   "righe_con_target_fuori_dal_record": []
+  },
+  "unimer_line_select": {
+   "letti": 200,
+   "fuori_dal_dev_ammesso": [],
+   "costruiti": 200,
+   "n_errori": 0,
+   "compiti_emessi": {
+    "transcribe_line_select": 200
+   },
+   "domande_bloccate": {},
+   "token_medi": 508.3,
+   "token_max": 930,
+   "fuori_dai_compiti_ammessi": [],
+   "n_fuori": 0,
+   "rietichettati_controllati": 0,
+   "rietichettati_sbagliati": [],
+   "righe_con_target_fuori_dal_record": []
+  },
+  "mavis": {
+   "letti": 200,
+   "fuori_dal_dev_ammesso": [],
+   "costruiti": 200,
+   "n_errori": 0,
+   "compiti_emessi": {
+    "angle_val": 66,
+    "count_points": 17,
+    "describe": 100,
+    "direction": 11,
+    "exists_point": 35,
+    "exists_shape": 29,
+    "removed_side": 6,
+    "shared_side": 57,
+    "side_len": 81
+   },
+   "domande_bloccate": {
+    "shape_type": 328
+   },
+   "token_medi": 713.2,
+   "token_max": 819,
+   "fuori_dai_compiti_ammessi": [],
+   "n_fuori": 0,
+   "rietichettati_controllati": 0,
+   "rietichettati_sbagliati": [],
+   "righe_con_target_fuori_dal_record": []
+  }
+ },
+ "flusso": {
+  "micro_batch": 20,
+  "esempi": 701,
+  "per_sorgente": {
+   "mavis": 186,
+   "unimer_line": 166,
+   "unimer": 164,
+   "unimer_line_select": 185
+  },
+  "fuori_ammissione": [],
+  "stats": {
+   "loaded/unimer": 193,
+   "compiti/unimer/transcribe": 193,
+   "examples": 752,
+   "loaded/mavis": 186,
+   "compiti/mavis/describe": 90,
+   "loaded/unimer_line": 179,
+   "compiti/unimer_line/transcribe_line": 179,
+   "loaded/unimer_line_select": 194,
+   "compiti/unimer_line_select/transcribe_line_select": 194,
+   "compiti/mavis/count_points": 20,
+   "compiti/mavis/direction": 9,
+   "compiti/mavis/side_len": 94,
+   "compiti_bloccati/mavis/shape_type": 308,
+   "compiti/mavis/angle_val": 60,
+   "compiti/mavis/shared_side": 48,
+   "compiti/mavis/exists_shape": 26,
+   "rows": 80,
+   "tokens": 326330,
+   "compiti/mavis/removed_side": 8,
+   "compiti/mavis/exists_point": 21
+  }
+ },
+ "controlli": [
+  {
+   "controllo": "unimer: manifest identificato dallo sha256 della config, della sorgente, revisione, insieme e tipo",
+   "esito": true
+  },
+  {
+   "controllo": "unimer_line: manifest identificato dallo sha256 della config, della sorgente, revisione, insieme e tipo",
+   "esito": true
+  },
+  {
+   "controllo": "unimer_line_select: manifest identificato dallo sha256 della config, della sorgente, revisione, insieme e tipo",
+   "esito": true
+  },
+  {
+   "controllo": "mavis: manifest identificato dallo sha256 della config, della sorgente, revisione, insieme e tipo",
+   "esito": true
+  },
+  {
+   "controllo": "unimer@unimer-train-00000/train: un'epoca consegna esattamente i record che il manifest ammette in questo shard, una volta e nell'ordine dello shard, e salta gli altri coi motivi attesi",
+   "esito": true
+  },
+  {
+   "controllo": "unimer@unimer-train-00000/dev: un'epoca consegna esattamente i record che il manifest ammette in questo shard, una volta e nell'ordine dello shard, e salta gli altri coi motivi attesi",
+   "esito": true
+  },
+  {
+   "controllo": "unimer_line@unimer-lines-00000/train: un'epoca consegna esattamente i record che il manifest ammette in questo shard, una volta e nell'ordine dello shard, e salta gli altri coi motivi attesi",
+   "esito": true
+  },
+  {
+   "controllo": "unimer_line@unimer-lines-00000/dev: un'epoca consegna esattamente i record che il manifest ammette in questo shard, una volta e nell'ordine dello shard, e salta gli altri coi motivi attesi",
+   "esito": true
+  },
+  {
+   "controllo": "unimer_line_select@unimer-lines-00000/train: un'epoca consegna esattamente i record che il manifest ammette in questo shard, una volta e nell'ordine dello shard, e salta gli altri coi motivi attesi",
+   "esito": true
+  },
+  {
+   "controllo": "unimer_line_select@unimer-lines-00000/dev: un'epoca consegna esattamente i record che il manifest ammette in questo shard, una volta e nell'ordine dello shard, e salta gli altri coi motivi attesi",
+   "esito": true
+  },
+  {
+   "controllo": "mavis@mavis-geometry-caption-00000/train: un'epoca consegna esattamente i record che il manifest ammette in questo shard, una volta e nell'ordine dello shard, e salta gli altri coi motivi attesi",
+   "esito": true
+  },
+  {
+   "controllo": "mavis@mavis-geometry-caption-00000/dev: un'epoca consegna esattamente i record che il manifest ammette in questo shard, una volta e nell'ordine dello shard, e salta gli altri coi motivi attesi",
+   "esito": true
+  },
+  {
+   "controllo": "UniMER chiavi condivise: ogni riga ritagliata ha la sua formula (stessa chiave), una riga di formula rietichettata non è ammessa, la decisione della riga è la sua",
+   "esito": true
+  },
+  {
+   "controllo": "unimer@unimer-train-00000/train: esempi costruiti senza errori, compiti emessi solo fra gli ammessi (shape_type mai), rietichettature applicate e target delle righe dal record",
+   "esito": true
+  },
+  {
+   "controllo": "unimer_line@unimer-lines-00000/train: esempi costruiti senza errori, compiti emessi solo fra gli ammessi (shape_type mai), rietichettature applicate e target delle righe dal record",
+   "esito": true
+  },
+  {
+   "controllo": "unimer_line_select@unimer-lines-00000/train: esempi costruiti senza errori, compiti emessi solo fra gli ammessi (shape_type mai), rietichettature applicate e target delle righe dal record",
+   "esito": true
+  },
+  {
+   "controllo": "mavis@mavis-geometry-caption-00000/train: esempi costruiti senza errori, compiti emessi solo fra gli ammessi (shape_type mai), rietichettature applicate e target delle righe dal record",
+   "esito": true
+  },
+  {
+   "controllo": "unimer: validazione dal dev del manifest (record ammessi col compito), esempi costruiti",
+   "esito": true
+  },
+  {
+   "controllo": "unimer_line: validazione dal dev del manifest (record ammessi col compito), esempi costruiti",
+   "esito": true
+  },
+  {
+   "controllo": "unimer_line_select: validazione dal dev del manifest (record ammessi col compito), esempi costruiti",
+   "esito": true
+  },
+  {
+   "controllo": "mavis: validazione dal dev del manifest (record ammessi col compito), esempi costruiti",
+   "esito": true
+  },
+  {
+   "controllo": "flusso misto: solo chiavi ammesse di train di ogni sorgente, esempi da tutte, nessun errore, nessun shape_type, contatori per sorgente e compito",
+   "esito": true
+  }
+ ]
+}

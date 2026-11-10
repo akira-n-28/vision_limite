@@ -78,7 +78,7 @@ c'erano due scarti rispetto alla §5:
   `label_type` il collaudo controllava solo il testo della domanda, non l'unicità con un predicato, e per le
   intersezioni mancava il conteggio numerico sulle spezzate. Il requisito resta valido: dal 2026-10-30 (`284e8f1`,
   job 30448) i tre collaudi girano su 10.000 scene ciascuno, con il conteggio numerico e il predicato (§5);
-- i collaudi MAVIS appartengono a C9 e non sono implementati. Questo scarto resta.
+- i collaudi MAVIS appartengono a C9: implementati il 2026-11-10 in `tests/test_mavis_c9.py` (job 30775, §§3 e 5).
 
 Il controllo sugli shard (job 30393, conteggi nel piano F0 §4) ha dato tre risultati:
 - i 60.900 PNG di v3, ridisegnati, hanno byte identici;
@@ -1480,12 +1480,12 @@ renderer di MAVIS non è nostro, quindi non abbiamo invarianti: l'osservabilità
 | Tipo (`mavis_questions`) | Semantica | Stato proposto |
 | --- | --- | --- |
 | `describe` | punti, figure, misure e angoli di `render_geometry` | `quarantena`; `target_controllato` dopo il campione di S4 |
-| `side_len`, `angle_val` | lettura: valore visualizzato (decimali a due cifre per i razionali, job 30049, 30052); l'esatto (`44/3`) resta nel record | idem |
+| `side_len`, `angle_val` | lettura: valore visualizzato (decimali a due cifre per i razionali, job 30049, 30052); dal C9 l'esatto (`44/3`), il visualizzato previsto e la risposta di lettura sono nel record (`valori` di candidato-4), i target non cambiano | idem |
 | `removed_side`, `direction` | lato sostituito; triangolo o semicerchio dentro o fuori | idem, priorità nel campione |
 | `shared_side` | posta solo se il proprietario è unico (`f1_mavis.py:84-89`); il verificatore accetta AB = BA | idem |
 | `count_points` | tutte le etichette visibili | idem, priorità nel campione |
 | `exists_point`, `exists_shape` | il nome finto usa una lettera successiva a tutti i punti (`f1_mavis.py:95`): non coincide con un nome reale | idem |
-| `shape_type` (`f1_mavis.py:83`) | aperta, con classi che non formano una catena: quadrato ⊂ rettangolo ∩ rombo, rombo ⊂ aquilone e parallelogramma, un triangolo rettangolo può essere isoscele | **`quarantena`**: opzioni costruite per istanza con esattamente una vera secondo le misure note; se le misure non bastano, la domanda non si pone |
+| `shape_type` (`f1_mavis.py:83`) | aperta, con classi che non formano una catena: quadrato ⊂ rettangolo ∩ rombo, rombo ⊂ aquilone e parallelogramma, un triangolo rettangolo può essere isoscele | **`quarantena`**: opzioni costruite per istanza con esattamente una vera secondo le misure note; se le misure non bastano, la domanda non si pone. Dal C9 (sotto) la costruzione `mavis-c9/1` esiste ed è controllata: 118.118 domande recuperabili su 383.592, ancora escluse dal percorso operativo |
 
 Se in F0 cambia la risoluzione (oggi 2304 patch, oltre le 1024 di addestramento di NaFlex), l'osservabilità va
 riverificata per la nuova configurazione (pipeline §5.7).
@@ -1517,12 +1517,13 @@ riverificata per la nuova configurazione (pipeline §5.7).
   - Gli esclusi dallo sharding (1 incompleto e 552 didascalie duplicate) non sono negli shard.
   - Le 108 chiavi della vecchia validazione con l'immagine ripetuta stanno in gruppi di più record.
 - **Valori.** 22.712 record hanno misure razionali disegnate come decimali. La risposta è il decimale disegnato;
-  l'esatto non è nel record (C9).
+  l'esatto non è nel record (C9). Dal 2026-11-10 è nel record della versione 4 (sotto, C9): 22.506 di questi record
+  hanno solo decimali esatti (1.5 = 3/2), 206 hanno 249 lati arrotondati (14.67 per 44/3).
 - **Limiti.**
   - Manca la fedeltà all'immagine: revisione visiva e stima di S4.
   - La decontaminazione esterna contro `pannello-v3`, che comprende le geometrie di MathVerse, degli stessi autori, è
     nella versione 2 (sotto, 2026-11-06).
-  - C9 non è implementato.
+  - C9 non è implementato (fatto il 2026-11-10 nella versione 4, sotto).
   - Il reader col manifest (C7, 2026-11-06, S1 §9) esclude `shape_type`: `mavis_f1` toglie dal pool le domande dei
     compiti non ammessi prima di scegliere. Chiamato direttamente, fuori dal reader, il loader sceglie ancora come prima.
 - **Riverifica in sola lettura** (2026-11-05, job 30635, `scripts/manifest_recheck.py`). Il manifest è stato
@@ -1656,6 +1657,106 @@ riverificata per la nuova configurazione (pipeline §5.7).
     - L'esposizione pregressa resta.
     - La fedeltà all'immagine resta da verificare (S4).
     - La decontaminazione non dice nulla sulla correttezza delle risposte e non è una certificazione statistica.
+
+### C9: valori esatti e `shape_type` con opzioni (2026-11-10, `src/limite_vl/mavis_c9.py`, `scripts/mavis_c9.py`)
+
+Job 30773 (sonda), 30775 (test), 30776 (costruzione di candidato-4), 30777 (regressione di C7), 30779 (reader col
+candidato C9). La costruzione storica (`f1_mavis.mavis_questions`) resta quella predefinita e non cambia; la nuova,
+`mavis-c9/1`, si usa solo per un record che la dichiara (`costruzione_qa`).
+
+- **Tre livelli di fatti, tenuti separati.**
+  - *Annotazioni* (nascoste al modello): tipo dichiarato da diagram_generation (`mavis_gen.figures`), misure esatte
+    (`mavis_gen.measures`, confermate dalla didascalia), vertice degli isosceli dalla frase di costruzione.
+  - *Stampato* (al modello, per la regola del renderer): le misure della didascalia scritte come
+    `f1_schema.latex_value` (razionali senza radice come decimali con al più due cifre; il 90° come segno). È la
+    rappresentazione prevista, non una lettura dei pixel.
+  - *Da verificare a vista*: fedeltà e leggibilità, segni non dichiarati come misure (il segno dell'angolo retto di un
+    triangolo rettangolo, visto in contact_run1 ma non garantito), forma disegnata. Non entrano in nessuna prova.
+- **Sonda** (job 30773, `outputs/mavis_c9/sonda-1`, 1 min 54 s). Le 383.592 domande `shape_type` storiche riguardano
+  sei tipi dichiarati:
+
+  | Tipo | Figure | Misure stampate |
+  | --- | --- | --- |
+  | quadrato | 78.733 | angolo retto; un lato (35.665), due adiacenti (28.594) o due opposti (14.474) |
+  | isoscele | 61.813 | angolo al vertice (30, 45, 60, 90, 120); due lati al vertice (43.051) o uno (18.762); vertice sempre nella frase di costruzione, al centro del nome |
+  | settore | 61.785 | angolo al centro (30-120, mai 180), uno o due raggi |
+  | parallelogramma | 60.936 | angolo di 30, 45 o 60 (mai 90), due lati adiacenti sempre |
+  | rettangolo | 60.542 | angolo retto, due lati adiacenti sempre |
+  | triangolo rettangolo | 59.783 | angolo acuto (30, 45, 60) al terzo vertice; l'angolo retto non è mai una misura |
+
+  Nessun rombo, aquilone, trapezio, equilatero o triangolo generico dichiarato; un solo angolo stampato per figura.
+- **Valori.** Ogni record di candidato-4 ha `valori`: elemento, esatto (`44/3`), visualizzato previsto (`14.67`),
+  rappresentazione e risposta di lettura; le domande di lettura del pool C9 dicono la misura che chiedono (`elemento`).
+  - I target non cambiano: la risposta di lettura è il visualizzato, ricalcolata dal valore registrato per ogni domanda
+    nella verifica.
+  - Angoli tutti interi (498.089). Lati: 597.103 interi, 111.856 radici, 24.856 decimali esatti (x.5), 249 decimali
+    arrotondati (p/3) in 206 record. I 22.712 record con razionali non interi non sono 22.712 errori: in 22.506 il
+    decimale stampato è esatto; nei 206 l'esatto differisce dal target di lettura, che resta il visualizzato.
+  - Un esatto non si ricostruisce da un decimale arrotondato. Un decimale arrotondato stampato vale l'intervallo di
+    ±0,005: due 14.67 non dimostrano un'uguaglianza, 14.67 e 15 una differenza sì.
+- **`shape_type`: insieme fisso di opzioni per famiglia**, mescolato per chiave (`f1c.key_rng`):
+  - triangoli: acute, right, obtuse triangle (una partizione: esattamente una è vera per ogni triangolo);
+  - quadrilateri: rectangle, rhombus, square.
+
+  La risposta è l'unica opzione vera secondo le annotazioni (tipo dichiarato e misure esatte, mai i decimali); ogni
+  altra opzione dev'essere confutata dalle sole misure stampate; una verità ignota non è mai trattata come falsa.
+  Altrimenti la domanda è omessa col motivo. Le classi escluse lo sono per i fatti della sonda: un'opzione mai
+  confutabile comparirebbe solo come risposta, e un insieme scelto per istanza ne rivelerebbe la presenza.
+  - `parallelogram`: vera per ogni quadrilatero di MAVIS. `sector`: vera per ogni figura circolare.
+  - `isosceles triangle`: mai confutabile dalle misure stampate; `equilateral` e `scalene` non formano una partizione
+    con le classi degli angoli (definizione inclusiva).
+  - `kite`, `trapezoid`: definizioni inclusiva ed esclusiva in conflitto.
+- **Controllo indipendente** (`check_question`, scritto a parte dal generatore): la verità esatta da un modello numerico
+  della figura (coordinate dal tipo e dalle misure esatte; una lunghezza non data si prova con due testimoni, e una
+  classe che cambia fra i due è ignota); le confutazioni da un problema di ammissibilità sugli angoli e da intervalli
+  sui lati stampati; testo, ordine e risposta. Riverifica ogni domanda emessa, nella scansione e nella verifica.
+- **Esiti sui 199.050 record** (job 30776, scansione in 145 s; per profondità in `outputs/mavis_c9/c9-1/report.json`):
+
+  | Tipo | Recuperabili | Omesse e motivo |
+  | --- | --- | --- |
+  | isoscele | 50.550: acute 25.737, right 12.458, obtuse 12.355 | 11.263: un solo lato e angolo al vertice di 30, 45 o 60°, che nella figura può essere alla base |
+  | rettangolo | 57.310 rectangle | 3.232: lati adiacenti uguali, rettangolo, rombo e quadrato tutti veri |
+  | parallelogramma | 3.223 rhombus (lati adiacenti uguali) | 57.713: nessuna opzione vera (parallelogram esclusa) |
+  | triangolo rettangolo | 7.035 right (cateti stampati uguali e 45°) | 52.748: richiedono il segno dell'angolo retto, che non è una misura stampata |
+  | quadrato | — | 78.733: tre opzioni vere |
+  | settore | — | 61.785: nessun insieme informativo |
+  | totale | 118.118 (30,8%) | 265.474 |
+
+  - Nessuna misura contraddittoria, nessuna verità ignota, nessun valore non analizzabile.
+  - Profondità 0: nessun isoscele acute e nessun triangolo rettangolo recuperabile (un solo lato stampato).
+  - Posizione della risposta fra il 33,0% e il 33,4% per famiglia.
+  - Risposte: quadrilateri rectangle 57.310 e rhombus 3.223 (l'insieme dà quasi sempre rectangle: square non è mai la
+    risposta); triangoli acute 25.737, right 19.493, obtuse 12.355.
+  - Le altre domande sono identiche in ogni record; il pool storico e la descrizione ricalcolati hanno i digest di
+    candidato-3 in tutti i record.
+- **Versione 4** `data/manifests/mavis-geometry-candidato-4` (job 30776): `manifest.json` `77e1849e…`,
+  `records.jsonl.gz` `0c5a7d0a…` (193 MiB), riepilogo `docs/manifests/mavis-geometry-candidato-4.json`.
+  - Derivata da candidato-3: stessi record, gruppi, split, stati, motivi ed evidenze. Ogni record dichiara
+    `costruzione_qa`, ha il pool C9 (`qa`), `valori`, `shape_type_c9` (per figura: esito, motivo, opzioni, risposta,
+    confutazioni e i fatti usati) e un'evidenza `mavis-c9`.
+  - `shape_type` resta in quarantena (compito presente solo nei record con domande recuperabili).
+  - Le domande nuove (721 testi distinti) contro le 99.713 voci di `pannello-v3`, coi 10-gram e le regole di
+    `panel_decontam` (nessuna regola esplicita per questo campo): nessuna corrispondenza, nessun cambio di stato. Le
+    evidenze sulle immagini, invariate, sono ereditate.
+  - Ammessi train 186.839 e dev 9.927, come candidato-3. Verifica 7 su 7: campi ereditati, stati, motivi ed evidenze;
+    domande diverse da `shape_type` uguali al genitore; ogni domanda di lettura ricalcolata dal visualizzato
+    registrato; ogni domanda `shape_type` ricalcolata dalle opzioni e riverificata coi fatti registrati; conteggi e
+    `keys/`.
+  - Nessuna configurazione lo usa: `config/runs/f0-c7-reader-unimer-mavis.json` resta su candidato-3.
+- **Reader.**
+  - Regressione di C7 sul candidato corrente (job 30777, `docs/reader_smoke/c7-3.json`): 22 controlli su 22, uguale a
+    c7-2 tolti job, tempi e codice.
+  - Candidato C9 col reader (job 30779, `docs/reader_smoke/c9-lettore-1.json`), 8 controlli su 8. Sul primo shard,
+    letto per intero col candidato-4 e col candidato-3, le chiavi consegnate sono quelle ammesse dai record grezzi, in
+    train (18.060) e in dev (933).
+  - Ogni campione costruito col manifest C9 ha il digest del pool C9, solo compiti ammessi, mai `shape_type`, e gli
+    stessi messaggi del genitore. Le domande `shape_type` bloccate scendono da 29.154 a 9.472 in train.
+  - Senza la costruzione dichiarata il pool C9 è rifiutato in tutti i record con `shape_type` storiche.
+- **Limiti.**
+  - Le prove riguardano annotazioni e trasformazione, non i pixel: misure stampate e figure vanno verificate a vista
+    prima di usare le domande; una confutazione poggia sulla misura stampata prevista dalla regola del renderer.
+  - L'insieme dei quadrilateri ha risposte molto sbilanciate e `square` non è mai la risposta.
+  - Senza un'approvazione dell'utente le domande non diventano gold né entrano nel percorso operativo.
 
 ## 4. UniMER (`data/shards/unimer/2343ddd9-dense`, `latex.py`, `outputs/unimer_check/run4`)
 
@@ -1822,6 +1923,10 @@ MiB). Il riepilogo versionato è `docs/manifests/unimer-candidato-1.json`.
 - **MAVIS.** Per un triangolo rettangolo con i cateti uguali, right e isosceles sono entrambe vere e non compaiono
   insieme fra le opzioni; se non si può costruire un insieme con una sola opzione vera, la domanda non si pone. Un rombo
   che dalle misure stampate è un quadrato dà `square`, oppure la domanda non si pone.
+  Implementato in `tests/test_mavis_c9.py` (job 30775, 84 controlli, §3 C9): il rettangolo isoscele dà `right` fra
+  acute/right/obtuse, senza `isosceles` fra le opzioni; il rombo che è un quadrato per le misure, il quadrato e il
+  rettangolo coi lati adiacenti uguali sono omessi (tre opzioni vere); insufficienze, contraddizioni, uguaglianze
+  apparenti da arrotondamento e mutazioni del controllo indipendente come in §3.
 - **Tratti visibili.**
   - f = x + 1 e g = −x + 1 con tratti [−7, −2] e [2, 7]: conteggio 0, ammissibile. Il codice di `38af82a` dava 1.
   - Gli stessi grafici con un buco [−0.2, 0.2]: conteggio 0, non ammissibile (a 0.2 dal buco).
@@ -1872,5 +1977,6 @@ MiB). Il riepilogo versionato è `docs/manifests/unimer-candidato-1.json`.
   - la catena render → controllo → candidato su 12 scene di train, 4 di test e 4 coppie: nessun errore, controllo
     coincidente, immagini lasciate invariate dal processor.
 - **Valori.** `3/2` disegnato come `1.5`: in lettura la risposta è `1.5`, in calcolo entrambe le forme sono
-  equivalenti.
+  equivalenti. In `tests/test_mavis_c9.py` anche `44/3` disegnato `14.67`: target di lettura `14.67`, esatto `44/3`
+  conservato, i due valori non equivalenti; due `14.67` non dimostrano un'uguaglianza.
 - **UniMER.** Una rietichettatura non coerente con l'etichetta attesa dà errore (`stream.apply_relabel`, già presente).

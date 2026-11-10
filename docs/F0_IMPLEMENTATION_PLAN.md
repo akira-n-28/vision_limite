@@ -1,6 +1,6 @@
 # Piano di implementazione F0
 
-Stato al 2026-11-05, [pipeline v1.5](../PIPELINE_ADDESTRAMENTO_LIMITE_VL.md) (§§3, 5, 6, 17). Il confronto è fra il
+Stato al 2026-11-10, [pipeline v1.5](../PIPELINE_ADDESTRAMENTO_LIMITE_VL.md) (§§3, 5, 6, 17). Il confronto è fra il
 codice del repository sul cluster e i requisiti della pipeline.
 
 **Stato attuale degli interventi (§3):**
@@ -20,7 +20,11 @@ codice del repository sul cluster e i requisiti della pipeline.
   Test nel job 30686-30688; smoke test sui dati reali nel job 30688.
 - **C8, stime:** nucleo implementato e collaudato su dati fittizi il 2026-11-05 (job 30616-30617, S4 §9); non applicato
   agli esiti reali.
-- **C3, C4, C6, C9:** non iniziati.
+- **C9, MAVIS:** implementato e collaudato il 2026-11-10 (job 30773-30779; S2 §3, C9; S1 §9). Valori esatti,
+  visualizzati e richiesti nel record e domande `shape_type` con opzioni sono nella versione `mavis-geometry-candidato-4`,
+  derivata da candidato-3 e non usata da nessuna configurazione. `shape_type` resta esclusa dal percorso operativo: le
+  118.118 domande recuperabili (30,8% di 383.592) aspettano l'approvazione e la verifica a vista.
+- **C3, C4, C6:** non iniziati.
 - **Pannello di valutazione (punto 7):** benchmark scaricati e verificati (job 30463). Indice, gruppi e ruoli sono
   fissati in `pannello-v3` (job 30469), prima di qualsiasi valutazione del modello, e descritti in
   `docs/PANNELLO_VALUTAZIONE.md`. v3 corregge sei problemi di v2 (collaudi nel job 30468). Da approvare (D6).
@@ -102,10 +106,10 @@ Violetto su un piccolo pannello senza prefill nascosti (1 GPU, 8 CPU, 48G, circa
 | --- | --- | --- |
 | MAVIS: verità e QA ricavate da `diagram_generation` | verificato per coerenza fra descrizioni | `f1_mavis.py`, `f1_schema.py`; job 30033, 30052 (andata e ritorno su 199.050); `mavis_caption_check` run1 |
 | MAVIS: fedeltà ai pixel e leggibilità alla risoluzione scelta | da collaudare | solo 40 immagini guardate (`outputs/f1_mavis/contact_run1`); nessuna invariante del renderer dimostrata |
-| Valore esatto, visualizzato e richiesto separati | mancante | job 30049: i razionali (denominatori 2 e 3) sono disegnati come decimali a due cifre; oggi un solo valore per campo |
+| Valore esatto, visualizzato e richiesto separati | verificato per MAVIS sulle annotazioni (C9); mancante per le altre famiglie | job 30049: i razionali (denominatori 2 e 3) sono disegnati come decimali a due cifre. C9 (job 30776): `valori` di candidato-4 con esatto, visualizzato previsto e risposta di lettura; 249 lati arrotondati in 206 record, target invariati; il visualizzato è previsto dalla regola del renderer, non letto dai pixel |
 | UniMER: trascrizione distinta dall'equivalenza matematica | da collaudare | `latex.py` (`despace`, `effective_label`); `outputs/unimer_check/run4`: 51 errori certi, 1119 incerti, rietichettature |
 | Semantica delle domande dei sintetici rispetto all'immagine | **errore confermato** | `intersections` conta entro ±R (`synth.py:404-411`), il disegno arriva a ±(R+1) (`synth.py:462, 466`). Controesempio `audit-68`: target `0` con un'intersezione disegnata. In v3: 37 target errati e 364 domande al bordo disegnato, cioè 401 scene; in 146 esempi di training la domanda è fra quelle scelte (S2 §2.1). Gli altri tipi non hanno una verifica indipendente (S2 §2.3) |
-| Ambiguità di classificazione | mancante | domande aperte, senza opzioni nel prompt: tutti i 2.128 triangoli rettangoli sono anche scaleni; un quadrato soddisfa 4 classi; 9.465 risposte `label_type` = square sono vere anche come rectangle. Con le opzioni nel prompt, o la classe più specifica di una catena, la risposta è unica in tutti i casi di v3 (S2 §2.2). MAVIS `shape_type` (`f1_mavis.py:83`): classi non in catena |
+| Ambiguità di classificazione | mancante | domande aperte, senza opzioni nel prompt: tutti i 2.128 triangoli rettangoli sono anche scaleni; un quadrato soddisfa 4 classi; 9.465 risposte `label_type` = square sono vere anche come rectangle. Con le opzioni nel prompt, o la classe più specifica di una catena, la risposta è unica in tutti i casi di v3 (S2 §2.2). MAVIS `shape_type` (`f1_mavis.py:83`): classi non in catena. C9 (job 30776): insieme fisso per famiglia (acute/right/obtuse; rectangle/rhombus/square), una sola opzione vera secondo le annotazioni e le altre confutate dalle misure stampate, omissione col motivo; 118.118 domande recuperabili, non attive |
 | Estrazione answer-only e risposte finali incompatibili | mancante | `f2.py:109-135, 183`: l'estrazione richiede `</think>` e prende l'ultimo `\boxed{}`; `grade` non ha un esito `non determinato` |
 | Evidenza salvata con la trasformazione, non solo `passed` | mancante | gli esiti dei controlli sono liste di esclusione e JSON per run, non campi del record |
 
@@ -115,7 +119,7 @@ spiegazione. Costruttori per le tre prime famiglie:
 - sintetici: correzione di `intersections`, domande di classificazione con opzioni, verifica semantica indipendente,
   nuova versione v4 degli shard;
 - MAVIS: dalla specifica già parsata, con valore visualizzato ed esatto, `shape_type` con opzioni costruite dalle
-  misure;
+  misure (fatto in C9, 2026-11-10: `mavis-geometry-candidato-4`, non attivo);
 - UniMER: etichetta originale, rietichettatura tracciata, incerti in quarantena.
 
 Estrattore e verificatori per compito secondo S3.
@@ -279,7 +283,7 @@ Test nel job 30686-30688 (`tests/test_reader_manifest.py`); smoke test sui manif
 (`scripts/reader_smoke.py`). Restano: contatori di `uid`, gruppi e ripetizioni; i loader chiamati fuori dal reader; PixMo e
 LLaVA** | `stream.py`, `collator.py`, `data_lists.py`, `data.py`, `manifest.py` | S1 §8 (reader): `tests/test_manifest.py`, `tests/test_reader_manifest.py` | verifiche del manifest (CPU, 8 CPU, 16G, 4 min); smoke test di C7 (CPU, 8 CPU, 48G) | C5 |
 | C8 | Stime: limite ipergeometrico e binomiale, estrazione con probabilità registrate, Bonferroni, rifiuto se unità e quantità non coincidono. **Nucleo implementato il 2026-11-05, dopo l'adozione del nucleo tecnico di S4 da parte dell'utente: limiti esatti, Bonferroni, compatibilità fra disegno, quantità e popolazione, esiti contati senza perdite, tre livelli del risultato (S4 §9). Collaudato su dati fittizi (job 30616-30617), non applicato agli esiti reali. Senza campionatori: l'estrazione con probabilità registrate resta quella di `synth_gold_sample.py`** | `src/limite_vl/estimate.py` (nuovo) | S4 §8 tranne l'estrazione: `tests/test_estimate.py` | test mirati: CPU, 2 CPU, 4G, 2-3 s (job 30616-30617) | S4 |
-| C9 | MAVIS: `shape_type` con opzioni dalle misure note; valore visualizzato ed esatto nel record | `src/limite_vl/f1_mavis.py` | S2 §5 (MAVIS) | controllo su tutti gli shard (CPU, come il job 30052) | C5 |
+| C9 | MAVIS: `shape_type` con opzioni dalle misure note; valore visualizzato ed esatto nel record. **Implementato il 2026-11-10 (S2 §3, C9; S1 §9): costruzione `mavis-c9/1` in un modulo nuovo, usata solo da un record che la dichiara (`costruzione_qa`), con la storica predefinita e invariata; valori esatti, visualizzati e richiesti; insieme fisso di opzioni per famiglia con controllo indipendente; versione `mavis-geometry-candidato-4` derivata da candidato-3 (job 30776, verifica 7 su 7), non usata dalla config di C7; regressione di C7 uguale (job 30777) e reader col candidato C9 (job 30779). `shape_type` resta esclusa dal percorso operativo** | `src/limite_vl/mavis_c9.py` (nuovo), `data.py`, `manifest.py`, `scripts/mavis_c9.py`, `slurm/mavis_c9.sbatch` | S2 §5 (MAVIS): `tests/test_mavis_c9.py` (84 controlli) | sonda 2 min (job 30773); costruzione CPU, 4 CPU, 48G, 11 min 26 s (job 30776) | C5 |
 
 ## 4. Collaudi
 
@@ -340,6 +344,11 @@ LLaVA** | `stream.py`, `collator.py`, `data_lists.py`, `data.py`, `manifest.py` 
 | 30676 (2026-11-06) | `slurm/panel_decontam.sbatch riesame mavis riesame-1 3` (4 CPU, 48G) | 7 min 25 s, RSS massima 10,6 GiB. Test 90 su 90; candidato-2 riverificato con la sua regola storica (23 su 23). Lette solo intestazioni e 20.121 JSON (251 MiB su 9,2 GiB, 133 s); 20.071 descrizioni legate al manifest. Enumerazioni coperte; 50 record verso MathVision 753 candidati (47 gruppi). `mavis-geometry-candidato-3`: 1.591 record da ammesso a quarantena (1.406 in due gruppi di figure identiche); verifica della catena 25 su 25 (S2 §3) | che la frequenza non decide più nulla e che le decisioni nuove sono ricalcolabili dalla scansione e dalle descrizioni. Non risolve i candidati |
 | 30686 (2026-11-06) | `slurm/tests_cpu.sbatch` con `tests/test_reader_manifest.py` (nuovo) e le regressioni `test_manifest`, `test_data_lists`, `test_f1_data`, `test_vl_data`, `test_f1c`, `test_replay`, `test_f2_gate`, `test_panel_decontam` (4 CPU, 16G) | 7 min. Regressioni superate: `test_manifest` (sintetici v4, col record alterato ora contato dal reader), `test_panel_decontam` 90 su 90. `test_reader_manifest` 47 su 48: l'unico fallimento è un helper del test, che leggeva i contatori del reader dopo l'inizio dell'epoca successiva (62 letti invece di 56), corretto fotografandoli alla fine dell'epoca | che le modifiche di C7 non cambiano i percorsi esistenti: sintetici v4, liste, F1, F1c, replay, gate F2, decontaminazione. Nessun controllo del codice fallito |
 | 30687-30688 (2026-11-06) | `slurm/reader_smoke.sbatch c7-1` e `c7-2` (8 CPU, 48G): test mirati, poi smoke test sui manifest e sugli shard reali con `config/runs/f0-c7-reader-unimer-mavis.json`, senza modello | 30687: test mirati superati (`test_reader_manifest` 48 su 48) e 4 sorgenti su 4 costruite; poi fermato da un errore dello script (attributo cercato su `Source` invece che su `Source.admission`) prima del sottoinsieme, nessuna uscita. 30688: 6 min 47 s; script 264 s, di cui `make_sources` 124 s coi due manifest letti e i 17 shard verificati una volta; RSS massima 14,2 GiB. 22 controlli su 22 (`docs/reader_smoke/c7-2.json`). Primo shard di ogni sorgente letto per intero in train e dev: chiavi consegnate uguali, nell'ordine dello shard, a quelle ammesse dai record grezzi del manifest, coi motivi dei saltati (formule dello shard 0: 189.690 consegnate, 9.977 `split_dev`, 325 quarantena, 8 esclusi). Esempi col processor: 327, 300, 300 e 300 di train, 200 di dev per sorgente; compiti solo fra gli ammessi, `shape_type` mai emessa (463 domande bloccate in train, 328 in dev), 45 rietichettature controllate. `MixedRowStream`, 20 micro-batch: 701 esempi di train da tutte le sorgenti | che i reader di UniMER e MAVIS chiamati da `make_sources` consegnano solo i record ammessi dello split col compito del tipo, applicano le rietichettature del manifest e non emettono `shape_type`. Letture parziali, uno shard per sorgente ed esempi a campione: non è una verifica completa del flusso di training, non collauda il training e non certifica le golden answer |
+| 30773 (2026-11-10) | `slurm/mavis_c9.sbatch sonda sonda-1` (4 CPU, 24G): soli JSON degli 11 shard, legati a candidato-3 per posizione e json_sha256 | 1 min 54 s. 383.592 domande `shape_type` storiche su sei tipi dichiarati (quadrato, isoscele, settore, parallelogramma, rettangolo, triangolo rettangolo), un angolo stampato per figura, vertice degli isosceli sempre nella frase di costruzione, nessun 90° stampato nei triangoli rettangoli; valori: 249 lati arrotondati in 206 record, 24.856 decimali esatti (S2 §3, C9) | che cosa contengono annotazioni e misure stampate; nessuna decisione |
+| 30775 (2026-11-10) | `slurm/tests_cpu.sbatch` con `tests/test_mavis_c9.py` nuovo e 12 regressioni (C7 compreso) | 7 min 43 s, nessun file fallito: `test_mavis_c9` 84 su 84 al primo giro, `test_reader_manifest` 48 su 48, `test_panel_decontam` 90 su 90 | casi scritti a mano (valori, rettangolo isoscele, quadrati, rettangoli, rombi, insufficienze, contraddizioni, uguaglianze apparenti), mutazioni trovate dal controllo indipendente, compatibilità con la costruzione storica e coi manifest correnti, derivazione e reader su shard fittizi |
+| 30776 (2026-11-10) | `slurm/mavis_c9.sbatch costruzione c9-1 4` (4 CPU, 48G): test, scansione dei 199.050 record, controllo testuale, candidato-4 e verifica | 11 min 26 s, RSS massima 11,5 GiB. Pool storico e descrizione con i digest di candidato-3 in tutti i record; 118.118 domande `shape_type` recuperabili e 265.474 omesse col motivo; nessuna corrispondenza col pannello nei 721 testi nuovi; `mavis-geometry-candidato-4` (`77e1849e…`), verifica 7 su 7 | che la costruzione predefinita non cambia, che ogni domanda C9 supera il controllo indipendente e che la versione nuova eredita record, gruppi, split e stati; proprietà delle annotazioni, non dei pixel |
+| 30777 (2026-11-10) | `slurm/reader_smoke.sbatch c7-3`, config invariata, dopo le modifiche di `data.py` e `manifest.py` | 6 min 27 s; 22 controlli su 22, riepilogo `docs/reader_smoke/c7-3.json` uguale a c7-2 tolti job, tempi e codice | che il reader di C7 sul candidato corrente non cambia |
+| 30779 (2026-11-10) | `slurm/mavis_c9.sbatch lettore c9-lettore-1 4 77e1849e…` (4 CPU, 32G): primo shard col candidato-4 e col candidato-3, in train e dev | 6 min; 8 controlli su 8 (`docs/reader_smoke/c9-lettore-1.json`): chiavi ammesse uguali (18.060 e 933), stessi messaggi del genitore, digest del pool C9 verificato, `shape_type` mai, pool C9 rifiutato senza la costruzione dichiarata | il collegamento del candidato C9 col reader su uno shard; non il flusso intero |
 
 Calcoli di sola libreria standard sul frontend, il 2026-10-28, a supporto delle specifiche (non sono collaudi):
 - riproduzione delle domande di synth v3 dalle chiavi, con istogrammi identici al manifest del job 29756;
@@ -645,9 +654,13 @@ training. Dal 2026-11-06 i reader applicano `unimer-candidato-2` e `mavis-geomet
   - *Riesame* (job 30676, versione 3 `mavis-geometry-candidato-3`, S2 §3): regole testuali esplicite. Le enumerazioni
     dei punti nella descrizione del loader restano senza effetto; i 50 record verso MathVision 753 sono candidati. In
     tutto 2.284 record in quarantena in 156 gruppi, nessuna riammissione.
-  - *Lacune:* fedeltà all'immagine (revisione visiva, S4); verifica a vista dei 156 gruppi candidati; C9 (opzioni di
-    `shape_type`, valore visualizzato ed esatto, 22.712 record con razionali disegnati come decimali); geometry check
-    non ricalcolato.
+  - *Lacune:* fedeltà all'immagine (revisione visiva, S4); verifica a vista dei 156 gruppi candidati; geometry check
+    non ricalcolato. C9 fatto il 2026-11-10 nella versione 4 (sotto); restano approvazione e verifica a vista delle
+    domande `shape_type` recuperabili.
+  - *C9* (job 30773-30779, versione 4 `mavis-geometry-candidato-4`, S2 §3): valori esatti, visualizzati e richiesti per
+    ogni misura; `shape_type` con un insieme fisso di opzioni per famiglia, 118.118 domande recuperabili su 383.592 e
+    le altre omesse col motivo; stessi record, gruppi, split e stati di candidato-3; nessun testo nuovo in comune col
+    pannello. Non attivo.
   - *Reader (C7)* (job 30686-30688, S1 §9): `mavis_f1` sceglie solo fra i compiti ammessi, mai `shape_type`. Pool delle
     domande e descrizione sono legati ai digest del manifest. Chiamato fuori dal reader, il loader sceglie ancora come
     prima.
@@ -664,7 +677,7 @@ un job CPU (CLAUDE.md).
 | Contratto ed estrattore (C3, C4; punto 1) | Tokenizzazione e label per modalità; quattro forme e terminazione; tassonomia ufficiale; risposta diretta di Violetto | CPU 20 min; GPU 1 ora | dopo D3 e S3 |
 | Manifest, indice e reader (C5-C7; punto 3) | Per i sintetici v4 eseguiti (job 30450-30451, S1 §9). Manifest candidati di UniMER (job 30624-30625) e di MAVIS (job 30626 e 30630) eseguiti, le loro versioni 2 con la decontaminazione esterna (job 30651-30652) e la versione 3 di MAVIS senza la regola di frequenza (job 30676). Reader che applicano `unimer-candidato-2` e `mavis-geometry-candidato-3` per record, split e compito, coi contatori per sorgente e compito nel flusso (C7, job 30686-30688; smoke test su uno shard per sorgente, non una verifica completa). Restano: indice globale e chiavi storiche delle altre sorgenti (C6), varianti e contratto (dopo C3), contatori di `uid`, gruppi e ripetizioni, loader chiamati fuori dal reader, PixMo e LLaVA | CPU 20 min; indice CPU 4 CPU 24G, durata da misurare | dopo S1, D6 |
 | Stime (C8) | Eseguiti: copertura esatta, limite ipergeometrico e binomiale, Bonferroni, rifiuti (job 30616-30617, S4 §9). Da fare: collaudo dell'estrazione solo se si aggiunge un campionatore; applicazione agli esiti reali dopo la revisione completa | CPU pochi secondi | applicazione con l'ok dell'utente |
-| MAVIS (C9; punto 2) | `shape_type` con opzioni; valori visualizzati ed esatti | CPU 20 min; controllo CPU su tutti gli shard | dopo C5 |
+| MAVIS (C9; punto 2) | Eseguiti: sonda (job 30773), test (job 30775), costruzione e verifica di candidato-4 (job 30776), regressione di C7 (job 30777), reader col candidato C9 (job 30779). Da fare, con l'ok dell'utente: decidere se e come attivare `shape_type` (insiemi di opzioni, sbilanciamento dei quadrilateri), verifica a vista delle misure stampate e delle figure su un campione (S4), eventuale verifica del segno dell'angolo retto per i 52.748 triangoli rettangoli omessi | revisione umana; CPU pochi minuti | con l'ok dell'utente |
 | Più immagini (punto 4) | Ordine, budget, parità con cache | CPU 20 min; GPU 1 ora | dopo i punti 1, 3 |
 | Encoder (punto 5) | Refactoring SigLIP2 identico; parità dell'encoder B col percorso nativo; rami disattivati uguali al riferimento | GPU 1 ora ciascuno | (a) dopo l'ok; (b) dopo D1 |
 | ViT addestrabile (punto 6) | Gradienti, variazione dei pesi, salvataggio, ripresa | GPU 64G 1 ora | dopo il punto 5 (a) |

@@ -351,7 +351,8 @@ il modello della versione 2 dei sintetici (§2.9 di S2):
     `NoAdmittedTask`.
   - Il reader salta prima i record senza compiti, e il flusso si ferma dopo `FAILURE_LIMIT` esempi di seguito non
     costruibili.
-  - Opzioni, risposte e valori razionali sono invariati (C9 non è fatto).
+  - Opzioni, risposte e valori razionali sono invariati (C9 non è fatto). Dal C9 (sotto) il pool è quello della
+    costruzione dichiarata dal record (`costruzione_qa`); senza dichiarazione resta quello storico.
 - **Contatori.** Contatori del reader con i motivi; per sorgente `loaded/`, `errors/`, `manifest_errors/`,
   `senza_compiti/`, `compiti/<sorgente>/<compito>`, `compiti_bloccati/<sorgente>/<compito>` e `too_long/<sorgente>`.
   `Admission.describe` dà identità, attesi per split, stato e compito, e la decisione: "ammesso" è la decisione
@@ -369,3 +370,23 @@ il modello della versione 2 dei sintetici (§2.9 di S2):
   - gli script "da adeguare" che non passano da `make_sources`.
 
   Nessuna cache di campioni nel percorso dati.
+
+**Costruzione delle domande dichiarata dal record (C9 di MAVIS, 2026-11-10)** (`src/limite_vl/mavis_c9.py`,
+`scripts/mavis_c9.py`; esiti in S2 §3, C9).
+- **Distinzione minima.** Un record può dichiarare `costruzione_qa`. Assente vuol dire costruzione storica
+  (`f1_mavis.mavis_questions`), quella dei manifest esistenti; `mavis-c9/1` vuol dire `mavis_c9.questions`.
+  - `manifest._record_tasks` passa la costruzione al loader solo se il record la dichiara: la decisione allegata ai
+    record storici è identica a prima.
+  - `data.mavis_f1_sample` calcola il pool nella costruzione dichiarata e lo lega al digest del record come prima.
+    Una costruzione sconosciuta, o un pool che non ha il digest del record, ferma il loader; i controlli sha256 non
+    cambiano.
+  - `config/runs/f0-c7-reader-unimer-mavis.json` resta su candidato-3.
+- **Versione 4 di MAVIS** (`mavis-geometry-candidato-4`, job 30776). È derivata da candidato-3 come le versioni della
+  decontaminazione: `precedente`, `split.ereditato_da` e `catena_delle_versioni` con gli sha256.
+  - Record, gruppi, split, stati, motivi ed evidenze ereditati; stati cambiati solo per un candidato del controllo
+    testuale delle domande nuove (nessuno).
+  - Campi nuovi per record: `costruzione_qa`, `qa` del pool C9 (le domande di lettura con `elemento`, fuori dal digest),
+    `valori`, `shape_type_c9`, evidenza `mavis-c9`. Il compito `shape_type` conta le domande C9 e resta in quarantena.
+  - Verifica (`mavis_c9.py verifica`, 7 su 7) rileggendo genitore e figlio. Le domande di lettura si ricalcolano dal
+    visualizzato registrato, le domande `shape_type` dalle opzioni registrate; queste ultime si riverificano col
+    controllo indipendente sui fatti registrati.

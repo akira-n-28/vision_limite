@@ -1,0 +1,149 @@
+{
+ "schema": "mavis-c9-lettore/1",
+ "job_id": "30779",
+ "codice": {
+  "commit": "68daf5acba7863dc5b57787d8f33faa22bd524b6",
+  "dirty": true,
+  "diff_sha256": "1b3b0ee581664ce3e21b0ce9cba3eb488c398c60b6f36765fdd5366a0eef74a3",
+  "untracked": [
+   "docs/manifests/mavis-geometry-candidato-4.json",
+   "docs/reader_smoke/c7-3.json",
+   "scripts/mavis_c9.py",
+   "slurm/mavis_c9.sbatch",
+   "src/limite_vl/mavis_c9.py",
+   "tests/test_mavis_c9.py"
+  ]
+ },
+ "shard": "mavis-geometry-caption-00000.tar",
+ "c9": {
+  "manifest": "/home/prignano/vision_limite/data/manifests/mavis-geometry-candidato-4",
+  "manifest_sha256": "77e1849e0e09089dea592be577921259675e6cd51ed99a174cbf6a1744f14fa9"
+ },
+ "genitore": {
+  "manifest": "/home/prignano/vision_limite/data/manifests/mavis-geometry-candidato-3",
+  "manifest_sha256": "f3cca47367799ccd8a7c8f4d6b63c5c37e0cd06e22d921daa5507c6aa442b9c6"
+ },
+ "controlli": [
+  {
+   "controllo": "c9 train: chiavi consegnate uguali ai record ammessi dei record grezzi, nell'ordine dello shard",
+   "esito": true,
+   "dettaglio": [
+    18060,
+    18060
+   ]
+  },
+  {
+   "controllo": "c7 train: chiavi consegnate uguali ai record ammessi dei record grezzi, nell'ordine dello shard",
+   "esito": true,
+   "dettaglio": [
+    18060,
+    18060
+   ]
+  },
+  {
+   "controllo": "train: campioni costruiti col manifest C9, compiti solo fra gli ammessi, shape_type mai, stessi messaggi del genitore",
+   "esito": true,
+   "dettaglio": {}
+  },
+  {
+   "controllo": "train: senza la costruzione dichiarata il pool C9 è rifiutato dal digest (record con shape_type storiche)",
+   "esito": true,
+   "dettaglio": {
+    "rifiutati": 18037,
+    "record_con_shape_type_storiche": 18037
+   }
+  },
+  {
+   "controllo": "c9 dev: chiavi consegnate uguali ai record ammessi dei record grezzi, nell'ordine dello shard",
+   "esito": true,
+   "dettaglio": [
+    933,
+    933
+   ]
+  },
+  {
+   "controllo": "c7 dev: chiavi consegnate uguali ai record ammessi dei record grezzi, nell'ordine dello shard",
+   "esito": true,
+   "dettaglio": [
+    933,
+    933
+   ]
+  },
+  {
+   "controllo": "dev: campioni costruiti col manifest C9, compiti solo fra gli ammessi, shape_type mai, stessi messaggi del genitore",
+   "esito": true,
+   "dettaglio": {}
+  },
+  {
+   "controllo": "dev: senza la costruzione dichiarata il pool C9 è rifiutato dal digest (record con shape_type storiche)",
+   "esito": true,
+   "dettaglio": {
+    "rifiutati": 933,
+    "record_con_shape_type_storiche": 933
+   }
+  }
+ ],
+ "superati": 8,
+ "totale": 8,
+ "esito": true,
+ "per_split": {
+  "train": {
+   "consegnati": 18060,
+   "compiti_emessi": {
+    "angle_val": 5767,
+    "count_points": 1382,
+    "describe": 8982,
+    "direction": 969,
+    "exists_point": 2815,
+    "exists_shape": 2731,
+    "removed_side": 1011,
+    "shared_side": 4281,
+    "side_len": 8133
+   },
+   "bloccate_c9": {
+    "shape_type": 9472
+   },
+   "bloccate_genitore": {
+    "shape_type": 29154
+   },
+   "contatori_reader_c9": {
+    "letti": 19000,
+    "consegnati": 18060,
+    "saltati_manifest": 940,
+    "saltati_manifest/split_dev": 933,
+    "saltati_manifest/quarantena": 7
+   },
+   "secondi": 328.0
+  },
+  "dev": {
+   "consegnati": 933,
+   "compiti_emessi": {
+    "angle_val": 313,
+    "count_points": 77,
+    "describe": 445,
+    "direction": 60,
+    "exists_point": 140,
+    "exists_shape": 144,
+    "removed_side": 44,
+    "shared_side": 244,
+    "side_len": 450
+   },
+   "bloccate_c9": {
+    "shape_type": 529
+   },
+   "bloccate_genitore": {
+    "shape_type": 1547
+   },
+   "contatori_reader_c9": {
+    "letti": 19000,
+    "saltati_manifest": 18067,
+    "saltati_manifest/split_train": 18067,
+    "consegnati": 933
+   },
+   "secondi": 343.9
+  }
+ },
+ "secondi": 344.8,
+ "rss_max_mib": 11826.9,
+ "nota": "lettura di un solo shard: collega il candidato C9 al reader, non verifica il flusso intero"
+}

@@ -1,0 +1,213 @@
+{
+ "schema": "limite-vl-manifest-riepilogo/1",
+ "manifest": "data/manifests/mavis-geometry-candidato-4",
+ "nome": "mavis-geometry-candidato",
+ "versione": "4",
+ "job_id": "30776",
+ "manifest_sha256": "77e1849e0e09089dea592be577921259675e6cd51ed99a174cbf6a1744f14fa9",
+ "records_sha256": "0c5a7d0a30b0e18f63b89dcef877247c6100485ce42156ac2926e0c881e9c6c8",
+ "righe": 199050,
+ "precedente": {
+  "percorso": "data/manifests/mavis-geometry-candidato-3",
+  "versione": "3",
+  "manifest_sha256": "f3cca47367799ccd8a7c8f4d6b63c5c37e0cd06e22d921daa5507c6aa442b9c6",
+  "records_sha256": "8d199336dc2f0bb3acc3475ad20e9ef94450a03e59dd5e06ae41f3a31ae82970"
+ },
+ "costruzione_qa": "mavis-c9/1",
+ "conteggi_c9": {
+  "esiti/omessa": 265474,
+  "esiti/recuperabile": 118118,
+  "forme/isosceles triangle/omessa/non_deciso_dalle_misure_stampate": 11263,
+  "forme/isosceles triangle/recuperabile/acute triangle": 25737,
+  "forme/isosceles triangle/recuperabile/obtuse triangle": 12355,
+  "forme/isosceles triangle/recuperabile/right triangle": 12458,
+  "forme/parallelogram/omessa/nessuna_opzione_vera": 57713,
+  "forme/parallelogram/recuperabile/rhombus": 3223,
+  "forme/rectangle/omessa/piu_opzioni_vere": 3232,
+  "forme/rectangle/recuperabile/rectangle": 57310,
+  "forme/right triangle/omessa/richiede_segno_angolo_retto": 52748,
+  "forme/right triangle/recuperabile/right triangle": 7035,
+  "forme/sector/omessa/settore_nessun_insieme_informativo": 61785,
+  "forme/square/omessa/piu_opzioni_vere": 78733,
+  "lettura/angle_val/intero": 498089,
+  "lettura/esatto_diverso_dal_target": 249,
+  "lettura/side_len/decimale_arrotondato": 249,
+  "lettura/side_len/decimale_esatto": 24856,
+  "lettura/side_len/intero": 597103,
+  "lettura/side_len/radice": 111856,
+  "posizione/quadrilateral/0": 20102,
+  "posizione/quadrilateral/1": 20246,
+  "posizione/quadrilateral/2": 20185,
+  "posizione/triangle/0": 19153,
+  "posizione/triangle/1": 19312,
+  "posizione/triangle/2": 19120,
+  "record": 199050,
+  "record/con_decimale_arrotondato": 206,
+  "record/con_decimale_esatto": 22520,
+  "record/descrizione_con_decimale_arrotondato": 206,
+  "risposte/quadrilateral/rectangle": 57310,
+  "risposte/quadrilateral/rhombus": 3223,
+  "risposte/triangle/acute triangle": 25737,
+  "risposte/triangle/obtuse triangle": 12355,
+  "risposte/triangle/right triangle": 19493,
+  "valori/angle/intero": 498089,
+  "valori/side/decimale_arrotondato": 249,
+  "valori/side/decimale_esatto": 24856,
+  "valori/side/intero": 597103,
+  "valori/side/radice": 111856
+ },
+ "insiemi_di_opzioni": {
+  "quadrilateral|rectangle,rhombus,square|rectangle": 57310,
+  "quadrilateral|rectangle,rhombus,square|rhombus": 3223,
+  "triangle|acute triangle,obtuse triangle,right triangle|acute triangle": 25737,
+  "triangle|acute triangle,obtuse triangle,right triangle|obtuse triangle": 12355,
+  "triangle|acute triangle,obtuse triangle,right triangle|right triangle": 19493
+ },
+ "controllo_testuale": {
+  "indice": {
+   "path": "/home/prignano/vision_limite/data/decontam/pannello-v3/index.json",
+   "bytes": 71127636,
+   "sha256": "02fb3cbfc36cbfd17bba92e4511c18a5760d330bc0145855fff2e7aa5130d127",
+   "schema": "panel-index/2",
+   "voci": 99713
+  },
+  "ngram": 10,
+  "max_df": 25,
+  "ngram_di_rito_esclusi": 712,
+  "campo": "domande shape_type della costruzione mavis-c9/1",
+  "regole_esplicite": "nessuna per questo campo",
+  "testi_distinti": 721,
+  "testi_con_corrispondenze": 0
+ },
+ "cambi_di_stato": {},
+ "conteggi": {
+  "per_split_famiglia_stato": {
+   "dev/d0/ammesso": 2454,
+   "dev/d0/quarantena": 18,
+   "dev/d1/ammesso": 2491,
+   "dev/d1/quarantena": 6,
+   "dev/d2/ammesso": 2493,
+   "dev/d3/ammesso": 2489,
+   "train/d0/ammesso": 44827,
+   "train/d0/quarantena": 2149,
+   "train/d1/ammesso": 47385,
+   "train/d1/quarantena": 67,
+   "train/d2/ammesso": 47345,
+   "train/d2/quarantena": 31,
+   "train/d3/ammesso": 47282,
+   "train/d3/quarantena": 13
+  },
+  "per_compito_split_stato": {
+   "angle_val/dev/ammesso": 9927,
+   "angle_val/dev/quarantena": 24,
+   "angle_val/train/ammesso": 186839,
+   "angle_val/train/quarantena": 2260,
+   "count_points/dev/ammesso": 9927,
+   "count_points/dev/quarantena": 24,
+   "count_points/train/ammesso": 186839,
+   "count_points/train/quarantena": 2260,
+   "describe/dev/ammesso": 9927,
+   "describe/dev/quarantena": 24,
+   "describe/train/ammesso": 186839,
+   "describe/train/quarantena": 2260,
+   "direction/dev/ammesso": 4813,
+   "direction/dev/quarantena": 2,
+   "direction/train/ammesso": 91578,
+   "direction/train/quarantena": 100,
+   "exists_point/dev/ammesso": 9927,
+   "exists_point/dev/quarantena": 24,
+   "exists_point/train/ammesso": 186839,
+   "exists_point/train/quarantena": 2260,
+   "exists_shape/dev/ammesso": 9927,
+   "exists_shape/dev/quarantena": 24,
+   "exists_shape/train/ammesso": 186839,
+   "exists_shape/train/quarantena": 2260,
+   "removed_side/dev/ammesso": 4813,
+   "removed_side/dev/quarantena": 2,
+   "removed_side/train/ammesso": 91578,
+   "removed_side/train/quarantena": 100,
+   "shape_type/dev/quarantena": 4531,
+   "shape_type/train/quarantena": 86493,
+   "shared_side/dev/ammesso": 7473,
+   "shared_side/dev/quarantena": 6,
+   "shared_side/train/ammesso": 142012,
+   "shared_side/train/quarantena": 111,
+   "side_len/dev/ammesso": 9927,
+   "side_len/dev/quarantena": 24,
+   "side_len/train/ammesso": 186839,
+   "side_len/train/quarantena": 2260
+  },
+  "domande_per_tipo_stato": {
+   "angle_val/ammesso": 495631,
+   "angle_val/quarantena": 2458,
+   "count_points/ammesso": 196766,
+   "count_points/quarantena": 2284,
+   "direction/ammesso": 114392,
+   "direction/quarantena": 105,
+   "exists_point/ammesso": 393532,
+   "exists_point/quarantena": 4568,
+   "exists_shape/ammesso": 393532,
+   "exists_shape/quarantena": 4568,
+   "removed_side/ammesso": 114392,
+   "removed_side/quarantena": 105,
+   "shape_type/quarantena": 118118,
+   "shared_side/ammesso": 298865,
+   "shared_side/quarantena": 174,
+   "side_len/ammesso": 731440,
+   "side_len/quarantena": 2624
+  },
+  "per_motivo": {
+   "decontaminazione_pannello, riesame panel-decontam/2: corrispondenza testuale da verificare, non coperta da una regola esplicita, che la regola di frequenza abolita ignorava (gruppo in quarantena)": 1591,
+   "decontaminazione_pannello: candidato da verificare (pHash entro 4 bit o 10-gram in comune; gruppo in quarantena)": 693
+  },
+  "gruppi_per_split": {
+   "dev": 7788,
+   "train": 150230
+  },
+  "misure_razionali": {
+   "record_con_misure_razionali": 22712
+  }
+ },
+ "split_ammessi": {
+  "dev/d0": 2454,
+  "dev/d1": 2491,
+  "dev/d2": 2493,
+  "dev/d3": 2489,
+  "train/d0": 44827,
+  "train/d1": 47385,
+  "train/d2": 47345,
+  "train/d3": 47282
+ },
+ "controlli": [
+  {
+   "controllo": "genitore con lo sha256 atteso",
+   "esito": true
+  },
+  {
+   "controllo": "precedente e split.ereditato_da indicano il genitore",
+   "esito": true
+  },
+  {
+   "controllo": "stessi record negli stessi shard",
+   "esito": true
+  },
+  {
+   "controllo": "nessuna anomalia nei record (campi ereditati, stati, motivi, evidenze, domande, valori, compiti, esiti)",
+   "esito": true
+  },
+  {
+   "controllo": "conteggi uguali a manifest.json",
+   "esito": true
+  },
+  {
+   "controllo": "file derivati (keys/) ricalcolati dai record",
+   "esito": true
+  },
+  {
+   "controllo": "gruppi del controllo testuale ricalcolati dagli esiti",
+   "esito": true
+  }
+ ],
+ "esito_verifica": true,
+ "nota": "C9 documenta le domande shape_type recuperabili e i valori: non certifica le risposte, non le promuove a gold e non attiva il candidato in nessuna configurazione"
+}
