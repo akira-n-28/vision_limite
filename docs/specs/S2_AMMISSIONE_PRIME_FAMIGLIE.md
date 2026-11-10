@@ -1769,9 +1769,77 @@ candidato C9). La costruzione storica (`f1_mavis.mavis_questions`) resta quella 
 
     `mavis_c9.representation` classifica sul valore normalizzato (√841 = 29) invece che sulla scrittura. È l'unica
     misura con un radicando quadrato perfetto. Non tocca i target di lettura né le decisioni di `shape_type`, che
-    usano il valore esatto 29. Non è corretta: candidato-4 resta immutato, e una correzione darebbe una versione
-    nuova.
+    usano il valore esatto 29. Non è corretta in candidato-4, che resta immutato: la correzione è la versione 5
+    (sotto).
   - *Fedeltà ai pixel*: non verificata da nessuno di questi controlli; resta alla verifica a vista.
+- **Versione 5: correzione della rappresentazione** (2026-11-10, job 30783 e 30785; `scripts/mavis_c9.py correzione`;
+  riepilogo `docs/manifests/mavis-geometry-candidato-5.json`, rapporto
+  `outputs/manifest_check/mavis-geometry-candidato-5/verifica.json`).
+  - *Regola corretta.* `mavis_c9.representation` descrive la scrittura prevista dal renderer
+    (`f1_schema.latex_value`), non il valore: una scrittura con una radice è `radice` anche quando il valore è
+    razionale (`√841` = 29, scritto `\sqrt{841}`). Il valore matematico dei confronti (`parse_exact`), l'esatto, il
+    visualizzato previsto, la risposta di lettura, le domande, le opzioni e le decisioni geometriche non cambiano:
+    `shown_of` guarda solo i decimali arrotondati.
+  - *Test* (job 30783, `tests/test_mavis_c9.py` 102 su 102, 9 nuovi): `√841`, `√16` e `3√4/2` (radici di quadrati
+    perfetti) e `√2` registrati come `radice`; `42` intero; `3/2` decimale esatto; `44/3` decimale arrotondato; valore
+    29 nei confronti e target `\sqrt{841}` invariati. Su un fixture: un solo cambio da un genitore con l'etichetta
+    storica, record senza cambi byte per byte uguali, un'ulteriore differenza della regola documentata e non
+    corretta, una differenza non prevista nel figlio trovata dal confronto.
+  - *Derivazione.* `data/manifests/mavis-geometry-candidato-5` (`manifest.json` `314a0a52…`, `records.jsonl.gz`
+    `a67aed7a…`) da candidato-4 (`77e1849e…`, invariato coi suoi rapporti). Le righe senza cambi sono quelle del
+    genitore, byte per byte; nel record cambiato si ricalcola solo la rappresentazione e si aggiunge l'evidenza
+    `mavis-c9-rappresentazione`. Nessuna QA, immagine o decontaminazione rigenerata. `manifest.json` registra regola,
+    funzione e cambi (`correzione_rappresentazione`), `precedente`, `split.ereditato_da` e la catena delle versioni.
+  - *Esito* (job 30785, 3 min 46 s): un solo cambio, `d3-44919` `side:EH` `intero` → `radice`; nessuna ulteriore
+    differenza della regola.
+  - *Confronto sistematico col genitore* (verifica 13 su 13). 199.049 record byte per byte uguali e 1 cambiato nei
+    soli campi `valori` (la rappresentazione) ed `evidenze` (l'evidenza della correzione). Restano uguali gruppi,
+    split, stati, motivi ed evidenze pregresse, esatti, visualizzati, risposte di lettura, QA e digest, compiti ed
+    esiti di `shape_type`. `manifest.json` differisce solo nei metadati di versione, provenienza e conteggio; `keys/`
+    ricalcolati uguali.
+  - *Valori contro i JSON originali* degli 11 shard (posizione e json_sha256 del manifest, immagini non lette):
+    1.232.153 misure attese, registrate e confrontate, nessuna discrepanza e nessuna incoerenza. Rappresentazioni:
+    intero 1.095.191, radice 111.857, decimale esatto 24.856, decimale arrotondato 249.
+  - Nessuna configurazione la usa; `shape_type` resta esclusa dal percorso operativo.
+- **Revisione visiva mirata, campione-1** (2026-11-10, `scripts/mavis_review_package.py`,
+  `slurm/mavis_review_package.sbatch`, job 30787-30788; pacchetto `revisioni/mavis-c9-campione-1`).
+  - *Natura.* Campione diagnostico, non rappresentativo della frequenza naturale degli errori (S4): niente intervalli
+    di confidenza, stime di tasso o certificazioni; gli esiti non ammettono record, non promuovono a gold e non
+    attivano il training. Nessuna chiamata a modelli, nessun giudizio compilato.
+  - *Quote dell'utente* (80 schede): 1 controllo noto (`d3-44919` `side:EH`, √841, non indipendente); 19 letture di
+    valori (4 decimali arrotondati, 4 esatti, 4 radici, 4 interi, 3 angoli); 30 classificazioni recuperabili (6 per
+    acute, right e obtuse triangle, rectangle, rhombus); 15 omesse; 15 altri compiti (3 ciascuno per describe,
+    direction, count_points, removed_side, shared_side). Le omesse:
+    - 4 `piu_opzioni_vere`;
+    - 4 misure insufficienti: `non_deciso_dalle_misure_stampate` senza uguaglianze apparenti;
+    - 4 uguaglianze apparenti dovute all'arrotondamento: `non_deciso_dalle_misure_stampate` con due lati scritti
+      uguali, di cui uno decimale arrotondato;
+    - 3 `richiede_segno_angolo_retto`.
+  - *Selezione* (fissata prima della revisione, dai soli metadati, mai guardando le immagini). Record di train ammessi
+    di candidato-5; il controllo noto per nome. Una scheda per gruppo. In ogni strato celle a giro con d3 per prima: per
+    le letture profondità e affollamento alternato (misure stampate sopra o non sopra la mediana della profondità: 3, 5,
+    7 e 10 per d0-d3); per gli altri strati la profondità. Nella cella, gruppi in ordine di
+    sha256({campione, seme 0, strato, gruppo}); nel gruppo l'unità con lo sha256 minore. Strati dal meno disponibile al
+    più disponibile; celle esaurite saltate e registrate; un deficit si registra, mai compensato con un altro strato.
+    Ordine delle schede per sha256({campione, seme 0, ordine: unità}), con identificativi neutri M01-M80.
+  - *Esito.* Nessun deficit. Profondità: d0 9, d1 18, d2 24, d3 29 schede. Limiti della disponibilità, registrati in
+    `moduli/piano.json`: le uguaglianze apparenti sono esattamente 4 gruppi, tutti in d3; i decimali arrotondati
+    (198 gruppi) stanno solo in d2 e d3 con affollamento basso; nessun acute triangle recuperabile in d0.
+  - *Domande e target* ricalcolati dai JSON originali (posizione e json_sha256) col codice di C9 e confrontati coi digest
+    del manifest: pool, valori ed esiti di `shape_type` di ogni record scelto. Le omesse non hanno golden answer: una
+    richiesta diagnostica esplicita con l'insieme della famiglia, più risposte ammesse.
+  - *Immagini*: i `caption.jpg` originali di `RuleBaseGeo.zip` (blob `d5b7bd32…`), coi `byte_sha256`, membro e
+    dimensioni della scansione registrata nel manifest (`f953c323…`) e del JSON; nessun ridimensionamento.
+  - *Interfaccia* (dall'impianto di `synth-v4-campione-2`, senza modificarlo). Primo passaggio senza target,
+    annotazioni, esiti, categorie e motivi; secondo passaggio dopo il salvataggio, col primo giudizio fissato. Campi per
+    scheda: scrittura visibile ed equivalenze per le letture, prudenza del filtro e classi vere per le diagnostiche.
+    Restano registro delle esposizioni, unione degli stati, archivio, esportazione e importazione.
+  - *Verifiche* (job 30787-30788): `tests/test_mavis_review_package.py` 24 su 24; verifica statica 27 su 27, con
+    selezione e schede ricalcolate dal manifest e dagli shard e condizioni degli strati riverificate con codice scritto
+    a parte; JavaScript eseguito con Duktape: senza DOM 48 superati e 1 saltato (l'interfaccia), su DOM simulato 69 e
+    1 saltato (le immagini), nessuna soluzione nell'output. Nel job 30787 due righe dell'autotest nominavano la scheda
+    di prova, scelta per un target lungo: tolte, firme e verifiche rifatte nel 30788. Non è una prova in un browser: il
+    collaudo sul portatile è `verifica.html`.
 - **Reader.**
   - Regressione di C7 sul candidato corrente (job 30777, `docs/reader_smoke/c7-3.json`): 22 controlli su 22, uguale a
     c7-2 tolti job, tempi e codice.

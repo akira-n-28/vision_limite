@@ -1,0 +1,679 @@
+{
+ "schema": "mavis-c9-revisione-pacchetto/1-piano",
+ "campione": "mavis-c9-campione-1",
+ "versione": "1",
+ "seme": 0,
+ "natura": "campione diagnostico, non rappresentativo della frequenza naturale degli errori: nessun intervallo di confidenza, nessuna stima di tasso, nessuna certificazione (S4); gli esiti non ammettono record, non promuovono a gold e non attivano il training",
+ "manifest": {
+  "percorso": "data/manifests/mavis-geometry-candidato-5",
+  "nome": "mavis-geometry-candidato",
+  "versione": "5",
+  "manifest_sha256": "314a0a527e20ce422399765f7db19c3abfe297ec5e174e7f3b158586c604ef72",
+  "records_sha256": "a67aed7ab1da94c98db9b3654bbff54872ac5c4cc61af1ca7030080c85a51f43"
+ },
+ "quote": [
+  {
+   "categoria": "controllo_noto",
+   "sottocategoria": "radice_di_quadrato_perfetto",
+   "quota": 1
+  },
+  {
+   "categoria": "lettura_valore",
+   "sottocategoria": "decimale_arrotondato",
+   "quota": 4
+  },
+  {
+   "categoria": "lettura_valore",
+   "sottocategoria": "decimale_esatto",
+   "quota": 4
+  },
+  {
+   "categoria": "lettura_valore",
+   "sottocategoria": "radice",
+   "quota": 4
+  },
+  {
+   "categoria": "lettura_valore",
+   "sottocategoria": "intero",
+   "quota": 4
+  },
+  {
+   "categoria": "lettura_valore",
+   "sottocategoria": "angolo",
+   "quota": 3
+  },
+  {
+   "categoria": "classificazione_recuperabile",
+   "sottocategoria": "acute triangle",
+   "quota": 6
+  },
+  {
+   "categoria": "classificazione_recuperabile",
+   "sottocategoria": "right triangle",
+   "quota": 6
+  },
+  {
+   "categoria": "classificazione_recuperabile",
+   "sottocategoria": "obtuse triangle",
+   "quota": 6
+  },
+  {
+   "categoria": "classificazione_recuperabile",
+   "sottocategoria": "rectangle",
+   "quota": 6
+  },
+  {
+   "categoria": "classificazione_recuperabile",
+   "sottocategoria": "rhombus",
+   "quota": 6
+  },
+  {
+   "categoria": "classificazione_omessa",
+   "sottocategoria": "piu_opzioni_vere",
+   "quota": 4
+  },
+  {
+   "categoria": "classificazione_omessa",
+   "sottocategoria": "misure_insufficienti",
+   "quota": 4
+  },
+  {
+   "categoria": "classificazione_omessa",
+   "sottocategoria": "uguaglianza_apparente_arrotondamento",
+   "quota": 4
+  },
+  {
+   "categoria": "classificazione_omessa",
+   "sottocategoria": "segno_angolo_retto",
+   "quota": 3
+  },
+  {
+   "categoria": "altro_compito",
+   "sottocategoria": "describe",
+   "quota": 3
+  },
+  {
+   "categoria": "altro_compito",
+   "sottocategoria": "direction",
+   "quota": 3
+  },
+  {
+   "categoria": "altro_compito",
+   "sottocategoria": "count_points",
+   "quota": 3
+  },
+  {
+   "categoria": "altro_compito",
+   "sottocategoria": "removed_side",
+   "quota": 3
+  },
+  {
+   "categoria": "altro_compito",
+   "sottocategoria": "shared_side",
+   "quota": 3
+  }
+ ],
+ "totale_previsto": 80,
+ "totale_scelto": 80,
+ "deficit": [],
+ "ordine_di_elaborazione": [
+  "controllo_noto/radice_di_quadrato_perfetto",
+  "classificazione_omessa/uguaglianza_apparente_arrotondamento",
+  "lettura_valore/decimale_arrotondato",
+  "classificazione_recuperabile/rhombus",
+  "classificazione_omessa/misure_insufficienti",
+  "classificazione_recuperabile/obtuse triangle",
+  "classificazione_recuperabile/right triangle",
+  "lettura_valore/decimale_esatto",
+  "classificazione_recuperabile/acute triangle",
+  "classificazione_omessa/segno_angolo_retto",
+  "classificazione_recuperabile/rectangle",
+  "classificazione_omessa/piu_opzioni_vere",
+  "lettura_valore/radice",
+  "altro_compito/direction",
+  "altro_compito/removed_side",
+  "altro_compito/shared_side",
+  "lettura_valore/intero",
+  "lettura_valore/angolo",
+  "altro_compito/describe",
+  "altro_compito/count_points"
+ ],
+ "regola_ordine": "controllo per primo, poi gli strati dal meno disponibile (gruppi) al più disponibile, a parità nell'ordine delle quote",
+ "strati": [
+  {
+   "strato": "controllo_noto/radice_di_quadrato_perfetto",
+   "quota": 1,
+   "scelte": 1,
+   "deficit": 0,
+   "gruppi_disponibili": 1,
+   "celle": [],
+   "eccezione": null
+  },
+  {
+   "strato": "classificazione_omessa/uguaglianza_apparente_arrotondamento",
+   "quota": 4,
+   "scelte": 4,
+   "deficit": 0,
+   "gruppi_disponibili": 4,
+   "gruppi_per_cella": {
+    "d3": 4,
+    "d2": 0,
+    "d1": 0,
+    "d0": 0
+   },
+   "scelte_per_cella": {
+    "d3": 4
+   },
+   "gruppi_saltati_perche_gia_usati": 0,
+   "celle": [
+    "cella d2 esaurita dopo 0 scelte",
+    "cella d1 esaurita dopo 0 scelte",
+    "cella d0 esaurita dopo 0 scelte"
+   ]
+  },
+  {
+   "strato": "lettura_valore/decimale_arrotondato",
+   "quota": 4,
+   "scelte": 4,
+   "deficit": 0,
+   "gruppi_disponibili": 198,
+   "gruppi_per_cella": {
+    "d3/alto": 0,
+    "d2/basso": 61,
+    "d1/alto": 0,
+    "d0/basso": 0,
+    "d3/basso": 137,
+    "d2/alto": 0,
+    "d1/basso": 0,
+    "d0/alto": 0
+   },
+   "scelte_per_cella": {
+    "d2/basso": 2,
+    "d3/basso": 2
+   },
+   "gruppi_saltati_perche_gia_usati": 0,
+   "celle": [
+    "cella d3/alto esaurita dopo 0 scelte",
+    "cella d1/alto esaurita dopo 0 scelte",
+    "cella d0/basso esaurita dopo 0 scelte",
+    "cella d2/alto esaurita dopo 0 scelte",
+    "cella d1/basso esaurita dopo 0 scelte",
+    "cella d0/alto esaurita dopo 0 scelte"
+   ]
+  },
+  {
+   "strato": "classificazione_recuperabile/rhombus",
+   "quota": 6,
+   "scelte": 6,
+   "deficit": 0,
+   "gruppi_disponibili": 2783,
+   "gruppi_per_cella": {
+    "d3": 1198,
+    "d2": 938,
+    "d1": 555,
+    "d0": 92
+   },
+   "scelte_per_cella": {
+    "d3": 2,
+    "d2": 2,
+    "d1": 1,
+    "d0": 1
+   },
+   "gruppi_saltati_perche_gia_usati": 0,
+   "celle": []
+  },
+  {
+   "strato": "classificazione_omessa/misure_insufficienti",
+   "quota": 4,
+   "scelte": 4,
+   "deficit": 0,
+   "gruppi_disponibili": 8084,
+   "gruppi_per_cella": {
+    "d3": 2778,
+    "d2": 2756,
+    "d1": 2249,
+    "d0": 301
+   },
+   "scelte_per_cella": {
+    "d3": 1,
+    "d2": 1,
+    "d1": 1,
+    "d0": 1
+   },
+   "gruppi_saltati_perche_gia_usati": 0,
+   "celle": []
+  },
+  {
+   "strato": "classificazione_recuperabile/obtuse triangle",
+   "quota": 6,
+   "scelte": 6,
+   "deficit": 0,
+   "gruppi_disponibili": 10242,
+   "gruppi_per_cella": {
+    "d3": 4794,
+    "d2": 3458,
+    "d1": 1892,
+    "d0": 98
+   },
+   "scelte_per_cella": {
+    "d3": 2,
+    "d2": 2,
+    "d1": 1,
+    "d0": 1
+   },
+   "gruppi_saltati_perche_gia_usati": 0,
+   "celle": []
+  },
+  {
+   "strato": "classificazione_recuperabile/right triangle",
+   "quota": 6,
+   "scelte": 6,
+   "deficit": 0,
+   "gruppi_disponibili": 16252,
+   "gruppi_per_cella": {
+    "d3": 7924,
+    "d2": 5472,
+    "d1": 2804,
+    "d0": 52
+   },
+   "scelte_per_cella": {
+    "d3": 2,
+    "d2": 2,
+    "d1": 1,
+    "d0": 1
+   },
+   "gruppi_saltati_perche_gia_usati": 0,
+   "celle": []
+  },
+  {
+   "strato": "lettura_valore/decimale_esatto",
+   "quota": 4,
+   "scelte": 4,
+   "deficit": 0,
+   "gruppi_disponibili": 18774,
+   "gruppi_per_cella": {
+    "d3/alto": 3116,
+    "d2/basso": 1846,
+    "d1/alto": 2173,
+    "d0/basso": 726,
+    "d3/basso": 4279,
+    "d2/alto": 4429,
+    "d1/basso": 2205,
+    "d0/alto": 0
+   },
+   "scelte_per_cella": {
+    "d3/alto": 1,
+    "d2/basso": 1,
+    "d1/alto": 1,
+    "d0/basso": 1
+   },
+   "gruppi_saltati_perche_gia_usati": 0,
+   "celle": []
+  },
+  {
+   "strato": "classificazione_recuperabile/acute triangle",
+   "quota": 6,
+   "scelte": 6,
+   "deficit": 0,
+   "gruppi_disponibili": 22327,
+   "gruppi_per_cella": {
+    "d3": 11141,
+    "d2": 7861,
+    "d1": 3325,
+    "d0": 0
+   },
+   "scelte_per_cella": {
+    "d3": 2,
+    "d2": 2,
+    "d1": 2
+   },
+   "gruppi_saltati_perche_gia_usati": 0,
+   "celle": [
+    "cella d0 esaurita dopo 0 scelte"
+   ]
+  },
+  {
+   "strato": "classificazione_omessa/segno_angolo_retto",
+   "quota": 3,
+   "scelte": 3,
+   "deficit": 0,
+   "gruppi_disponibili": 39344,
+   "gruppi_per_cella": {
+    "d3": 17557,
+    "d2": 13761,
+    "d1": 7743,
+    "d0": 283
+   },
+   "scelte_per_cella": {
+    "d3": 1,
+    "d2": 1,
+    "d1": 1
+   },
+   "gruppi_saltati_perche_gia_usati": 0,
+   "celle": []
+  },
+  {
+   "strato": "classificazione_recuperabile/rectangle",
+   "quota": 6,
+   "scelte": 6,
+   "deficit": 0,
+   "gruppi_disponibili": 46162,
+   "gruppi_per_cella": {
+    "d3": 19164,
+    "d2": 14960,
+    "d1": 9574,
+    "d0": 2464
+   },
+   "scelte_per_cella": {
+    "d3": 2,
+    "d2": 2,
+    "d1": 1,
+    "d0": 1
+   },
+   "gruppi_saltati_perche_gia_usati": 0,
+   "celle": []
+  },
+  {
+   "strato": "classificazione_omessa/piu_opzioni_vere",
+   "quota": 4,
+   "scelte": 4,
+   "deficit": 0,
+   "gruppi_disponibili": 53862,
+   "gruppi_per_cella": {
+    "d3": 23579,
+    "d2": 19333,
+    "d1": 10698,
+    "d0": 252
+   },
+   "scelte_per_cella": {
+    "d3": 1,
+    "d2": 1,
+    "d1": 1,
+    "d0": 1
+   },
+   "gruppi_saltati_perche_gia_usati": 0,
+   "celle": []
+  },
+  {
+   "strato": "lettura_valore/radice",
+   "quota": 4,
+   "scelte": 4,
+   "deficit": 0,
+   "gruppi_disponibili": 67582,
+   "gruppi_per_cella": {
+    "d3/alto": 7802,
+    "d2/basso": 10718,
+    "d1/alto": 5158,
+    "d0/basso": 3236,
+    "d3/basso": 19626,
+    "d2/alto": 11661,
+    "d1/basso": 9381,
+    "d0/alto": 0
+   },
+   "scelte_per_cella": {
+    "d3/alto": 1,
+    "d2/basso": 1,
+    "d1/alto": 1,
+    "d0/basso": 1
+   },
+   "gruppi_saltati_perche_gia_usati": 0,
+   "celle": []
+  },
+  {
+   "strato": "altro_compito/direction",
+   "quota": 3,
+   "scelte": 3,
+   "deficit": 0,
+   "gruppi_disponibili": 80944,
+   "gruppi_per_cella": {
+    "d3": 28091,
+    "d2": 24915,
+    "d1": 20203,
+    "d0": 7735
+   },
+   "scelte_per_cella": {
+    "d3": 1,
+    "d2": 1,
+    "d1": 1
+   },
+   "gruppi_saltati_perche_gia_usati": 0,
+   "celle": []
+  },
+  {
+   "strato": "altro_compito/removed_side",
+   "quota": 3,
+   "scelte": 3,
+   "deficit": 0,
+   "gruppi_disponibili": 80944,
+   "gruppi_per_cella": {
+    "d3": 28091,
+    "d2": 24915,
+    "d1": 20203,
+    "d0": 7735
+   },
+   "scelte_per_cella": {
+    "d3": 1,
+    "d2": 1,
+    "d1": 1
+   },
+   "gruppi_saltati_perche_gia_usati": 0,
+   "celle": []
+  },
+  {
+   "strato": "altro_compito/shared_side",
+   "quota": 3,
+   "scelte": 3,
+   "deficit": 0,
+   "gruppi_disponibili": 135636,
+   "gruppi_per_cella": {
+    "d3": 47280,
+    "d2": 47094,
+    "d1": 41262,
+    "d0": 0
+   },
+   "scelte_per_cella": {
+    "d3": 1,
+    "d2": 1,
+    "d1": 1
+   },
+   "gruppi_saltati_perche_gia_usati": 0,
+   "celle": []
+  },
+  {
+   "strato": "lettura_valore/intero",
+   "quota": 4,
+   "scelte": 4,
+   "deficit": 0,
+   "gruppi_disponibili": 150080,
+   "gruppi_per_cella": {
+    "d3/alto": 11944,
+    "d2/basso": 25968,
+    "d1/alto": 10971,
+    "d0/basso": 14444,
+    "d3/basso": 35336,
+    "d2/alto": 21126,
+    "d1/basso": 30291,
+    "d0/alto": 0
+   },
+   "scelte_per_cella": {
+    "d3/alto": 1,
+    "d2/basso": 1,
+    "d1/alto": 1,
+    "d0/basso": 1
+   },
+   "gruppi_saltati_perche_gia_usati": 0,
+   "celle": []
+  },
+  {
+   "strato": "lettura_valore/angolo",
+   "quota": 3,
+   "scelte": 3,
+   "deficit": 0,
+   "gruppi_disponibili": 150080,
+   "gruppi_per_cella": {
+    "d3/alto": 11944,
+    "d2/basso": 25968,
+    "d1/alto": 10971,
+    "d0/basso": 14444,
+    "d3/basso": 35336,
+    "d2/alto": 21126,
+    "d1/basso": 30291,
+    "d0/alto": 0
+   },
+   "scelte_per_cella": {
+    "d3/alto": 1,
+    "d2/basso": 1,
+    "d1/alto": 1
+   },
+   "gruppi_saltati_perche_gia_usati": 0,
+   "celle": []
+  },
+  {
+   "strato": "altro_compito/describe",
+   "quota": 3,
+   "scelte": 3,
+   "deficit": 0,
+   "gruppi_disponibili": 150080,
+   "gruppi_per_cella": {
+    "d3": 47280,
+    "d2": 47094,
+    "d1": 41262,
+    "d0": 14444
+   },
+   "scelte_per_cella": {
+    "d3": 1,
+    "d2": 1,
+    "d1": 1
+   },
+   "gruppi_saltati_perche_gia_usati": 0,
+   "celle": []
+  },
+  {
+   "strato": "altro_compito/count_points",
+   "quota": 3,
+   "scelte": 3,
+   "deficit": 0,
+   "gruppi_disponibili": 150080,
+   "gruppi_per_cella": {
+    "d3": 47280,
+    "d2": 47094,
+    "d1": 41262,
+    "d0": 14444
+   },
+   "scelte_per_cella": {
+    "d3": 1,
+    "d2": 1,
+    "d1": 1
+   },
+   "gruppi_saltati_perche_gia_usati": 0,
+   "celle": []
+  }
+ ],
+ "regole": {
+  "controllo_noto": "d3-44919 side:EH, scelto per nome: l'unica misura con la rappresentazione corretta da candidato-5 (intero -> radice; esatto √841 = 29, scritto \\sqrt{841}); non indipendente; eccezione documentata se il record non è di train ammesso",
+  "lettura_valore": "misura con la rappresentazione della sottocategoria in `valori` (lati; per «angolo» ogni misura di angolo) e la sua domanda di lettura del pool C9 (side_len o angle_val, campo elemento) col compito ammesso; record di train ammesso; una scheda per gruppo; gruppi in ordine di sha256({campione, seme 0, strato, gruppo}), nel gruppo l'unità con lo sha256 minore; celle a giro d3, d2, d1, d0 alternando affollamento alto e basso (misure stampate del record sopra o non sopra la mediana della sua profondità fra i record di train ammessi)",
+  "classificazione_recuperabile": "figura con esito C9 recuperabile e risposta uguale alla sottocategoria (shape_type_c9), con la domanda C9 e le sue opzioni; il compito shape_type resta in quarantena; record di train ammesso; una scheda per gruppo; gruppi in ordine di sha256({campione, seme 0, strato, gruppo}), nel gruppo l'unità con lo sha256 minore; celle a giro d3, d2, d1, d0",
+  "classificazione_omessa": "figura con esito C9 omessa e motivo della sottocategoria: piu_opzioni_vere; misure_insufficienti = non_deciso_dalle_misure_stampate senza uguaglianze apparenti; uguaglianza_apparente_arrotondamento = non_deciso_dalle_misure_stampate con almeno due lati della figura scritti uguali, uno dei quali decimale arrotondato; segno_angolo_retto = richiede_segno_angolo_retto. Nessuna golden answer: richiesta diagnostica con l'insieme fisso della famiglia; record di train ammesso; una scheda per gruppo; gruppi in ordine di sha256({campione, seme 0, strato, gruppo}), nel gruppo l'unità con lo sha256 minore; celle a giro d3, d2, d1, d0",
+  "altro_compito": "domanda del tipo della sottocategoria nel pool C9 (identica alla storica) col compito ammesso; describe: richiesta e descrizione canonica del loader (f1_mavis.describe, sha256 della descrizione del manifest); record di train ammesso; una scheda per gruppo; gruppi in ordine di sha256({campione, seme 0, strato, gruppo}), nel gruppo l'unità con lo sha256 minore; celle a giro d3, d2, d1, d0"
+ },
+ "celle": {
+  "lettura_valore": [
+   "d3/alto",
+   "d2/basso",
+   "d1/alto",
+   "d0/basso",
+   "d3/basso",
+   "d2/alto",
+   "d1/basso",
+   "d0/alto"
+  ],
+  "altri_strati": [
+   "d3",
+   "d2",
+   "d1",
+   "d0"
+  ]
+ },
+ "affollamento": {
+  "definizione": "misure stampate del record (voci di `valori`) sopra la mediana della sua profondità fra i record di train ammessi = alto; altrimenti basso. È un indicatore della densità di etichette, non una misura della leggibilità",
+  "mediane": {
+   "d0": 3,
+   "d1": 5,
+   "d2": 7,
+   "d3": 10.0
+  }
+ },
+ "ordine_delle_schede": "sha256({campione, seme 0, ordine: unita}) crescente; identificativi M01-M80 nell'ordine",
+ "ranghi": "sha256 del JSON canonico {campione, seme, strato, gruppo} e {campione, seme, strato, unita}",
+ "controllo_noto": {
+  "record": "d3-44919",
+  "elemento": "side:EH",
+  "eccezione": null
+ },
+ "record_del_manifest_per_split_e_stato": {
+  "train/ammesso": 186839,
+  "dev/ammesso": 9927,
+  "train/quarantena": 2260,
+  "dev/quarantena": 24
+ },
+ "ingressi": {
+  "scansione": {
+   "percorso": "data/decontam/pannello-v3/mavis-geometry/records.jsonl.gz",
+   "sha256": "f953c323cbbd00a0394c4443c88145d64ea60f4c02d910a0d20cbcf5b223b864",
+   "byte": 51544727
+  },
+  "zip": {
+   "percorso": "/home/prignano/vision_limite/hf/hub/datasets--CaraJ--MAVIS-Geometry/snapshots/9c80fff300f4f2cb3a76f71e03428eebdd571907/RuleBaseGeo.zip",
+   "blob": "d5b7bd3253d51798cfb6d8c311b99036b5fd258e13e60949a8cce093c9d8d261",
+   "sha256_atteso": "d5b7bd3253d51798cfb6d8c311b99036b5fd258e13e60949a8cce093c9d8d261",
+   "byte": 26389158444,
+   "nota": "blob della cache Hugging Face indirizzato dal contenuto (nome = sha256 atteso); sha256 dell'intero zip non ricalcolato qui (calcolato dalla scansione, job 30652); ogni immagine ha i byte_sha256 della scansione"
+  },
+  "shard": [
+   {
+    "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00000.tar",
+    "sha256": "0a6144be1c6a424944ecbf48a598fa8056646b38a363095678726a8ece3bf6a9"
+   },
+   {
+    "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00001.tar",
+    "sha256": "9ead847c1403c8bac953db8ef7509cd47158773d6ff0df5ec7caebbab035139c"
+   },
+   {
+    "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00002.tar",
+    "sha256": "a4d5b382657643a52c3697485d5a2584a4e158a091ed2a6cf9ef9c8476a43d1b"
+   },
+   {
+    "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00003.tar",
+    "sha256": "1be409c665906f5330f042e10e6cdb38e76fe5889dd720f287fe06ecc48bba7d"
+   },
+   {
+    "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00004.tar",
+    "sha256": "6a878d9754c4760432644fdc2a5fb86bb656ffa4d10d1e595a0f3edeeffe1d99"
+   },
+   {
+    "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00005.tar",
+    "sha256": "2e8ca055af6d304e2350c1b70d33ed711b382384ba35dd2658bb5c3c4cca23f9"
+   },
+   {
+    "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00006.tar",
+    "sha256": "c8b75acbf51a9ea3420a713782e470fdc084413a0b33d84985a4ec16c7b1db58"
+   },
+   {
+    "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00007.tar",
+    "sha256": "6281ca0100eecb05eade4b622fcb6ea36a6c2bfb56b048a7a6463d15bfb47252"
+   },
+   {
+    "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00008.tar",
+    "sha256": "505cbd3bdd312ef6fe26543f67484075eb4b8271f30538cf0ed7e74e13b5dd79"
+   },
+   {
+    "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00009.tar",
+    "sha256": "24c21c7fe38c9c455212c0e5218ee9f4c93c333c6981e09798f418c7e7aae4ad"
+   },
+   {
+    "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00010.tar",
+    "sha256": "c1915023a08332ab1a9aae35ff05c1c03de3024bb83359a5f416f7f449bddd9c"
+   }
+  ]
+ }
+}

@@ -1,0 +1,211 @@
+{
+ "schema": "mavis-c9-revisione-pacchetto/1-verifica",
+ "job_id": "30788",
+ "codice": {
+  "commit": "d5855d90b82b6962678b1009c2914223629fca9a",
+  "dirty": true,
+  "diff_sha256": "38d738465dd1627a6fe5b56654a3b7f415758e990d4c3afbb548bb1f9e95c726",
+  "untracked": [
+   "docs/manifests/mavis-geometry-candidato-5.json",
+   "revisioni/mavis-c9-campione-1/",
+   "scripts/mavis_review_package.py",
+   "slurm/mavis_review_package.sbatch",
+   "tests/test_mavis_review_package.py"
+  ]
+ },
+ "pacchetto": "revisioni/mavis-c9-campione-1",
+ "impronta": "5d2e6b15e3f2af0647bf451ae80c52fd57b65daf3f1581ac56bceb33ef7baf7d",
+ "controlli": [
+  {
+   "controllo": "manifest con lo sha256 atteso, records.jsonl.gz con lo sha256 di manifest.json",
+   "esito": true,
+   "dettaglio": "314a0a527e20"
+  },
+  {
+   "controllo": "impronta ricalcolata da pacchetto.js e soluzioni.js, uguale a pacchetto.json",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "schede-selezione-manifest: selezione, ordine, domande, opzioni e soluzioni ricalcolati dal manifest e dagli shard uguali al pacchetto",
+   "esito": true,
+   "dettaglio": {
+    "schede": 80
+   }
+  },
+  {
+   "controllo": "inventario moduli/selezione.tsv uguale alla selezione ricalcolata",
+   "esito": true,
+   "dettaglio": 80
+  },
+  {
+   "controllo": "piano moduli/piano.json uguale a quello ricalcolato (quote, disponibilità, celle, deficit)",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "controllo": "80 schede (80 meno i deficit) M01-M80 nell'ordine, ciascuna con la sua soluzione",
+   "esito": true,
+   "dettaglio": 80
+  },
+  {
+   "controllo": "ordine delle schede per sha256({campione, seme 0, ordine: unità}), categorie mescolate",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "quote: ogni strato ha la sua quota, o un deficit registrato con tutte le celle esaurite",
+   "esito": true,
+   "dettaglio": {
+    "controllo_noto/radice_di_quadrato_perfetto": 1,
+    "lettura_valore/decimale_arrotondato": 4,
+    "lettura_valore/decimale_esatto": 4,
+    "lettura_valore/radice": 4,
+    "lettura_valore/intero": 4,
+    "lettura_valore/angolo": 3,
+    "classificazione_recuperabile/acute triangle": 6,
+    "classificazione_recuperabile/right triangle": 6,
+    "classificazione_recuperabile/obtuse triangle": 6,
+    "classificazione_recuperabile/rectangle": 6,
+    "classificazione_recuperabile/rhombus": 6,
+    "classificazione_omessa/piu_opzioni_vere": 4,
+    "classificazione_omessa/misure_insufficienti": 4,
+    "classificazione_omessa/uguaglianza_apparente_arrotondamento": 4,
+    "classificazione_omessa/segno_angolo_retto": 3,
+    "altro_compito/describe": 3,
+    "altro_compito/direction": 3,
+    "altro_compito/count_points": 3,
+    "altro_compito/removed_side": 3,
+    "altro_compito/shared_side": 3
+   }
+  },
+  {
+   "controllo": "record e gruppi distinti: una scheda per gruppo, nessun collegamento fra schede",
+   "esito": true,
+   "dettaglio": 80
+  },
+  {
+   "controllo": "condizioni degli strati riverificate sui record del manifest (codice scritto a parte dalla selezione)",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "controllo": "profondità coperte, d3 compresa",
+   "esito": true,
+   "dettaglio": {
+    "d1": 18,
+    "d2": 24,
+    "d0": 9,
+    "d3": 29
+   }
+  },
+  {
+   "controllo": "solo record di train ammessi, salvo il controllo noto (eccezione documentata se c'è)",
+   "esito": true,
+   "dettaglio": {
+    "fuori": [],
+    "eccezione": null
+   }
+  },
+  {
+   "controllo": "un solo controllo noto, d3-44919 side:EH, segnato nel primo passaggio",
+   "esito": true,
+   "dettaglio": [
+    "M12"
+   ]
+  },
+  {
+   "controllo": "shape_type resta in quarantena in ogni scheda di classificazione",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "controllo": "classificazioni omesse: richiesta diagnostica dichiarata, senza target; le altre schede sono QA candidate col target",
+   "esito": true,
+   "dettaglio": 15
+  },
+  {
+   "controllo": "opzioni solo dove appartengono alla domanda (classificazioni), col target fra le opzioni delle QA",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "controllo": "primo passaggio: nessun target, annotazione, esito, categoria, motivo o stato in pacchetto.js",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "controllo": "primo passaggio: i testi del secondo passaggio (target, didascalia, descrizione, categorie, motivi) non compaiono nella scheda, salvo dove sono parte della domanda o delle opzioni",
+   "esito": true,
+   "dettaglio": {
+    "stringhe": 223,
+    "schede": []
+   }
+  },
+  {
+   "controllo": "consegne uguali per tipo di richiesta e senza parole delle categorie",
+   "esito": true,
+   "dettaglio": 5
+  },
+  {
+   "controllo": "immagini: caption.jpg originali, presenti, con lo sha256 della scansione e le dimensioni registrate",
+   "esito": true,
+   "dettaglio": {
+    "immagini": 80,
+    "diverse": []
+   }
+  },
+  {
+   "controllo": "immagini: nessun file in più",
+   "esito": true,
+   "dettaglio": 80
+  },
+  {
+   "controllo": "SHA256SUMS: ogni file del pacchetto (interfaccia, dati, immagini, moduli) elencato col suo sha256",
+   "esito": true,
+   "dettaglio": {
+    "file": 93,
+    "diversi": []
+   }
+  },
+  {
+   "controllo": "index.html: dati, logica e interfaccia nell'ordine, file presenti",
+   "esito": true,
+   "dettaglio": [
+    "dati/pacchetto.js",
+    "dati/soluzioni.js",
+    "logica.js",
+    "app.js"
+   ]
+  },
+  {
+   "controllo": "verifica.html: dati, logica, interfaccia e autotest",
+   "esito": true,
+   "dettaglio": [
+    "dati/pacchetto.js",
+    "dati/soluzioni.js",
+    "logica.js",
+    "app.js",
+    "test.js"
+   ]
+  },
+  {
+   "controllo": "interfaccia: nessuna richiesta di rete",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "controllo": "JavaScript: commenti, stringhe, espressioni regolari e parentesi bilanciate (lessicale, non esecuzione)",
+   "esito": true,
+   "dettaglio": 3
+  },
+  {
+   "controllo": "JavaScript ES5 (niente frecce, let, const, template, classi): gira anche con Duktape",
+   "esito": true,
+   "dettaglio": []
+  }
+ ],
+ "falliti": [],
+ "nota": "verifica statica di dati, selezione e riferimenti; l'interfaccia non è provata in un browser",
+ "secondi": 90.3
+}

@@ -1,0 +1,700 @@
+{
+ "schema": "mavis-c9-revisione-pacchetto/1-esecuzione-js",
+ "job_id": "30788",
+ "codice": {
+  "commit": "d5855d90b82b6962678b1009c2914223629fca9a",
+  "dirty": true,
+  "diff_sha256": "1dc7e096d98823b810809e3a32ee6904176de0a8f197a822c617da4759c7925f",
+  "untracked": [
+   "docs/manifests/mavis-geometry-candidato-5.json",
+   "revisioni/mavis-c9-campione-1/",
+   "scripts/mavis_review_package.py",
+   "slurm/mavis_review_package.sbatch",
+   "tests/test_mavis_review_package.py"
+  ]
+ },
+ "pacchetto": "revisioni/mavis-c9-campione-1",
+ "impronta": "5d2e6b15e3f2af0647bf451ae80c52fd57b65daf3f1581ac56bceb33ef7baf7d",
+ "motore": {
+  "libreria": "/lib/x86_64-linux-gnu/libduktape.so.207",
+  "sha256": "5733ea32f7c50e962e08b26b02f0656851525f3aa06f8b826459e27fa8711199"
+ },
+ "nota": "logica e interfaccia eseguite con Duktape, senza DOM e su un DOM simulato; non è una prova in un browser (disegno, eventi veri, immagini e localStorage si provano con verifica.html)",
+ "segreti_cercati": 223,
+ "esecuzioni": [
+  {
+   "dom": null,
+   "file": {
+    "dati/pacchetto.js": {
+     "sha256": "fc039e8aad04d8e49a3bbd7df16c356ac966d653d2d73c80953df09b4ebfe673",
+     "secondi": 0.0
+    },
+    "dati/soluzioni.js": {
+     "sha256": "fa713999d56d6b9ca3810f5e69fa153f916b176c5b3bcb7646684f78298e8129",
+     "secondi": 0.02
+    },
+    "logica.js": {
+     "sha256": "cfde8cfd616f075747bc2eb6f2e6263ee99c5cf84dfc610ae6d4b9503c24a7ec",
+     "secondi": 0.0
+    },
+    "app.js": {
+     "sha256": "31cad38a8cb6276cf2e113c2e03f1ad01101be8770e334e2b4245ab6e4f8ef0c",
+     "secondi": 0.0
+    },
+    "test.js": {
+     "sha256": "687be88116dc6ba50f558112d78c61acb4405af2047484d1278387e832538728",
+     "secondi": 0.14
+    }
+   },
+   "errore": null,
+   "righe": [
+    {
+     "nome": "dati e script caricati",
+     "ok": true,
+     "dettaglio": "mavis-c9-campione-1 v1 · impronta 5d2e6b15e3f2af06"
+    },
+    {
+     "nome": "schede M01… nell'ordine, ciascuna con la sua soluzione (nascosta)",
+     "ok": true,
+     "dettaglio": "80"
+    },
+    {
+     "nome": "record, gruppi e immagini distinti (una scheda per gruppo)",
+     "ok": true,
+     "dettaglio": "0"
+    },
+    {
+     "nome": "primo passaggio: nessun target, annotazione, esito, categoria o motivo nei dati delle schede",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "didascalia, motivo e strato non compaiono nel testo visibile di nessuna scheda",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "un solo controllo noto, segnato nel primo passaggio",
+     "ok": true,
+     "dettaglio": "1"
+    },
+    {
+     "nome": "richieste diagnostiche: senza target, dichiarate nel primo passaggio, con le opzioni della famiglia",
+     "ok": true,
+     "dettaglio": "15"
+    },
+    {
+     "nome": "QA con opzioni: il target è una delle opzioni della domanda, e nessuna QA senza opzioni ne mostra",
+     "ok": true,
+     "dettaglio": "30"
+    },
+    {
+     "nome": "sono presenti letture di valori, classificazioni recuperabili e omesse e altri compiti",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "nessuna scheda collegata (record e gruppi distinti): ogni soluzione espone solo la sua scheda",
+     "ok": true,
+     "dettaglio": "0"
+    },
+    {
+     "nome": "senza primo giudizio la soluzione non si mostra",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "primo giudizio incompleto (leggibilità e sufficienza mancanti): non si salva",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "«non determinabile» vale come risposta",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "valori non ammessi rifiutati",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "modifiche non salvate: la soluzione non si mostra",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "il giudizio finale non si compila prima della soluzione",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "primo giudizio salvato: la soluzione si può mostrare",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "mostrata la soluzione: esposti record e gruppo della scheda",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "dopo la soluzione il primo giudizio è fissato",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "lettura di un valore: scrittura visibile richiesta, prudenza del filtro non prevista",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "giudizio finale incompleto: la scheda non è completa",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "errore grave senza tipo di difetto: manca il tipo",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "giudizio finale completo: scheda completa e indipendente",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "richiesta diagnostica: prudenza del filtro e classi vere previste, scrittura visibile no",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "classificazione recuperabile e altri compiti: né scrittura visibile né prudenza del filtro",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "controllo noto: primo giudizio salvato ma non indipendente",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "controllo noto nel TSV: indipendente = no",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "collegate per record e per gruppo",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "schede collegate senza primo giudizio: la soluzione non si mostra",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "con il primo giudizio delle collegate la soluzione si mostra e le fissa",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "una scheda non collegata non è toccata dalla soluzione delle altre",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "una scheda esposta prima del suo primo giudizio è segnata e, salvato, il primo giudizio è fissato e non indipendente",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "«sostituisci» con uno stato vuoto: esposizioni e primi giudizi fissati restano",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "unire lo stato con le esposizioni in uno vuoto le porta tutte",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "il file di avanzamento si reimporta identico",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "file di un altro pacchetto o versione: rifiutato",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "scheda sconosciuta: rifiutato",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "valore non ammesso: rifiutato",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "campo compilato dove non è previsto: rifiutato",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "JSON non valido: rifiutato",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "TSV: intestazione, una riga per scheda, celle con tab e a capo protetti",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "TSV: campi non previsti «non_applicabile», non compilati «non_compilato»",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "importare un file vecchio: esposizioni e primi giudizi fissati restano",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "lavoro in conflitto senza scelta: resta quello del browser, l'altro nell'archivio",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "«usa il file»: vale il file nei conflitti, ma la soluzione mostrata resta",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "«sostituisci» con un file vuoto: tolte solo le schede senza primo giudizio fissato, nell'archivio",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "unire uno stato con sé stesso non cambia la conoscenza",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "interfaccia (DOM), ripresa nel browser e immagini",
+     "ok": null,
+     "dettaglio": "fuori dal browser: si provano aprendo verifica.html"
+    },
+    {
+     "nome": "output dell'autotest senza target, categorie, motivi, didascalie o valori delle schede",
+     "ok": true,
+     "dettaglio": "223 stringhe del secondo passaggio cercate, nessuna trovata"
+    }
+   ],
+   "collegati": null,
+   "versione_duktape": "20700",
+   "righe_con_soluzioni": [],
+   "collegamenti_uguali_a_python": true,
+   "superati": 48,
+   "falliti": [],
+   "saltati": [
+    "interfaccia (DOM), ripresa nel browser e immagini"
+   ]
+  },
+  {
+   "dom": "scripts/review_package_dom.js",
+   "file": {
+    "scripts/review_package_dom.js": {
+     "sha256": "6d354fe8f0306692c9b2f91427dea76be373898dccd11b6c0ec5808265f23483"
+    },
+    "dati/pacchetto.js": {
+     "sha256": "fc039e8aad04d8e49a3bbd7df16c356ac966d653d2d73c80953df09b4ebfe673",
+     "secondi": 0.0
+    },
+    "dati/soluzioni.js": {
+     "sha256": "fa713999d56d6b9ca3810f5e69fa153f916b176c5b3bcb7646684f78298e8129",
+     "secondi": 0.02
+    },
+    "logica.js": {
+     "sha256": "cfde8cfd616f075747bc2eb6f2e6263ee99c5cf84dfc610ae6d4b9503c24a7ec",
+     "secondi": 0.0
+    },
+    "app.js": {
+     "sha256": "31cad38a8cb6276cf2e113c2e03f1ad01101be8770e334e2b4245ab6e4f8ef0c",
+     "secondi": 0.01
+    },
+    "test.js": {
+     "sha256": "687be88116dc6ba50f558112d78c61acb4405af2047484d1278387e832538728",
+     "secondi": 1.19
+    }
+   },
+   "errore": null,
+   "righe": [
+    {
+     "nome": "dati e script caricati",
+     "ok": true,
+     "dettaglio": "mavis-c9-campione-1 v1 · impronta 5d2e6b15e3f2af06 · DOM simulato"
+    },
+    {
+     "nome": "schede M01… nell'ordine, ciascuna con la sua soluzione (nascosta)",
+     "ok": true,
+     "dettaglio": "80"
+    },
+    {
+     "nome": "record, gruppi e immagini distinti (una scheda per gruppo)",
+     "ok": true,
+     "dettaglio": "0"
+    },
+    {
+     "nome": "primo passaggio: nessun target, annotazione, esito, categoria o motivo nei dati delle schede",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "didascalia, motivo e strato non compaiono nel testo visibile di nessuna scheda",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "un solo controllo noto, segnato nel primo passaggio",
+     "ok": true,
+     "dettaglio": "1"
+    },
+    {
+     "nome": "richieste diagnostiche: senza target, dichiarate nel primo passaggio, con le opzioni della famiglia",
+     "ok": true,
+     "dettaglio": "15"
+    },
+    {
+     "nome": "QA con opzioni: il target è una delle opzioni della domanda, e nessuna QA senza opzioni ne mostra",
+     "ok": true,
+     "dettaglio": "30"
+    },
+    {
+     "nome": "sono presenti letture di valori, classificazioni recuperabili e omesse e altri compiti",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "nessuna scheda collegata (record e gruppi distinti): ogni soluzione espone solo la sua scheda",
+     "ok": true,
+     "dettaglio": "0"
+    },
+    {
+     "nome": "senza primo giudizio la soluzione non si mostra",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "primo giudizio incompleto (leggibilità e sufficienza mancanti): non si salva",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "«non determinabile» vale come risposta",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "valori non ammessi rifiutati",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "modifiche non salvate: la soluzione non si mostra",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "il giudizio finale non si compila prima della soluzione",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "primo giudizio salvato: la soluzione si può mostrare",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "mostrata la soluzione: esposti record e gruppo della scheda",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "dopo la soluzione il primo giudizio è fissato",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "lettura di un valore: scrittura visibile richiesta, prudenza del filtro non prevista",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "giudizio finale incompleto: la scheda non è completa",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "errore grave senza tipo di difetto: manca il tipo",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "giudizio finale completo: scheda completa e indipendente",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "richiesta diagnostica: prudenza del filtro e classi vere previste, scrittura visibile no",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "classificazione recuperabile e altri compiti: né scrittura visibile né prudenza del filtro",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "controllo noto: primo giudizio salvato ma non indipendente",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "controllo noto nel TSV: indipendente = no",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "collegate per record e per gruppo",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "schede collegate senza primo giudizio: la soluzione non si mostra",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "con il primo giudizio delle collegate la soluzione si mostra e le fissa",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "una scheda non collegata non è toccata dalla soluzione delle altre",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "una scheda esposta prima del suo primo giudizio è segnata e, salvato, il primo giudizio è fissato e non indipendente",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "«sostituisci» con uno stato vuoto: esposizioni e primi giudizi fissati restano",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "unire lo stato con le esposizioni in uno vuoto le porta tutte",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "il file di avanzamento si reimporta identico",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "file di un altro pacchetto o versione: rifiutato",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "scheda sconosciuta: rifiutato",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "valore non ammesso: rifiutato",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "campo compilato dove non è previsto: rifiutato",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "JSON non valido: rifiutato",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "TSV: intestazione, una riga per scheda, celle con tab e a capo protetti",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "TSV: campi non previsti «non_applicabile», non compilati «non_compilato»",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "importare un file vecchio: esposizioni e primi giudizi fissati restano",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "lavoro in conflitto senza scelta: resta quello del browser, l'altro nell'archivio",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "«usa il file»: vale il file nei conflitti, ma la soluzione mostrata resta",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "«sostituisci» con un file vuoto: tolte solo le schede senza primo giudizio fissato, nell'archivio",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "unire uno stato con sé stesso non cambia la conoscenza",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "prima del giudizio: nessuna soluzione, annotazione o categoria nella pagina",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "il controllo dell'output riconosce un target reale (prova interna, il target non si stampa)",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "la domanda è esatta",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "opzioni mostrate solo se appartengono alla domanda",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "richiesta diagnostica dichiarata solo sulle schede diagnostiche",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "controllo noto segnato solo sulla sua scheda",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "titoli delle schede neutri (solo l'identificativo)",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "salvataggio incompleto dal pulsante: errore e nessun primo giudizio",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "primo giudizio salvato dal pulsante: la soluzione si può mostrare",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "dopo il clic: soluzione, target e annotazioni visibili, primo giudizio bloccato",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "giudizio finale: i campi previsti per la scheda",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "secondo passaggio costruito per tutte le schede, coi campi previsti per ciascuna",
+     "ok": true,
+     "dettaglio": "80"
+    },
+    {
+     "nome": "riepilogo costruito, con il registro dei record esposti",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "importare un file vecchio: copia del browser scaricata prima, esposizioni e blocchi restano",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "importare un file vecchio: il lavoro in conflitto non si sovrascrive senza una scelta",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "«Usa le versioni del file»: vale il file nei conflitti, la soluzione mostrata resta",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "file non valido: rifiutato con un messaggio, stato invariato",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "ripresa: lo stato salvato nel browser si ricarica con esposizioni e blocchi",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "ripresa: uno stato vecchio scritto da un'altra scheda non cancella l'esposizione al salvataggio",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "ripresa: un'esposizione scritta da un'altra scheda si unisce allo stato in memoria",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "ripresa: uno stato salvato illeggibile non si perde (copia di riserva) e lo si segnala",
+     "ok": true,
+     "dettaglio": ""
+    },
+    {
+     "nome": "immagini: tutte caricate dalla cartella",
+     "ok": null,
+     "dettaglio": "DOM simulato: le immagini si caricano solo in un browser; presenza e sha256 sono controllati da mavis_review_package.py verifica"
+    },
+    {
+     "nome": "output dell'autotest senza target, categorie, motivi, didascalie o valori delle schede",
+     "ok": true,
+     "dettaglio": "223 stringhe del secondo passaggio cercate, nessuna trovata"
+    }
+   ],
+   "collegati": null,
+   "versione_duktape": "20700",
+   "timer_rimasti": 0,
+   "righe_con_soluzioni": [],
+   "collegamenti_uguali_a_python": true,
+   "superati": 69,
+   "falliti": [],
+   "saltati": [
+    "immagini: tutte caricate dalla cartella"
+   ]
+  }
+ ],
+ "secondi": 2.3
+}

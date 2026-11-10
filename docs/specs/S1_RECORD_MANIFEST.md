@@ -397,3 +397,16 @@ il modello della versione 2 dei sintetici (§2.9 di S2):
   - Riverifica di candidato-4, che resta invariato: 11 controlli su 12. Le 1.232.153 misure non hanno nessuna
     discrepanza con la fonte; una sola etichetta di rappresentazione è incoerente con la scrittura del renderer
     (S2 §3, C9).
+- **Versione 5 di MAVIS** (`mavis-geometry-candidato-5`, job 30785): una versione derivata per un solo metadato, la
+  `rappresentazione` dei valori ricalcolata con la regola corretta (la scrittura del renderer). Candidato-4 e i suoi
+  rapporti restano immutati.
+  - Derivazione esplicita: `precedente`, `split.ereditato_da` e `catena_delle_versioni` con gli sha256; in
+    `manifest.json` la sezione `correzione_rappresentazione` con regola, funzione, cambi ed eventuali ulteriori
+    differenze, documentate e non corrette. Il record cambiato riceve l'evidenza `mavis-c9-rappresentazione`.
+  - Riuso: le righe senza cambi sono quelle del genitore byte per byte; niente QA, immagini o decontaminazione
+    rigenerate.
+  - Verifica (`verify_correction`, 13 su 13). Confronto sistematico genitore/figlio: stessi record negli stessi shard,
+    differenze limitate alla rappresentazione corretta e all'evidenza; `manifest.json` diverso solo in versione,
+    provenienza e conteggi; `keys/` ricalcolati. Poi i valori contro i JSON originali degli shard, come per
+    candidato-4. Un cambio non voluto dalla regola, o una differenza non prevista, fa fallire la verifica.
+  - Nessuna configurazione la usa: `config/runs/f0-c7-reader-unimer-mavis.json` resta su candidato-3.

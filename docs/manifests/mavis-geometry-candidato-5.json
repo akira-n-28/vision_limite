@@ -1,0 +1,134 @@
+{
+ "schema": "limite-vl-manifest-riepilogo/1",
+ "manifest": "data/manifests/mavis-geometry-candidato-5",
+ "nome": "mavis-geometry-candidato",
+ "versione": "5",
+ "job_id": "30785",
+ "manifest_sha256": "314a0a527e20ce422399765f7db19c3abfe297ec5e174e7f3b158586c604ef72",
+ "records_sha256": "a67aed7ab1da94c98db9b3654bbff54872ac5c4cc61af1ca7030080c85a51f43",
+ "righe": 199050,
+ "precedente": {
+  "percorso": "data/manifests/mavis-geometry-candidato-4",
+  "versione": "4",
+  "manifest_sha256": "77e1849e0e09089dea592be577921259675e6cd51ed99a174cbf6a1744f14fa9",
+  "records_sha256": "0c5a7d0a30b0e18f63b89dcef877247c6100485ce42156ac2926e0c881e9c6c8"
+ },
+ "correzione_rappresentazione": {
+  "controllo": "mavis-c9-rappresentazione",
+  "regola": "mavis_c9.representation descrive la scrittura prevista dal renderer, non il valore: una scrittura con una radice è 'radice' anche quando il valore è razionale (√841 = 29, scritto \\sqrt{841}). Il valore matematico dei confronti (parse_exact), l'esatto, il visualizzato previsto, la risposta di lettura, le domande, le opzioni e le decisioni geometriche non cambiano",
+  "funzione": "src/limite_vl/mavis_c9.py: representation",
+  "record_cambiati": 1,
+  "cambi": [
+   {
+    "record": "d3-44919",
+    "elemento": "side:EH",
+    "campo": "rappresentazione",
+    "prima": "intero",
+    "dopo": "radice",
+    "esatto": "√841",
+    "visualizzato_previsto": "\\sqrt{841}"
+   }
+  ],
+  "ulteriori_differenze": [],
+  "nota": "le ulteriori differenze (visualizzato o risposta di lettura diversi dalla regola) si documentano senza correggerle"
+ },
+ "confronto_col_genitore": {
+  "record_identici": 199049,
+  "record_cambiati": 1,
+  "campi_cambiati": {
+   "evidenze": 1,
+   "valori": 1
+  },
+  "differenze_inattese": 0,
+  "chiavi_di_manifest_json_diverse": [
+   "catena_delle_versioni",
+   "codice",
+   "correzione_rappresentazione",
+   "derivati",
+   "job_id",
+   "precedente",
+   "records",
+   "rss_max_mib",
+   "secondi_costruzione",
+   "split",
+   "versione"
+  ]
+ },
+ "valori": {
+  "record_letti": 199050,
+  "misure_attese": 1232153,
+  "misure_registrate": 1232153,
+  "misure_confrontate": 1232153,
+  "rappresentazioni_attese": {
+   "decimale_arrotondato": 249,
+   "decimale_esatto": 24856,
+   "intero": 1095191,
+   "radice": 111857
+  },
+  "discrepanze": {},
+  "record_con_discrepanze": 0,
+  "incoerenze": 0,
+  "lettura": {
+   "intestazioni": 398100,
+   "json": 199050,
+   "byte_letti": 608562771
+  },
+  "secondi": 47.2
+ },
+ "controlli": [
+  {
+   "controllo": "genitore con lo sha256 atteso",
+   "esito": true
+  },
+  {
+   "controllo": "precedente e split.ereditato_da indicano il genitore",
+   "esito": true
+  },
+  {
+   "controllo": "manifest.json diverso dal genitore solo nei metadati di versione, provenienza e conteggio",
+   "esito": true
+  },
+  {
+   "controllo": "conteggi uguali al genitore",
+   "esito": true
+  },
+  {
+   "controllo": "stessi record negli stessi shard",
+   "esito": true
+  },
+  {
+   "controllo": "record: nessuna differenza oltre la rappresentazione corretta e l'evidenza della correzione (stessi gruppi, split, stati, motivi, evidenze pregresse, esatti, visualizzati, risposte di lettura, QA e digest, compiti ed esiti di shape_type)",
+   "esito": true
+  },
+  {
+   "controllo": "cambi applicati uguali a quelli registrati in manifest.json",
+   "esito": true
+  },
+  {
+   "controllo": "ogni cambio registrato è voluto dalla regola corretta (rappresentazione della scrittura)",
+   "esito": true
+  },
+  {
+   "controllo": "ulteriori differenze della regola documentate e lasciate come nel genitore",
+   "esito": true
+  },
+  {
+   "controllo": "file derivati (keys/) ricalcolati dai record e uguali a quelli del genitore",
+   "esito": true
+  },
+  {
+   "controllo": "valori: JSON originali di tutti i record letti dagli shard, con la posizione e il json_sha256 del manifest, senza le immagini",
+   "esito": true
+  },
+  {
+   "controllo": "valori uguali a quelli ricavati dalle annotazioni (misure di diagram_generation con la normalizzazione di facts.norm_value): elemento, esatto, rappresentazione, visualizzato previsto e risposta di lettura; nessun elemento mancante, ripetuto o in più",
+   "esito": true
+  },
+  {
+   "controllo": "valori coerenti con la regola di rappresentazione del renderer (controllo scritto a parte)",
+   "esito": true
+  }
+ ],
+ "esito_verifica": true,
+ "nota": "versione derivata per un metadato: nessuna QA, immagine, decontaminazione o decisione rigenerata; nessuna config la usa"
+}

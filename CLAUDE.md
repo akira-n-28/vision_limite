@@ -397,7 +397,7 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
       - *Rispetto alle annotazioni*: verificati coi JSON originali (job 30781, verifica corretta, candidato invariato).
         Nessuna discrepanza su 1.232.153 misure.
       - *Rappresentazione prevista dal renderer*: un'etichetta incoerente, in `d3-44919` `side:EH` (`√841` scritto
-        `\sqrt{841}` ma etichettato `intero`), documentata e non corretta (S2 §3).
+        `\sqrt{841}` ma etichettato `intero`), documentata e lasciata in candidato-4; corretta nella versione 5.
       - *Fedeltà ai pixel*: da verificare a vista.
     - **`shape_type`.** Insieme fisso per famiglia: acute/right/obtuse triangle; rectangle/rhombus/square.
       - Una sola opzione è vera secondo le annotazioni (tipo dichiarato e misure esatte); le altre sono confutate dalle
@@ -410,6 +410,17 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
     - Controllo testuale delle domande nuove contro `pannello-v3`: nessuna corrispondenza. Verifica 7 su 7. Reader col
       candidato C9 sul primo shard (job 30779, `docs/reader_smoke/c9-lettore-1.json`): 8 su 8, stessi esempi del
       genitore.
+  - Versione 5 `data/manifests/mavis-geometry-candidato-5` (job 30785, `scripts/mavis_c9.py correzione`, S2 §3 C9):
+    `manifest.json` `314a0a52…`, derivata da candidato-4 (invariato) per un solo metadato; **nessuna config la usa**.
+    - **Regola.** `mavis_c9.representation` descrive la scrittura prevista dal renderer, non il valore: una scrittura con
+      una radice è `radice` anche se il valore è razionale. Il valore matematico dei confronti (`parse_exact`, √841 =
+      29), esatto, visualizzato, target, domande, opzioni e decisioni geometriche non cambiano.
+    - **Esito.** Un solo cambio, `d3-44919` `side:EH` `intero` → `radice`, con l'evidenza della correzione; 199.049
+      record byte per byte uguali al genitore, nessuna ulteriore differenza; valori contro i JSON originali senza
+      discrepanze né incoerenze (1.232.153 misure). Verifica 13 su 13 (`docs/manifests/mavis-geometry-candidato-5.json`).
+  - Revisione visiva mirata `revisioni/mavis-c9-campione-1` (`scripts/mavis_review_package.py`, S2 §3): 80 schede
+    diagnostiche da candidato-5 con le quote dell'utente, caption.jpg originali con gli sha256 della scansione, primo
+    giudizio separato dalla soluzione. Da fare dall'utente sul portatile; gli esiti non ammettono nulla e non sono gold.
 - UniMER @ 2343ddd9 (job 29436, 29438): l'immagine `images/<indice>.png` ha come formula la riga `<indice>` di
   `train.txt`; le righe vuote sono HME100K (tolto per copyright) e le formule a mano di CROHME (meno dell'1%) non si
   separano per indice. Shard in `data/shards/unimer/2343ddd9/` (985.450 campioni, test spe/cpe/sce/hwe in `test/`),

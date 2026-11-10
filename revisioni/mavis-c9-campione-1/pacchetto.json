@@ -1,0 +1,129 @@
+{
+ "schema": "mavis-c9-revisione-pacchetto/1",
+ "id": "mavis-c9-campione-1",
+ "versione": "1",
+ "impronta": "5d2e6b15e3f2af0647bf451ae80c52fd57b65daf3f1581ac56bceb33ef7baf7d",
+ "impronte_dati": {
+  "soluzioni": "ec35ea525934cbbf1bd8587c625e26c74a6c3e960f636017ad1b10ade624632c"
+ },
+ "job_id": "30787",
+ "codice": {
+  "commit": "d5855d90b82b6962678b1009c2914223629fca9a",
+  "dirty": true,
+  "diff_sha256": "0e999471e773b7bbbb9f5fbc84dddecbde5644f01284f84d05aa03feb70dc977",
+  "untracked": [
+   "docs/manifests/mavis-geometry-candidato-5.json",
+   "revisioni/mavis-c9-campione-1/",
+   "scripts/mavis_review_package.py",
+   "slurm/mavis_review_package.sbatch",
+   "tests/test_mavis_review_package.py"
+  ]
+ },
+ "ingressi": {
+  "manifest": {
+   "percorso": "data/manifests/mavis-geometry-candidato-5",
+   "nome": "mavis-geometry-candidato",
+   "versione": "5",
+   "manifest_sha256": "314a0a527e20ce422399765f7db19c3abfe297ec5e174e7f3b158586c604ef72",
+   "records_sha256": "a67aed7ab1da94c98db9b3654bbff54872ac5c4cc61af1ca7030080c85a51f43"
+  },
+  "scansione": {
+   "percorso": "data/decontam/pannello-v3/mavis-geometry/records.jsonl.gz",
+   "sha256": "f953c323cbbd00a0394c4443c88145d64ea60f4c02d910a0d20cbcf5b223b864",
+   "byte": 51544727
+  },
+  "zip": {
+   "percorso": "/home/prignano/vision_limite/hf/hub/datasets--CaraJ--MAVIS-Geometry/snapshots/9c80fff300f4f2cb3a76f71e03428eebdd571907/RuleBaseGeo.zip",
+   "blob": "d5b7bd3253d51798cfb6d8c311b99036b5fd258e13e60949a8cce093c9d8d261",
+   "sha256_atteso": "d5b7bd3253d51798cfb6d8c311b99036b5fd258e13e60949a8cce093c9d8d261",
+   "byte": 26389158444,
+   "nota": "blob della cache Hugging Face indirizzato dal contenuto (nome = sha256 atteso); sha256 dell'intero zip non ricalcolato qui (calcolato dalla scansione, job 30652); ogni immagine ha i byte_sha256 della scansione"
+  },
+  "shard": [
+   {
+    "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00000.tar",
+    "sha256": "0a6144be1c6a424944ecbf48a598fa8056646b38a363095678726a8ece3bf6a9"
+   },
+   {
+    "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00001.tar",
+    "sha256": "9ead847c1403c8bac953db8ef7509cd47158773d6ff0df5ec7caebbab035139c"
+   },
+   {
+    "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00002.tar",
+    "sha256": "a4d5b382657643a52c3697485d5a2584a4e158a091ed2a6cf9ef9c8476a43d1b"
+   },
+   {
+    "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00003.tar",
+    "sha256": "1be409c665906f5330f042e10e6cdb38e76fe5889dd720f287fe06ecc48bba7d"
+   },
+   {
+    "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00004.tar",
+    "sha256": "6a878d9754c4760432644fdc2a5fb86bb656ffa4d10d1e595a0f3edeeffe1d99"
+   },
+   {
+    "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00005.tar",
+    "sha256": "2e8ca055af6d304e2350c1b70d33ed711b382384ba35dd2658bb5c3c4cca23f9"
+   },
+   {
+    "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00006.tar",
+    "sha256": "c8b75acbf51a9ea3420a713782e470fdc084413a0b33d84985a4ec16c7b1db58"
+   },
+   {
+    "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00007.tar",
+    "sha256": "6281ca0100eecb05eade4b622fcb6ea36a6c2bfb56b048a7a6463d15bfb47252"
+   },
+   {
+    "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00008.tar",
+    "sha256": "505cbd3bdd312ef6fe26543f67484075eb4b8271f30538cf0ed7e74e13b5dd79"
+   },
+   {
+    "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00009.tar",
+    "sha256": "24c21c7fe38c9c455212c0e5218ee9f4c93c333c6981e09798f418c7e7aae4ad"
+   },
+   {
+    "percorso": "data/shards/mavis-geometry/9c80fff3-caption/mavis-geometry-caption-00010.tar",
+    "sha256": "c1915023a08332ab1a9aae35ff05c1c03de3024bb83359a5f416f7f449bddd9c"
+   }
+  ],
+  "lettura_shard": {
+   "intestazioni": 398100,
+   "json": 199050,
+   "byte_letti": 608562771
+  }
+ },
+ "conteggi": {
+  "schede": 80,
+  "immagini": 80,
+  "per_categoria": {
+   "altro_compito": 15,
+   "classificazione_recuperabile": 30,
+   "lettura_valore": 19,
+   "classificazione_omessa": 15,
+   "controllo_noto": 1
+  },
+  "deficit": 0
+ },
+ "file": {
+  "dati/pacchetto.js": {
+   "bytes": 48985,
+   "sha256": "fc039e8aad04d8e49a3bbd7df16c356ac966d653d2d73c80953df09b4ebfe673"
+  },
+  "dati/soluzioni.js": {
+   "bytes": 347542,
+   "sha256": "fa713999d56d6b9ca3810f5e69fa153f916b176c5b3bcb7646684f78298e8129"
+  },
+  "moduli/selezione.tsv": {
+   "bytes": 71380,
+   "sha256": "193c0d75d37937cb4907bd3cc852306d8402eb3ecd30981561c9321d8d8b0aef"
+  },
+  "moduli/piano.json": {
+   "bytes": 18083,
+   "sha256": "251722b3e553744d6f604a19b7f1c876814982fba2fbc001719adae76e619070"
+  }
+ },
+ "secondi": {
+  "manifest_e_selezione": 56.1,
+  "schede_e_immagini": 19.5
+ },
+ "nota": "campione diagnostico per la revisione visiva; nessun giudizio compilato, nessun esito automatico promosso a corretto o gold"
+}
