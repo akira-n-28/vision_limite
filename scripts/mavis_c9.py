@@ -20,6 +20,9 @@ Sottocomandi:
   di ogni misura devono essere quelli ricavati dalle annotazioni. Rapporto in una cartella nuova; il candidato non
   cambia.
 - `lettore`: collegamento col reader (C7) sul primo shard, col manifest C9 e col genitore.
+- `correzione`: versione nuova derivata da una versione C9 in cui cambia solo la rappresentazione dei valori,
+  ricalcolata con la regola corretta (la scrittura prevista dal renderer); i record senza cambi restano byte per byte
+  quelli del genitore. Verifica col confronto sistematico genitore/figlio e coi valori contro i JSON originali.
 
     srun $RUN_PYTHON -u -B scripts/mavis_c9.py sonda --manifest DIR --manifest-sha256 HEX --out DIR [--workers 4]
     srun $RUN_PYTHON -u -B scripts/mavis_c9.py costruzione --manifest DIR --manifest-sha256 HEX --new DIR --out DIR \\
@@ -759,8 +762,20 @@ def _verify_c9(pool, child_dir: Path, parent_dir: Path, parent_sha: str, report_
     ok("file derivati (keys/) ricalcolati dai record", keys_ok)
     ok("gruppi del controllo testuale ricalcolati dagli esiti", len(hit_groups) == report[
         "gruppi_in_quarantena_per_il_testo"], len(hit_groups))
-    # ---- valori contro la fonte: JSON originali, misure ricavate dalle annotazioni
+    values = values_against_source(pool, child, ok)
+    inputs = inputs_of(child, child_dir, parent, parent_dir, report_path)
+    passed = sum(x["esito"] for x in checks)
+    return {"schema": "mavis-c9-verifica/2", "manifest": um.rel(child_dir), "genitore": um.rel(parent_dir),
+            "ingressi": inputs, "valori": values, "controlli": checks, "superati": passed, "totale": len(checks),
+            "esito": passed == len(checks)}
+
+
+def values_against_source(pool, child: mf.Manifest, ok) -> dict:
+    """Valori del manifest contro la fonte: i JSON originali dagli shard (soli JSON, posizione e json_sha256 del
+    manifest) e le misure ricavate dalle annotazioni (values_shard), più la coerenza di ogni voce con la regola di
+    rappresentazione. Aggiunge tre controlli con `ok` e restituisce i conteggi."""
     t0 = time.time()
+    n_records = sum(len(rows) for rows in child.by_shard.values())
     tasks = [(str(mf.shard_path(s)),
               {k: (r["indice"], r["json_sha256"], r.get("valori") or []) for k, r in rows.items()})
              for s, rows in sorted(child.by_shard.items())]
@@ -773,7 +788,7 @@ def _verify_c9(pool, child_dir: Path, parent_dir: Path, parent_sha: str, report_
         problems += [f"{Path(res['path']).name}: {p}" for p in res["problems"]]
     discrepancies = {k.split("/", 1)[1]: v for k, v in sorted(vc.items()) if k.startswith("discrepanze/")}
     ok("valori: JSON originali di tutti i record letti dagli shard, con la posizione e il json_sha256 del manifest, "
-       "senza le immagini", not problems and vc["record"] == len(C), {"problemi": problems[:5], "record": vc["record"]})
+       "senza le immagini", not problems and vc["record"] == n_records, {"problemi": problems[:5], "record": vc["record"]})
     ok("valori uguali a quelli ricavati dalle annotazioni (misure di diagram_generation con la normalizzazione di "
        "facts.norm_value): elemento, esatto, rappresentazione, visualizzato previsto e risposta di lettura; nessun "
        "elemento mancante, ripetuto o in più", not discrepancies and not problems,
@@ -781,23 +796,261 @@ def _verify_c9(pool, child_dir: Path, parent_dir: Path, parent_sha: str, report_
         "esempi": found[:MAX_EXAMPLES]})
     ok("valori coerenti con la regola di rappresentazione del renderer (controllo scritto a parte)",
        vc["incoerenze"] == 0, {"incoerenze": vc["incoerenze"], "esempi": odd[:MAX_EXAMPLES]})
-    values = {"record_letti": vc["record"], "misure_attese": vc["misure_attese"],
-              "misure_registrate": vc["misure_registrate"], "misure_confrontate": vc["misure_confrontate"],
-              "rappresentazioni_attese": {k.split("/", 1)[1]: v for k, v in sorted(vc.items())
-                                          if k.startswith("rappresentazione/")},
-              "discrepanze": discrepancies, "record_con_discrepanze": vc["record_con_discrepanze"],
-              "incoerenze": vc["incoerenze"], "lettura": dict(vstats), "secondi": round(time.time() - t0, 1)}
-    inputs = {"candidato": {"percorso": um.rel(child_dir), "manifest_sha256": child.manifest_sha256,
-                            "records_sha256": cm["records"]["sha256"], "righe": cm["records"]["righe"]},
-              "genitore": {"percorso": um.rel(parent_dir), "manifest_sha256": parent.manifest_sha256,
-                           "records_sha256": pm["records"]["sha256"]},
-              "rapporto_della_scansione": file_entry(report_path),
-              "shard": [{k: s[k] for k in ("percorso", "sha256", "bytes", "record")} for s in cm["shards"]],
-              "nota_shard": "ogni JSON letto ha il json_sha256 e la posizione del suo record; gli sha256 degli shard "
-                            "interi sono quelli registrati, non ricalcolati qui"}
+    return {"record_letti": vc["record"], "misure_attese": vc["misure_attese"],
+            "misure_registrate": vc["misure_registrate"], "misure_confrontate": vc["misure_confrontate"],
+            "rappresentazioni_attese": {k.split("/", 1)[1]: v for k, v in sorted(vc.items())
+                                        if k.startswith("rappresentazione/")},
+            "discrepanze": discrepancies, "record_con_discrepanze": vc["record_con_discrepanze"],
+            "incoerenze": vc["incoerenze"], "lettura": dict(vstats), "secondi": round(time.time() - t0, 1)}
+
+
+def inputs_of(child: mf.Manifest, child_dir: Path, parent: mf.Manifest, parent_dir: Path,
+              report_path: Path | None) -> dict:
+    cm, pm = child.meta, parent.meta
+    out = {"candidato": {"percorso": um.rel(child_dir), "manifest_sha256": child.manifest_sha256,
+                         "records_sha256": cm["records"]["sha256"], "righe": cm["records"]["righe"]},
+           "genitore": {"percorso": um.rel(parent_dir), "manifest_sha256": parent.manifest_sha256,
+                        "records_sha256": pm["records"]["sha256"]},
+           "shard": [{k: s[k] for k in ("percorso", "sha256", "bytes", "record")} for s in cm["shards"]],
+           "nota_shard": "ogni JSON letto ha il json_sha256 e la posizione del suo record; gli sha256 degli shard "
+                         "interi sono quelli registrati, non ricalcolati qui"}
+    if report_path is not None:
+        out["rapporto_della_scansione"] = file_entry(report_path)
+    return out
+
+
+# ---------------------------------------------------------------- correzione della rappresentazione (versione derivata)
+
+FIX_CHECK = "mavis-c9-rappresentazione"
+FIX_RULE = ("mavis_c9.representation descrive la scrittura prevista dal renderer, non il valore: una scrittura con una "
+            "radice è 'radice' anche quando il valore è razionale (√841 = 29, scritto \\sqrt{841}). Il valore "
+            "matematico dei confronti (parse_exact), l'esatto, il visualizzato previsto, la risposta di lettura, le "
+            "domande, le opzioni e le decisioni geometriche non cambiano")
+META_ALLOWED = {"versione", "job_id", "codice", "precedente", "split", "catena_delle_versioni", "records", "derivati",
+                "secondi_costruzione", "rss_max_mib", "correzione_rappresentazione"}
+SPLIT_ALLOWED = {"ereditato_da", "regola_versione"}
+
+
+def raw_lines(folder: Path, meta: dict) -> list[str]:
+    raw = (folder / meta["records"]["file"]).read_bytes()
+    if hashlib.sha256(raw).hexdigest() != meta["records"]["sha256"]:
+        raise Failed(f"{folder}: records.jsonl.gz diverso da quello registrato")
+    return gzip.decompress(raw).decode("utf-8").splitlines()
+
+
+def correct_values(r: dict) -> tuple[list[dict], list[dict], list[dict]]:
+    """(valori, cambi, ulteriori differenze) di un record: la rappresentazione ricalcolata con la regola corretta
+    dall'esatto registrato; esatto, visualizzato previsto e risposta di lettura restano quelli registrati. Se la regola
+    li darebbe diversi, la differenza si documenta e non si corregge."""
+    new, changes, other = [], [], []
+    for v in r.get("valori") or []:
+        want = c9.value_record(v["esatto"], "°" if v["elemento"].startswith("angle:") else "")
+        w = dict(v)
+        if want["rappresentazione"] != v["rappresentazione"]:
+            changes.append({"record": r["record"], "elemento": v["elemento"], "campo": "rappresentazione",
+                            "prima": v["rappresentazione"], "dopo": want["rappresentazione"], "esatto": v["esatto"],
+                            "visualizzato_previsto": v["visualizzato_previsto"]})
+            w["rappresentazione"] = want["rappresentazione"]
+        for f in ("visualizzato_previsto", "risposta_lettura"):
+            if want[f] != v[f]:
+                other.append({"record": r["record"], "elemento": v["elemento"], "campo": f, "registrato": v[f],
+                              "secondo_la_regola": want[f]})
+        new.append(w)
+    return new, changes, other
+
+
+def cmd_correzione(args) -> int:
+    """Versione nuova derivata da una versione C9 (--manifest): solo la rappresentazione dei valori ricalcolata con la
+    regola corretta. I record senza cambi restano byte per byte quelli del genitore; un record cambiato ha i valori
+    corretti e un'evidenza nuova della correzione. Poi la verifica: confronto sistematico col genitore e valori contro i
+    JSON originali."""
+    import panel_decontam as pd
+
+    t0 = time.time()
+    for p in (args.new, args.report):
+        if p.exists() and any(p.iterdir()):
+            raise Failed(f"{p} non è vuota: si scrive una volta sola")
+    if args.summary.exists():
+        raise Failed(f"{args.summary} esiste già")
+    pool = Pool(args.workers)  # prima dei manifest: i processi non ereditano i record
+    try:
+        m = load_parent(args)
+        if any(r.get("costruzione_qa") != c9.CONSTRUCTION for rows in m.by_shard.values() for r in rows.values()):
+            raise Failed("il genitore non è una versione C9 (costruzione_qa mancante in qualche record)")
+        meta0, folder0, parent_sha = m.meta, m.folder, m.manifest_sha256
+        del m
+        gc.collect()
+        job = os.environ.get("SLURM_JOB_ID")
+        lines, recs, changes, other, changed = [], [], [], [], 0
+        for line in raw_lines(folder0, meta0):
+            r = json.loads(line)
+            new_values, ch, ot = correct_values(r)
+            other += ot
+            if ch:
+                changed += 1
+                changes += ch
+                r["valori"] = new_values
+                r["evidenze"] = list(r["evidenze"] or []) + [{
+                    "controllo": FIX_CHECK, "versione": 1, "job": job, "regola": "mavis_c9.representation",
+                    "cambi": [{k: c[k] for k in ("elemento", "campo", "prima", "dopo")} for c in ch]}]
+                line = json.dumps(r, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+            lines.append(line)
+            recs.append(r)
+        args.new.mkdir(parents=True, exist_ok=True)
+        data_sha, n_lines = um.write_records_gz(args.new / "records.jsonl.gz", iter(lines))
+        del lines
+        (args.new / "keys").mkdir()
+        derived = {}
+        for name, ks in pd.derived_keys("mavis", recs).items():
+            text = "".join(k + "\n" for k in sorted(ks))
+            (args.new / "keys" / name).write_text(text, encoding="utf-8")
+            derived[f"keys/{name}"] = {**file_entry(args.new / "keys" / name, mf.sha256_text(text)), "righe": len(ks)}
+        chain = [dict(x) for x in meta0.get("catena_delle_versioni") or []]
+        if chain and chain[-1].get("versione") == meta0["versione"]:
+            chain[-1]["manifest_sha256"] = parent_sha
+        chain.append({"versione": args.version, "percorso": um.rel(args.new), "manifest_sha256": None, "job": job,
+                      "decisione": "correzione del metadato di rappresentazione dei valori (scrittura prevista dal "
+                                   "renderer); nient'altro cambia"})
+        split = dict(meta0["split"])
+        split["ereditato_da"] = {"percorso": um.rel(args.manifest), "versione": meta0["versione"],
+                                 "manifest_sha256": parent_sha}
+        split["regola_versione"] = ("split, gruppi e stati della versione precedente, invariati: la correzione cambia "
+                                    "solo la rappresentazione dei valori")
+        meta = {**meta0, "versione": args.version, "job_id": job, "codice": code_identity(),
+                "precedente": {"percorso": um.rel(args.manifest), "versione": meta0["versione"],
+                               "manifest_sha256": parent_sha, "records_sha256": meta0["records"]["sha256"]},
+                "split": split, "catena_delle_versioni": chain,
+                "correzione_rappresentazione": {
+                    "controllo": FIX_CHECK, "regola": FIX_RULE, "funzione": "src/limite_vl/mavis_c9.py: representation",
+                    "record_cambiati": changed, "cambi": changes, "ulteriori_differenze": other,
+                    "nota": "le ulteriori differenze (visualizzato o risposta di lettura diversi dalla regola) si "
+                            "documentano senza correggerle"},
+                "conteggi": mm.summarize(recs), "records": {"file": "records.jsonl.gz", "sha256": data_sha,
+                                                             "righe": n_lines},
+                "derivati": derived, "secondi_costruzione": round(time.time() - t0, 1), "rss_max_mib": um.rss_mib()}
+        write_new_json(args.new / "manifest.json", meta)
+        del recs
+        gc.collect()
+        result = verify_correction(pool, args.new, args.manifest, parent_sha)
+    finally:
+        pool.terminate()
+    result.update({"job_id": os.environ.get("SLURM_JOB_ID"), "codice": code_identity(),
+                   "secondi_totali": round(time.time() - t0, 1), "rss_max_mib": um.rss_mib()})
+    args.report.mkdir(parents=True, exist_ok=True)
+    write_new_json(args.report / "verifica.json", result)
+    summary = {"schema": "limite-vl-manifest-riepilogo/1", "manifest": um.rel(args.new), "nome": meta["nome"],
+               "versione": args.version, "job_id": os.environ.get("SLURM_JOB_ID"),
+               "manifest_sha256": sha256_file(args.new / "manifest.json"), "records_sha256": data_sha,
+               "righe": n_lines, "precedente": meta["precedente"],
+               "correzione_rappresentazione": meta["correzione_rappresentazione"],
+               "confronto_col_genitore": result["confronto"], "valori": result["valori"],
+               "controlli": [{k: x[k] for k in ("controllo", "esito")} for x in result["controlli"]],
+               "esito_verifica": result["esito"],
+               "nota": "versione derivata per un metadato: nessuna QA, immagine, decontaminazione o decisione rigenerata; "
+                       "nessuna config la usa"}
+    args.summary.parent.mkdir(parents=True, exist_ok=True)
+    write_new_json(args.summary, summary)
+    print(json.dumps({"righe": n_lines, "cambi": len(changes), "record_cambiati": changed,
+                      "ulteriori_differenze": len(other), "verifica": f"{result['superati']}/{result['totale']}",
+                      "secondi": result["secondi_totali"], "rss_max_mib": result["rss_max_mib"]}, ensure_ascii=False))
+    if not result["esito"]:
+        raise Failed("verifica della versione nuova fallita: vedi " + str(args.report / "verifica.json"))
+    return 0
+
+
+def verify_correction(pool, child_dir: Path, parent_dir: Path, parent_sha: str) -> dict:
+    """Verifica della versione corretta contro il genitore: manifest.json diverso solo nei metadati di versione,
+    provenienza e conteggio; stessi record negli stessi shard; per ogni record nessuna differenza, oppure soltanto la
+    rappresentazione registrata come cambio (stessi esatti, visualizzati, risposte, QA, digest, gruppi, split, stati,
+    motivi ed evidenze pregresse) con l'evidenza della correzione; ogni cambio voluto dalla regola corretta; file
+    derivati uguali; poi i valori del figlio contro i JSON originali (values_against_source)."""
+    import panel_decontam as pd
+
+    checks = []
+
+    def ok(name, cond, detail=None):
+        checks.append({"controllo": name, "esito": bool(cond), "dettaglio": detail})
+
+    parent, child = mf.load(parent_dir), mf.load(child_dir)
+    pm, cm = parent.meta, child.meta
+    ok("genitore con lo sha256 atteso", parent.manifest_sha256 == parent_sha, parent.manifest_sha256)
+    ok("precedente e split.ereditato_da indicano il genitore",
+       cm["precedente"]["manifest_sha256"] == parent_sha == cm["split"]["ereditato_da"]["manifest_sha256"]
+       and cm["precedente"]["records_sha256"] == pm["records"]["sha256"])
+    differ = sorted(k for k in set(pm) | set(cm) if pm.get(k) != cm.get(k))
+    split_differ = sorted(k for k in set(pm["split"]) | set(cm["split"]) if pm["split"].get(k) != cm["split"].get(k))
+    unexpected_meta = [k for k in differ if k not in META_ALLOWED] + [f"split/{k}" for k in split_differ
+                                                                       if k not in SPLIT_ALLOWED]
+    ok("manifest.json diverso dal genitore solo nei metadati di versione, provenienza e conteggio", not unexpected_meta,
+       {"chiavi_diverse": differ, "split": split_differ, "inattese": unexpected_meta})
+    ok("conteggi uguali al genitore", cm["conteggi"] == pm["conteggi"])
+    fix = cm.get("correzione_rappresentazione") or {}
+    expected = {(c["record"], c["elemento"]): c for c in fix.get("cambi") or []}
+    P = {(s, k): r for s, rows in parent.by_shard.items() for k, r in rows.items()}
+    C = {(s, k): r for s, rows in child.by_shard.items() for k, r in rows.items()}
+    ok("stessi record negli stessi shard", set(P) == set(C), (len(P), len(C)))
+    identical, changed, unexpected, applied = 0, 0, [], set()
+    fields_changed = Counter()
+    for key in sorted(set(P) & set(C)):
+        p, r = P[key], C[key]
+        fields = sorted(f for f in set(p) | set(r) if p.get(f) != r.get(f))
+        if not fields:
+            identical += 1
+            continue
+        changed += 1
+        fields_changed.update(fields)
+        bad = [f for f in fields if f not in ("valori", "evidenze")]
+        pv, rv = p.get("valori") or [], r.get("valori") or []
+        if [v.get("elemento") for v in pv] != [v.get("elemento") for v in rv]:
+            bad.append("valori/elementi")
+        else:
+            for a, b in zip(pv, rv):
+                for f in sorted(set(a) | set(b)):
+                    if a.get(f) == b.get(f):
+                        continue
+                    c = expected.get((r["record"], a.get("elemento")))
+                    if f == "rappresentazione" and c and c["prima"] == a.get(f) and c["dopo"] == b.get(f):
+                        applied.add((r["record"], a.get("elemento")))
+                    else:
+                        bad.append(f"valori/{a.get('elemento')}/{f}")
+        ev_ok = r.get("evidenze", [])[:-1] == p.get("evidenze") and (r.get("evidenze") or [{}])[-1].get(
+            "controllo") == FIX_CHECK
+        if "valori" not in fields or "evidenze" not in fields or not ev_ok:
+            bad.append("evidenze: serve l'evidenza della correzione dopo quelle del genitore, e solo con un cambio")
+        if bad:
+            unexpected.append({"record": r["record"], "differenze": bad})
+    ok("record: nessuna differenza oltre la rappresentazione corretta e l'evidenza della correzione (stessi gruppi, "
+       "split, stati, motivi, evidenze pregresse, esatti, visualizzati, risposte di lettura, QA e digest, compiti ed "
+       "esiti di shape_type)", not unexpected,
+       {"record_identici": identical, "record_cambiati": changed, "campi_cambiati": dict(fields_changed),
+        "inattese": unexpected[:20]})
+    ok("cambi applicati uguali a quelli registrati in manifest.json", applied == set(expected),
+       {"registrati": len(expected), "applicati": len(applied)})
+    ok("ogni cambio registrato è voluto dalla regola corretta (rappresentazione della scrittura)",
+       all(c9.representation(c["esatto"]) == c["dopo"] != c["prima"] for c in expected.values()),
+       [{k: c[k] for k in ("record", "elemento", "prima", "dopo", "esatto")} for c in expected.values()][:20])
+    by_record = {r["record"]: r for r in C.values()}
+    still = []
+    for d in fix.get("ulteriori_differenze") or []:
+        v = next((v for v in (by_record.get(d["record"]) or {}).get("valori", []) if v.get("elemento") == d["elemento"]),
+                 None)
+        if v is None or v.get(d["campo"]) != d["registrato"]:
+            still.append(d)
+    ok("ulteriori differenze della regola documentate e lasciate come nel genitore", not still,
+       {"documentate": len(fix.get("ulteriori_differenze") or []), "modificate": still[:5]})
+    recs = list(C.values())
+    keys_now = {f"keys/{n}": mf.sha256_text("".join(x + "\n" for x in sorted(ks)))
+                for n, ks in pd.derived_keys("mavis", recs).items()}
+    ok("file derivati (keys/) ricalcolati dai record e uguali a quelli del genitore",
+       all(keys_now[k] == cm["derivati"][k]["sha256"] == pm["derivati"][k]["sha256"] for k in keys_now))
+    values = values_against_source(pool, child, ok)
     passed = sum(x["esito"] for x in checks)
-    return {"schema": "mavis-c9-verifica/2", "manifest": um.rel(child_dir), "genitore": um.rel(parent_dir),
-            "ingressi": inputs, "valori": values, "controlli": checks, "superati": passed, "totale": len(checks),
+    return {"schema": "mavis-c9-verifica-correzione/1", "manifest": um.rel(child_dir), "genitore": um.rel(parent_dir),
+            "ingressi": inputs_of(child, child_dir, parent, parent_dir, None),
+            "confronto": {"record_identici": identical, "record_cambiati": changed,
+                          "campi_cambiati": dict(fields_changed), "differenze_inattese": len(unexpected),
+                          "chiavi_di_manifest_json_diverse": differ},
+            "valori": values, "controlli": checks, "superati": passed, "totale": len(checks),
             "esito": passed == len(checks)}
 
 
@@ -949,6 +1202,14 @@ def parser() -> argparse.ArgumentParser:
     p.add_argument("--new-sha256", required=True)
     p.add_argument("--shards", required=True, help="glob degli shard; si legge il primo in ordine di nome")
     p.add_argument("--out", type=Path, required=True)
+    p = sub.add_parser("correzione")
+    p.add_argument("--manifest", type=Path, required=True, help="genitore C9 (mavis-geometry-candidato-4)")
+    p.add_argument("--manifest-sha256", required=True)
+    p.add_argument("--new", type=Path, required=True, help="cartella nuova della versione corretta")
+    p.add_argument("--report", type=Path, required=True, help="cartella nuova della verifica")
+    p.add_argument("--summary", type=Path, required=True)
+    p.add_argument("--version", required=True)
+    p.add_argument("--workers", type=int, default=4)
     return ap
 
 
@@ -958,7 +1219,7 @@ def main() -> None:
     args = parser().parse_args()
     try:
         sys.exit({"sonda": cmd_sonda, "costruzione": cmd_costruzione, "verifica": cmd_verifica,
-                  "lettore": cmd_lettore}[args.cmd](args))
+                  "lettore": cmd_lettore, "correzione": cmd_correzione}[args.cmd](args))
     except Failed as exc:
         print(f"ERRORE: {exc}", file=sys.stderr)
         sys.exit(1)

@@ -90,16 +90,18 @@ def parse_exact(value: str) -> Exact | None:
 
 
 def representation(value: str) -> str:
-    """Come la regola del renderer scrive l'esatto: intero, decimale_esatto (3/2 -> 1.5), decimale_arrotondato
-    (44/3 -> 14.67, non uguale all'esatto), radice (forma simbolica esatta) o non_analizzabile."""
+    """Come la regola del renderer scrive l'esatto, cioè la scrittura prevista e non il valore: radice (forma simbolica
+    esatta, anche quando il valore è razionale: √841 = 29 resta scritto \\sqrt{841}), intero, decimale_esatto (3/2 ->
+    1.5), decimale_arrotondato (44/3 -> 14.67, non uguale all'esatto) o non_analizzabile. Il valore matematico usato
+    nei confronti resta quello di parse_exact (29 per √841)."""
     x = parse_exact(value)
     if x is None:
         return "non_analizzabile"
-    if not x.rational:
+    shown = latex_value(value)
+    if not x.rational or "\\sqrt" in shown:  # la scrittura ha una radice, qualunque sia il valore
         return "radice"
     if x.coef.denominator == 1:
         return "intero"
-    shown = latex_value(value)
     return "decimale_esatto" if _RAT.fullmatch(shown) and Fraction(shown) == x.coef else "decimale_arrotondato"
 
 

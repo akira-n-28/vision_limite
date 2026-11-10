@@ -130,6 +130,33 @@ def test_values() -> None:
           "AD = 14.67" in describe("d0-44", truth)[1])
 
 
+def test_representation() -> None:
+    """La rappresentazione descrive la scrittura prevista dal renderer; il valore matematico dei confronti resta."""
+    cases = {"√841": "radice", "√16": "radice", "3√4/2": "radice", "√2": "radice", "10√3/3": "radice",
+             "42": "intero", "3/2": "decimale_esatto", "44/3": "decimale_arrotondato"}
+    got = {v: c9.representation(v) for v in cases}
+    check("rappresentazione = scrittura: radici di quadrati perfetti (√841, √16, 3√4/2) e radici non razionali sono "
+          "radice; 42 intero; 3/2 decimale esatto; 44/3 decimale arrotondato", got == cases, got)
+    r = c9.value_record("√841")
+    check("√841: valore matematico 29 nei confronti; esatto, visualizzato e target di lettura invariati",
+          c9.parse_exact("√841") == c9.Exact(Fraction(29), 1) and c9.shown_of("√841").exact
+          and c9.shown_of("√841").point == c9.Exact(Fraction(29), 1)
+          and r == {"esatto": "√841", "visualizzato_previsto": "\\sqrt{841}", "rappresentazione": "radice",
+                    "risposta_lettura": "\\sqrt{841}"}
+          and c9.provably_equal(c9.shown_of("√841"), c9.shown_of("29")), r)
+    check("√16 e 3√4/2: valori 4 e 3, scritte \\sqrt{16} e 3\\sqrt{4}/2",
+          c9.parse_exact("√16") == c9.Exact(Fraction(4), 1) and c9.parse_exact("3√4/2") == c9.Exact(Fraction(3), 1)
+          and c9.value_record("√16")["visualizzato_previsto"] == "\\sqrt{16}"
+          and c9.value_record("3√4/2")["visualizzato_previsto"] == "3\\sqrt{4}/2")
+    a = outcome(quad("rectangle", {"AB": "√841", "DA": "29"}, {"A": "90"}))
+    b = outcome(quad("rectangle", {"AB": "29", "DA": "29"}, {"A": "90"}))
+    c = outcome(quad("rectangle", {"AB": "3", "DA": "√841"}, {"A": "90"}))
+    check("decisioni sul valore matematico, invariate: √841 x 29 è un quadrato come 29 x 29 (omessa); 3 x √841 è un "
+          "rettangolo con rombo e quadrato confutati", a["esito"] == b["esito"] == "omessa"
+          and a["motivo"] == b["motivo"] == "piu_opzioni_vere" and recovered(c, "rectangle", ["rhombus", "square"]),
+          (a, b, c))
+
+
 # ---------------------------------------------------------------- shape_type: casi con aspettative scritte a mano
 
 def recovered(o, answer, refuted=None) -> bool:
@@ -477,6 +504,9 @@ def test_pipeline(tmp: Path) -> None:
     s = tm.spec()
     cap, gen = REAL["d0-13996"]  # AD = 3/2 (decimale esatto); la copia con 44/3 dà un decimale arrotondato
     s["shards"][1][1].append(tm.sample("d0-97044", cap.replace("3/2", "44/3"), gen.replace("3/2", "44/3"), tm.png(77)))
+    cap, gen = REAL["d0-9323"]  # AD = √841 (= 29): scrittura con radice, valore intero
+    s["shards"][1][1].append(tm.sample("d0-97841", cap.replace("AD measures 5 units", "AD measures √(841) units"),
+                                       gen.replace("ad measures 5 units", "ad measures √(841) units"), tm.png(78)))
     fargs = tm.write_fixture(tmp, s)
     mm.run(fargs)
     parent, parent_sha = fargs.out, sha256_file(fargs.out / "manifest.json")
@@ -548,6 +578,11 @@ def test_pipeline(tmp: Path) -> None:
         check(f"verifica: trova l'alterazione ({name})", not res["esito"],
               [c["controllo"] for c in res["controlli"] if not c["esito"]])
     test_values_against_source(tmp, args, parent, parent_sha, ver, C)
+    check("costruzione col codice corretto: √841 di d0-97841 registrato come radice, valore e target invariati",
+          entry(C["d0-97841"]["valori"], "side:AD") == {"elemento": "side:AD", "esatto": "√841",
+                                                       "visualizzato_previsto": "\\sqrt{841}",
+                                                       "rappresentazione": "radice", "risposta_lettura": "\\sqrt{841}"})
+    test_correction(tmp, args, C)
     try:
         job.cmd_costruzione(argparse.Namespace(**{**vars(args), "manifest": args.new,
                                                   "manifest_sha256": sha256_file(args.new / "manifest.json"),
@@ -588,8 +623,90 @@ def test_pipeline(tmp: Path) -> None:
           (len(got["c9"]), len(got["c7"]), bad[:5]))
 
 
+def record_of(folder: Path, key: str) -> dict:
+    return next(r for rows in mf.load(folder).by_shard.values() for k, r in rows.items() if k == key)
+
+
+def test_correction(tmp: Path, args, C: dict) -> None:
+    """Versione corretta derivata da un genitore C9 con l'etichetta storica di √841 ('intero'): un solo cambio, record
+    senza cambi byte per byte uguali; una differenza ulteriore si documenta senza correggerla; una differenza non
+    prevista nel figlio è trovata dal confronto."""
+    from multiprocessing import Pool
+
+    key = "d0-97841"
+
+    def old_label(r):
+        if r["record"] == key:
+            entry(r["valori"], "side:AD").update(rappresentazione="intero")
+
+    old = rewrite(args.new, tmp / "c9-etichetta-storica", old_label)
+    old_sha = sha256_file(old / "manifest.json")
+
+    def run(parent, name):
+        a = argparse.Namespace(manifest=parent, manifest_sha256=sha256_file(parent / "manifest.json"),
+                               new=tmp / name, report=tmp / f"{name}-verifica", summary=tmp / f"{name}.json",
+                               version="3", workers=2)
+        try:
+            code = job.cmd_correzione(a)
+        except job.Failed as exc:
+            code = str(exc)
+        ver = json.loads((a.report / "verifica.json").read_text()) if (a.report / "verifica.json").exists() else {}
+        meta = json.loads((a.new / "manifest.json").read_text()) if (a.new / "manifest.json").exists() else {}
+        return a, code, ver, meta
+
+    a, code, ver, meta = run(old, "c9-corretta")
+    fix = meta.get("correzione_rappresentazione") or {}
+    check("correzione: versione derivata scritta e verificata, un solo cambio (d0-97841 side:AD intero -> radice), "
+          "nessuna ulteriore differenza", code == 0 and ver.get("esito")
+          and [(c["record"], c["elemento"], c["prima"], c["dopo"]) for c in fix.get("cambi", [])]
+          == [(key, "side:AD", "intero", "radice")] and fix.get("ulteriori_differenze") == []
+          and ver["confronto"]["record_cambiati"] == 1 and not ver["valori"]["discrepanze"]
+          and ver["valori"]["incoerenze"] == 0, (code, [c for c in ver.get("controlli", []) if not c["esito"]]))
+    old_lines = gzip.decompress((old / "records.jsonl.gz").read_bytes()).decode("utf-8").splitlines()
+    new_lines = gzip.decompress((a.new / "records.jsonl.gz").read_bytes()).decode("utf-8").splitlines()
+    diff = [i for i, (x, y) in enumerate(zip(old_lines, new_lines)) if x != y]
+    changed = json.loads(new_lines[diff[0]]) if len(diff) == 1 else {}
+    before = json.loads(old_lines[diff[0]]) if len(diff) == 1 else {}
+    check("correzione: record senza cambi byte per byte uguali; nel record cambiato solo la rappresentazione e "
+          "l'evidenza della correzione (stessi esatto, visualizzato, risposta, QA, compiti, stato e gruppo)",
+          len(old_lines) == len(new_lines) and len(diff) == 1 and changed.get("record") == key
+          and entry(changed["valori"], "side:AD") == {**entry(before["valori"], "side:AD"), "rappresentazione": "radice"}
+          and all(changed[f] == before[f] for f in ("qa", "compiti", "stato", "gruppo", "split", "motivo",
+                                                    "shape_type_c9"))
+          and changed["evidenze"][:-1] == before["evidenze"] and changed["evidenze"][-1]["controllo"] == job.FIX_CHECK
+          and entry(changed["valori"], "side:AD") == entry(C[key]["valori"], "side:AD"), diff)
+
+    def wrong_display(r):
+        if r["record"] == "d0-13996":
+            entry(r["valori"], "side:AD").update(visualizzato_previsto="1.50")
+
+    bad = rewrite(old, tmp / "c9-visualizzato-alterato", wrong_display)
+    _, ncode, nver, nmeta = run(bad, "c9-n")
+    od = (nmeta.get("correzione_rappresentazione") or {}).get("ulteriori_differenze") or []
+    check("correzione: un visualizzato diverso dalla regola si documenta fra le ulteriori differenze, non si "
+          "corregge, e la verifica contro la fonte lo trova",
+          ncode != 0 and any(d["record"] == "d0-13996" and d["campo"] == "visualizzato_previsto"
+                             and d["registrato"] == "1.50" for d in od)
+          and entry(record_of(tmp / "c9-n", "d0-13996")["valori"], "side:AD")["visualizzato_previsto"] == "1.50"
+          and "visualizzato_previsto" in (nver.get("valori") or {}).get("discrepanze", {}), (ncode, od))
+
+    def tamper(r):
+        if r["record"] == "d0-91010":
+            r.update(stato="escluso")
+
+    tampered = rewrite(a.new, tmp / "c9-corretta-alterata", tamper)
+    with Pool(2) as pool:
+        res = job.verify_correction(pool, tampered, old, old_sha)
+    rec_check = next(c for c in res["controlli"] if c["controllo"].startswith("record: nessuna differenza"))
+    check("correzione: una differenza non prevista nel figlio (stato di un record) è trovata dal confronto col genitore",
+          not res["esito"] and not rec_check["esito"]
+          and any(u["record"] == "d0-91010" and "stato" in u["differenze"] for u in rec_check["dettaglio"]["inattese"]),
+          rec_check["dettaglio"])
+
+
 def main() -> int:
     test_values()
+    test_representation()
     emitted = test_shapes()
     test_checker(emitted)
     test_determinism()

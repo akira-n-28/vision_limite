@@ -9,6 +9,11 @@
 #     NOME/report.json, versione nuova data/manifests/mavis-geometry-candidato-VERSIONE derivata da candidato-3, verifica
 #     -> outputs/manifest_check/mavis-geometry-candidato-VERSIONE/verifica.json, riepilogo
 #     docs/manifests/mavis-geometry-candidato-VERSIONE.json
+#   sbatch [--mem 48G] slurm/mavis_c9.sbatch correzione NOME VERSIONE
+#     prima tests/test_mavis_c9.py; poi versione nuova data/manifests/mavis-geometry-candidato-VERSIONE derivata da
+#     candidato-4 con la sola rappresentazione dei valori corretta, confronto sistematico e valori contro i JSON
+#     originali -> outputs/manifest_check/mavis-geometry-candidato-VERSIONE/verifica.json, riepilogo
+#     docs/manifests/mavis-geometry-candidato-VERSIONE.json; candidato-4 e i suoi rapporti non cambiano
 #   sbatch [--mem 48G] slurm/mavis_c9.sbatch verifica NOME VERSIONE SHA256
 #     prima tests/test_mavis_c9.py; poi verifica del candidato C9 già scritto (sha256 dato), coi valori confrontati coi
 #     JSON originali degli shard -> outputs/manifest_check/mavis-geometry-candidato-VERSIONE-NOME/verifica.json, copia
@@ -28,13 +33,13 @@
 
 set -euo pipefail
 : "${SLURM_JOB_ID:?Submit through SLURM}"
-usage() { echo "uso: mavis_c9.sbatch sonda NOME | costruzione NOME VERSIONE | verifica NOME VERSIONE SHA256" \
-  "| lettore NOME VERSIONE SHA256" >&2; exit 2; }
+usage() { echo "uso: mavis_c9.sbatch sonda NOME | costruzione NOME VERSIONE | correzione NOME VERSIONE" \
+  "| verifica NOME VERSIONE SHA256 | lettore NOME VERSIONE SHA256" >&2; exit 2; }
 (( $# >= 2 )) || usage
 MODE=$1 NAME=$2
 case $MODE in
   sonda) (( $# == 2 )) || usage ;;
-  costruzione) (( $# == 3 )) && [[ $3 =~ ^[0-9]+$ ]] || usage ;;
+  costruzione|correzione) (( $# == 3 )) && [[ $3 =~ ^[0-9]+$ ]] || usage ;;
   verifica|lettore) (( $# == 4 )) && [[ $3 =~ ^[0-9]+$ && $4 =~ ^[0-9a-f]{64}$ ]] || usage ;;
   *) usage ;;
 esac
@@ -84,6 +89,24 @@ case $MODE in
       ledger_note ok "mavis_c9 costruzione $NAME: scansione -> $OUT/report.json, manifest -> $NEW, verifica -> $CHECK/verifica.json, riepilogo -> $SUMMARY ($(( $(date +%s) - t0 )) s)"
     else
       ledger_note failed "mavis_c9 costruzione $NAME: vedi il log"; exit 1
+    fi ;;
+  correzione)
+    VERSION=$3
+    PARENT="$DATA_ROOT/manifests/mavis-geometry-candidato-4"
+    PARENT_SHA256=77e1849e0e09089dea592be577921259675e6cd51ed99a174cbf6a1744f14fa9  # job 30776
+    NEW="$DATA_ROOT/manifests/mavis-geometry-candidato-$VERSION"
+    CHECK="$OUTPUT_ROOT/manifest_check/mavis-geometry-candidato-$VERSION"
+    SUMMARY="docs/manifests/mavis-geometry-candidato-$VERSION.json"
+    for p in "$NEW" "$CHECK" "$SUMMARY"; do [[ ! -e $p ]] || { echo "$p esiste già" >&2; exit 1; }; done
+    test -s "$PARENT/manifest.json" || { echo "manca $PARENT/manifest.json" >&2; exit 1; }
+    if ! srun "$RUN_PYTHON" -B tests/test_mavis_c9.py; then
+      ledger_note failed "mavis_c9 correzione $NAME: tests/test_mavis_c9.py fallito, nessuna lettura"; exit 1
+    fi
+    if srun "$RUN_PYTHON" -u -B scripts/mavis_c9.py correzione --manifest "$PARENT" --manifest-sha256 "$PARENT_SHA256" \
+        --new "$NEW" --report "$CHECK" --summary "$SUMMARY" --version "$VERSION" --workers "${SLURM_CPUS_PER_TASK:-4}"; then
+      ledger_note ok "mavis_c9 correzione $NAME: manifest -> $NEW, verifica -> $CHECK/verifica.json, riepilogo -> $SUMMARY ($(( $(date +%s) - t0 )) s)"
+    else
+      ledger_note failed "mavis_c9 correzione $NAME: vedi il log e $CHECK/verifica.json"; exit 1
     fi ;;
   verifica)
     VERSION=$3 NEW_SHA256=$4
