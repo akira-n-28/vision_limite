@@ -1,6 +1,6 @@
 # Piano di implementazione F0
 
-Stato al 2026-11-10, [pipeline v1.5](../PIPELINE_ADDESTRAMENTO_LIMITE_VL.md) (§§3, 5, 6, 17). Il confronto è fra il
+Stato al 2026-11-11, [pipeline v1.5](../PIPELINE_ADDESTRAMENTO_LIMITE_VL.md) (§§3, 5, 6, 17). Il confronto è fra il
 codice del repository sul cluster e i requisiti della pipeline.
 
 **Stato attuale degli interventi (§3):**
@@ -29,6 +29,15 @@ codice del repository sul cluster e i requisiti della pipeline.
   (`mavis-geometry-candidato-5`, job 30785: un solo cambio, verifica 13 su 13), anch'essa non usata. Il pacchetto
   `revisioni/mavis-c9-campione-1` (job 30787-30788) prepara la revisione visiva mirata di 80 schede diagnostiche, da
   fare dall'utente.
+- **PixMo-Cap, preparazione deterministica** (2026-11-11, job 30810-30813, `scripts/pixmo_inventory.py`; dettagli in
+  `docs/F0_CAMPIONE_CANDIDATO.md` §7):
+  - inventario tecnico delle 235.897 righe locali (25 parquet su 75), con il collegamento originale → shard verificato
+    e la trasformazione dello sharding riprodotta byte per byte;
+  - `pixmo_check/run4` riprodotto riga per riga;
+  - decontaminazione contro `pannello-v3`: 0 pixel identici, 248 candidati;
+  - probabili segnaposto fra i duplicati (297 righe con lo stesso file di imgur, 146 con quello di eBay).
+
+  Nessun manifest, nessuna lista per i loader: le proposte di trattamento aspettano l'utente.
 - **C3, C4, C6:** non iniziati.
 - **Pannello di valutazione (punto 7):** benchmark scaricati e verificati (job 30463). Indice, gruppi e ruoli sono
   fissati in `pannello-v3` (job 30469), prima di qualsiasi valutazione del modello, e descritti in
@@ -144,7 +153,7 @@ di mutazione per famiglia. Poi un job CPU che costruisce i record su tutti gli s
 | Rietichettature tracciate | da collaudare | `stream.py:79-97` (`apply_relabel`, solo se l'etichetta coincide); `unimer_check/run4/relabel.jsonl` |
 | Liste obbligatorie e provenienza | verificato per la bozza F1-clean | `data_lists.py`; job 30051 |
 | Deduplicazione trasversale fra sorgenti | mancante | `scripts/split_duplicates.py` lavora per sorgente e usa target identici; `decontam.py` normalizza il testo togliendo simboli: segnali, non prove |
-| Esclusioni storiche come evidenze riesaminabili | in parte: `unimer_check/run4` e `unimer_overlap/run2` importate, risolte e ricalcolate nel manifest candidato di UniMER (2026-11-05, job 30625; `split_duplicates/run1` solo come controllo incrociato); mancanti le altre | liste in `data/decontam/p6`, `data/decontam/f1eval`, `data/decontam/text/replay`, `outputs/unimer_check/run4`, `outputs/unimer_overlap/run2`, `outputs/split_duplicates/run1`, `outputs/pixmo_check/run4` (riferite dalla bozza archiviata `f1-clean.json`) |
+| Esclusioni storiche come evidenze riesaminabili | in parte: `unimer_check/run4` e `unimer_overlap/run2` importate, risolte e ricalcolate nel manifest candidato di UniMER (2026-11-05, job 30625; `split_duplicates/run1` solo come controllo incrociato); `pixmo_check/run4` collegato alle righe correnti e riprodotto riga per riga, liste p6 e f1eval di PixMo risolte per chiave e confrontate (2026-11-11, job 30813, `docs/F0_CAMPIONE_CANDIDATO.md` §7.3); mancanti le altre | liste in `data/decontam/p6`, `data/decontam/f1eval`, `data/decontam/text/replay`, `outputs/unimer_check/run4`, `outputs/unimer_overlap/run2`, `outputs/split_duplicates/run1`, `outputs/pixmo_check/run4` (riferite dalla bozza archiviata `f1-clean.json`) |
 | Contabilità per sorgente di esempi consumati, target-token, ripetizioni, scarti dopo l'ammissione | parziale | `stream.py` conta errori, errori del manifest ed esempi caricati per sorgente, e i reader contano letti, saltati e consegnati (`630d00a`); `collator.py` conta `too_long` solo in totale; nessun conteggio per compito né di target-token nel flusso (i conteggi per compito sono nel controllo `manifest_check.py`) |
 
 **Intervento minimo.** (a) Indice globale costruito dall'inventario fissato (`docs/ARTIFACT_INVENTORY.tsv`): ID e
@@ -233,7 +242,7 @@ continua. CPU: partizione dei gruppi senza sovrapposizioni.
 | Trascrizione di formule su UniMER-Test | dati presenti; valutatore da collaudare | shard spe, cpe, sce e hwe (hwe = manoscritto) in `data/shards/unimer/2343ddd9/test/`; `scripts/eval_f1_formulas.py` usa spe e cpe di default, gli altri con `--subsets`; esiti storici in `outputs/eval_f1_formulas` |
 | Immagine vera, bianca, assente | presente | `data.build_example(image_mode=…)` (`data.py:343-361`), `scripts/eval_f1_val.py` |
 | Benchmark visivi (MathVista, MathVerse, MathVision, We-Math, DynaMath, Geoperception, VisOnlyQA, OlympiadBench, OCRBench, DocVQA val, ChartQA, MUIRBench, MV-MATH, MMStar) | dati presenti e indicizzati; valutatore mancante | snapshot in `hf/hub`; indice `data/decontam/pannello-v3` con sha256 dei pixel nella convenzione dichiarata e una voce per immagine, verificato voce per voce, gruppi e ruoli in `data/panel/pannello-v3` (job 30469); nessun valutatore del modello VL |
-| Dati presenti per i pannelli percettivi | presenti, da selezionare | scene reali: PixMo-Cap (25 parquet su 75) e LLaVA-Pretrain; manoscritto (non richiesto dalla v1.5): UniMER-Test hwe solo diagnostica e le formule CROHME nel training di UniMER (meno dell'1%, non separabili per indice, restano); grafici e tabelle per il training: nessuna sorgente scaricata (`docs/F0_CAMPIONE_CANDIDATO.md`) |
+| Dati presenti per i pannelli percettivi | presenti, da selezionare | scene reali: PixMo-Cap (25 parquet su 75, 235.897 righe con inventario e decontaminazione del 2026-11-11, `docs/F0_CAMPIONE_CANDIDATO.md` §7) e LLaVA-Pretrain; manoscritto (non richiesto dalla v1.5): UniMER-Test hwe solo diagnostica e le formule CROHME nel training di UniMER (meno dell'1%, non separabili per indice, restano); grafici e tabelle per il training: nessuna sorgente scaricata (`docs/F0_CAMPIONE_CANDIDATO.md`) |
 | Dati mancanti | pannello scaricato e verificato (job 30463, [`docs/PANNELLO_VALUTAZIONE.md`](PANNELLO_VALUTAZIONE.md)); training mancante | per il training: grafici e tabelle, OCR e documenti a pagina singola, poche immagini (proposte minime in [`docs/F0_CAMPIONE_CANDIDATO.md`](F0_CAMPIONE_CANDIDATO.md)); documenti a più pagine e manoscritto rimandati (v1.5) |
 | Valutatori mancanti | mancante | nessun valutatore del modello VL per i benchmark visivi, per più immagini o per i documenti; per le formule c'è solo `eval_f1_formulas.py` |
 | Controfattuali e varianti raggruppate | raggruppate nel pannello; confronti appaiati mancanti | coppie controfattuali dei sintetici in `data/shards/synth/v4/pairs`; varianti di MathVerse, DynaMath e MUIRBench (coppie rispondibile/non rispondibile) nello stesso gruppo in `pannello-v3`, inammissibili insieme; nessun valutatore le appaia ancora |
@@ -267,7 +276,7 @@ Il prossimo lotto minimo, indipendente dalle decisioni aperte, è in `docs/F0_CA
 3. manifest delle ammissioni di UniMER e MAVIS (estensione di C5 e C7), il lotto indicato dall'utente il 2026-11-05:
    fatti tutti e due (`unimer-candidato-1`, job 30624-30625; `mavis-geometry-candidato-1`, job 30626 e 30630). Dal
    2026-11-06 i reader applicano le versioni `unimer-candidato-2` e `mavis-geometry-candidato-3` (C7, job 30686-30688);
-4. scansione delle sorgenti locali contro il pannello.
+4. scansione delle sorgenti locali contro il pannello: UniMER e MAVIS il 2026-11-06, PixMo il 2026-11-11 (job 30812-30813); resta LLaVA.
 
 C3 e C4 seguono D3.
 
@@ -360,6 +369,9 @@ LLaVA** | `stream.py`, `collator.py`, `data_lists.py`, `data.py`, `manifest.py` 
 | 30785 (2026-11-10) | `slurm/mavis_c9.sbatch correzione corr-1 5` (4 CPU, 48G): test, derivazione di candidato-5 da candidato-4 e verifica | 3 min 46 s, RSS massima 13,0 GiB. Un solo cambio (`d3-44919` `side:EH` `intero` → `radice`), nessuna ulteriore differenza; 199.049 record byte per byte uguali; valori contro i JSON originali senza discrepanze né incoerenze; verifica 13 su 13 (`manifest.json` `314a0a52…`) | che la versione nuova differisce dal genitore solo per la rappresentazione corretta e i metadati di versione; proprietà delle annotazioni, non dei pixel |
 | 30787 (2026-11-10) | `slurm/mavis_review_package.sbatch costruzione` (2 CPU, 32G): test, selezione e pacchetto `revisioni/mavis-c9-campione-1`, verifica statica, JavaScript con Duktape | 2 min 58 s. Test 24 su 24; 80 schede, nessun deficit, 80 `caption.jpg` originali con gli sha256 della scansione; verifica statica 27 su 27; Duktape senza DOM 48 superati e 1 saltato, DOM simulato 68 e 1 saltato (immagini) | che selezione, schede e immagini sono riproducibili dal manifest e dagli shard e che il primo passaggio non contiene soluzioni. Due righe dell'autotest stampavano l'id della scheda di prova: corrette, firme rifatte nel 30788 |
 | 30788 (2026-11-10) | `slurm/mavis_review_package.sbatch firme` dopo la correzione di `test.js` | 1 min 38 s. SHA256SUMS di 93 file, dati e immagini invariati; verifica statica 27 su 27; Duktape senza DOM 48 superati e 1 saltato, DOM simulato 69 e 1 saltato (immagini), compreso il secondo passaggio di tutte le 80 schede | che l'autotest non nomina più la scheda di prova e che il secondo passaggio si costruisce per ogni scheda. Non è una prova in un browser |
+| 30810-30811 (2026-11-11) | `slurm/tests_cpu.sbatch tests/test_pixmo_inventory.py tests/test_transcripts.py` (4 CPU, 8G) | 30810: 48 su 49, un errore del test stesso (la manomissione di run4 non cambiava il valore); 30811: 49 su 49, circa 2 min; `test_transcripts` superato | su fixture con parquet in stile Hugging Face, shard veri di `shard_parquet.py` e run4 vero: collegamento e scarti, identità dei pixel sull'originale e sullo shard, copia ricodificata e pHash candidati, testo in comune anche in 27 righe, segnale che resta segnale, manomissioni di shard, run4 e liste storiche, ingressi mancanti |
+| 30812 (2026-11-11) | `slurm/pixmo_inventory.sbatch sonda sonda-1` (8 CPU, 48G): test, primo parquet e primo shard, verifica parziale | 5 min 6 s; verifica 32 su 32. 9.436 righe in 107 s, RSS massima 7,2 GiB, 10 GB di parquet letti (sha256 in parallelo, attesa nulla); 9.436 JPEG rifatti con gli stessi byte; 14 candidati | il preventivo della scansione completa: 25 × 107 s ≈ 45 min, dentro il tetto del lotto (8 CPU, 48G, 2 ore) |
+| 30813 (2026-11-11) | `slurm/pixmo_inventory.sbatch completo completo-1` (8 CPU, 48G) | 48 min (scansione 45 min 26 s); verifica 36 su 36. 235.897 righe, 235.896 record collegati, un solo difetto (immagine illeggibile, già scartata); 235.896 JPEG rifatti con gli stessi byte; run4 riprodotto riga per riga; 0 pixel identici al pannello, 248 candidati (226 pHash, 22 testo); probabili segnaposto fra i duplicati per byte (297 righe imgur, 146 eBay). `docs/F0_CAMPIONE_CANDIDATO.md` §7, `docs/inventari/pixmo-cap-completo-1.json` | che il sottoinsieme locale è integro e collegato riga per riga agli shard, e quali corrispondenze col pannello trovano i controlli dichiarati. Non certifica le didascalie né l'assenza di contaminazione; nessun manifest |
 
 Calcoli di sola libreria standard sul frontend, il 2026-10-28, a supporto delle specifiche (non sono collaudi):
 - riproduzione delle domande di synth v3 dalle chiavi, con istogrammi identici al manifest del job 29756;
@@ -705,7 +717,7 @@ un job CPU (CLAUDE.md).
 | Encoder (punto 5) | Refactoring SigLIP2 identico; parità dell'encoder B col percorso nativo; rami disattivati uguali al riferimento | GPU 1 ora ciascuno | (a) dopo l'ok; (b) dopo D1 |
 | ViT addestrabile (punto 6) | Gradienti, variazione dei pesi, salvataggio, ripresa | GPU 64G 1 ora | dopo il punto 5 (a) |
 | Valutatore visivo (punto 7) | Correttezza del codice di valutazione | GPU ≤ 2 ore | dopo C4 |
-| Pannello e campione (punto 7; D6) | Eseguiti: download e verifica (job 30463), inventario (job 30464), indice, gruppi e ruoli `pannello-v2` (job 30466), collaudi e `pannello-v3` (job 30468-30469). Il 2026-11-02 il confronto fra versioni usa `metrica_primaria` (job 30517), e v4 è decontaminata (job 30518). Da fare, con l'ok dell'utente: i gruppi dei 7 elementi di test con candidati dallo sviluppo sintetico (S2 §2.10), con esito in `pannello-v4`; la verifica visiva dei 743 gruppi inammissibili è facoltativa, perché possono restare esclusi dalla metrica primaria e risolverli tutti non è un prerequisito per avanzare (chiarimento dell'utente del 2026-11-04); decontaminazione contro `pannello-v3` di MMFineReason, PixMo e LLaVA (UniMER e MAVIS fatti nei job 30651-30652, con la verifica a vista dei loro candidati ancora da fare) | CPU, pochi minuti per job; revisione umana per la verifica visiva | dopo l'approvazione di D6 |
+| Pannello e campione (punto 7; D6) | Eseguiti: download e verifica (job 30463), inventario (job 30464), indice, gruppi e ruoli `pannello-v2` (job 30466), collaudi e `pannello-v3` (job 30468-30469). Il 2026-11-02 il confronto fra versioni usa `metrica_primaria` (job 30517), e v4 è decontaminata (job 30518). Da fare, con l'ok dell'utente: i gruppi dei 7 elementi di test con candidati dallo sviluppo sintetico (S2 §2.10), con esito in `pannello-v4`; la verifica visiva dei 743 gruppi inammissibili è facoltativa, perché possono restare esclusi dalla metrica primaria e risolverli tutti non è un prerequisito per avanzare (chiarimento dell'utente del 2026-11-04); decontaminazione contro `pannello-v3` di MMFineReason e LLaVA (UniMER e MAVIS fatti nei job 30651-30652, PixMo nel job 30813, con la verifica a vista dei loro candidati ancora da fare) | CPU, pochi minuti per job; revisione umana per la verifica visiva | dopo l'approvazione di D6 |
 
 ## 5. Fuori dal primo perimetro
 

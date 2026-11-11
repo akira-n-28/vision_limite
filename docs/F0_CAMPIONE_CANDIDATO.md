@@ -1,6 +1,7 @@
 # Campione candidato di F0: selezione riproducibile
 
-**Stato al 2026-11-05.** È una proposta.
+**Stato al 2026-11-11.** È una proposta. PixMo-Cap ha l'inventario tecnico e la decontaminazione contro `pannello-v3`
+(§7, job 30812-30813).
 - Nessuna sorgente è ammessa o gold.
 - Il campione non è ancora caricabile per un pilota: mancano i passi di §5.
 - Avere i file non vuol dire che F0 sia completo.
@@ -52,8 +53,8 @@ capacità senza sorgente locale sono in §4.
 | Geometria, coordinate e grafici di funzioni (sintetici) | `src/limite_vl/synth.py` v4 (`284e8f1`), `data/shards/synth/v4` (job 30447), manifest `synth-v4-candidato-2` (job 30518) | split `train`, stato `ammesso`: 53.997 scene; dev 2.864. Per train e dev il loader costruisce 170.572 QA (coord 45.056, function 35.961, polygon 44.941, shapes 44.614) | calcolata dal codice del generatore e approvata dal checker sul layout (C2) | integrità, riproducibilità, checker su tutti i 60.900 record, gruppi e split, filtro dei loader (job 30447-30451); decontaminazione esterna contro `pannello-v3`: pixel, pHash e domande (job 30518, S2 §2.9) | il checker legge il layout, non i pixel; 367 scene in quarantena, cioè 67 per testi sovrapposti e 300 per i 264 candidati pHash del pannello, propagati al gruppo; audit visivo non fatto, campione preparato (S2 §2.10) | `variant_id` e contratto (C3, C5); audit e verifica dei candidati (D5) |
 | Geometria (MAVIS-Geometry) | `CaraJ/MAVIS-Geometry@9c80fff3`, `data/shards/mavis-geometry/9c80fff3-caption` (11 tar, job 29419) | 199.050 immagini `caption.jpg`; esclusi `d3-3228` e 552 didascalie duplicate. Manifest candidato `mavis-geometry-candidato-1` (job 30630): tutti i record ammessi come candidati, 9.951 in dev; `shape_type` in quarantena come compito | regole del motore di MAVIS (`diagram_generation`): descrizione canonica e domande costruite dal codice (`f1_schema.py`, `f1_mavis.py`) | andata e ritorno su 199.050 (job 30033, 30052); valori razionali disegnati come decimali (job 30049) | la coerenza fra due descrizioni non prova la fedeltà ai pixel; solo 40 immagini guardate; `shape_type` ambigua, in quarantena; renderer non nostro; stessi autori di MathVerse | C9 (opzioni di `shape_type`, valore visualizzato ed esatto); reader col manifest (C7); controllo visivo campionario (S4); scansione contro le geometrie del pannello |
 | Formule stampate (UniMER-1M) | `wanderkid/UniMER_Dataset@2343ddd9`, `data/shards/unimer/2343ddd9-dense` (5 tar, job 29729; più `lines/` con 30.685 righe ritagliate) | 985.450 formule, meno 51 errori certi (`escluso`) e 1.119 incerti (`quarantena`), di cui 1.116 in 402 gruppi in conflitto. Le 18.827 rietichettature sono tracciate (S2 §4). Manifest candidato `unimer-candidato-1` (job 30625): 983.875 formule ammesse, di cui 49.195 in dev; 1.523 in quarantena e 52 escluse, contando anche le contaminazioni con UniMER-Test; 30.588 righe ritagliate ammesse | LaTeX della sorgente, senza gli spazi del formato im2latex (`latex.despace`); uguaglianza dei token, non equivalenza matematica | `outputs/unimer_check/run4` (job 30047: struttura, rendering, conflitti); sovrapposizioni col test (`outputs/unimer_overlap/run2`) | le formule CROHME manoscritte (meno dell'1%) non si separano per indice: restano (v1.5); un LaTeX compilabile può descrivere un'altra formula | reader col manifest (C7); decontaminazione esterna contro `pannello-v3`; confronto con HME100K di OCRBench |
-| Scene reali, descrizioni dettagliate (PixMo-Cap) | `anthracite-org/pixmo-cap-images@3e42775e`, 25 parquet su 75; `data/shards/pixmo-cap/3e42775e` (25 tar, job 29560) | 235.896 esempi | descrizione riscritta da un modello a partire dalle trascrizioni degli annotatori, che non sono negli shard | `outputs/pixmo_check/run4` (job 30044): segnali di rischio su dettagli assenti dalle trascrizioni, non esclusioni. Righe con almeno un segnale: conteggi 2-12 10.181, colori 8.803, testi citati 3.564 | testo libero senza verità strutturata: è un target controllato, non gold (pipeline §5.7); un terzo del dataset | audit campionario (D5); manifest (C5, C7); scansione contro MMStar e MUIRBench |
-| Scene reali, didascalie brevi (LLaVA-Pretrain), solo complemento | `liuhaotian/LLaVA-Pretrain@70f9d1e5`, `data/shards/llava-pretrain/70f9d1e5` (29 tar, job 29388) | 558.128 esempi | didascalie BLIP generate su immagini di LAION, CC e SBU | nessun controllo di qualità; sha256 degli shard | testo di un modello, spesso generico | come PixMo, se entra nel mix |
+| Scene reali, descrizioni dettagliate (PixMo-Cap) | `anthracite-org/pixmo-cap-images@3e42775e`, 25 parquet su 75 (`train-00000`-`00024`: il prefisso dei file, non un campione casuale); `data/shards/pixmo-cap/3e42775e` (25 tar, job 29560) | 235.897 righe dei parquet locali, il 33,3% dei 707.647 esempi della scheda; 235.896 negli shard (scartata solo `pixmo-00024-007342`, immagine illeggibile) | descrizione riscritta da un modello (Claude, secondo la scheda) dalle trascrizioni degli annotatori di Ai2, che non sono negli shard; immagini riscaricate da anthracite-org dagli URL | inventario e decontaminazione del 2026-11-11 (§7, job 30813): collegamento originale → shard riga per riga, trasformazione dello sharding riprodotta byte per byte, `pixmo_check/run4` riprodotto riga per riga (25.578 righe con segnali: conteggi 2-12 10.181, colori 8.803, testi citati 3.564); nessun pixel identico al pannello, 248 candidati | testo libero senza verità strutturata: target controllato, non gold (pipeline §5.7); probabili segnaposto (297 righe con lo stesso file di `i.imgur.com`, 146 con quello di `i.ebayimg.com`, gruppi minori); 59 immagini con un orientamento EXIF che lo shard non applica | decisioni sulle proposte di §7.7 e verifica a vista di duplicati e candidati; audit campionario (D5); manifest (C5) e reader (C7) |
+| Scene reali, didascalie brevi (LLaVA-Pretrain), solo complemento | `liuhaotian/LLaVA-Pretrain@70f9d1e5`, `data/shards/llava-pretrain/70f9d1e5` (29 tar, job 29388) | 558.128 esempi | didascalie BLIP generate su immagini di LAION, CC e SBU | sha256 degli shard; decontaminazione storica p6 (761 candidati pHash, lista finale vuota); confronto preliminare in §7.8 | testo di un modello, spesso generico; pixel mai decodificati dallo sharding | inventario e decontaminazione come per PixMo (§7.8), se entra nel mix |
 
 **Sorgenti locali fuori dal minimo di F0:**
 - **MMFineReason** (`OpenDataArena/MMFineReason-1.8M@7c93f724`): 1.770.926 righe sft e 39.961 rl. È un bacino per
@@ -114,10 +115,15 @@ per `p10-pannello`.
    - stati, esclusioni e quarantene importate;
    - split di sviluppo per gruppo;
    - contatori per compito e `too_long` per sorgente.
+
+   Per PixMo l'inventario tecnico del 2026-11-11 (§7) ha già identità, collegamenti, digest ed evidenze per riga: il
+   manifest si può costruire da lì, senza rileggere le immagini.
 4. **C9 per MAVIS:** `shape_type` con le opzioni, e valore visualizzato ed esatto nel record.
 5. **Esclusioni storiche come evidenze (C6):** `unimer_check/run4`, `pixmo_check/run4`, `split_duplicates/run1`, liste di
    `p6` e `f1eval`, ciascuna con motivo, versione e stato. `unimer_check/run4` e `unimer_overlap/run2` sono importate e
    ricalcolate nel manifest di UniMER (2026-11-05); `split_duplicates/run1` vi serve solo come controllo incrociato.
+   `pixmo_check/run4` è collegato alle righe correnti e riprodotto riga per riga, e le liste p6 e f1eval di PixMo sono
+   risolte per chiave e confrontate con la scansione nuova (2026-11-11, §7.3).
 6. **Decontaminazione contro `pannello-v3`.**
    - **Fatta per v4** (job 30517-30518, S2 §2.9): nessuna corrispondenza confermata e 264 candidati pHash, in
      quarantena per gruppo nel manifest `synth-v4-candidato-2`.
@@ -125,7 +131,8 @@ per `p10-pannello`.
      `mavis-geometry-candidato-2`: corrispondenze confermate escluse e candidati in quarantena per gruppo, da risolvere.
      Per MAVIS la versione corrente è `mavis-geometry-candidato-3` (job 30676), con le decisioni testuali ricalcolate
      senza la regola di frequenza.
-   - Per PixMo e LLaVA serve ancora una scansione con pixel, pHash e testo, e poi la risoluzione dei candidati.
+   - **Fatta per PixMo** (job 30813, §7.4): nessun pixel identico, 248 candidati da verificare, proposti in quarantena.
+   - Per LLaVA serve ancora una scansione con pixel, pHash e testo, e poi la risoluzione dei candidati.
 7. **Verifica visiva:**
    - l'audit di v4 (S2 §2.8, D5): campione di 380 unità e 175 casi mirati, con i fogli corretti di `campione-2` (S2
      §2.11), revisione non fatta;
@@ -134,6 +141,8 @@ per `p10-pannello`.
      restano fuori dalla metrica primaria, che usa solo il test utilizzabile, e si verificano solo se servono a un
      compito preciso (chiarimento dell'utente del 2026-11-04);
    - campioni di MAVIS (fedeltà ai pixel) e di PixMo (dettagli aggiunti);
+   - per PixMo anche un'immagine per ciascun gruppo di duplicati con didascalie diverse (probabili segnaposto) e i 248
+     candidati della decontaminazione (§7.7);
    - l'osservabilità alla risoluzione scelta.
 8. **Più immagini (punto 4 del piano).** `Sample.images`, loader e riferimenti nel testo servono per MUIRBench, MV-MATH,
    OlympiadBench e per una sorgente di training con più immagini.
@@ -173,7 +182,8 @@ né agenti.
    UniMER e MAVIS fatti il 2026-11-06 (`scripts/panel_decontam.py`, S2 §§3-4), dopo prove limitate (job 30646, 30647,
    30649): pixel sugli originali dello snapshot, sui PNG e sui ritagli; formule contro UniMER-Test e OCRBench; pHash e
    10-gram per MAVIS. Le decisioni testuali di MAVIS sono state rifatte (job 30676, `mavis-geometry-candidato-3`) con
-   regole esplicite al posto della frequenza nella sorgente. Restano PixMo e LLaVA.
+   regole esplicite al posto della frequenza nella sorgente. PixMo fatto il 2026-11-11 (job 30812-30813, §7). Resta
+   LLaVA.
 
 Dopo D3 vengono C3, C4 e le varianti (`variant_id`), poi il punto 4 (più immagini) e il valutatore (punto 7).
 
@@ -186,4 +196,235 @@ Dopo D3 vengono C3, C4 e le varianti (`variant_id`), poi il punto 4 (più immagi
 - D6, approvazione di `pannello-v3`: quote, eventuale stratificazione, regola degli irrisolti;
 - i download di §4;
 - volumi e mix dei piloti;
-- risoluzione e token per immagine.
+- risoluzione e token per immagine;
+- le proposte di trattamento di PixMo (§7.7).
+
+## 7. PixMo-Cap: preparazione deterministica (2026-11-11)
+
+Lotto chiesto dall'utente il 2026-11-11: inventario, collegamento, evidenze storiche e decontaminazione dei dati
+locali di PixMo-Cap, riusando gli strumenti esistenti. Senza modelli, audit con agenti, GPU, download o nuovi pacchetti
+di revisione.
+- **Strumenti** (`afe2b27`): `scripts/pixmo_inventory.py`, che legge ogni parquet e il suo shard una sola volta, il
+  launcher `slurm/pixmo_inventory.sbatch` e `tests/test_pixmo_inventory.py` (49 controlli, job 30811).
+- **Job:** sonda su uno shard (job 30812, 32 controlli su 32), lavoro completo (job 30813, 36 controlli su 36).
+- **Rapporto della verifica:** `docs/inventari/pixmo-cap-completo-1.json`.
+- Nessun record è ammesso, escluso o promosso, e nessuna lista è collegata ai loader.
+
+### 7.1 Inventario verificato e copertura
+
+- **Sorgente.** `anthracite-org/pixmo-cap-images@3e42775eea79dd4874c41379230c7f871b10218e`: è la ripubblicazione di
+  `allenai/pixmo-cap` con le immagini scaricate dagli URL. La scheda dichiara 707.647 esempi in 75 parquet (371,8 GB).
+- **Sottoinsieme locale.** Sono i parquet `train-00000`-`00024` (filtro di `downloads/sources.tsv`):
+  124.853.885.806 byte, con gli sha256 ricalcolati nella scansione uguali ai nomi dei blob e al job 29554. È il prefisso
+  dei file, non un campione casuale.
+- **Righe.** 235.897, cioè il 33,34% degli esempi dichiarati, con 95 gruppi di righe per file.
+- **Shard.** 235.896 record nei 25 tar del job 29560, con sha256, byte e campioni uguali a `shards.jsonl`.
+- **Uscite** (fuori da git):
+  - inventario `outputs/pixmo_inventory/completo-1/inventario/records.jsonl.gz`, una riga per riga dei parquet (120 MB);
+  - scansione `data/decontam/pannello-v3/pixmo-cap/records.jsonl.gz` (55 MB);
+  - verifica `outputs/pixmo_inventory/completo-1/verifica`: rapporto, `duplicati.jsonl.gz` e
+    `proposte_di_trattamento.jsonl.gz`.
+- **Riga dell'inventario.**
+  - Identità: file, riga e gruppo di righe; shard, posizione e membri, oppure il motivo dello scarto; `record_id` di S1
+    §1 (`pixmo-cap`, revisione, chiave).
+  - Immagini: digest dell'originale (byte, pixel e pHash nella convenzione `rgb-su-bianco/1`, dimensioni, formato,
+    modo, orientamento EXIF, fotogrammi) e del JSON e del JPEG dello shard.
+  - Testi: digest della didascalia originale e di quella del loader, delle trascrizioni e dei metadati; URL; richiesta
+    del loader.
+  - Esiti: segnali e difetti, in campi separati.
+- **Composizione.**
+  - Formati: JPEG 200.436, PNG 34.192, WebP 1.125, GIF 111, MPO 32.
+  - Modi: RGB 214.340, RGBA 14.869, P 5.434, L 1.079, CMYK 142, LA 20, 1 11, I;16 1.
+  - Lato lungo: 8 immagini sotto 64 px, 1.545 sotto 256, 268 da 8192 in su.
+  - Didascalie: 174.990 fra 100 e 199 parole, 75 da 500 in su, una sotto 10.
+  - Trascrizioni per riga: una 137.719, tre 86.248, due 5.736, quattro 1.948, cinque o più 4.246.
+
+### 7.2 Collegamento e difetti strutturali
+
+- **Chiave → parquet → shard.**
+  - Le chiavi sono uniche e uguali a `pixmo-<file>-<riga>`.
+  - Ogni record dello shard ritrova la sua riga, nello stesso ordine, e non ci sono record senza riga.
+  - I JSON sono coerenti con la riga: id, didascalia, URL, dimensioni originali e finali, `max_patches`, formato,
+    sorgente.
+- **Trasformazione.**
+  - `shard_parquet.convert` (`to_rgb`, 1024 patch, BILINEAR, JPEG 95) rifatta sugli originali dà gli stessi byte in
+    235.896 record su 235.896.
+  - L'immagine dello shard è ridimensionata e ricodificata, quindi non ha i pixel dell'originale. La distanza pHash fra
+    originale e shard è di 0-2 bit in 235.490 righe, 4 bit in 264, 6 o più in 142.
+- **Difetti strutturali dimostrati.** Uno solo: `pixmo-00024-007342`, con l'immagine originale illeggibile
+  (`UnidentifiedImageError`). Lo sharding l'aveva già scartata, quindi è fuori dal training per costruzione. Nessuna
+  didascalia vuota, nessuna riga senza trascrizioni, nessuna chiave ripetuta, nessuna riga mancante.
+- **Collegamenti ambigui per contenuto,** risolti dalla chiave:
+  - 116 gruppi con gli stessi byte dell'originale (692 righe), 193 con gli stessi pixel (876), 194 con lo stesso JPEG
+    nello shard (878);
+  - 72 coppie di righe con lo stesso URL e didascalie diverse;
+  - nessuna didascalia ripetuta.
+- **Segnali strutturali forti, non dimostrati: probabili segnaposto.** Sono gruppi di righe con la stessa immagine e
+  URL e didascalie tutti diversi.
+  - 297 righe con il file di 503 byte e 161×81 px di `i.imgur.com`: la misura sembra quella dell'immagine che imgur
+    mostra per le immagini rimosse, ma è da confermare a vista.
+  - 146 righe con un file di 80×80 px di `i.ebayimg.com`.
+  - 8 righe di `pixmo.s3.us-west-2.amazonaws.com` (512×512) e 8 di `www.japantimes.co.jp` (800×600).
+  - Altri gruppi da 5, 5, 4 e 3 righe, e 10 gruppi con gli stessi pixel e byte diversi, fino a 21 righe: 18 gruppi da 3
+    righe in su, 526 righe.
+
+  Se l'immagine è un segnaposto, la didascalia descrive un'altra immagine. Per deciderlo basta guardare un'immagine per
+  gruppo.
+- **Altri segnali da verificare, non difetti.**
+  - 59 immagini con l'orientamento EXIF 3, 6 o 8: lo shard e l'indice non lo applicano, un browser sì. Altre 198 hanno
+    il valore non valido 0 e 2 valori fuori scala.
+  - 135 immagini con più fotogrammi (GIF e WebP animate, MPO): si usa il primo.
+  - 142 immagini CMYK convertite senza profilo colore; 14.869 RGBA e 20 LA composte su bianco.
+
+### 7.3 Segnali storici delle didascalie (run4) e loro limiti
+
+- **Collegamento.** `outputs/pixmo_check/run4` (job 30044, schema `pixmo-transcript-check/4`) copre gli stessi 25
+  parquet della revisione, con gli stessi byte di oggi: 235.897 righe, nessuna senza trascrizioni. Le chiavi di
+  `flagged.jsonl` si risolvono ciascuna in una sola riga.
+- **Provenienza.** run4 viene dal codice `00d80e3` con modifiche non salvate, quindi la provenienza non bastava. I
+  segnali sono stati ricalcolati nello stesso passaggio sugli stessi ingressi, col codice corrente (`transcripts.py` di
+  `25b86c8`).
+- **Esito.** Uguali riga per riga e negli stessi conteggi: 25.578 righe con almeno un segnale (10,8%). Conteggi 2-12
+  10.181, colori 8.803, testi citati 3.564, altri numeri 1.978, anni 1.730, orari 715.
+- **Limiti.** Sono segnali di rischio, non difetti.
+  - Un numero, un colore o un testo assente dalle trascrizioni può essere vero nell'immagine.
+  - Il controllo non vede oggetti, posizioni, relazioni e attributi aggiunti dal riscrittore, né gli errori percettivi
+    degli annotatori.
+  - Restano nell'inventario come evidenze, senza esclusioni automatiche.
+- **Liste storiche di decontaminazione.**
+  - Sono p6 e f1eval: `decontam.py scan` sui JPEG degli shard, convenzione `grigio-diretto/0`, solo pHash, contro
+    indici diversi dal pannello. Contano 183 e 15 candidati, con le liste finali vuote.
+  - Ogni chiave si risolve in una riga, e tutti i candidati storici restano candidati nella scansione nuova.
+  - Il confronto è diagnostico: le liste non si importano.
+
+### 7.4 Decontaminazione contro `pannello-v3`
+
+- **Indice.** `data/decontam/pannello-v3/index.json` (sha256 `02fb3cbf…`, convenzione `rgb-su-bianco/1`, 99.713 voci),
+  in tutti i ruoli: sviluppo 30.189, test ammesso 35.701, test non ammesso 1.368, diagnostica 6.332,
+  solo_decontaminazione 12.401 elementi.
+- **Controlli,** eseguiti su ogni record dello shard, senza mancanti:
+  - pixel normalizzati dell'originale e del JPEG dello shard;
+  - pHash entro 4 bit delle due immagini;
+  - 10-gram della didascalia del loader, con la regola di `TextIndex`: dal lato dell'indice si tolgono gli n-gram in
+    più di 25 testi diversi del pannello. Nessuna regola copre le didascalie, e la frequenza in PixMo non decide nulla;
+  - le sei richieste fisse del loader: nessun 10-gram in comune e nessun testo identico, ma quattro sono più corte di
+    10 parole.
+
+| Esito | Righe | Nota |
+| --- | --- | --- |
+| Identità d'immagine confermata (pixel identici) | 0 | né sull'originale né sul JPEG dello shard |
+| Somiglianza da verificare (candidato) | 248 | 226 pHash, 22 testo |
+| Controllo non eseguibile | 1 | `pixmo-00024-007342`, fuori dagli shard |
+| Nessuna corrispondenza nei controlli effettuati | 235.648 | non certifica la didascalia né l'assenza di contaminazione |
+
+- **pHash per benchmark** (righe): MathVision 93, DynaMath 85, MMStar 23, MathVista 21, ChartQA 20, OCRBench 16,
+  VisOnlyQA Real 13, UniMER-Test 9, MUIRBench 7, MV-MATH 6, We-Math 5, VisOnlyQA Synthetic 2.
+  - Sono toccati 357 elementi del pannello.
+  - Alcune righe hanno molti vicini: le 20 righe verso ChartQA hanno 785 corrispondenze col solo sviluppo. Succede alle
+    immagini con poca struttura, ma qui non è verificato.
+- **Testo** (22 righe, 18 elementi): AIME 2024 8, OlympiadBench 5, MATH-500 3, MathVision 3, UniMER-Test 3, AIME 2025 2,
+  MMStar 1, MV-MATH 1.
+  - I 10-gram in comune sono sequenze di cifre o di lettere (`1 2 3 4 5 6 7 8 9 10`, `a b c d e f g h i j`), frasi
+    generiche (`from the lower left corner to the upper right corner`, 8 righe) e una formula della gaussiana.
+  - Restano candidati.
+- Tutte le corrispondenze sono nella scansione, senza tagli. Un'identità d'immagine non dimostrerebbe l'identità della
+  domanda, e l'assenza di corrispondenze vale solo per i controlli dichiarati.
+
+### 7.5 Controlli non eseguiti e proprietà non verificate
+
+- **Non eseguiti per costruzione:**
+  - trascrizioni contro il pannello, perché il modello non le vede;
+  - URL e provenienza, perché il pannello non ha URL;
+  - ritagli, ridisegni, rotazioni e riformulazioni, oltre ai pixel identici e al pHash entro 4 bit;
+  - la sola didascalia sotto 10 parole.
+- **Fuori dal sottoinsieme:** i 50 parquet non scaricati, con 471.750 esempi dichiarati.
+- **Non verificate:**
+  - fedeltà delle didascalie all'immagine;
+  - corrispondenza fra l'immagine riscaricata e quella vista dagli annotatori;
+  - rappresentatività del prefisso dei file;
+  - orientamento visto dagli annotatori;
+  - leggibilità a 1024 patch;
+  - duplicati quasi identici dentro PixMo (qui solo identità esatte) e fra sorgenti (niente indice globale in questo
+    lotto).
+
+### 7.6 Costi
+
+- **Sonda** (job 30812): un parquet, 9.436 righe in 107 s con 8 CPU. Preventivo: 25 × 107 s ≈ 45 min.
+- **Lavoro completo** (job 30813): 48 min in tutto.
+  - Tempi: test 2 min, scansione 45 min 26 s, verifica 27 s; fase dell'indice 63 s; unità fra 103 e 112 s.
+  - Memoria: RSS massima 7,5 GiB nella scansione e 3,3 GiB nella verifica.
+  - CPU dei processi: 20.845 s, di cui 14.420 per decodifica, pixel e pHash degli originali, 4.942 per la
+    trasformazione, 1.122 per lo shard, 274 per i segnali e 88 per la decontaminazione.
+  - Byte letti: 124,85 GB per gli sha256 (in parallelo, senza attese), 124,84 GB di colonne e 20,57 GB di shard.
+  - Spazio: 175 MB di uscite, più 7 MB della sonda.
+
+### 7.7 Proposte di trattamento e verifiche visive eventuali
+
+**Proposte**, da approvare. Stanno in `proposte_di_trattamento.jsonl.gz`, che nessun loader legge.
+- **248 candidati:** quarantena fino alla verifica, a vista per il pHash e leggendo il testo in comune per i 10-gram.
+- **Gruppi di immagini identiche con didascalie diverse:** si guarda un'immagine per gruppo. Se è un segnaposto, si
+  escludono tutte le righe del gruppo (proposta, non applicata). Nel manifest i duplicati esatti stanno comunque nello
+  stesso gruppo.
+- **Orientamento EXIF 3, 6 o 8** (59 immagini): quarantena, oppure uno shard nuovo con l'orientamento applicato. È da
+  decidere.
+- **Riga illeggibile:** è già fuori.
+
+**Verifiche visive eventualmente necessarie,** dopo quelle in corso:
+1. un'immagine per ciascuno dei 18 gruppi di duplicati da 3 righe in su;
+2. le coppie dei 226 candidati pHash, ordinate con `decontam_review.py`;
+3. i 22 candidati testuali, leggendo solo i testi;
+4. un campione stratificato per le didascalie, coi segnali di run4 (D5);
+5. le 59 immagini ruotate.
+
+### 7.8 LLaVA-Pretrain: confronto preliminare, senza scansioni nuove
+
+- **Revisione.** `liuhaotian/LLaVA-Pretrain@70f9d1e5e1a697fe35830875cfc7de1dd590d727`: `blip_laion_cc_sbu_558k.json`
+  (180.506.011 byte) e `images.zip` (27.356.108.382 byte), con gli sha256 verificati (job 29387, 29554).
+- **Shard.** `data/shards/llava-pretrain/70f9d1e5` (job 29388, `scripts/shard_llava_pretrain.py`): 29 tar da circa 1 GB
+  (27 GiB), con 558.128 campioni, tanti quanti i file dello zip e le didascalie.
+  - Le immagini hanno i byte originali dello zip, senza ricodifica.
+  - Il JSON ha id, membro dello zip, richiesta, didascalia, dimensioni e formato.
+  - Il lato corto è quasi sempre di 336 px: mediana 336×336, massimo 12192×5177.
+  - Lo sharding ha letto solo le intestazioni: i pixel non sono mai stati decodificati.
+- **Didascalie.** Sono brevi e vengono da BLIP, su immagini di LAION, CC e SBU (secondo il nome del file e il catalogo).
+  Le richieste vengono dal JSON del dataset, non dal nostro codice.
+  - È testo di un modello, senza riferimento umano: manca l'equivalente delle trascrizioni di PixMo, quindi non c'è un
+    segnale deterministico sulle didascalie.
+  - Immagini e didascalie sono distribuite insieme, nello zip e nel JSON. Non è verificato che le didascalie siano state
+    generate proprio su quelle immagini.
+- **Evidenze.**
+  - Scansione storica p6 (`decontam.py`, `grigio-diretto/0`, solo pHash, contro MathVista, MathVerse, MathVision,
+    We-Math e DynaMath_Sample): 761 candidati, lista finale vuota (`data_lists.REQUIRED`).
+  - Nessuna scansione f1eval, nessun controllo dei duplicati.
+- **Riusabili:**
+  - `data.llava_pretrain_sample` e la lettura degli shard;
+  - `shard_llava_pretrain.py` per il collegamento membro dello zip ↔ record;
+  - gli helper di `panel_decontam.py` e `limite_vl.decontam`;
+  - lo schema di `pixmo_inventory.py`: inventario per riga, verifica, proposte.
+- **Lavoro necessario.**
+  - Un adattamento della lettura: zip e JSON invece dei parquet. Non c'è una trasformazione da rifare, perché lo shard
+    ha i byte dell'originale: basta confrontare gli sha256.
+  - La decodifica completa delle immagini e i duplicati.
+  - La decontaminazione contro `pannello-v3`: pixel e pHash, e 10-gram di didascalie e richieste, in gran parte più
+    corte di 10 parole e quindi poco confrontabili.
+  - Manifest e reader.
+  - Stima per analogia con PixMo (immagini da circa 0,1 MP invece di 1-4 MP): 20-30 minuti con 8 CPU, da misurare con
+    una sonda.
+- **Confronto con PixMo.**
+  - PixMo ha descrizioni dense (in maggioranza 100-300 parole), nate da annotatori, un controllo deterministico contro
+    le trascrizioni e immagini grandi.
+  - LLaVA ha didascalie brevi di un modello e immagini piccole, con 2,4 volte gli esempi, poco costosi in token (circa
+    312 per esempio a 1024 patch).
+  - Come alternativa per le descrizioni dettagliate non serve, perché è un altro compito. Come complemento può dare
+    didascalie brevi per l'allineamento (F1), solo se un pilota lo richiede e dopo la stessa preparazione.
+
+### 7.9 Prossimo passo minimo
+
+1. Decisioni dell'utente sulle proposte di §7.7: segnaposto, candidati, orientamento.
+2. Poi, senza rileggere le immagini, il manifest candidato `pixmo-cap-candidato-1` dall'inventario (C5):
+   - record, gruppi per pixel dell'originale e per URL, stati dalle proposte approvate;
+   - evidenze per riferimento: scansione, run4, liste storiche;
+   - dev per gruppo col seme 0.
+
+   Quindi il reader di `pixmo_caption` col manifest (C7).
+3. LLaVA solo se il mix lo richiede, con una sonda e la scansione con lo stesso schema.

@@ -418,7 +418,7 @@ Unioni per tipo di legame:
   MathVista, 1 in OCRBench.
 - **Testi di solo testo.** La forma conservativa non riconosce lo stesso problema scritto con un LaTeX diverso: quei
   casi restano candidati (§8).
-- **Sorgenti di training.** Sono confrontati con questo indice i sintetici v4, UniMER e MAVIS (§6.2); le altre
+- **Sorgenti di training.** Sono confrontati con questo indice i sintetici v4, UniMER, MAVIS e PixMo-Cap (§6.2); le altre
   sorgenti locali no.
 
 ## 6. Piano minimo di decontaminazione
@@ -501,12 +501,32 @@ Unioni per tipo di legame:
   La decontaminazione dice solo se un record coincide con un elemento del pannello o gli somiglia, nei controlli
   dichiarati. Non dice se la risposta del record è corretta (golden answer: checker, revisione e stima di S4) e non è una
   certificazione statistica (C8 non è applicato). Un record "nessuna corrispondenza" non è certificato pulito.
+- **PixMo-Cap, metodo ed esiti** (2026-11-11, `scripts/pixmo_inventory.py`, job 30812-30813;
+  `docs/F0_CAMPIONE_CANDIDATO.md` §7). Ogni riga dei 25 parquet locali è confrontata con tutte le voci dell'indice, in
+  ogni ruolo, con gli helper e le regole di UniMER e MAVIS:
+  - pixel normalizzati dell'originale del parquet e del JPEG dello shard, che è una copia ridimensionata e ricodificata
+    (la trasformazione dello sharding è rifatta: stessi byte in 235.896 record su 235.896);
+  - pHash entro 4 bit delle due immagini;
+  - 10-gram della didascalia del loader (max_df 25 dal lato dell'indice), senza regole che li coprano: la frequenza in
+    PixMo non decide nulla. Le sei richieste fisse del loader si confrontano una volta.
+
+  | Righe | Confermate | Candidati | Non verificabili | Nessuna corrispondenza |
+  | --- | --- | --- | --- | --- |
+  | 235.897 | 0 | 248 (226 pHash, 22 testo) | 1 (immagine illeggibile, fuori dagli shard) | 235.648 |
+
+  - I candidati pHash vanno soprattutto verso MathVision (93 righe) e DynaMath (85), poi MMStar 23, MathVista 21, ChartQA
+    20, OCRBench 16 e VisOnlyQA Real 13.
+  - I candidati testuali sono sequenze di cifre o di lettere e frasi generiche, verso AIME, OlympiadBench, MATH-500,
+    MathVision e UniMER-Test.
+  - Proposta: quarantena fino alla verifica, non applicata. Scansione `data/decontam/pannello-v3/pixmo-cap`, con tutte
+    le corrispondenze.
 - **Ancora da confrontare:**
   - MMFineReason contro tutto il pannello. Fra le sue sorgenti dichiarate (`data/lang/mmfinereason/stats.json`) ci sono
     `FineVision-geometry3k`, che tocca le figure di Geometry3K in MathVista, MathVerse e Geoperception, e WeMath2, degli
     autori di We-Math. Ci sono anche AI2D e ScienceQA, da cui vengono 196 e 69 domande di MMStar. MMR1 (1,27 milioni di
     righe) è un aggregato con una composizione interna non inventariata;
-  - PixMo e LLaVA contro MMStar (immagini di SEEDBench e MMBench) e MUIRBench.
+  - LLaVA contro MMStar (immagini di SEEDBench e MMBench) e MUIRBench, e contro il resto del pannello (confronto
+    preliminare in `docs/F0_CAMPIONE_CANDIDATO.md` §7.8).
 - **Con le aggiunte proposte** (`docs/F0_CAMPIONE_CANDIDATO.md`, non scaricate):
   - il train di ChartQA contro val, test, MathVista e le componenti ChartQA di OCRBench;
   - il train di DocVQA contro val per documento UCSF, contro MathVista e contro la componente `docVQA` di OCRBench;

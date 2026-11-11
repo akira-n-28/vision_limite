@@ -336,7 +336,22 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
 `downloads/catalog_status.tsv` e `docs/ARTIFACT_INVENTORY.tsv`.
 
 - LLaVA-Pretrain @ 70f9d1e5: 29 shard in `data/shards/llava-pretrain/70f9d1e5/` (558 mila didascalie,
-  circa 312 token per esempio con l'immagine a 1024 patch).
+  circa 312 token per esempio con l'immagine a 1024 patch). Byte originali dello zip; lo sharding non ha decodificato i
+  pixel. Confronto preliminare con PixMo in `docs/F0_CAMPIONE_CANDIDATO.md` §7.8.
+- PixMo-Cap @ 3e42775e (`scripts/pixmo_inventory.py`, job 30813; `docs/F0_CAMPIONE_CANDIDATO.md` §7):
+  - **Copertura.** I 25 parquet locali sono il prefisso dei 75 file, non un campione casuale: 235.897 righe su 707.647
+    esempi della scheda. Negli shard ci sono 235.896 record; manca solo `pixmo-00024-007342`, con l'immagine illeggibile.
+  - **Collegamento.** La chiave `pixmo-<file>-<riga>` conta anche le righe scartate. L'inventario
+    `outputs/pixmo_inventory/completo-1/inventario` ha una riga per riga del parquet, con `record_id` e digest.
+  - **Trasformazione.** Il JPEG dello shard è ridimensionato e ricodificato, quindi non ha i pixel dell'originale. La
+    trasformazione di `shard_parquet.convert` rifatta sugli originali dà gli stessi byte in tutti i record.
+  - **run4.** Riprodotto riga per riga dal codice corrente: sono segnali di rischio, non esclusioni.
+  - **Duplicati.** Per byte ci sono 116 gruppi su 692 righe. I più grandi hanno la stessa immagine con URL e didascalie
+    tutti diversi: 297 righe col file 161×81 di `i.imgur.com`, 146 con un 80×80 di `i.ebayimg.com`. Sono probabili
+    segnaposto, da guardare a vista.
+  - **EXIF.** Lo shard non applica l'orientamento EXIF (59 immagini con 3, 6 o 8).
+  - **Pannello.** Nessun pixel identico a `pannello-v3`; 248 candidati. Nessun manifest: le proposte di trattamento
+    aspettano l'utente.
 - MAVIS-Caption non esiste su Hugging Face; le didascalie vengono da CaraJ/MAVIS-Geometry @ 9c80fff3
   (`RuleBaseGeo.zip`), una parte di MAVIS-Instruct.
   - Struttura dello zip (job 29415): 199.603 cartelle `RuleBaseGeo/depthK/<i>/`, 50 mila per profondità
@@ -573,7 +588,8 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
     - Il test utilizzabile è il campo `metrica_primaria` di `elements.jsonl.gz`. Anche il confronto fra versioni
       (`compare_panels`) lo usa quando c'è; la regola di v2 vale solo per i formati precedenti (job 30517).
   - Sorgenti di training confrontate: i sintetici v4 (job 30518, scansione in `data/decontam/pannello-v3/synth-v4`),
-    UniMER e MAVIS (job 30651-30652, `data/decontam/pannello-v3/unimer` e `mavis-geometry`).
+    UniMER e MAVIS (job 30651-30652, `data/decontam/pannello-v3/unimer` e `mavis-geometry`), PixMo-Cap (job 30813,
+    `data/decontam/pannello-v3/pixmo-cap`).
     Sette record di sviluppo sintetico hanno candidati verso sette elementi di test: materiale per `pannello-v4`
     (`docs/PANNELLO_VALUTAZIONE.md` §8).
   - `pannello-v1` (job 30465) e `pannello-v2` (job 30466) sono superati e mai usati.
@@ -603,7 +619,8 @@ parametri in `groups.py` sono ipotesi da verificare con `f0_checks.py` (sezione 
 - `CLAUDE.md`, `LAGRANGE.md`, `README.md` — istruzioni; `PIPELINE_ADDESTRAMENTO_LIMITE_VL.md` — riferimento corrente;
   `ISTRUZIONI_MIGRAZIONE_LAGRANGE.md` — incarico della migrazione del 2026-10-28
 - `docs/` — stato del repository, piano F0, pannello di valutazione, campione candidato di F0, inventario degli
-  artefatti, indice dei file, rilievi e rapporti delle revisioni
+  artefatti, indice dei file, rilievi e rapporti delle revisioni; `docs/inventari/`: rapporti degli inventari tecnici per
+  sorgente (PixMo-Cap)
 - `config/paths.env` — percorsi e variabili offline; `config/runs/` — nessuna ricetta di training finché non ci sono
   ricette collaudate, solo la config di collaudo di C7 (`f0-c7-reader-unimer-mavis.json`, non una ricetta);
   `config/audit/` — istruzioni e politica degli audit storici (congelate)

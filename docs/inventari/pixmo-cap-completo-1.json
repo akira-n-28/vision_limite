@@ -1,0 +1,1846 @@
+{
+ "schema": "pixmo-inventory-verifica/1",
+ "job_id": "30813",
+ "codice": {
+  "commit": "afe2b274552e10508fae2074f1e209f9dc1ece93",
+  "dirty": true,
+  "diff_sha256": "1b60dc2a068677e553dd7dd739b5bc5fd4ea5a37ee99daa8839f7e5bafcefc5e",
+  "untracked": []
+ },
+ "parziale": false,
+ "sorgente": "pixmo-cap",
+ "repository": "anthracite-org/pixmo-cap-images",
+ "revisione": "3e42775eea79dd4874c41379230c7f871b10218e",
+ "controlli": [
+  {
+   "controllo": "indice: convenzione rgb-su-bianco/1 e schema panel-index/2",
+   "esito": true,
+   "dettaglio": [
+    "rgb-su-bianco/1",
+    "panel-index/2"
+   ]
+  },
+  {
+   "controllo": "indice: sha256 uguale a quello atteso",
+   "esito": true,
+   "dettaglio": "02fb3cbfc36cbfd17bba92e4511c18a5760d330bc0145855fff2e7aa5130d127"
+  },
+  {
+   "controllo": "indice: verifica.json, ogni voce con immagine ritrova la propria immagine",
+   "esito": true,
+   "dettaglio": {
+    "verificato": true,
+    "errori": 0,
+    "voci_con_immagine": 92658
+   }
+  },
+  {
+   "controllo": "pannello costruito da questo indice",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "perimetro: ogni elemento del pannello ha voci nell'indice e ogni voce un elemento",
+   "esito": true,
+   "dettaglio": {
+    "solo_indice": 0,
+    "solo_pannello": 0
+   }
+  },
+  {
+   "controllo": "perimetro: tutti i ruoli, compresi test non ammesso, diagnostica e solo_decontaminazione",
+   "esito": true,
+   "dettaglio": {
+    "sviluppo": 30189,
+    "test_ammesso": 35701,
+    "test_non_ammesso": 1368,
+    "solo_decontaminazione": 12401,
+    "diagnostica": 6332
+   }
+  },
+  {
+   "controllo": "inventario: records.jsonl.gz con lo sha256 di summary.json",
+   "esito": true,
+   "dettaglio": "ade3e0c26bd19dd8ac9df60039ada6edf6743eb19b05c2ef1285f2b9e6458578"
+  },
+  {
+   "controllo": "scansione: records.jsonl.gz con lo sha256 di summary.json",
+   "esito": true,
+   "dettaglio": "767658e01af10762f772e39de6a5a954c9bc314620675aa65a025732c0f9b27d"
+  },
+  {
+   "controllo": "scansione: stesso indice (sha256) e stessa convenzione",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "scansione e inventario dello stesso job, stessa revisione, completi",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "una riga della scansione per riga dell'inventario, nello stesso ordine",
+   "esito": true,
+   "dettaglio": {
+    "inventario": 235897,
+    "scansione": 235897
+   }
+  },
+  {
+   "controllo": "sharding: digest del piano ricalcolato uguale a plan.json",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "sharding: unità lette nell'ordine del piano, tutte",
+   "esito": true,
+   "dettaglio": [
+    "pixmo-cap-00000.tar",
+    "pixmo-cap-00001.tar",
+    "pixmo-cap-00002.tar",
+    "pixmo-cap-00003.tar",
+    "pixmo-cap-00004.tar",
+    "pixmo-cap-00005.tar",
+    "pixmo-cap-00006.tar",
+    "pixmo-cap-00007.tar",
+    "pixmo-cap-00008.tar",
+    "pixmo-cap-00009.tar",
+    "pixmo-cap-00010.tar",
+    "pixmo-cap-00011.tar",
+    "pixmo-cap-00012.tar",
+    "pixmo-cap-00013.tar",
+    "pixmo-cap-00014.tar",
+    "pixmo-cap-00015.tar",
+    "pixmo-cap-00016.tar",
+    "pixmo-cap-00017.tar",
+    "pixmo-cap-00018.tar",
+    "pixmo-cap-00019.tar",
+    "pixmo-cap-00020.tar",
+    "pixmo-cap-00021.tar",
+    "pixmo-cap-00022.tar",
+    "pixmo-cap-00023.tar",
+    "pixmo-cap-00024.tar"
+   ]
+  },
+  {
+   "controllo": "shard: letti per intero, sha256, byte e campioni uguali a shards.jsonl",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "controllo": "snapshot: parquet coi blob del piano, sha256 ricalcolato uguale al nome del blob",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "controllo": "snapshot: righe lette uguali alle righe dei metadati di ogni parquet",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "snapshot: ogni parquet letto verificato dal job 29554 (stato ok, byte e sha256 attesi)",
+   "esito": true,
+   "dettaglio": 26
+  },
+  {
+   "controllo": "snapshot: README con il git sha1 del blob registrato",
+   "esito": true,
+   "dettaglio": "370e093e217688cd163db236818cce65174690e8"
+  },
+  {
+   "controllo": "chiavi: uniche, uguali a pixmo-<file>-<riga> del parquet, una per riga dei parquet letti",
+   "esito": true,
+   "dettaglio": {
+    "problemi": {},
+    "esempi": {},
+    "righe": 235897,
+    "attese": 235897
+   }
+  },
+  {
+   "controllo": "record_id: unici e ricalcolati da sorgente, revisione e chiave (S1 §1)",
+   "esito": true,
+   "dettaglio": {
+    "diversi": 0
+   }
+  },
+  {
+   "controllo": "collegamento: nessun record dello shard senza riga del parquet",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "controllo": "collegamento: ogni record dello shard ritrova la sua riga, nello stesso ordine",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "controllo": "esame: nessun errore imprevisto in una riga",
+   "esito": true,
+   "dettaglio": {}
+  },
+  {
+   "controllo": "collegamento: JSON, membri e JPEG di ogni record coerenti con la riga (chiave, didascalia, URL, dimensioni, formato, sorgente)",
+   "esito": true,
+   "dettaglio": {}
+  },
+  {
+   "controllo": "scarti: illeggibili e mancanti ricalcolati uguali a quelli registrati dallo sharding",
+   "esito": true,
+   "dettaglio": {
+    "illeggibili_registrati": [
+     "pixmo-00024-007342"
+    ],
+    "illeggibili_ricalcolati": [
+     "pixmo-00024-007342"
+    ],
+    "mancanti_registrati": {},
+    "mancanti_ricalcolati": {}
+   }
+  },
+  {
+   "controllo": "sharding: campioni scritti e scarti uguali al manifest.json dello sharding",
+   "esito": true,
+   "dettaglio": {
+    "manifest": {
+     "written": 235896,
+     "excluded": {},
+     "unreadable": 1,
+     "not_idempotent": 0,
+     "image_tokens_mean": 251.15664954047546
+    },
+    "inventario": {
+     "nello_shard": 235896,
+     "scartata:illeggibile": 1
+    }
+   }
+  },
+  {
+   "controllo": "trasformazione: shard_parquet.convert rifatta sull'originale dà i byte del JPEG dello shard",
+   "esito": true,
+   "dettaglio": {
+    "uguali": 235896
+   }
+  },
+  {
+   "controllo": "run4: schema pixmo-transcript-check/4, parquet della stessa revisione",
+   "esito": true,
+   "dettaglio": "pixmo-transcript-check/4"
+  },
+  {
+   "controllo": "run4: chiavi di flagged.jsonl uniche e risolte in esattamente una riga dell'inventario",
+   "esito": true,
+   "dettaglio": {
+    "ripetute": [],
+    "non_risolte": 0,
+    "esempi": []
+   }
+  },
+  {
+   "controllo": "run4: segnali ricalcolati dal codice corrente uguali riga per riga a flagged.jsonl (tipi, numeri, colori, testi citati)",
+   "esito": true,
+   "dettaglio": {
+    "diversi": 0,
+    "esempi": []
+   }
+  },
+  {
+   "controllo": "run4: stessi 25 parquet della revisione, stesse righe, nessuna senza trascrizioni",
+   "esito": true,
+   "dettaglio": {
+    "file": 25,
+    "righe_run4": 235897,
+    "righe_inventario": 235897
+   }
+  },
+  {
+   "controllo": "run4: righe per tipo di segnale uguali a report.json",
+   "esito": true,
+   "dettaglio": {
+    "numero_anno": 1730,
+    "numero_conteggio_2_12": 10181,
+    "colore": 8803,
+    "numero_altro_numero": 1978,
+    "testo_citato": 3564,
+    "numero_orario": 715
+   }
+  },
+  {
+   "controllo": "run4: byte dei parquet letti allora uguali a quelli di oggi",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "storiche p6/pixmo: chiavi risolte in esattamente una riga",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "controllo": "storiche f1eval/pixmo: chiavi risolte in esattamente una riga",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "controllo": "corrispondenze: ogni elemento citato esiste nel pannello",
+   "esito": true,
+   "dettaglio": {}
+  }
+ ],
+ "falliti": [],
+ "perimetro_pannello": {
+  "sviluppo": 30189,
+  "test_ammesso": 35701,
+  "test_non_ammesso": 1368,
+  "solo_decontaminazione": 12401,
+  "diagnostica": 6332
+ },
+ "copertura_del_sottoinsieme_locale": {
+  "file_letti": 25,
+  "file_del_piano": 25,
+  "file_del_dataset": 75,
+  "righe_lette": 235897,
+  "esempi_dichiarati_dal_readme": 707647,
+  "quota_delle_righe": 0.3334,
+  "byte_parquet_letti": 124853885806,
+  "byte_dichiarati_dal_readme": 371823471116,
+  "nota": "il sottoinsieme locale è il prefisso dei file 0-24 (filtro di downloads/sources.tsv), non un campione casuale"
+ },
+ "inventario": {
+  "righe": 235897,
+  "esito_sharding": {
+   "nello_shard": 235896,
+   "scartata:illeggibile": 1
+  },
+  "difetti_strutturali": {
+   "immagine originale illeggibile": 1
+  },
+  "difetti_esempi": {
+   "immagine originale illeggibile": [
+    "pixmo-00024-007342"
+   ]
+  },
+  "trasformazione": {
+   "uguali": 235896
+  },
+  "statistiche": {
+   "esito_sharding": {
+    "nello_shard": 235896,
+    "scartata:illeggibile": 1
+   },
+   "difetti": {
+    "immagine originale illeggibile": 1
+   },
+   "lettura_originale": {
+    "illeggibile": 1,
+    "letta": 235896
+   },
+   "lettura_shard": {
+    "letta": 235896
+   },
+   "formato": {
+    "-": 1,
+    "GIF": 111,
+    "JPEG": 200436,
+    "MPO": 32,
+    "PNG": 34192,
+    "WEBP": 1125
+   },
+   "modo": {
+    "-": 1,
+    "1": 11,
+    "CMYK": 142,
+    "I;16": 1,
+    "L": 1079,
+    "LA": 20,
+    "P": 5434,
+    "RGB": 214340,
+    "RGBA": 14869
+   },
+   "exif_orientamento": {
+    "0": 198,
+    "3": 5,
+    "524288": 1,
+    "6": 50,
+    "65537": 1,
+    "8": 4
+   },
+   "fotogrammi": {
+    "10": 2,
+    "102": 1,
+    "104": 1,
+    "105": 1,
+    "108": 1,
+    "109": 1,
+    "11": 1,
+    "110": 1,
+    "112": 1,
+    "115": 1,
+    "116": 2,
+    "12": 2,
+    "121": 3,
+    "122": 1,
+    "123": 1,
+    "124": 1,
+    "132": 1,
+    "14": 1,
+    "140": 1,
+    "145": 1,
+    "147": 1,
+    "15": 1,
+    "154": 1,
+    "159": 2,
+    "177": 1,
+    "180": 1,
+    "2": 29,
+    "21": 3,
+    "215": 1,
+    "220": 1,
+    "225": 1,
+    "228": 1,
+    "23": 1,
+    "24": 2,
+    "26": 1,
+    "29": 2,
+    "3": 5,
+    "30": 1,
+    "300": 1,
+    "32": 2,
+    "33": 2,
+    "34": 2,
+    "35": 1,
+    "350": 1,
+    "37": 1,
+    "377": 2,
+    "378": 1,
+    "38": 2,
+    "39": 2,
+    "404": 1,
+    "41": 1,
+    "413": 1,
+    "42": 1,
+    "43": 1,
+    "453": 1,
+    "46": 2,
+    "47": 1,
+    "48": 1,
+    "49": 1,
+    "5": 1,
+    "55": 2,
+    "56": 2,
+    "59": 1,
+    "60": 2,
+    "62": 3,
+    "63": 1,
+    "7": 1,
+    "73": 1,
+    "74": 1,
+    "76": 1,
+    "79": 1,
+    "80": 1,
+    "83": 1,
+    "84": 1,
+    "86": 1,
+    "87": 2,
+    "9": 1,
+    "92": 1,
+    "93": 1,
+    "95": 1
+   },
+   "didascalia_originale": {
+    "testo": 235897
+   },
+   "spazi_ai_bordi": {
+    "False": 235897
+   },
+   "trascrizioni": {
+    "1": 137719,
+    "2": 5736,
+    "3": 86248,
+    "4": 1948,
+    "5": 4246
+   },
+   "segnali": {
+    "colore": 8803,
+    "numero_altro_numero": 1978,
+    "numero_anno": 1730,
+    "numero_conteggio_2_12": 10181,
+    "numero_orario": 715,
+    "righe_con_almeno_un_segnale": 25578,
+    "testo_citato": 3564
+   },
+   "trasformazione": {
+    "byte_uguali": 235896
+   },
+   "phash_distanza_originale_shard": {
+    "0": 218506,
+    "1": 1,
+    "10": 14,
+    "12": 58,
+    "2": 16983,
+    "4": 264,
+    "6": 47,
+    "7": 1,
+    "8": 21,
+    "9": 1
+   },
+   "richiesta": {
+    "0": 39064,
+    "1": 39241,
+    "2": 39555,
+    "3": 39188,
+    "4": 39215,
+    "5": 39634
+   },
+   "parole_didascalia": {
+    "<10": 1,
+    "<100": 9801,
+    "<200": 174990,
+    "<300": 46885,
+    "<50": 68,
+    "<500": 4077,
+    ">=500": 75
+   },
+   "lato_lungo_originale": {
+    "<1024": 69143,
+    "<2048": 92154,
+    "<256": 1545,
+    "<4096": 51741,
+    "<512": 13977,
+    "<64": 8,
+    "<8192": 7060,
+    ">=8192": 268
+   }
+  },
+  "duplicati": {
+   "byte_originale": {
+    "gruppi": 116,
+    "righe": 692,
+    "dimensioni": {
+     "146": 1,
+     "2": 108,
+     "297": 1,
+     "3": 1,
+     "4": 1,
+     "5": 2,
+     "8": 2
+    },
+    "massimo": 297
+   },
+   "pixel_originale": {
+    "gruppi": 193,
+    "righe": 876,
+    "dimensioni": {
+     "146": 1,
+     "2": 175,
+     "21": 1,
+     "297": 1,
+     "3": 8,
+     "4": 3,
+     "5": 2,
+     "8": 2
+    },
+    "massimo": 297
+   },
+   "url": {
+    "gruppi": 72,
+    "righe": 144,
+    "dimensioni": {
+     "2": 72
+    },
+    "massimo": 2
+   },
+   "didascalia_del_loader": {
+    "gruppi": 0,
+    "righe": 0,
+    "dimensioni": {},
+    "massimo": 0
+   },
+   "jpeg_dello_shard": {
+    "gruppi": 194,
+    "righe": 878,
+    "dimensioni": {
+     "146": 1,
+     "2": 177,
+     "21": 1,
+     "297": 1,
+     "3": 6,
+     "4": 4,
+     "5": 2,
+     "8": 2
+    },
+    "massimo": 297
+   }
+  },
+  "duplicati_piu_grandi": [
+   {
+    "campo": "byte_originale",
+    "righe": 297,
+    "chiavi": [
+     "pixmo-00000-000191",
+     "pixmo-00000-000204",
+     "pixmo-00000-000727",
+     "pixmo-00000-002109",
+     "pixmo-00000-002186",
+     "pixmo-00000-002222",
+     "pixmo-00000-002659",
+     "pixmo-00000-003568",
+     "pixmo-00000-004503",
+     "pixmo-00000-006023",
+     "pixmo-00000-007146",
+     "pixmo-00000-008040",
+     "pixmo-00000-009302",
+     "pixmo-00001-000133",
+     "pixmo-00001-000741",
+     "pixmo-00001-001281",
+     "pixmo-00001-001782",
+     "pixmo-00001-003226",
+     "pixmo-00001-003686",
+     "pixmo-00001-005074",
+     "pixmo-00001-005369",
+     "pixmo-00001-006663",
+     "pixmo-00002-001604",
+     "pixmo-00002-002487",
+     "pixmo-00002-002892",
+     "pixmo-00002-003066",
+     "pixmo-00002-004229",
+     "pixmo-00002-006866",
+     "pixmo-00002-007219",
+     "pixmo-00002-008457",
+     "pixmo-00002-008877",
+     "pixmo-00003-000170",
+     "pixmo-00003-001855",
+     "pixmo-00003-001876",
+     "pixmo-00003-002078",
+     "pixmo-00003-003456",
+     "pixmo-00003-003668",
+     "pixmo-00003-004433",
+     "pixmo-00003-004592",
+     "pixmo-00003-004683",
+     "pixmo-00003-004794",
+     "pixmo-00003-005476",
+     "pixmo-00003-005896",
+     "pixmo-00003-006604",
+     "pixmo-00003-008859",
+     "pixmo-00004-000429",
+     "pixmo-00004-000884",
+     "pixmo-00004-001060",
+     "pixmo-00004-001126",
+     "pixmo-00004-002350",
+     "pixmo-00004-003488",
+     "pixmo-00004-003516",
+     "pixmo-00004-003526",
+     "pixmo-00004-004006",
+     "pixmo-00004-006067",
+     "pixmo-00004-006372",
+     "pixmo-00004-006378",
+     "pixmo-00004-006470",
+     "pixmo-00004-008719",
+     "pixmo-00004-008976",
+     "pixmo-00005-000298",
+     "pixmo-00005-000518",
+     "pixmo-00005-001582",
+     "pixmo-00005-002576",
+     "pixmo-00005-002668",
+     "pixmo-00005-003426",
+     "pixmo-00005-005122",
+     "pixmo-00005-006576",
+     "pixmo-00005-006731",
+     "pixmo-00005-007477",
+     "pixmo-00005-007771",
+     "pixmo-00005-008905",
+     "pixmo-00005-009103",
+     "pixmo-00005-009345",
+     "pixmo-00006-000697",
+     "pixmo-00006-001059",
+     "pixmo-00006-001692",
+     "pixmo-00006-002568",
+     "pixmo-00006-002723",
+     "pixmo-00006-003078",
+     "pixmo-00006-004297",
+     "pixmo-00007-000387",
+     "pixmo-00007-000663",
+     "pixmo-00007-000760",
+     "pixmo-00007-000810",
+     "pixmo-00007-000989",
+     "pixmo-00007-002402",
+     "pixmo-00007-002630",
+     "pixmo-00007-006190",
+     "pixmo-00007-006835",
+     "pixmo-00007-008520",
+     "pixmo-00007-009102",
+     "pixmo-00008-000861",
+     "pixmo-00008-001153",
+     "pixmo-00008-001692",
+     "pixmo-00008-001958",
+     "pixmo-00008-002363",
+     "pixmo-00008-003472",
+     "pixmo-00008-004374",
+     "pixmo-00008-004894",
+     "pixmo-00008-005702",
+     "pixmo-00008-008189",
+     "pixmo-00009-000282",
+     "pixmo-00009-004538",
+     "pixmo-00009-004594",
+     "pixmo-00009-006638",
+     "pixmo-00010-000100",
+     "pixmo-00010-000509",
+     "pixmo-00010-001050",
+     "pixmo-00010-002652",
+     "pixmo-00010-003228",
+     "pixmo-00010-003359",
+     "pixmo-00010-004404",
+     "pixmo-00010-004433",
+     "pixmo-00010-004903",
+     "pixmo-00010-005740",
+     "pixmo-00010-006131",
+     "pixmo-00010-006493",
+     "pixmo-00010-006904",
+     "pixmo-00010-007476",
+     "pixmo-00010-007812",
+     "pixmo-00010-008756",
+     "pixmo-00011-001659",
+     "pixmo-00011-001890",
+     "pixmo-00011-002553",
+     "pixmo-00011-003228",
+     "pixmo-00011-003318",
+     "pixmo-00011-003560",
+     "pixmo-00011-004322",
+     "pixmo-00011-004750",
+     "pixmo-00011-005046",
+     "pixmo-00011-006127",
+     "pixmo-00011-006810",
+     "pixmo-00011-006869",
+     "pixmo-00011-007127",
+     "pixmo-00011-007551",
+     "pixmo-00011-009199",
+     "pixmo-00011-009428",
+     "pixmo-00012-000541",
+     "pixmo-00012-000577",
+     "pixmo-00012-000946",
+     "pixmo-00012-001348",
+     "pixmo-00012-004441",
+     "pixmo-00012-004603",
+     "pixmo-00012-007783",
+     "pixmo-00013-000043",
+     "pixmo-00013-000806",
+     "pixmo-00013-000969",
+     "pixmo-00013-001276",
+     "pixmo-00013-003377",
+     "pixmo-00013-004176",
+     "pixmo-00013-004578",
+     "pixmo-00013-005189",
+     "pixmo-00013-006658",
+     "pixmo-00013-008186",
+     "pixmo-00014-000131",
+     "pixmo-00014-000160",
+     "pixmo-00014-000257",
+     "pixmo-00014-001267",
+     "pixmo-00014-001403",
+     "pixmo-00014-001423",
+     "pixmo-00014-004641",
+     "pixmo-00014-004915",
+     "pixmo-00014-007446",
+     "pixmo-00014-007804",
+     "pixmo-00014-007948",
+     "pixmo-00014-007970",
+     "pixmo-00014-008878",
+     "pixmo-00015-000569",
+     "pixmo-00015-002073",
+     "pixmo-00015-002806",
+     "pixmo-00015-003379",
+     "pixmo-00015-003599",
+     "pixmo-00015-005918",
+     "pixmo-00015-007093",
+     "pixmo-00015-007294",
+     "pixmo-00015-008117",
+     "pixmo-00016-001924",
+     "pixmo-00016-002381",
+     "pixmo-00016-002620",
+     "pixmo-00016-005276",
+     "pixmo-00016-006859",
+     "pixmo-00016-007663",
+     "pixmo-00016-008078",
+     "pixmo-00016-008466",
+     "pixmo-00017-000152",
+     "pixmo-00017-000931",
+     "pixmo-00017-001491",
+     "pixmo-00017-001518",
+     "pixmo-00017-001700",
+     "pixmo-00017-001759",
+     "pixmo-00017-002008",
+     "pixmo-00017-002270",
+     "pixmo-00017-002509",
+     "pixmo-00017-002925",
+     "pixmo-00017-003300",
+     "pixmo-00017-003871",
+     "pixmo-00017-004070",
+     "pixmo-00017-004276",
+     "pixmo-00017-004364",
+     "pixmo-00017-004493",
+     "pixmo-00017-004814",
+     "pixmo-00017-004839",
+     "pixmo-00017-005580",
+     "pixmo-00017-005961",
+     "pixmo-00017-006570",
+     "pixmo-00017-007207",
+     "pixmo-00017-007933",
+     "pixmo-00017-009270",
+     "pixmo-00017-009306",
+     "pixmo-00017-009363",
+     "pixmo-00018-001104",
+     "pixmo-00018-001252",
+     "pixmo-00018-002950",
+     "pixmo-00018-004838",
+     "pixmo-00018-004995",
+     "pixmo-00018-005521",
+     "pixmo-00018-006412",
+     "pixmo-00018-006784",
+     "pixmo-00018-007795",
+     "pixmo-00018-009084",
+     "pixmo-00018-009252",
+     "pixmo-00019-001316",
+     "pixmo-00019-003000",
+     "pixmo-00019-003372",
+     "pixmo-00019-007448",
+     "pixmo-00019-007464",
+     "pixmo-00019-007699",
+     "pixmo-00019-008147",
+     "pixmo-00019-008489",
+     "pixmo-00019-008752",
+     "pixmo-00019-008809",
+     "pixmo-00019-009139",
+     "pixmo-00019-009259",
+     "pixmo-00019-009340",
+     "pixmo-00020-000142",
+     "pixmo-00020-001528",
+     "pixmo-00020-002108",
+     "pixmo-00020-002937",
+     "pixmo-00020-003989",
+     "pixmo-00020-007540",
+     "pixmo-00020-007672",
+     "pixmo-00020-008193",
+     "pixmo-00020-008485",
+     "pixmo-00021-000743",
+     "pixmo-00021-001500",
+     "pixmo-00021-001511",
+     "pixmo-00021-001592",
+     "pixmo-00021-001704",
+     "pixmo-00021-003163",
+     "pixmo-00021-003222",
+     "pixmo-00021-005454",
+     "pixmo-00021-007241",
+     "pixmo-00021-007405",
+     "pixmo-00021-008588",
+     "pixmo-00021-009088",
+     "pixmo-00022-000144",
+     "pixmo-00022-000257",
+     "pixmo-00022-000463",
+     "pixmo-00022-001470",
+     "pixmo-00022-002927",
+     "pixmo-00022-002972",
+     "pixmo-00022-003282",
+     "pixmo-00022-003843",
+     "pixmo-00022-004562",
+     "pixmo-00022-004581",
+     "pixmo-00022-005259",
+     "pixmo-00022-005533",
+     "pixmo-00022-005559",
+     "pixmo-00022-008768",
+     "pixmo-00022-009222",
+     "pixmo-00023-000367",
+     "pixmo-00023-000465",
+     "pixmo-00023-001086",
+     "pixmo-00023-002015",
+     "pixmo-00023-002483",
+     "pixmo-00023-002563",
+     "pixmo-00023-003409",
+     "pixmo-00023-004087",
+     "pixmo-00023-004368",
+     "pixmo-00023-005500",
+     "pixmo-00023-007240",
+     "pixmo-00023-008441",
+     "pixmo-00024-001677",
+     "pixmo-00024-002113",
+     "pixmo-00024-002180",
+     "pixmo-00024-002471",
+     "pixmo-00024-002634",
+     "pixmo-00024-002705",
+     "pixmo-00024-004199",
+     "pixmo-00024-005378",
+     "pixmo-00024-005811",
+     "pixmo-00024-006351",
+     "pixmo-00024-006358",
+     "pixmo-00024-007124",
+     "pixmo-00024-007508",
+     "pixmo-00024-008421"
+    ],
+    "url_distinti": 296,
+    "host": {
+     "i.imgur.com": 295,
+     "www.imgur.com": 1
+    },
+    "didascalie_distinte": 297,
+    "pixel_distinti": 1,
+    "dimensioni_originale": [
+     161,
+     81
+    ],
+    "byte_originale": 503
+   },
+   {
+    "campo": "byte_originale",
+    "righe": 146,
+    "chiavi": [
+     "pixmo-00000-004531",
+     "pixmo-00000-005976",
+     "pixmo-00000-006982",
+     "pixmo-00000-007328",
+     "pixmo-00000-007952",
+     "pixmo-00001-003662",
+     "pixmo-00002-000459",
+     "pixmo-00002-001225",
+     "pixmo-00002-003471",
+     "pixmo-00002-003793",
+     "pixmo-00002-005457",
+     "pixmo-00003-001702",
+     "pixmo-00003-002759",
+     "pixmo-00003-005485",
+     "pixmo-00003-007076",
+     "pixmo-00003-007440",
+     "pixmo-00003-007817",
+     "pixmo-00003-008614",
+     "pixmo-00003-009144",
+     "pixmo-00003-009343",
+     "pixmo-00004-000761",
+     "pixmo-00004-001412",
+     "pixmo-00004-002523",
+     "pixmo-00004-003889",
+     "pixmo-00004-008871",
+     "pixmo-00005-001004",
+     "pixmo-00005-001133",
+     "pixmo-00005-001683",
+     "pixmo-00005-001724",
+     "pixmo-00005-002384",
+     "pixmo-00005-002779",
+     "pixmo-00005-003374",
+     "pixmo-00005-005688",
+     "pixmo-00005-008102",
+     "pixmo-00005-009118",
+     "pixmo-00006-002162",
+     "pixmo-00006-006054",
+     "pixmo-00006-007439",
+     "pixmo-00007-001504",
+     "pixmo-00007-002093",
+     "pixmo-00007-003171",
+     "pixmo-00007-006937",
+     "pixmo-00007-008683",
+     "pixmo-00007-009054",
+     "pixmo-00008-000031",
+     "pixmo-00008-000036",
+     "pixmo-00008-003774",
+     "pixmo-00008-004970",
+     "pixmo-00008-005050",
+     "pixmo-00008-005081",
+     "pixmo-00008-005369",
+     "pixmo-00009-000832",
+     "pixmo-00009-004295",
+     "pixmo-00009-006871",
+     "pixmo-00010-005030",
+     "pixmo-00010-006322",
+     "pixmo-00010-007980",
+     "pixmo-00010-008695",
+     "pixmo-00011-000737",
+     "pixmo-00011-002229",
+     "pixmo-00011-002431",
+     "pixmo-00011-002804",
+     "pixmo-00011-003086",
+     "pixmo-00011-005815",
+     "pixmo-00011-007016",
+     "pixmo-00011-008215",
+     "pixmo-00011-008824",
+     "pixmo-00012-002783",
+     "pixmo-00012-003461",
+     "pixmo-00012-005771",
+     "pixmo-00012-005803",
+     "pixmo-00013-000916",
+     "pixmo-00013-002952",
+     "pixmo-00013-003241",
+     "pixmo-00013-004233",
+     "pixmo-00013-008119",
+     "pixmo-00014-001208",
+     "pixmo-00014-003400",
+     "pixmo-00014-003808",
+     "pixmo-00014-004167",
+     "pixmo-00014-005184",
+     "pixmo-00014-005186",
+     "pixmo-00014-008035",
+     "pixmo-00014-009083",
+     "pixmo-00015-000729",
+     "pixmo-00015-002896",
+     "pixmo-00015-004055",
+     "pixmo-00015-004218",
+     "pixmo-00015-005305",
+     "pixmo-00015-005520",
+     "pixmo-00015-007909",
+     "pixmo-00015-008121",
+     "pixmo-00016-000267",
+     "pixmo-00016-000445",
+     "pixmo-00016-002627",
+     "pixmo-00016-002947",
+     "pixmo-00016-003325",
+     "pixmo-00016-003738",
+     "pixmo-00016-004383",
+     "pixmo-00016-004947",
+     "pixmo-00016-005113",
+     "pixmo-00016-005309",
+     "pixmo-00016-005610",
+     "pixmo-00016-007421",
+     "pixmo-00016-009183",
+     "pixmo-00017-001962",
+     "pixmo-00017-002392",
+     "pixmo-00017-003619",
+     "pixmo-00017-005284",
+     "pixmo-00017-005371",
+     "pixmo-00017-006124",
+     "pixmo-00017-007379",
+     "pixmo-00017-008051",
+     "pixmo-00017-008650",
+     "pixmo-00018-003449",
+     "pixmo-00018-005966",
+     "pixmo-00018-008764",
+     "pixmo-00018-008931",
+     "pixmo-00019-000031",
+     "pixmo-00019-000135",
+     "pixmo-00019-000252",
+     "pixmo-00019-000485",
+     "pixmo-00019-000783",
+     "pixmo-00019-007024",
+     "pixmo-00019-007341",
+     "pixmo-00020-003709",
+     "pixmo-00020-003819",
+     "pixmo-00020-004860",
+     "pixmo-00020-007801",
+     "pixmo-00021-006211",
+     "pixmo-00021-008131",
+     "pixmo-00022-000529",
+     "pixmo-00022-001557",
+     "pixmo-00022-003426",
+     "pixmo-00022-005554",
+     "pixmo-00022-006427",
+     "pixmo-00022-007087",
+     "pixmo-00023-005378",
+     "pixmo-00023-006725",
+     "pixmo-00024-000428",
+     "pixmo-00024-001049",
+     "pixmo-00024-001519",
+     "pixmo-00024-003769",
+     "pixmo-00024-005890",
+     "pixmo-00024-008868",
+     "pixmo-00024-009115"
+    ],
+    "url_distinti": 146,
+    "host": {
+     "i.ebayimg.com": 146
+    },
+    "didascalie_distinte": 146,
+    "pixel_distinti": 1,
+    "dimensioni_originale": [
+     80,
+     80
+    ],
+    "byte_originale": 1359
+   },
+   {
+    "campo": "byte_originale",
+    "righe": 8,
+    "chiavi": [
+     "pixmo-00000-004763",
+     "pixmo-00003-006615",
+     "pixmo-00007-001887",
+     "pixmo-00011-001087",
+     "pixmo-00011-001107",
+     "pixmo-00017-001106",
+     "pixmo-00021-006142",
+     "pixmo-00023-004919"
+    ],
+    "url_distinti": 8,
+    "host": {
+     "pixmo.s3.us-west-2.amazonaws.com": 8
+    },
+    "didascalie_distinte": 8,
+    "pixel_distinti": 1,
+    "dimensioni_originale": [
+     512,
+     512
+    ],
+    "byte_originale": 4723
+   },
+   {
+    "campo": "byte_originale",
+    "righe": 8,
+    "chiavi": [
+     "pixmo-00000-006444",
+     "pixmo-00001-002891",
+     "pixmo-00004-000911",
+     "pixmo-00005-003950",
+     "pixmo-00010-007788",
+     "pixmo-00014-007385",
+     "pixmo-00016-004669",
+     "pixmo-00022-002470"
+    ],
+    "url_distinti": 8,
+    "host": {
+     "www.japantimes.co.jp": 8
+    },
+    "didascalie_distinte": 8,
+    "pixel_distinti": 1,
+    "dimensioni_originale": [
+     800,
+     600
+    ],
+    "byte_originale": 9037
+   },
+   {
+    "campo": "byte_originale",
+    "righe": 5,
+    "chiavi": [
+     "pixmo-00000-006766",
+     "pixmo-00001-000487",
+     "pixmo-00012-006885",
+     "pixmo-00013-005084",
+     "pixmo-00018-004277"
+    ],
+    "url_distinti": 5,
+    "host": {
+     "api.wbez.org": 5
+    },
+    "didascalie_distinte": 5,
+    "pixel_distinti": 1,
+    "dimensioni_originale": [
+     100,
+     100
+    ],
+    "byte_originale": 5688
+   },
+   {
+    "campo": "byte_originale",
+    "righe": 5,
+    "chiavi": [
+     "pixmo-00009-004835",
+     "pixmo-00011-004561",
+     "pixmo-00014-001865",
+     "pixmo-00014-006783",
+     "pixmo-00017-001275"
+    ],
+    "url_distinti": 5,
+    "host": {
+     "eadn-wc02-9281796.nxedge.io": 2,
+     "www.rarefishprints.com": 2,
+     "cdn.lowepro.com": 1
+    },
+    "didascalie_distinte": 5,
+    "pixel_distinti": 1,
+    "dimensioni_originale": [
+     262,
+     262
+    ],
+    "byte_originale": 1692
+   },
+   {
+    "campo": "byte_originale",
+    "righe": 4,
+    "chiavi": [
+     "pixmo-00000-009416",
+     "pixmo-00006-004628",
+     "pixmo-00007-000153",
+     "pixmo-00023-008196"
+    ],
+    "url_distinti": 4,
+    "host": {
+     "i.ebayimg.com": 4
+    },
+    "didascalie_distinte": 4,
+    "pixel_distinti": 1,
+    "dimensioni_originale": [
+     80,
+     80
+    ],
+    "byte_originale": 2927
+   },
+   {
+    "campo": "byte_originale",
+    "righe": 3,
+    "chiavi": [
+     "pixmo-00002-005999",
+     "pixmo-00006-007508",
+     "pixmo-00010-005654"
+    ],
+    "url_distinti": 3,
+    "host": {
+     "m.psecn.photoshelter.com": 3
+    },
+    "didascalie_distinte": 3,
+    "pixel_distinti": 1,
+    "dimensioni_originale": [
+     2040,
+     1530
+    ],
+    "byte_originale": 95702
+   },
+   {
+    "campo": "byte_originale",
+    "righe": 2,
+    "chiavi": [
+     "pixmo-00000-002021",
+     "pixmo-00014-005215"
+    ],
+    "url_distinti": 1,
+    "host": {
+     "live.staticflickr.com": 1
+    },
+    "didascalie_distinte": 2,
+    "pixel_distinti": 1,
+    "dimensioni_originale": [
+     720,
+     1640
+    ],
+    "byte_originale": 538970
+   },
+   {
+    "campo": "byte_originale",
+    "righe": 2,
+    "chiavi": [
+     "pixmo-00000-004643",
+     "pixmo-00010-007595"
+    ],
+    "url_distinti": 1,
+    "host": {
+     "www.gardendesign.com": 1
+    },
+    "didascalie_distinte": 2,
+    "pixel_distinti": 1,
+    "dimensioni_originale": [
+     650,
+     490
+    ],
+    "byte_originale": 136761
+   },
+   {
+    "campo": "byte_originale",
+    "righe": 2,
+    "chiavi": [
+     "pixmo-00000-004877",
+     "pixmo-00024-005371"
+    ],
+    "url_distinti": 2,
+    "host": {
+     "i.imgur.com": 1,
+     "i.redd.it": 1
+    },
+    "didascalie_distinte": 2,
+    "pixel_distinti": 1,
+    "dimensioni_originale": [
+     700,
+     525
+    ],
+    "byte_originale": 63989
+   },
+   {
+    "campo": "byte_originale",
+    "righe": 2,
+    "chiavi": [
+     "pixmo-00000-005968",
+     "pixmo-00019-005696"
+    ],
+    "url_distinti": 2,
+    "host": {
+     "i.redd.it": 2
+    },
+    "didascalie_distinte": 2,
+    "pixel_distinti": 1,
+    "dimensioni_originale": [
+     3024,
+     4032
+    ],
+    "byte_originale": 934518
+   },
+   {
+    "campo": "byte_originale",
+    "righe": 2,
+    "chiavi": [
+     "pixmo-00000-006839",
+     "pixmo-00018-005423"
+    ],
+    "url_distinti": 1,
+    "host": {
+     "live.staticflickr.com": 1
+    },
+    "didascalie_distinte": 2,
+    "pixel_distinti": 1,
+    "dimensioni_originale": [
+     640,
+     480
+    ],
+    "byte_originale": 142255
+   },
+   {
+    "campo": "byte_originale",
+    "righe": 2,
+    "chiavi": [
+     "pixmo-00000-007986",
+     "pixmo-00015-001083"
+    ],
+    "url_distinti": 2,
+    "host": {
+     "live.staticflickr.com": 2
+    },
+    "didascalie_distinte": 2,
+    "pixel_distinti": 1,
+    "dimensioni_originale": [
+     640,
+     1136
+    ],
+    "byte_originale": 121271
+   },
+   {
+    "campo": "byte_originale",
+    "righe": 2,
+    "chiavi": [
+     "pixmo-00000-008031",
+     "pixmo-00021-005484"
+    ],
+    "url_distinti": 2,
+    "host": {
+     "m.media-amazon.com": 2
+    },
+    "didascalie_distinte": 2,
+    "pixel_distinti": 1,
+    "dimensioni_originale": [
+     1365,
+     2048
+    ],
+    "byte_originale": 3206211
+   }
+  ]
+ },
+ "segnali_delle_didascalie": {
+  "righe_per_tipo": {
+   "numero_conteggio_2_12": 10181,
+   "colore": 8803,
+   "testo_citato": 3564,
+   "numero_altro_numero": 1978,
+   "numero_anno": 1730,
+   "numero_orario": 715
+  },
+  "righe_con_almeno_un_segnale": 25578,
+  "nota": "segnali di rischio, non difetti: un dettaglio assente dalle trascrizioni non è dimostrato falso nell'immagine"
+ },
+ "run4": {
+  "report": {
+   "path": "/home/prignano/vision_limite/outputs/pixmo_check/run4/report.json",
+   "bytes": 239359,
+   "sha256": "3f285a04b586495f801dcf4457dbe05dc14689a6bc7c61f57a5f55b19e06bb49"
+  },
+  "flagged": {
+   "path": "/home/prignano/vision_limite/outputs/pixmo_check/run4/flagged.jsonl",
+   "bytes": 2808505,
+   "sha256": "371e990ac5be7b0245e9a6a402d611ed60b02bb00b08b6abd3a7ef4d44e5eba4"
+  },
+  "schema": "pixmo-transcript-check/4",
+  "job": "30044",
+  "codice": {
+   "commit": "00d80e32d677c244189bf6042e67d63f36bb1758",
+   "dirty": true,
+   "diff_sha256": "291bab0fea70d51f0e7fc0ca3bc3e0c4975b3cfd295ad5146f74a3580091af35",
+   "untracked": [
+    "scripts/mavis_contact_sheet.py",
+    "scripts/mavis_geometry_check.py",
+    "scripts/split_duplicates.py",
+    "scripts/unimer_test_overlap.py",
+    "slurm/mavis_contact_sheet.sbatch",
+    "slurm/mavis_geometry_check.sbatch",
+    "slurm/split_duplicates.sbatch",
+    "slurm/unimer_test_overlap.sbatch",
+    "src/limite_vl/latex_render.py",
+    "tests/test_latex_render.py",
+    "tests/test_mavis_geometry.py"
+   ]
+  },
+  "righe": 235897,
+  "righe_senza_trascrizioni": 0,
+  "righe_con_segnali": 25578,
+  "file": 25,
+  "righe_per_tipo_ricalcolate": {
+   "numero_anno": 1730,
+   "numero_conteggio_2_12": 10181,
+   "colore": 8803,
+   "numero_altro_numero": 1978,
+   "testo_citato": 3564,
+   "numero_orario": 715
+  },
+  "righe_confrontate": 235897,
+  "nota": "run4 è del codice 00d80e3 con modifiche non salvate: la provenienza si stabilisce ricalcolando gli stessi segnali con il codice corrente, che le contiene (25b86c8), sugli stessi ingressi"
+ },
+ "candidati_storici": [
+  {
+   "cartella": "/home/prignano/vision_limite/data/decontam/p6/pixmo",
+   "exclude": {
+    "path": "/home/prignano/vision_limite/data/decontam/p6/pixmo/exclude.txt",
+    "bytes": 3477,
+    "sha256": "5c0026bef11698389b7180ff0560144f9993ce6402323c7bc60b5ae3cb6b4094"
+   },
+   "exclude_final": {
+    "path": "/home/prignano/vision_limite/data/decontam/p6/pixmo/exclude_final.txt",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   },
+   "candidati_storici": 183,
+   "lista_finale": 0,
+   "indice_storico": "data/decontam/p6/index.json",
+   "esiti_nuovi_dei_candidati_storici": {
+    "candidato": 183
+   },
+   "storici_non_candidati_nuovi_esempi": [],
+   "nota": "convenzione grigio-diretto/0 sui JPEG degli shard, solo pHash, contro indici diversi da pannello-v3: confronto diagnostico, liste non importate"
+  },
+  {
+   "cartella": "/home/prignano/vision_limite/data/decontam/f1eval/pixmo",
+   "exclude": {
+    "path": "/home/prignano/vision_limite/data/decontam/f1eval/pixmo/exclude.txt",
+    "bytes": 285,
+    "sha256": "1cc98ae9a942bac16fb6a64620a29b12d3c7fd8528309f88481df9217911e2d9"
+   },
+   "exclude_final": {
+    "path": "/home/prignano/vision_limite/data/decontam/f1eval/pixmo/exclude_final.txt",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   },
+   "candidati_storici": 15,
+   "lista_finale": 0,
+   "indice_storico": "data/decontam/f1eval/index.json",
+   "esiti_nuovi_dei_candidati_storici": {
+    "candidato": 15
+   },
+   "storici_non_candidati_nuovi_esempi": [],
+   "nota": "convenzione grigio-diretto/0 sui JPEG degli shard, solo pHash, contro indici diversi da pannello-v3: confronto diagnostico, liste non importate"
+  }
+ ],
+ "decontaminazione": {
+  "esiti": {
+   "fuori_shard/non_verificabile": 1,
+   "nello_shard/candidato": 248,
+   "nello_shard/nessuna_corrispondenza": 235648
+  },
+  "controlli_mancanti_nelle_righe_dello_shard": {},
+  "righe_per_tipo": {
+   "phash": 226,
+   "testo": 22
+  },
+  "elementi_del_pannello_per_tipo": {
+   "phash": 357,
+   "testo": 18
+  },
+  "corrispondenze_per_benchmark_ruolo_tipo_immagine": {
+   "aime24/sviluppo/testo/didascalia": 8,
+   "aime25/sviluppo/testo/didascalia": 2,
+   "chartqa/sviluppo/phash/originale": 785,
+   "chartqa/sviluppo/phash/shard": 784,
+   "chartqa/test_ammesso/phash/originale": 5,
+   "chartqa/test_ammesso/phash/shard": 5,
+   "chartqa/test_non_ammesso/phash/originale": 662,
+   "chartqa/test_non_ammesso/phash/shard": 662,
+   "dynamath/test_ammesso/phash/originale": 245,
+   "dynamath/test_ammesso/phash/shard": 254,
+   "dynamath/test_non_ammesso/phash/originale": 1,
+   "math500/test_ammesso/testo/didascalia": 3,
+   "mathvision/test_ammesso/phash/originale": 99,
+   "mathvision/test_ammesso/phash/shard": 99,
+   "mathvision/test_ammesso/testo/didascalia": 6,
+   "mathvista/solo_decontaminazione/phash/originale": 132,
+   "mathvista/solo_decontaminazione/phash/shard": 129,
+   "mathvista/sviluppo/phash/originale": 47,
+   "mathvista/sviluppo/phash/shard": 47,
+   "mmstar/sviluppo/phash/originale": 2,
+   "mmstar/sviluppo/phash/shard": 2,
+   "mmstar/sviluppo/testo/didascalia": 1,
+   "mmstar/test_ammesso/phash/originale": 5,
+   "mmstar/test_ammesso/phash/shard": 5,
+   "mmstar/test_non_ammesso/phash/originale": 16,
+   "mmstar/test_non_ammesso/phash/shard": 15,
+   "muirbench/sviluppo/phash/originale": 2,
+   "muirbench/sviluppo/phash/shard": 2,
+   "muirbench/test_ammesso/phash/originale": 22,
+   "muirbench/test_ammesso/phash/shard": 22,
+   "mvmath/test_ammesso/phash/originale": 5,
+   "mvmath/test_ammesso/phash/shard": 7,
+   "mvmath/test_ammesso/testo/didascalia": 3,
+   "ocrbench/sviluppo/phash/originale": 32,
+   "ocrbench/sviluppo/phash/shard": 32,
+   "ocrbench/test_ammesso/phash/originale": 1,
+   "ocrbench/test_ammesso/phash/shard": 1,
+   "ocrbench/test_non_ammesso/phash/originale": 27,
+   "ocrbench/test_non_ammesso/phash/shard": 27,
+   "olympiadbench/solo_decontaminazione/testo/didascalia": 7,
+   "olympiadbench/test_ammesso/testo/didascalia": 1,
+   "unimer_test/test_ammesso/phash/originale": 9,
+   "unimer_test/test_ammesso/phash/shard": 9,
+   "unimer_test/test_ammesso/testo/didascalia": 5,
+   "visonlyqa_real/sviluppo/phash/originale": 10,
+   "visonlyqa_real/sviluppo/phash/shard": 10,
+   "visonlyqa_real/test_non_ammesso/phash/originale": 205,
+   "visonlyqa_real/test_non_ammesso/phash/shard": 205,
+   "visonlyqa_synth/test_ammesso/phash/originale": 4,
+   "visonlyqa_synth/test_ammesso/phash/shard": 4,
+   "wemath/sviluppo/phash/originale": 7,
+   "wemath/sviluppo/phash/shard": 9
+  },
+  "righe_per_benchmark_tipo": {
+   "aime24/testo": 8,
+   "aime25/testo": 2,
+   "chartqa/phash": 20,
+   "dynamath/phash": 85,
+   "math500/testo": 3,
+   "mathvision/phash": 93,
+   "mathvision/testo": 3,
+   "mathvista/phash": 21,
+   "mmstar/phash": 23,
+   "mmstar/testo": 1,
+   "muirbench/phash": 7,
+   "mvmath/phash": 6,
+   "mvmath/testo": 1,
+   "ocrbench/phash": 16,
+   "olympiadbench/testo": 5,
+   "unimer_test/phash": 9,
+   "unimer_test/testo": 3,
+   "visonlyqa_real/phash": 13,
+   "visonlyqa_synth/phash": 2,
+   "wemath/phash": 5
+  },
+  "richieste_del_loader": [
+   {
+    "indice": 0,
+    "richiesta": "Describe this image in detail.",
+    "parole": 5,
+    "confrontabile_10gram": false,
+    "ngram_in_comune": [],
+    "testo_esatto": []
+   },
+   {
+    "indice": 1,
+    "richiesta": "Give a detailed description of the image.",
+    "parole": 7,
+    "confrontabile_10gram": false,
+    "ngram_in_comune": [],
+    "testo_esatto": []
+   },
+   {
+    "indice": 2,
+    "richiesta": "What is shown in this image? Describe it thoroughly.",
+    "parole": 9,
+    "confrontabile_10gram": false,
+    "ngram_in_comune": [],
+    "testo_esatto": []
+   },
+   {
+    "indice": 3,
+    "richiesta": "Write a comprehensive description of everything visible in the image.",
+    "parole": 10,
+    "confrontabile_10gram": true,
+    "ngram_in_comune": [],
+    "testo_esatto": []
+   },
+   {
+    "indice": 4,
+    "richiesta": "Describe the image, including all the details you can see.",
+    "parole": 10,
+    "confrontabile_10gram": true,
+    "ngram_in_comune": [],
+    "testo_esatto": []
+   },
+   {
+    "indice": 5,
+    "richiesta": "Provide a thorough, detailed caption for this image.",
+    "parole": 8,
+    "confrontabile_10gram": false,
+    "ngram_in_comune": [],
+    "testo_esatto": []
+   }
+  ],
+  "ngram_piu_frequenti": [
+   {
+    "ngram": "from the lower left corner to the upper right corner",
+    "righe": 8
+   },
+   {
+    "ngram": "1 2 3 4 5 6 7 8 9 10",
+    "righe": 3
+   },
+   {
+    "ngram": "2 3 4 5 6 7 8 9 10 11",
+    "righe": 2
+   },
+   {
+    "ngram": "a b c d e f g h i j",
+    "righe": 2
+   },
+   {
+    "ngram": "numbers 1 2 3 4 5 6 7 8 9",
+    "righe": 2
+   },
+   {
+    "ngram": "0 1 2 3 4 5 6 7 8 9",
+    "righe": 1
+   },
+   {
+    "ngram": "a larger square with a smaller square in the center",
+    "righe": 1
+   },
+   {
+    "ngram": "is located in the top right corner of the image",
+    "righe": 1
+   },
+   {
+    "ngram": "0 0 1 0 0 0 0 0 1 0",
+    "righe": 1
+   },
+   {
+    "ngram": "0 1 0 0 1 0 0 0 0 0",
+    "righe": 1
+   },
+   {
+    "ngram": "1 0 0 1 0 0 0 0 0 1",
+    "righe": 1
+   },
+   {
+    "ngram": "1 sqrt 2 pi sigma 2 e frac x mu",
+    "righe": 1
+   },
+   {
+    "ngram": "2 pi sigma 2 e frac x mu 2 2",
+    "righe": 1
+   },
+   {
+    "ngram": "frac 1 sqrt 2 pi sigma 2 e frac x",
+    "righe": 1
+   },
+   {
+    "ngram": "pi sigma 2 e frac x mu 2 2 sigma",
+    "righe": 1
+   },
+   {
+    "ngram": "sigma 2 e frac x mu 2 2 sigma 2",
+    "righe": 1
+   },
+   {
+    "ngram": "sqrt 2 pi sigma 2 e frac x mu 2",
+    "righe": 1
+   },
+   {
+    "ngram": "x y int frac d 4 k 2 pi 4",
+    "righe": 1
+   },
+   {
+    "ngram": "b c d e f g h i j k",
+    "righe": 1
+   },
+   {
+    "ngram": "1 2 3 4 5 6 7 8 9 are",
+    "righe": 1
+   },
+   {
+    "ngram": "the numbers 1 2 3 4 5 6 7 8",
+    "righe": 1
+   },
+   {
+    "ngram": "3 4 5 6 7 8 9 10 11 12",
+    "righe": 1
+   },
+   {
+    "ngram": "between 9 00 a m and 10 00 a m",
+    "righe": 1
+   }
+  ],
+  "regole": {
+   "confermata": "pixel identici dopo la normalizzazione rgb-su-bianco/1 dell'originale o del JPEG dello shard (sha256 dei pixel uguale a quello di una voce dell'indice)",
+   "candidato": "pHash entro 4 bit dell'originale o del JPEG dello shard, oppure un 10-gram di normalize_words in comune fra la didascalia del loader e un testo dell'indice (dal lato dell'indice senza gli n-gram in più di 25 testi diversi del pannello). Nessuna regola esplicita copre le didascalie: la frequenza nella sorgente non decide nulla",
+   "non_verificabile": "un controllo di pixel_originale, pixel_shard, phash_originale, phash_shard, testo_didascalia non eseguibile",
+   "nessuna_corrispondenza": "nessuna corrispondenza nei controlli eseguiti; non certifica la didascalia"
+  },
+  "controlli_non_eseguiti_per_costruzione": [
+   "trascrizioni contro il pannello: non sono negli shard e il modello non le vede",
+   "URL e provenienza dichiarata: il pannello non registra URL, e PixMo non dichiara legami coi benchmark",
+   "ritagli, ridisegni, rotazioni o riformulazioni delle immagini del pannello: solo pixel identici e pHash entro 4 bit",
+   "didascalie più corte di 10 parole: nessun 10-gram (nel sottoinsieme sono contate in testi.confrontabili)"
+  ]
+ },
+ "proposte_di_trattamento": {
+  "quarantena fino alla verifica": 248
+ },
+ "proprieta_non_verificate": [
+  "fedeltà della didascalia all'immagine: oggetti, posizioni, relazioni e attributi aggiunti dal riscrittore, ed errori percettivi degli annotatori (serve un campione con le immagini, D5)",
+  "corrispondenza fra l'immagine riscaricata da anthracite-org dall'URL e quella vista dagli annotatori di Ai2 (collegamenti scaduti, segnaposto, immagini cambiate); i duplicati per byte con didascalie diverse sono solo un segnale",
+  "rappresentatività del sottoinsieme locale: è il prefisso dei file 0-24 su 75, non un campione casuale",
+  "orientamento: né lo sharding né l'indice applicano l'orientamento EXIF; per le immagini con un orientamento diverso da 1 non è verificato quale versione abbiano visto gli annotatori",
+  "leggibilità dei dettagli alla risoluzione dello shard (1024 patch): non controllata"
+ ],
+ "scansione": {
+  "costo": {
+   "secondi": 2721.9,
+   "secondi_indice": 63.0,
+   "rss_max_mib": 7675.0,
+   "workers": 8,
+   "secondi_cpu_per_fase": {
+    "decontaminazione": 87.9,
+    "originale": 14419.5,
+    "segnali": 274.1,
+    "shard": 1121.5,
+    "trasformazione": 4941.7
+   },
+   "byte_parquet_letti_per_lo_sha256": 124853885806,
+   "byte_colonne_parquet": 124842795153,
+   "byte_shard_letti": 20566681600
+  },
+  "unita": [
+   {
+    "shard": "pixmo-cap-00000.tar",
+    "secondi": 106.6,
+    "campioni_letti": 9436
+   },
+   {
+    "shard": "pixmo-cap-00001.tar",
+    "secondi": 104.4,
+    "campioni_letti": 9436
+   },
+   {
+    "shard": "pixmo-cap-00002.tar",
+    "secondi": 102.7,
+    "campioni_letti": 9436
+   },
+   {
+    "shard": "pixmo-cap-00003.tar",
+    "secondi": 107.2,
+    "campioni_letti": 9436
+   },
+   {
+    "shard": "pixmo-cap-00004.tar",
+    "secondi": 109.6,
+    "campioni_letti": 9436
+   },
+   {
+    "shard": "pixmo-cap-00005.tar",
+    "secondi": 105.8,
+    "campioni_letti": 9436
+   },
+   {
+    "shard": "pixmo-cap-00006.tar",
+    "secondi": 106.1,
+    "campioni_letti": 9436
+   },
+   {
+    "shard": "pixmo-cap-00007.tar",
+    "secondi": 107.3,
+    "campioni_letti": 9436
+   },
+   {
+    "shard": "pixmo-cap-00008.tar",
+    "secondi": 104.3,
+    "campioni_letti": 9436
+   },
+   {
+    "shard": "pixmo-cap-00009.tar",
+    "secondi": 104.4,
+    "campioni_letti": 9436
+   },
+   {
+    "shard": "pixmo-cap-00010.tar",
+    "secondi": 107.9,
+    "campioni_letti": 9436
+   },
+   {
+    "shard": "pixmo-cap-00011.tar",
+    "secondi": 105.6,
+    "campioni_letti": 9436
+   },
+   {
+    "shard": "pixmo-cap-00012.tar",
+    "secondi": 107.6,
+    "campioni_letti": 9436
+   },
+   {
+    "shard": "pixmo-cap-00013.tar",
+    "secondi": 104.6,
+    "campioni_letti": 9436
+   },
+   {
+    "shard": "pixmo-cap-00014.tar",
+    "secondi": 105.9,
+    "campioni_letti": 9436
+   },
+   {
+    "shard": "pixmo-cap-00015.tar",
+    "secondi": 112.2,
+    "campioni_letti": 9436
+   },
+   {
+    "shard": "pixmo-cap-00016.tar",
+    "secondi": 103.5,
+    "campioni_letti": 9436
+   },
+   {
+    "shard": "pixmo-cap-00017.tar",
+    "secondi": 108.8,
+    "campioni_letti": 9436
+   },
+   {
+    "shard": "pixmo-cap-00018.tar",
+    "secondi": 107.7,
+    "campioni_letti": 9436
+   },
+   {
+    "shard": "pixmo-cap-00019.tar",
+    "secondi": 105.6,
+    "campioni_letti": 9436
+   },
+   {
+    "shard": "pixmo-cap-00020.tar",
+    "secondi": 103.8,
+    "campioni_letti": 9436
+   },
+   {
+    "shard": "pixmo-cap-00021.tar",
+    "secondi": 107.4,
+    "campioni_letti": 9436
+   },
+   {
+    "shard": "pixmo-cap-00022.tar",
+    "secondi": 105.3,
+    "campioni_letti": 9435
+   },
+   {
+    "shard": "pixmo-cap-00023.tar",
+    "secondi": 107.1,
+    "campioni_letti": 9435
+   },
+   {
+    "shard": "pixmo-cap-00024.tar",
+    "secondi": 103.9,
+    "campioni_letti": 9434
+   }
+  ]
+ },
+ "files": {
+  "duplicati.jsonl.gz": {
+   "path": "/home/prignano/vision_limite/outputs/pixmo_inventory/completo-1/verifica/duplicati.jsonl.gz",
+   "bytes": 19885,
+   "sha256": "22e71df5cf0ef5bbb391cd608e0bfb534569d40141cd2fc76bbf2b8e47e6f8c1"
+  },
+  "proposte_di_trattamento.jsonl.gz": {
+   "path": "/home/prignano/vision_limite/outputs/pixmo_inventory/completo-1/verifica/proposte_di_trattamento.jsonl.gz",
+   "bytes": 12419,
+   "sha256": "5b36052212ee3bb93b9f12753ce629616f0f9fa0b9762a377cd2f98dcd2a57c6"
+  }
+ },
+ "nota": "evidenze e proposte: nessuna lista è collegata ai loader, nessun record è ammesso o escluso",
+ "secondi": 24.5,
+ "rss_max_mib": 3340.5
+}
