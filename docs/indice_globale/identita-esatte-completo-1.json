@@ -1,0 +1,748 @@
+{
+ "schema": "exact-overlap/1",
+ "job_id": "30819",
+ "codice": {
+  "commit": "26cb82dbbae5f518fe9a0e55efa6dd8256fb7530",
+  "dirty": true,
+  "diff_sha256": "ca6d18301fa4cdcbac8a5e56f6f8666bb0b626e5615528c4895810379372bc1e",
+  "untracked": []
+ },
+ "parziale": false,
+ "limite": null,
+ "perimetro": "identità esatte (byte e pixel nella stessa convenzione) fra sintetici v4, UniMER, MAVIS e PixMo dai manifest e dalle scansioni esistenti; diagnostica, nessuna modifica a gruppi, split o stati; non è l'indice globale di C6 né la decontaminazione globale",
+ "rappresentazioni": {
+  "originale": "file dello snapshot: UniMER images/<i>.png e MAVIS <cartella>/<n>_caption.jpg degli zip, immagine del parquet di PixMo; i sintetici non ne hanno uno distinto (il PNG dello shard è l'immagine generata)",
+  "shard": "file immagine dello shard letto dal loader: PNG generato (sintetici), PNG denso (UniMER), PNG a 2304 patch (MAVIS), JPEG a 1024 patch (PixMo); per le righe ritagliate di UniMER l'immagine intera da cui si ritaglia",
+  "ritaglio": "riga k di UniMER ritagliata come in data.unimer_line_sample (to_rgb), l'immagine data al processor per transcribe_line e transcribe_line_select; solo pixel"
+ },
+ "tipi": {
+  "byte": "sha256 dei byte del file immagine (originale e shard; i ritagli non sono file)",
+  "pixel": "sha256 di dimensioni e valori RGB dopo processing.to_rgb, convenzione rgb-su-bianco/1 (trasparenze su bianco, nessun orientamento EXIF), dalle scansioni che la dichiarano"
+ },
+ "ingressi": {
+  "synth": {
+   "nome": "synth",
+   "sorgente": "synth",
+   "manifest_nome": "synth-v4-candidato-2",
+   "revisione": "v4@284e8f1dac793d024865b516952cca263b8955de",
+   "manifest": {
+    "path": "data/manifests/synth-v4-candidato-2/manifest.json",
+    "bytes": 22791,
+    "sha256": "9a8104cdea4b56ef333e7d1e9629d7cfd638ccd1a6be18336137c717ae2d824e"
+   },
+   "records": {
+    "path": "data/manifests/synth-v4-candidato-2/records.jsonl.gz",
+    "bytes": 47540222,
+    "sha256": "5863b06a305141ea5f1c90e75138109dedbffe7d4f23c5e6a322572a89a4d3a0",
+    "righe_lette": 60900,
+    "righe_dichiarate": 60900,
+    "completo": true,
+    "byte_decompressi": 197325146,
+    "secondi_righe": 2.34,
+    "secondi_solo_sha256": 0.0
+   },
+   "voci": 60900,
+   "per_insieme_split_stato": {
+    "coppie/test/ammesso": 584,
+    "coppie/test/quarantena": 16,
+    "test/test/ammesso": 296,
+    "test/test/quarantena": 4,
+    "train/dev/ammesso": 2864,
+    "train/dev/quarantena": 6,
+    "train/test/escluso": 2792,
+    "train/train/ammesso": 53997,
+    "train/train/quarantena": 341
+   },
+   "secondi_manifest": 2.4,
+   "scansione": {
+    "records": {
+     "path": "data/decontam/pannello-v3/synth-v4/records.jsonl.gz",
+     "bytes": 6240397,
+     "sha256": "38554b53a69cbe4c2aa373c286b775ba41663abf3d06cb040502970780382574",
+     "righe_lette": 60900,
+     "righe_dichiarate": 60900,
+     "completo": true,
+     "byte_decompressi": 31847797,
+     "secondi_righe": 0.86,
+     "secondi_solo_sha256": 0.0
+    },
+    "summary": {
+     "path": "data/decontam/pannello-v3/synth-v4/summary.json",
+     "bytes": 2417,
+     "sha256": "335b3a2a6be2ca4a61ea73a2cbb9344847ba2956d813087f1574fe8e141877dc"
+    },
+    "schema": "decontam.py scan (synth)",
+    "job": "30518",
+    "convenzione": "rgb-su-bianco/1",
+    "pixel_confrontati": true,
+    "righe_fuori_confronto": {},
+    "voci_senza_riga": 0,
+    "secondi_scansione": 0.9
+   },
+   "scarti_dello_sharding": 0
+  },
+  "unimer": {
+   "nome": "unimer",
+   "sorgente": "unimer",
+   "manifest_nome": "unimer-candidato-2",
+   "revisione": "2343ddd963290469da36ca83e3a56c66e068add9",
+   "manifest": {
+    "path": "data/manifests/unimer-candidato-2/manifest.json",
+    "bytes": 32360,
+    "sha256": "97af10332520c01717b80ae2e7b094f87cb5e435a6d03b0ead656175b837c126"
+   },
+   "records": {
+    "path": "data/manifests/unimer-candidato-2/records.jsonl.gz",
+    "bytes": 298508068,
+    "sha256": "7b33bc25a5d68a325bb4340871c6288bd149c1622b6b60904a22d0c9ff8224fa",
+    "righe_lette": 1016135,
+    "righe_dichiarate": 1016135,
+    "completo": true,
+    "byte_decompressi": 1730823868,
+    "secondi_righe": 28.94,
+    "secondi_solo_sha256": 0.0
+   },
+   "voci": 1016135,
+   "per_insieme_split_stato": {
+    "righe/dev/ammesso": 1533,
+    "righe/train/ammesso": 29055,
+    "righe/train/escluso": 6,
+    "righe/train/quarantena": 91,
+    "train/dev/ammesso": 49195,
+    "train/train/ammesso": 934680,
+    "train/train/escluso": 52,
+    "train/train/quarantena": 1523
+   },
+   "secondi_manifest": 29.0,
+   "scansione": {
+    "records": {
+     "path": "data/decontam/pannello-v3/unimer/records.jsonl.gz",
+     "bytes": 245087938,
+     "sha256": "2de700c4a7e54c475473b1f2f6f0aef8aa695be65b8f6006cd511be2d0d4de9f",
+     "righe_lette": 1016135,
+     "righe_dichiarate": 1016135,
+     "completo": true,
+     "byte_decompressi": 1054841937,
+     "secondi_righe": 27.59,
+     "secondi_solo_sha256": 0.0
+    },
+    "summary": {
+     "path": "data/decontam/pannello-v3/unimer/summary.json",
+     "bytes": 8256,
+     "sha256": "315f0963a96bd91284eda291d489e9753d4ed9c24c9fd4d423669172ab5bb9d8"
+    },
+    "schema": "panel-decontam-scan/1",
+    "job": "30651",
+    "convenzione": "rgb-su-bianco/1",
+    "pixel_confrontati": true,
+    "righe_fuori_confronto": {},
+    "voci_senza_riga": 0,
+    "secondi_scansione": 27.7
+   },
+   "scarti_dello_sharding": 0
+  },
+  "mavis": {
+   "nome": "mavis",
+   "sorgente": "mavis-geometry",
+   "manifest_nome": "mavis-geometry-candidato-3",
+   "revisione": "9c80fff300f4f2cb3a76f71e03428eebdd571907",
+   "manifest": {
+    "path": "data/manifests/mavis-geometry-candidato-3/manifest.json",
+    "bytes": 37984,
+    "sha256": "f3cca47367799ccd8a7c8f4d6b63c5c37e0cd06e22d921daa5507c6aa442b9c6"
+   },
+   "records": {
+    "path": "data/manifests/mavis-geometry-candidato-3/records.jsonl.gz",
+    "bytes": 170172422,
+    "sha256": "8d199336dc2f0bb3acc3475ad20e9ef94450a03e59dd5e06ae41f3a31ae82970",
+    "righe_lette": 199050,
+    "righe_dichiarate": 199050,
+    "completo": true,
+    "byte_decompressi": 1002204729,
+    "secondi_righe": 10.59,
+    "secondi_solo_sha256": 0.0
+   },
+   "voci": 199050,
+   "per_insieme_split_stato": {
+    "train/dev/ammesso": 9927,
+    "train/dev/quarantena": 24,
+    "train/train/ammesso": 186839,
+    "train/train/quarantena": 2260
+   },
+   "secondi_manifest": 10.6,
+   "scansione": {
+    "records": {
+     "path": "data/decontam/pannello-v3/mavis-geometry/records.jsonl.gz",
+     "bytes": 51544727,
+     "sha256": "f953c323cbbd00a0394c4443c88145d64ea60f4c02d910a0d20cbcf5b223b864",
+     "righe_lette": 199050,
+     "righe_dichiarate": 199050,
+     "completo": true,
+     "byte_decompressi": 290524897,
+     "secondi_righe": 5.41,
+     "secondi_solo_sha256": 0.0
+    },
+    "summary": {
+     "path": "data/decontam/pannello-v3/mavis-geometry/summary.json",
+     "bytes": 13696,
+     "sha256": "ca82909dbbd3e0289bd5bf6d131dc3cd09a7a2ea97359f495bc24019fb090003"
+    },
+    "schema": "panel-decontam-scan/1",
+    "job": "30652",
+    "convenzione": "rgb-su-bianco/1",
+    "pixel_confrontati": true,
+    "righe_fuori_confronto": {},
+    "voci_senza_riga": 0,
+    "secondi_scansione": 5.4
+   },
+   "scarti_dello_sharding": 0
+  },
+  "pixmo": {
+   "nome": "pixmo",
+   "sorgente": "pixmo-cap",
+   "manifest_nome": "pixmo-cap-candidato-1",
+   "revisione": "3e42775eea79dd4874c41379230c7f871b10218e",
+   "manifest": {
+    "path": "data/manifests/pixmo-cap-candidato-1/manifest.json",
+    "bytes": 48963,
+    "sha256": "794787abffd51a9ddc7f12227d7ac6a2eb3a922bc3c4f5fac496cb96a7b9d850"
+   },
+   "records": {
+    "path": "data/manifests/pixmo-cap-candidato-1/records.jsonl.gz",
+    "bytes": 92332306,
+    "sha256": "d3eee36538b25b697c65d19624b4623912853e5060e520c85bbaa3bf315d3f1e",
+    "righe_lette": 235896,
+    "righe_dichiarate": 235896,
+    "completo": true,
+    "byte_decompressi": 328076943,
+    "secondi_righe": 6.96,
+    "secondi_solo_sha256": 0.0
+   },
+   "voci": 235896,
+   "per_insieme_split_stato": {
+    "train/dev/ammesso": 11755,
+    "train/train/ammesso": 223343,
+    "train/train/quarantena": 798
+   },
+   "secondi_manifest": 7.0,
+   "scansione": {
+    "records": {
+     "path": "data/decontam/pannello-v3/pixmo-cap/records.jsonl.gz",
+     "bytes": 54514504,
+     "sha256": "767658e01af10762f772e39de6a5a954c9bc314620675aa65a025732c0f9b27d",
+     "righe_lette": 235897,
+     "righe_dichiarate": 235897,
+     "completo": true,
+     "byte_decompressi": 212902833,
+     "secondi_righe": 5.64,
+     "secondi_solo_sha256": 0.0
+    },
+    "summary": {
+     "path": "data/decontam/pannello-v3/pixmo-cap/summary.json",
+     "bytes": 11575,
+     "sha256": "0a4efe09bdf1e37af5821b45c3634affd584440ceb802d0fa676115fcbf682c3"
+    },
+    "schema": "pixmo-panel-scan/1",
+    "job": "30813",
+    "convenzione": "rgb-su-bianco/1",
+    "pixel_confrontati": true,
+    "righe_fuori_confronto": {
+     "scarto dello sharding (nessuna voce del manifest)": 1
+    },
+    "voci_senza_riga": 0,
+    "secondi_scansione": 5.7
+   },
+   "scarti_dello_sharding": 1
+  }
+ },
+ "c9": {
+  "manifest": {
+   "path": "data/manifests/mavis-geometry-candidato-5/manifest.json",
+   "bytes": 42870,
+   "sha256": "314a0a527e20ce422399765f7db19c3abfe297ec5e174e7f3b158586c604ef72"
+  },
+  "nome": "mavis-geometry-candidato-5",
+  "catena": [
+   {
+    "versione": "1",
+    "manifest_sha256": "dc0f264c60c1549cc1c9412ccae15d0fa6040ef1e55ac99cda0046957d6dbc2e"
+   },
+   {
+    "versione": "2",
+    "manifest_sha256": "8c549a23d60934d68f3b4db1ee3d2a24e26ec822b5c5a079bb5411a5f9c81f67"
+   },
+   {
+    "versione": "3",
+    "manifest_sha256": "f3cca47367799ccd8a7c8f4d6b63c5c37e0cd06e22d921daa5507c6aa442b9c6"
+   },
+   {
+    "versione": "4",
+    "manifest_sha256": "77e1849e0e09089dea592be577921259675e6cd51ed99a174cbf6a1744f14fa9"
+   },
+   {
+    "versione": "5",
+    "manifest_sha256": null
+   }
+  ],
+  "uso": "riferimento separato della revisione C9: record, gruppi e split ereditati da candidato-3, quindi le componenti trovate su candidato-3 valgono per gli stessi record; non è una sorgente in più"
+ },
+ "controlli": [
+  {
+   "controllo": "synth: records.jsonl.gz con lo sha256 di manifest.json e le sue righe",
+   "esito": true,
+   "dettaglio": {
+    "sha256": "5863b06a305141ea5f1c90e75138109dedbffe7d4f23c5e6a322572a89a4d3a0",
+    "righe_lette": 60900,
+    "righe_dichiarate": 60900
+   }
+  },
+  {
+   "controllo": "synth: record_id ricalcolati, sorgente e revisione, shard registrati, voci (insieme, chiave) e posizioni uniche, ogni gruppo in un solo split",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "synth: voci per shard uguali a quelle di manifest.json",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "unimer: records.jsonl.gz con lo sha256 di manifest.json e le sue righe",
+   "esito": true,
+   "dettaglio": {
+    "sha256": "7b33bc25a5d68a325bb4340871c6288bd149c1622b6b60904a22d0c9ff8224fa",
+    "righe_lette": 1016135,
+    "righe_dichiarate": 1016135
+   }
+  },
+  {
+   "controllo": "unimer: record_id ricalcolati, sorgente e revisione, shard registrati, voci (insieme, chiave) e posizioni uniche, ogni gruppo in un solo split, righe ritagliate con chiave, record_id e gruppo della formula",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "unimer: voci per shard uguali a quelle di manifest.json",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "mavis: records.jsonl.gz con lo sha256 di manifest.json e le sue righe",
+   "esito": true,
+   "dettaglio": {
+    "sha256": "8d199336dc2f0bb3acc3475ad20e9ef94450a03e59dd5e06ae41f3a31ae82970",
+    "righe_lette": 199050,
+    "righe_dichiarate": 199050
+   }
+  },
+  {
+   "controllo": "mavis: record_id ricalcolati, sorgente e revisione, shard registrati, voci (insieme, chiave) e posizioni uniche, ogni gruppo in un solo split",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "mavis: voci per shard uguali a quelle di manifest.json",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "pixmo: records.jsonl.gz con lo sha256 di manifest.json e le sue righe",
+   "esito": true,
+   "dettaglio": {
+    "sha256": "d3eee36538b25b697c65d19624b4623912853e5060e520c85bbaa3bf315d3f1e",
+    "righe_lette": 235896,
+    "righe_dichiarate": 235896
+   }
+  },
+  {
+   "controllo": "pixmo: record_id ricalcolati, sorgente e revisione, shard registrati, voci (insieme, chiave) e posizioni uniche, ogni gruppo in un solo split",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "pixmo: voci per shard uguali a quelle di manifest.json",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "C9: mavis-geometry-candidato-5 deriva da candidato-3 (catena delle versioni) con le stesse righe: stessa sorgente, non confrontata come un'altra",
+   "esito": true,
+   "dettaglio": {
+    "manifest_sha256": "314a0a527e20ce422399765f7db19c3abfe297ec5e174e7f3b158586c604ef72",
+    "genitore": "f3cca47367799ccd8a7c8f4d6b63c5c37e0cd06e22d921daa5507c6aa442b9c6"
+   }
+  },
+  {
+   "controllo": "synth: scansione con gli sha256 registrati nel manifest (records.jsonl.gz e summary.json)",
+   "esito": true,
+   "dettaglio": {
+    "records": "38554b53a69cbe4c2aa373c286b775ba41663abf3d06cb040502970780382574",
+    "summary": "335b3a2a6be2ca4a61ea73a2cbb9344847ba2956d813087f1574fe8e141877dc"
+   }
+  },
+  {
+   "controllo": "synth: ogni riga della scansione ricollegata a una sola voce coi digest del manifest",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "synth: ogni voce del manifest con una riga della scansione (righe dichiarate dalla scansione 60900)",
+   "esito": true,
+   "dettaglio": {
+    "voci_senza_riga": 0,
+    "righe": 60900,
+    "esempi": []
+   }
+  },
+  {
+   "controllo": "unimer: scansione completa di un manifest della catena di unimer-candidato-2",
+   "esito": true,
+   "dettaglio": {
+    "manifest_scansionato": "bcc851982598a80cdcf60ab00eb2adb0ff0adf581180ec7b296ed3d498d4dfcb"
+   }
+  },
+  {
+   "controllo": "unimer: scansione con gli sha256 registrati nel manifest (records.jsonl.gz e summary.json)",
+   "esito": true,
+   "dettaglio": {
+    "records": "2de700c4a7e54c475473b1f2f6f0aef8aa695be65b8f6006cd511be2d0d4de9f",
+    "summary": "315f0963a96bd91284eda291d489e9753d4ed9c24c9fd4d423669172ab5bb9d8"
+   }
+  },
+  {
+   "controllo": "unimer: ogni riga della scansione ricollegata a una sola voce coi digest del manifest",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "unimer: ogni voce del manifest con una riga della scansione (righe dichiarate dalla scansione 1016135)",
+   "esito": true,
+   "dettaglio": {
+    "voci_senza_riga": 0,
+    "righe": 1016135,
+    "esempi": []
+   }
+  },
+  {
+   "controllo": "mavis: scansione completa di un manifest della catena di mavis-geometry-candidato-3",
+   "esito": true,
+   "dettaglio": {
+    "manifest_scansionato": "dc0f264c60c1549cc1c9412ccae15d0fa6040ef1e55ac99cda0046957d6dbc2e"
+   }
+  },
+  {
+   "controllo": "mavis: scansione con gli sha256 registrati nel manifest (records.jsonl.gz e summary.json)",
+   "esito": true,
+   "dettaglio": {
+    "records": "f953c323cbbd00a0394c4443c88145d64ea60f4c02d910a0d20cbcf5b223b864",
+    "summary": "ca82909dbbd3e0289bd5bf6d131dc3cd09a7a2ea97359f495bc24019fb090003"
+   }
+  },
+  {
+   "controllo": "mavis: ogni riga della scansione ricollegata a una sola voce coi digest del manifest",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "mavis: ogni voce del manifest con una riga della scansione (righe dichiarate dalla scansione 199050)",
+   "esito": true,
+   "dettaglio": {
+    "voci_senza_riga": 0,
+    "righe": 199050,
+    "esempi": []
+   }
+  },
+  {
+   "controllo": "pixmo: scansione completa (non parziale)",
+   "esito": true,
+   "dettaglio": {
+    "parziale": false
+   }
+  },
+  {
+   "controllo": "pixmo: scansione con gli sha256 registrati nel manifest (records.jsonl.gz e summary.json)",
+   "esito": true,
+   "dettaglio": {
+    "records": "767658e01af10762f772e39de6a5a954c9bc314620675aa65a025732c0f9b27d",
+    "summary": "0a4efe09bdf1e37af5821b45c3634affd584440ceb802d0fa676115fcbf682c3"
+   }
+  },
+  {
+   "controllo": "pixmo: ogni riga della scansione ricollegata a una sola voce coi digest del manifest",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "pixmo: ogni voce del manifest con una riga della scansione (righe dichiarate dalla scansione 235897)",
+   "esito": true,
+   "dettaglio": {
+    "voci_senza_riga": 0,
+    "righe": 235897,
+    "esempi": []
+   }
+  }
+ ],
+ "falliti": [],
+ "copertura": {
+  "synth": {
+   "coppie/shard/byte": {
+    "disponibile": 600
+   },
+   "coppie/shard/pixel": {
+    "disponibile": 600
+   },
+   "test/shard/byte": {
+    "disponibile": 300
+   },
+   "test/shard/pixel": {
+    "disponibile": 300
+   },
+   "train/shard/byte": {
+    "disponibile": 60000
+   },
+   "train/shard/pixel": {
+    "disponibile": 60000
+   }
+  },
+  "unimer": {
+   "righe/originale/byte": {
+    "disponibile": 30685
+   },
+   "righe/originale/pixel": {
+    "disponibile": 30685
+   },
+   "righe/ritaglio/pixel": {
+    "disponibile": 81606
+   },
+   "righe/shard/byte": {
+    "disponibile": 30685
+   },
+   "righe/shard/pixel": {
+    "disponibile": 30685
+   },
+   "train/originale/byte": {
+    "disponibile": 985450
+   },
+   "train/originale/pixel": {
+    "disponibile": 985450
+   },
+   "train/shard/byte": {
+    "disponibile": 985450
+   },
+   "train/shard/pixel": {
+    "disponibile": 985450
+   }
+  },
+  "mavis": {
+   "train/originale/byte": {
+    "disponibile": 199050
+   },
+   "train/originale/pixel": {
+    "disponibile": 199050
+   },
+   "train/shard/byte": {
+    "disponibile": 199050
+   },
+   "train/shard/pixel": {
+    "disponibile": 199050
+   }
+  },
+  "pixmo": {
+   "train/originale/byte": {
+    "disponibile": 235896
+   },
+   "train/originale/pixel": {
+    "disponibile": 235896
+   },
+   "train/shard/byte": {
+    "disponibile": 235896
+   },
+   "train/shard/pixel": {
+    "disponibile": 235896
+   }
+  }
+ },
+ "copertura_nota": "per voce e rappresentazione (i ritagli per ritaglio): `disponibile` = digest confrontato con tutti quelli dello stesso tipo; gli altri esiti sono controlli non eseguibili. Il pixel_sha256 del manifest dei sintetici (RGBA diretto) non si usa: convenzione diversa",
+ "classi": {
+  "classi_nuove": 0,
+  "legami_nei_gruppi": {
+   "byte: mavis-geometry/originale": 10294,
+   "byte: mavis-geometry/shard": 10294,
+   "byte: pixmo-cap/originale": 116,
+   "byte: pixmo-cap/shard": 194,
+   "byte: unimer/originale": 68188,
+   "byte: unimer/originale = unimer/shard": 165,
+   "byte: unimer/shard": 68188,
+   "pixel: mavis-geometry/originale": 10294,
+   "pixel: mavis-geometry/shard": 10294,
+   "pixel: pixmo-cap/originale": 191,
+   "pixel: pixmo-cap/originale = pixmo-cap/shard": 2,
+   "pixel: pixmo-cap/shard": 192,
+   "pixel: unimer/originale": 68188,
+   "pixel: unimer/originale = unimer/shard": 165,
+   "pixel: unimer/ritaglio": 81,
+   "pixel: unimer/shard": 68188
+  },
+  "stessa_voce": {
+   "byte: unimer/originale = unimer/shard": 1124,
+   "pixel: unimer/originale = unimer/shard": 1124,
+   "pixel: unimer/ritaglio": 11
+  },
+  "classi_con_ripetizioni": 317293,
+  "digest_distinti": 5509454,
+  "gruppi": 1379556,
+  "secondi": 0.9
+ },
+ "componenti_con_piu_gruppi": 0,
+ "categorie": {
+  "fra_sorgenti": {},
+  "dentro_una_sorgente": {}
+ },
+ "coppie_di_sorgenti": {
+  "synth + unimer": {
+   "componenti": 0,
+   "classi_dirette": 0,
+   "record_con_legame_diretto": {
+    "synth": 0,
+    "unimer": 0
+   },
+   "record_nelle_componenti": {
+    "synth": 0,
+    "unimer": 0
+   },
+   "categorie": {}
+  },
+  "synth + mavis-geometry": {
+   "componenti": 0,
+   "classi_dirette": 0,
+   "record_con_legame_diretto": {
+    "synth": 0,
+    "mavis-geometry": 0
+   },
+   "record_nelle_componenti": {
+    "synth": 0,
+    "mavis-geometry": 0
+   },
+   "categorie": {}
+  },
+  "synth + pixmo-cap": {
+   "componenti": 0,
+   "classi_dirette": 0,
+   "record_con_legame_diretto": {
+    "synth": 0,
+    "pixmo-cap": 0
+   },
+   "record_nelle_componenti": {
+    "synth": 0,
+    "pixmo-cap": 0
+   },
+   "categorie": {}
+  },
+  "unimer + mavis-geometry": {
+   "componenti": 0,
+   "classi_dirette": 0,
+   "record_con_legame_diretto": {
+    "unimer": 0,
+    "mavis-geometry": 0
+   },
+   "record_nelle_componenti": {
+    "unimer": 0,
+    "mavis-geometry": 0
+   },
+   "categorie": {}
+  },
+  "unimer + pixmo-cap": {
+   "componenti": 0,
+   "classi_dirette": 0,
+   "record_con_legame_diretto": {
+    "unimer": 0,
+    "pixmo-cap": 0
+   },
+   "record_nelle_componenti": {
+    "unimer": 0,
+    "pixmo-cap": 0
+   },
+   "categorie": {}
+  },
+  "mavis-geometry + pixmo-cap": {
+   "componenti": 0,
+   "classi_dirette": 0,
+   "record_con_legame_diretto": {
+    "mavis-geometry": 0,
+    "pixmo-cap": 0
+   },
+   "record_nelle_componenti": {
+    "mavis-geometry": 0,
+    "pixmo-cap": 0
+   },
+   "categorie": {}
+  },
+  "synth (dentro la sorgente)": {
+   "componenti": 0,
+   "categorie": {},
+   "record_nelle_componenti": 0
+  },
+  "unimer (dentro la sorgente)": {
+   "componenti": 0,
+   "categorie": {},
+   "record_nelle_componenti": 0
+  },
+  "mavis-geometry (dentro la sorgente)": {
+   "componenti": 0,
+   "categorie": {},
+   "record_nelle_componenti": 0
+  },
+  "pixmo-cap (dentro la sorgente)": {
+   "componenti": 0,
+   "categorie": {},
+   "record_nelle_componenti": 0
+  }
+ },
+ "conflitti_train_dev": {
+  "componenti": 0,
+  "fra_sorgenti": 0,
+  "record_caricabili_coinvolti": {
+   "train": 0,
+   "dev": 0
+  },
+  "per_sorgenti": {}
+ },
+ "legami_con_record_non_caricabili": {
+  "componenti": 0,
+  "voci_non_caricabili": 0,
+  "per_sorgente_split_stato": {},
+  "per_portata": {}
+ },
+ "proposte": {
+  "train_dev": "conflitto effettivo: un'immagine di un record caricabile nel train è anche in un record caricabile di dev. Proposta, non applicata: nella versione successiva dei manifest coinvolti i gruppi della componente diventano un solo gruppo globale con un solo split; correzione minima: i gruppi di dev della componente passano al train (il dev resta il campione per hash degli altri gruppi), oppure tutta la componente va in dev. Decisione dell'utente",
+  "riservati": "un record caricabile ha la stessa immagine di un record riservato alla valutazione: proposta, non applicata, di escludere dal training i gruppi caricabili della componente, come i gruppi dei sintetici legati a test e coppie (train/test/escluso)",
+  "solo_train": "nessun conflitto di split: la stessa immagine compare più volte nel training, anche con compiti diversi; proposta: unire i gruppi nell'indice globale (lo split è già lo stesso) e contare le ripetizioni; nessuna esclusione, perché compiti diversi sulla stessa immagine non si contraddicono",
+  "solo_dev": "nessuna fuga train/dev: la stessa immagine compare più volte nel dev; proposta: unirli in un solo gruppo di dev e contare la ripetizione nelle metriche",
+  "un_gruppo_caricabile": "un solo gruppo caricabile, legato a record in quarantena o esclusi: nessun conflitto fra dati caricabili. Il motivo del record non caricabile si estende solo se riguarda l'immagine e la stessa rappresentazione (portata `immagine`), dopo verifica; motivi di testo, risposta, didascalia o formula non si estendono",
+  "non_caricabili": "nessun effetto sui dati caricabili; da riconsiderare solo se uno dei record viene riammesso"
+ },
+ "limiti": [
+  "solo identità esatte: nessun pHash, nessuna somiglianza, nessun confronto di testi, formule, domande o risposte; la stessa immagine è un legame visivo, non dice se domanda o risposta coincidono",
+  "immagine data al modello dopo il ridimensionamento del processor (tensore delle patch): non registrata. Due immagini con pixel uguali danno lo stesso ingresso solo con lo stesso numero massimo di patch; pixel diversi possono dare ingressi quasi uguali (per esempio la stessa immagine a due risoluzioni): non si vedono. Recupero: decodifica e ridimensionamento di tutte le immagini, non eseguito",
+  "ritagli di UniMER: solo pixel, perché non sono file; lo stesso contenuto con margini diversi non si riconosce",
+  "MAVIS: text.jpg e vision_dominant.jpg non sono negli shard e non si confrontano; PixMo: solo i 25 parquet locali su 75 (33,34% della scheda), le altre righe non sono confrontate",
+  "pixel nella convenzione rgb-su-bianco/1 senza orientamento EXIF: due immagini uguali dopo la rotazione EXIF ma con byte diversi non si riconoscono",
+  "tutte le scansioni sono state fatte con lo stesso ambiente (venvs/current -> build-29382) e quindi lo stesso decodificatore di Pillow; un decodificatore diverso potrebbe dare pixel diversi per gli stessi byte JPEG",
+  "LLaVA-Pretrain, MMFineReason e le altre sorgenti locali sono fuori da questo lotto"
+ ],
+ "costi": {
+  "secondi": 90.7,
+  "rss_max_mib": 2234.8,
+  "byte_letti_compressi": 966161496,
+  "byte_decompressi_interpretati": 4848548150,
+  "immagini_lette": 0
+ },
+ "files": {
+  "componenti.jsonl.gz": {
+   "path": "outputs/exact_overlap/completo-1/componenti.jsonl.gz",
+   "sha256": "ac73670af3abed54ac6fb4695131f4099be9fbe39d6076c5d0264a6bbdae9d83",
+   "righe": 0
+  }
+ },
+ "componenti": {},
+ "nota_componenti": "al più 30 componenti per categoria e 10 voci e classi per componente; tutte in componenti.jsonl.gz (files)"
+}

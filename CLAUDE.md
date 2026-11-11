@@ -604,6 +604,15 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
   - Gli script sono `scripts/panel_index.py` (anche `--verify`) e `scripts/panel_groups.py`, lanciati da
     `slurm/panel_groups.sbatch`; i test sono in `tests/test_panel.py`. Le uscite si scrivono una volta: una modifica dà
     `pannello-v4`.
+- Identità esatte fra le sorgenti (primo sottoinsieme di C6, job 30818-30819, `scripts/exact_overlap.py`;
+  `docs/F0_CAMPIONE_CANDIDATO.md` §9):
+  - **Ingressi:** byte e pixel `rgb-su-bianco/1` di originali, shard e ritagli delle righe, presi da
+    `synth-v4-candidato-2`, `unimer-candidato-2`, `mavis-geometry-candidato-3` e `pixmo-cap-candidato-1` e dalle
+    scansioni che citano, senza rileggere immagini; copertura del 100% (1.511.981 voci).
+  - **Esito:** nessuna classe di digest uguali fra gruppi diversi, quindi nessuna sovrapposizione fra sorgenti, nessun
+    legame nuovo dentro una sorgente e nessun conflitto train/dev. I gruppi non cambiano.
+  - **Limiti:** non vede quasi-duplicati, non copre LLaVA e MMFineReason e non è la decontaminazione globale. Restano da
+    guardare 11 righe di UniMER con due ritagli identici (`transcribe_line_select`).
 
 ## Strumenti congelati
 
@@ -628,7 +637,7 @@ parametri in `groups.py` sono ipotesi da verificare con `f0_checks.py` (sezione 
   `ISTRUZIONI_MIGRAZIONE_LAGRANGE.md` — incarico della migrazione del 2026-10-28
 - `docs/` — stato del repository, piano F0, pannello di valutazione, campione candidato di F0, inventario degli
   artefatti, indice dei file, rilievi e rapporti delle revisioni; `docs/inventari/`: rapporti degli inventari tecnici per
-  sorgente (PixMo-Cap)
+  sorgente (PixMo-Cap); `docs/indice_globale/`: riepiloghi dei confronti fra sorgenti (C6)
 - `config/paths.env` — percorsi e variabili offline; `config/runs/` — nessuna ricetta di training finché non ci sono
   ricette collaudate, solo le config di collaudo di C7 (`f0-c7-reader-unimer-mavis.json`, `f0-c7-reader-pixmo.json`,
   non ricette);

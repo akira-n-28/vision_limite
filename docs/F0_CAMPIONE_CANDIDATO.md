@@ -1,7 +1,9 @@
 # Campione candidato di F0: selezione riproducibile
 
 **Stato al 2026-11-11.** È una proposta. PixMo-Cap ha l'inventario tecnico e la decontaminazione contro `pannello-v3`
-(§7, job 30812-30813), il manifest candidato e il reader col manifest (§8, job 30814-30817).
+(§7, job 30812-30813), il manifest candidato e il reader col manifest (§8, job 30814-30817). Il confronto delle
+identità esatte fra sintetici v4, UniMER, MAVIS e PixMo non trova sovrapposizioni né conflitti train/dev (§9, job
+30818-30819).
 - Nessuna sorgente è ammessa o gold.
 - Il campione non è ancora caricabile per un pilota: mancano i passi di §5.
 - Avere i file non vuol dire che F0 sia completo.
@@ -553,3 +555,93 @@ Le unioni sono transitive, per uguaglianza esatta.
     annotata;
   - la leggibilità a 1024 patch non è controllata;
   - mancano `variant_id`, `uid` e i digest dei token, che dipendono dal contratto (D3).
+
+## 9. Identità esatte fra le sorgenti: primo sottoinsieme di C6 (2026-11-11)
+
+Lotto chiesto dall'utente il 2026-11-11: sovrapposizioni esatte fra sintetici v4, UniMER, MAVIS e PixMo-Cap e possibili
+conflitti train/dev, dai manifest e dalle scansioni già fatti, senza rileggere immagini e senza cambiare split.
+- **Non è** l'indice globale di C6 né la decontaminazione globale. Nessun manifest, gruppo, split o stato è cambiato, e
+  nessuna lista va ai loader.
+- **Strumenti** (`26cb82d`): `scripts/exact_overlap.py`, `slurm/exact_overlap.sbatch`, `tests/test_exact_overlap.py`.
+- **Job:** test e prova limitata (30818, 12 s), confronto completo (30819, 1 min 36 s). In tutto 1 min 48 s di job CPU su
+  30, con 2 CPU e RSS massima di 2,2 GiB.
+- **Evidenze:** fuori da git in `outputs/exact_overlap/completo-1` (`report.json`; `componenti.jsonl.gz`, vuoto).
+  Riepilogo versionato: `docs/indice_globale/identita-esatte-completo-1.json`.
+
+### 9.1 Ingressi e verifiche
+
+| Sorgente | Manifest (`manifest.json`) | Record | Scansione citata dal manifest | Scansione fatta su |
+| --- | --- | --- | --- | --- |
+| Sintetici v4 | `synth-v4-candidato-2` `9a8104cd…` | `5863b06a…`, 60.900 | `pannello-v3/synth-v4` `38554b53…` (job 30518) | stessi record (il manifest cita la scansione) |
+| UniMER-1M | `unimer-candidato-2` `97af1033…` | `7b33bc25…`, 1.016.135 | `pannello-v3/unimer` `2de700c4…` (job 30651) | candidato-1 `bcc85198…`, il genitore |
+| MAVIS | `mavis-geometry-candidato-3` `f3cca473…` | `8d199336…`, 199.050 | `pannello-v3/mavis-geometry` `f953c323…` (job 30652) | candidato-1 `dc0f264c…`, nella catena |
+| PixMo-Cap | `pixmo-cap-candidato-1` `794787ab…` | `d3eee365…`, 235.896 | `pannello-v3/pixmo-cap` `767658e0…` (job 30813) | ingresso del manifest |
+
+- **MAVIS candidato-5** (`314a0a52…`) sta nella catena di candidato-3, con le stesse righe. Resta il riferimento della
+  revisione C9, non una sorgente in più: record, gruppi e split sono ereditati, quindi l'esito vale anche per lui.
+- **Controlli:** 28 su 28.
+  - sha256 di manifest, record e scansioni uguali a quelli registrati;
+  - record_id ricalcolati, sorgente, revisione, shard e conteggi;
+  - voci (insieme, chiave) e posizioni uniche, ogni gruppo in un solo split;
+  - righe ritagliate di UniMER con la chiave, il record_id e il gruppo della loro formula: sono due voci e un record;
+  - ogni riga della scansione ricollegata a una sola voce, coi digest del manifest (byte dell'immagine dello shard; JSON
+    per UniMER e MAVIS; pixel, originale, file, riga e didascalia per PixMo), e ogni voce con la sua riga.
+- **Convenzione:** tutte le scansioni dichiarano `rgb-su-bianco/1`, e sono state fatte con lo stesso ambiente
+  (`build-29382`, quindi lo stesso decodificatore).
+
+### 9.2 Identità confrontate e copertura
+
+Ogni digest è confrontato con tutti quelli dello stesso tipo, di ogni sorgente e rappresentazione: anche l'originale di
+una sorgente con lo shard di un'altra. Nessun hash è ricalcolato.
+
+| Sorgente | Originale: byte e pixel | Shard (immagine letta dal loader): byte e pixel | Ritagli delle righe: pixel |
+| --- | --- | --- | --- |
+| Sintetici v4 | non distinto: il PNG generato è l'originale | 60.900 (train 60.000, test 300, coppie 600) | — |
+| UniMER-1M | 985.450 formule e 30.685 righe, che hanno l'originale della formula | 1.016.135 PNG densi | 81.606 ritagli di 30.685 righe |
+| MAVIS | 199.050 `caption.jpg` | 199.050 PNG a 2304 patch | — |
+| PixMo-Cap | 235.896 | 235.896 JPEG a 1024 patch | — |
+
+- **Copertura:** il 100% delle voci per ogni rappresentazione registrata. Nessuna immagine illeggibile, nessun problema
+  registrato dalle scansioni, nessuna voce senza riga. In tutto 1.511.981 voci, 1.379.556 gruppi e 5.509.454 digest
+  distinti.
+- **Non confrontati:**
+  - il pixel RGBA del manifest dei sintetici, che è un'altra convenzione: si usa il pixel rgb della scansione;
+  - i byte dei ritagli, che non sono file;
+  - la riga illeggibile di PixMo scartata dallo sharding, che non ha una voce.
+
+### 9.3 Esito
+
+- **Nessuna sovrapposizione esatta fra sorgenti.** Per ognuna delle sei coppie: 0 classi di digest uguali, 0 componenti,
+  0 record condivisi.
+- **Nessun legame nuovo dentro una sorgente.** Ogni identità esatta di byte o pixel sta già dentro un gruppo del suo
+  manifest, anche fra rappresentazioni diverse (l'originale di un record uguale allo shard di un altro) e sui ritagli.
+  Ogni componente delle identità esatte sta dentro un solo gruppo operativo, che può essere più largo (stesso
+  `diagram_generation` in MAVIS, stesso URL in PixMo, stato della scena e coppie nei sintetici): per queste identità i
+  gruppi non vanno uniti.
+- **Quindi:** 0 conflitti train/dev fra ammessi, 0 duplicazioni ammesse solo nel train fra gruppi diversi, 0 legami con
+  record in quarantena o esclusi e 0 legami coi riservati dei sintetici.
+- **Ripetizioni già coperte:** 317.293 classi di digest ripetuti.
+  - **Dentro un gruppo, 315.034.** UniMER ne ha 68.188 per ciascuna identità di originale e shard, che comprendono le
+    30.685 coppie formula e riga ritagliata (lo stesso file); in più 165 classi, per byte e per pixel, che uniscono
+    originali e shard di record diversi dello stesso gruppo, e 81 di ritagli. MAVIS ne ha 10.294 per ciascuna identità.
+    PixMo ne ha 116 per i byte e 191 per i pixel dell'originale, 194 e 192 per lo shard, e 2 di pixel che uniscono
+    originali e shard di record dello stesso gruppo.
+  - **Dentro una voce, 2.259.** Sono 1.124 PNG densi di UniMER uguali al file originale, per byte e per pixel, e 11
+    righe ritagliate con due ritagli identici nella stessa immagine.
+
+### 9.4 Proposte e limiti
+
+- **Trattamento:** nessuno da applicare, perché non ci sono conflitti. Proposta: l'indice globale di C6 può ereditare i
+  gruppi di queste quattro sorgenti senza fusioni dovute a identità esatte.
+- **Da guardare, non conflitti:** le 11 righe con due ritagli identici. Per `transcribe_line_select` due righe uguali
+  nei pixel con target diversi sarebbero ambigue. In questo lotto i target non si confrontano e le voci non sono
+  elencate. Per averle basta rifare il confronto con l'elenco: circa 2 minuti, senza leggere immagini.
+- **Limiti residui:**
+  - solo uguaglianza esatta: la stessa immagine ricompressa, ridimensionata o ritagliata con margini diversi non si
+    vede. Servono pHash o somiglianze, fuori da questo lotto;
+  - l'ingresso del modello dopo il ridimensionamento del processor non è registrato: pixel uguali danno lo stesso
+    ingresso solo con lo stesso numero massimo di patch;
+  - i pixel non applicano l'orientamento EXIF;
+  - non entrano `text.jpg` e `vision_dominant.jpg` di MAVIS, assenti dagli shard, né i 50 parquet di PixMo non scaricati;
+  - LLaVA, MMFineReason, le altre sorgenti locali e le liste storiche restano fuori;
+  - il confronto col pannello resta quello delle scansioni per sorgente: questo lotto non è la decontaminazione globale.

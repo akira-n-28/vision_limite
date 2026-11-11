@@ -440,3 +440,24 @@ il modello della versione 2 dei sintetici (§2.9 di S2):
 - **Verifica** (15 su 15). Rilegge il manifest e ricalcola partizione e `group_id` dai campi dei record. Controlla che
   ogni legame resti dentro un gruppo e uno split, ricalcola blocchi e stati dalle evidenze originali e rifà split,
   conteggi, ranghi e file derivati.
+
+**Primo sottoinsieme di C6: identità esatte fra le sorgenti** (2026-11-11, `scripts/exact_overlap.py`, job 30818-30819;
+esiti in `docs/F0_CAMPIONE_CANDIDATO.md` §9). È una diagnostica sui manifest di riferimento (`synth-v4-candidato-2`,
+`unimer-candidato-2`, `mavis-geometry-candidato-3`, `pixmo-cap-candidato-1`) e sulle scansioni che citano, senza
+rileggere immagini. Non è l'indice globale di §4: non scrive gruppi, split o stati, e non importa liste storiche.
+- **Voce.** Ogni record del manifest è un nodo identificato da manifest, sorgente, revisione, insieme, shard, posizione e
+  chiave. Formula e riga ritagliata di UniMER sono due voci con lo stesso record_id: i conteggi per record le contano una
+  volta. Nessun `variant_id` o `uid` provvisorio.
+- **Digest.** Byte (originale e shard) e pixel `rgb-su-bianco/1` (originale, shard e ritagli delle righe), presi dalle
+  scansioni e confrontati solo nella stessa convenzione; il pixel RGBA del manifest dei sintetici non si confronta. Un
+  digest mancante è un controllo non eseguibile, contato nella copertura per rappresentazione.
+- **Verifica degli ingressi.** sha256 di manifest, record e scansioni come registrati; record_id, sorgente, revisione,
+  shard e conteggi; un gruppo in un solo split; ogni riga della scansione ricollegata a una sola voce coi digest del
+  manifest, e ogni voce con la sua riga; la scansione fatta su un manifest della catena.
+- **Componenti.** I gruppi esistenti si uniscono in modo transitivo attraverso le classi di digest uguali che toccano
+  almeno due gruppi; i `group_id` operativi restano. Per ogni componente: membri con split, stato e compiti, classi con le
+  rappresentazioni che coincidono, e una categoria (`train_dev`, `riservati`, `solo_train`, `solo_dev`,
+  `un_gruppo_caricabile`, `non_caricabili`). La stessa immagine è un legame visivo: nessuno stato si propaga, e dei
+  record non caricabili si riporta la portata dei motivi (immagine, testo o risposta, gruppo).
+- **Esito** (job 30819): 28 controlli su 28, copertura del 100% di ogni rappresentazione registrata, nessuna classe fra
+  gruppi diversi. Quindi nessuna sovrapposizione fra sorgenti e nessun legame nuovo dentro una sorgente.
