@@ -5,9 +5,9 @@ Le liste di decontaminazione approvate (data/decontam/*/<sorgente>/exclude_final
 `exclude` di ogni sorgente della loro famiglia: train_f1.py e check_train_config.py rifiutano una config che ne
 dimentica una. Le altre liste (qualità, incerti, duplicati della validazione, contaminazione di UniMER-Test,
 rietichettature) sono scelte della config: non obbligatorie, ma registrate nel manifest con hash e righe, così un run
-dice esattamente quali chiavi ha saltato o cambiato. Per UniMER e MAVIS con un manifest delle ammissioni (MANIFEST_FAMILIES)
-le liste non servono: le evidenze storiche e la decontaminazione sono nel manifest, e make_sources rifiuta liste in
-più. Solo libreria standard.
+dice esattamente quali chiavi ha saltato o cambiato. Per UniMER, MAVIS e PixMo-Cap con un manifest delle ammissioni
+(MANIFEST_FAMILIES) le liste non servono: le evidenze storiche e la decontaminazione sono nel manifest, e make_sources
+rifiuta liste in più. Solo libreria standard.
 """
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ REQUIRED = {
     "llava-pretrain": ("data/decontam/p6/llava/exclude_final.txt",),
 }
 # famiglie lette con un manifest delle ammissioni per compito (manifest.TASKED): niente liste obbligatorie
-MANIFEST_FAMILIES = ("unimer", "mavis-geometry")
+MANIFEST_FAMILIES = ("unimer", "mavis-geometry", "pixmo-cap")
 
 
 def family(shards: str) -> str | None:

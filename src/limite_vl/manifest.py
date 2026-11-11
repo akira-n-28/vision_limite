@@ -11,12 +11,12 @@ il candidato dei sintetici v4 (S1 §9). Solo libreria standard.
   shard. `Manifest.admission` lega il manifest agli shard di una sorgente (sha256 e dimensione su disco, verificati una
   volta per manifest) e restituisce il filtro dei reader (`Admission`). Ogni incoerenza è un `ManifestError`: il
   caricamento si ferma, senza ripiegare sull'intero dataset.
-- Ammissione per compito (C7, UniMER-1M e MAVIS-Geometry, `TASKED`): il tipo di loader legge un solo insieme di record
-  e svolge compiti registrati nel manifest; il manifest deve essere della sorgente e della revisione degli shard. Si
-  leggono solo i record ammessi dello split che hanno almeno un compito ammesso per quel tipo; il reader allega al
-  campione la decisione del record (`ADMISSION_FILE`), che il loader applica prima di scegliere il compito. Le
+- Ammissione per compito (C7, UniMER-1M, MAVIS-Geometry e PixMo-Cap, `TASKED`): il tipo di loader legge un solo insieme
+  di record e svolge compiti registrati nel manifest; il manifest deve essere della sorgente e della revisione degli
+  shard. Si leggono solo i record ammessi dello split che hanno almeno un compito ammesso per quel tipo; il reader
+  allega al campione la decisione del record (`ADMISSION_FILE`), che il loader applica prima di scegliere il compito. Le
   rietichettature vengono dalla lista registrata nel manifest (`Manifest.relabels`). "Ammesso" è la decisione operativa
-  del candidato: non è gold e non certifica le risposte.
+  del candidato: non è gold e non certifica le risposte (per PixMo nemmeno la fedeltà delle didascalie ai pixel).
 
 Fuori da questo sottoinsieme (S1 §9): `variant_id` e `uid`, che dipendono dal contratto di risposta (S3, D3); hash dei
 token di input e di target; indice globale fra sorgenti (S1 §4) e import delle esclusioni storiche (S1 §5).
@@ -39,15 +39,17 @@ SPLITS = ("train", "dev", "test")
 STATES = ("ammesso", "quarantena", "escluso")
 HEX64 = re.compile(r"^[0-9a-f]{64}$")
 # Cartelle di shard che si leggono solo attraverso un manifest: una sorgente senza manifest si ferma (stream.make_sources).
-# Per UniMER e MAVIS tutte le varianti: quelle non registrate in un manifest non si leggono affatto (UniMER-Test, in
-# unimer/*/test, è valutazione e lo leggono gli strumenti del pannello, non make_sources).
-MANIFEST_REQUIRED = ("data/shards/synth/v4", "data/shards/unimer", "data/shards/mavis-geometry")
+# Per UniMER, MAVIS e PixMo-Cap tutte le varianti: quelle non registrate in un manifest non si leggono affatto
+# (UniMER-Test, in unimer/*/test, è valutazione e lo leggono gli strumenti del pannello, non make_sources).
+MANIFEST_REQUIRED = ("data/shards/synth/v4", "data/shards/unimer", "data/shards/mavis-geometry",
+                     "data/shards/pixmo-cap")
 # Ammissione per compito (C7): sorgente del manifest -> per ogni tipo di loader (data.SAMPLE_LOADERS) l'insieme dei
 # record che legge e il suo compito; None = i compiti per domanda del record, scelti dal loader fra quelli ammessi.
 TASKED = {
     "unimer": {"unimer_formula": ("train", "transcribe"), "unimer_line": ("righe", "transcribe_line"),
                "unimer_line_select": ("righe", "transcribe_line_select")},
     "mavis-geometry": {"mavis_f1": ("train", None)},
+    "pixmo-cap": {"pixmo_caption": ("train", "pixmo_caption")},
 }
 # File aggiunto dal reader ai file di un campione di una sorgente TASKED: la decisione del manifest per il record (JSON
 # canonico). Non è un file dello shard.
@@ -190,7 +192,8 @@ def manifest_required(shards: list[str]) -> list[str]:
 @dataclass
 class Admission:
     """Filtro dei reader per una sorgente: i suoi shard, verificati contro il manifest, e per ogni chiave (split, stato,
-    sha256 del JSON, sha256 del PNG, compiti ammessi, compiti bloccati, dati per il loader). Si leggono solo i record
+    sha256 del JSON, sha256 dell'immagine (PNG, o JPEG per PixMo-Cap), compiti ammessi, compiti bloccati, dati per il
+    loader). Si leggono solo i record
     `ammesso` dello split richiesto; la validazione usa quelli `ammesso` dello split dev (S1 §3). Per una sorgente
     TASKED (`tasked`) il record deve avere anche il compito del tipo di loader (`task`) o, se `task` è None, almeno un
     compito ammesso; il reader gli allega la decisione (`attach`)."""
@@ -237,15 +240,18 @@ class Admission:
         return None
 
     def check(self, key: str, files: dict[str, bytes]) -> str | None:
-        """Motivo per cui il record letto non è quello ammesso (JSON o PNG con altri byte), oppure None. Va fatto sui
-        byte dello shard, prima di ogni trasformazione (rietichettatura)."""
+        """Motivo per cui il record letto non è quello ammesso (JSON o immagine con altri byte), oppure None.
+        L'immagine è il PNG del campione, o il JPEG se lo shard non ha PNG (PixMo-Cap). Va fatto sui byte dello shard,
+        prima di ogni trasformazione (rietichettatura)."""
         e = self.entries.get(key)
         if e is None:
             return "chiave assente dal manifest"
         if hashlib.sha256(files.get("json", b"")).hexdigest() != e[2]:
             return "JSON diverso da quello del manifest"
-        if e[3] is not None and hashlib.sha256(files.get("png", b"")).hexdigest() != e[3]:
-            return "PNG diverso da quello del manifest"
+        if e[3] is not None:
+            ext = "png" if "png" in files or "jpg" not in files else "jpg"
+            if hashlib.sha256(files.get(ext, b"")).hexdigest() != e[3]:
+                return f"{'PNG' if ext == 'png' else 'JPEG'} diverso da quello del manifest"
         return None
 
     def attach(self, key: str, files: dict[str, bytes]) -> dict[str, bytes]:
@@ -415,9 +421,10 @@ class Manifest:
 
 
 def _record_tasks(key: str, r: dict, task: str | None, counter: Counter) -> tuple[tuple, tuple, dict | None]:
-    """(compiti ammessi, compiti bloccati, dati per il loader) di un record TASKED. UniMER: compiti come nomi, con lo
-    stato del record; MAVIS: compiti con il loro stato (shape_type in quarantena), digest delle domande e della
-    descrizione. Un compito ammesso del record vuole un record ammesso; un compito di domande vuole almeno una domanda."""
+    """(compiti ammessi, compiti bloccati, dati per il loader) di un record TASKED. UniMER e PixMo: compiti come nomi,
+    con lo stato del record (PixMo allega anche lo sha256 della didascalia del record); MAVIS: compiti con il loro stato
+    (shape_type in quarantena), digest delle domande e della descrizione. Un compito ammesso del record vuole un record
+    ammesso; un compito di domande vuole almeno una domanda."""
     tasks = r.get("compiti") or []
     if task is not None:  # compiti come nomi: lo stato è quello del record
         names = [t if isinstance(t, str) else t.get("compito") for t in tasks]
@@ -430,6 +437,8 @@ def _record_tasks(key: str, r: dict, task: str | None, counter: Counter) -> tupl
         blocked = () if ok else tuple(sorted(names))
         t = r.get("trasformazione") or {}
         extra = {"etichetta_sha256": t["etichetta_sha256"]} if t.get("nome") == "rietichettatura" else None
+        if r.get("didascalia_sha256"):
+            extra = {**(extra or {}), "didascalia_sha256": require_digest(r["didascalia_sha256"], f"{key}: didascalia")}
         return admitted, blocked, extra
     admitted, blocked = [], []
     for t in tasks:

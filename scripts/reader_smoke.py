@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""Smoke test di C7 sui manifest e sugli shard reali di UniMER-1M e MAVIS-Geometry: i reader del progetto
-(stream.make_sources, SourceReader, validation_samples, MixedRowStream, data.build_example) con i manifest candidati
-della config (--config). Solo in un job SLURM CPU: manifest e shard in sola lettura, scrive solo --out e --summary.
-Nessun modello: il processor di Violetto serve solo a tokenizzare.
+"""Smoke test di C7 sui manifest e sugli shard reali delle sorgenti di manifest.TASKED (UniMER-1M, MAVIS-Geometry,
+PixMo-Cap): i reader del progetto (stream.make_sources, SourceReader, validation_samples, MixedRowStream,
+data.build_example) con i manifest candidati della config (--config). Solo in un job SLURM CPU: manifest e shard in sola
+lettura, scrive solo --out e --summary. Nessun modello: il processor di Violetto serve solo a tokenizzare. Per PixMo
+anche: nessun record non ammesso consegnato, ammessi coi segnali di run4 consegnati (evidenze, non blocchi), didascalia,
+richiesta e JPEG di ogni esempio invariati e coi digest del manifest.
 
 1. Sorgenti della config con i manifest identificati da sha256: identità, shard verificati, attesi del manifest per
    split, stato e compito, rietichettature; tempo e memoria.
@@ -60,7 +62,9 @@ def rss_mib() -> float:
 def raw_records(folder: Path, sha: str) -> dict[str, dict[str, tuple]]:
     """Record del manifest in forma compatta, dai byte di records.jsonl.gz con lo sha256 registrato in manifest.json
     (che deve essere quello della config): percorso dello shard -> chiave -> (insieme, split, stato, compiti, nome della
-    trasformazione, sha256 dell'etichetta nuova, indice). compiti: [(nome, stato, domande)]. Indipendente da Admission."""
+    trasformazione, sha256 dell'etichetta nuova, indice, dati di PixMo). compiti: [(nome, stato, domande)]. Dati di PixMo
+    (None per le altre sorgenti): segnali di run4, sha256 della didascalia e del JPEG, blocchi diretti ed ereditati.
+    Indipendente da Admission."""
     if sha256_file(folder / "manifest.json") != sha:
         raise SystemExit(f"{folder}: manifest.json diverso da quello della config")
     meta = json.loads((folder / "manifest.json").read_text(encoding="utf-8"))
@@ -74,8 +78,15 @@ def raw_records(folder: Path, sha: str) -> dict[str, dict[str, tuple]]:
             tasks = tuple((t, r["stato"], 1) if isinstance(t, str) else (t["compito"], t["stato"], t.get("domande", 0))
                           for t in r.get("compiti") or [])
             t = r.get("trasformazione") or {}
+            pixmo = None
+            if r.get("didascalia_sha256"):
+                b = r.get("blocchi") or {}
+                pixmo = {"segnali": any(e.get("lista") == "pixmo_check_run4" for e in r.get("evidenze") or []),
+                         "didascalia_sha256": r["didascalia_sha256"], "immagine_sha256": r["immagini"][0]["sha256"],
+                         "diretti": tuple(b.get("diretti") or ()),
+                         "ereditati": tuple(e["codice"] for e in b.get("ereditati") or ())}
             out[r["shard"]][r["record"]] = (r["insieme"], r["split"], r["stato"], tasks, t.get("nome"),
-                                            t.get("etichetta_sha256"), r["indice"])
+                                            t.get("etichetta_sha256"), r["indice"], pixmo)
     return out
 
 
@@ -122,10 +133,11 @@ def read_pass(source, keep: set[str], first_n: int) -> dict:
 
 def build_report(processor, source, items, recs: dict, relabel: dict) -> dict:
     """Esempi costruiti dai file consegnati: compiti per tipo, bloccati, token, errori, controlli per record."""
-    from limite_vl.data import SAMPLE_LOADERS, admission_of, build_example
+    from limite_vl.data import DETAILED_CAPTION_PROMPTS, SAMPLE_LOADERS, admission_of, build_example, pick_prompt
 
     per_task, blocked, tokens = Counter(), Counter(), []
     errors, bad_task, relabel_ok, relabel_bad, line_bad = [], [], 0, [], []
+    pixmo_ok, pixmo_bad = 0, []
     for key, files in items:
         try:
             ex = build_example(processor, source.kind, key, files)
@@ -148,12 +160,31 @@ def build_report(processor, source, items, recs: dict, relabel: dict) -> dict:
                 relabel_bad.append(key)
         if source.kind in ("unimer_line", "unimer_line_select") and target not in json.loads(files["json"])["rows"]:
             line_bad.append(key)
-    return {"costruiti": len(tokens), "errori": errors[:10], "n_errori": len(errors),
-            "compiti_emessi": dict(sorted(per_task.items())), "domande_bloccate": dict(sorted(blocked.items())),
-            "token_medi": round(sum(tokens) / len(tokens), 1) if tokens else None, "token_max": max(tokens, default=None),
-            "fuori_dai_compiti_ammessi": bad_task[:10], "n_fuori": len(bad_task),
-            "rietichettati_controllati": relabel_ok, "rietichettati_sbagliati": relabel_bad[:10],
-            "righe_con_target_fuori_dal_record": line_bad[:10]}
+        if source.kind == "pixmo_caption":  # didascalia, richiesta e immagine invariate, coi digest del manifest
+            px = rec[7] or {}
+            same = (target == json.loads(files["json"])["caption"]
+                    and hashlib.sha256(target.encode()).hexdigest() == px.get("didascalia_sha256")
+                    and sample.messages[0]["content"][1]["text"] == pick_prompt(key, DETAILED_CAPTION_PROMPTS)
+                    and hashlib.sha256(files["jpg"]).hexdigest() == px.get("immagine_sha256")
+                    and ex.tasks == ("pixmo_caption",))
+            if same:
+                pixmo_ok += 1
+            else:
+                pixmo_bad.append(key)
+    out = {"costruiti": len(tokens), "errori": errors[:10], "n_errori": len(errors),
+           "compiti_emessi": dict(sorted(per_task.items())), "domande_bloccate": dict(sorted(blocked.items())),
+           "token_medi": round(sum(tokens) / len(tokens), 1) if tokens else None, "token_max": max(tokens, default=None),
+           "fuori_dai_compiti_ammessi": bad_task[:10], "n_fuori": len(bad_task),
+           "rietichettati_controllati": relabel_ok, "rietichettati_sbagliati": relabel_bad[:10],
+           "righe_con_target_fuori_dal_record": line_bad[:10]}
+    if source.kind == "pixmo_caption":
+        out.update(pixmo_invariati=pixmo_ok, pixmo_diversi=pixmo_bad[:10])
+    return out
+
+
+def pixmo_unchanged(kind: str, rep: dict) -> bool:
+    """PixMo: ogni esempio costruito con didascalia, richiesta e JPEG invariati (vero per le altre sorgenti)."""
+    return kind != "pixmo_caption" or (rep["pixmo_invariati"] == rep["costruiti"] and not rep["pixmo_diversi"])
 
 
 def main() -> None:
@@ -197,7 +228,7 @@ def main() -> None:
         described[s.name] = {**d, "rietichettature": len(s.relabel or {}), "n_shard": len(s.shards)}
         check(f"{s.name}: manifest identificato dallo sha256 della config, della sorgente, revisione, insieme e tipo",
               d["manifest_sha256"] == spec["manifest_sha256"] and d["tipo"] == spec["kind"]
-              and d["sorgente"] == ("mavis-geometry" if spec["kind"] == "mavis_f1" else "unimer"),
+              and d["sorgente"] == next(src for src, kinds in mf.TASKED.items() if spec["kind"] in kinds),
               {k: d[k] for k in ("manifest_sha256", "sorgente", "revisione", "insieme", "tipo", "compito_del_tipo")})
     # ---- record grezzi dei manifest
     t = time.time()
@@ -234,6 +265,8 @@ def main() -> None:
                 keep = {k for k in want if recs[k][4] == "rietichettatura"}
             elif s.kind == "mavis_f1":
                 keep = {k for k in want if any(x[0] == "shape_type" for x in recs[k][3])}
+            elif s.kind == "pixmo_caption":  # ammessi coi segnali di run4: evidenze, non blocchi
+                keep = {k for k in want if (recs[k][7] or {}).get("segnali")}
             keep = set(sorted(keep, key=lambda k: recs[k][6])[:TARGETED])
         res = read_pass(s, keep, args.examples if split == "train" else 0)
         got = res["keys"]
@@ -250,21 +283,36 @@ def main() -> None:
                           "uguali": ok, "motivi_attesi": dict(sorted(expected_reasons.items())),
                           "contatori_del_reader": res["counts"], "secondi": res["secondi"],
                           "casi_mirati_tenuti": len(keep & set(res["files"]))}
+        if s.kind == "pixmo_caption":  # casi non ammessi dello shard per origine del blocco: nessuno è consegnato
+            cases = Counter()
+            for k, r in recs.items():
+                px = r[7] or {}
+                if r[2] != "ammesso":
+                    cases[f"{r[1]}/{r[2]}/" + ("+".join(px.get("diretti") or ()) or
+                                               "ereditato:" + "+".join(sorted(set(px.get("ereditati") or ()))))] += 1
+            subset[s.name]["non_ammessi_per_origine"] = dict(sorted(cases.items()))
+            subset[s.name]["ammessi_con_segnali_run4"] = sum(1 for k in want if (recs[k][7] or {}).get("segnali"))
+            check(f"{s.name}: nessun record in quarantena o escluso consegnato; ammessi coi segnali di run4 consegnati",
+                  not [k for k in got if recs[k][2] != "ammesso"]
+                  and (split != "train" or subset[s.name]["ammessi_con_segnali_run4"] > 0),
+                  {"non_ammessi_nello_shard": sum(cases.values()),
+                   "ammessi_con_segnali": subset[s.name]["ammessi_con_segnali_run4"]})
         if split == "train":
             kept_files[s.name] = res["files"]
     phases["sottoinsieme"] = {"secondi": round(time.time() - t, 1), "rss_max_mib": rss_mib()}
-    # righe e formule con la stessa chiave: decisioni proprie
-    line_src = next(s for s in sources if s.kind == "unimer_line")
-    formula_src = next(s for s in sources if s.kind == "unimer_formula")
-    line_recs, formula_recs = recs_of(line_src), recs_of(formula_src)
-    pairs = Counter()
-    for k, r in line_recs.items():
-        f = formula_recs.get(k)
-        pairs[f"riga {r[2]} / formula {f[2] if f else 'assente'}{' rietichettata' if f and f[4] else ''}"] += 1
-    check("UniMER chiavi condivise: ogni riga ritagliata ha la sua formula (stessa chiave), una riga di formula "
-          "rietichettata non è ammessa, la decisione della riga è la sua",
-          all("assente" not in k for k in pairs) and not any(k.startswith("riga ammesso") and "rietichettata" in k
-                                                             for k in pairs), dict(pairs))
+    # righe e formule con la stessa chiave: decisioni proprie (solo se la config ha entrambe le sorgenti di UniMER)
+    line_src = next((s for s in sources if s.kind == "unimer_line"), None)
+    formula_src = next((s for s in sources if s.kind == "unimer_formula"), None)
+    if line_src is not None and formula_src is not None:
+        line_recs, formula_recs = recs_of(line_src), recs_of(formula_src)
+        pairs = Counter()
+        for k, r in line_recs.items():
+            f = formula_recs.get(k)
+            pairs[f"riga {r[2]} / formula {f[2] if f else 'assente'}{' rietichettata' if f and f[4] else ''}"] += 1
+        check("UniMER chiavi condivise: ogni riga ritagliata ha la sua formula (stessa chiave), una riga di formula "
+              "rietichettata non è ammessa, la decisione della riga è la sua",
+              all("assente" not in k for k in pairs) and not any(k.startswith("riga ammesso") and "rietichettata" in k
+                                                                 for k in pairs), dict(pairs))
     # ---- 3. esempi col processor
     from limite_vl.processing import LimiteVLProcessor
 
@@ -281,9 +329,10 @@ def main() -> None:
               rep["costruiti"] > 0 and not rep["n_errori"] and not rep["n_fuori"] and not rep["rietichettati_sbagliati"]
               and not rep["righe_con_target_fuori_dal_record"] and "shape_type" not in rep["compiti_emessi"]
               and (s.kind != "unimer_formula" or rep["rietichettati_controllati"] > 0)
-              and (s.kind != "mavis_f1" or rep["domande_bloccate"].get("shape_type", 0) > 0),
+              and (s.kind != "mavis_f1" or rep["domande_bloccate"].get("shape_type", 0) > 0)
+              and pixmo_unchanged(s.kind, rep),
               {k: rep[k] for k in ("costruiti", "n_errori", "compiti_emessi", "domande_bloccate",
-                                   "rietichettati_controllati")})
+                                   "rietichettati_controllati", "pixmo_invariati") if k in rep})
     dev_report = {}
     for s in sources:
         recs = recs_of(s)
@@ -292,7 +341,8 @@ def main() -> None:
         rep = build_report(processor, s, val, recs, s.relabel or {})
         dev_report[s.name] = {"letti": len(val), "fuori_dal_dev_ammesso": wrong[:10], **rep}
         check(f"{s.name}: validazione dal dev del manifest (record ammessi col compito), esempi costruiti",
-              len(val) > 0 and not wrong and rep["costruiti"] == len(val) and not rep["n_fuori"],
+              len(val) > 0 and not wrong and rep["costruiti"] == len(val) and not rep["n_fuori"]
+              and pixmo_unchanged(s.kind, rep),
               {"letti": len(val), "costruiti": rep["costruiti"], "compiti": rep["compiti_emessi"]})
     phases["esempi"] = {"secondi": round(time.time() - t, 1), "rss_max_mib": rss_mib()}
     # ---- 4. flusso misto

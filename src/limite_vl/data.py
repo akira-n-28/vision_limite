@@ -5,12 +5,13 @@ Ogni tipo di sorgente ha un loader `(chiave, file del campione) -> Sample`: mess
 si costruiscono sia l'esempio di training (`build_example`) sia il prompt per la generazione
 (`generation_prompt`: gli stessi messaggi senza la risposta, con lo stesso prefill).
 
-Con un manifest delle ammissioni per compito (manifest.TASKED: UniMER e MAVIS) il reader aggiunge ai file del campione
-la decisione del record (manifest.ADMISSION_FILE). I loader di UniMER vogliono allora il compito del loro tipo fra i
-compiti ammessi e, per una formula rietichettata, l'etichetta nuova registrata; mavis_f1 sceglie il compito e le
+Con un manifest delle ammissioni per compito (manifest.TASKED: UniMER, MAVIS e PixMo-Cap) il reader aggiunge ai file del
+campione la decisione del record (manifest.ADMISSION_FILE). I loader di UniMER vogliono allora il compito del loro tipo
+fra i compiti ammessi e, per una formula rietichettata, l'etichetta nuova registrata; mavis_f1 sceglie il compito e le
 domande solo fra quelli ammessi (shape_type no), dopo aver legato il pool delle domande e la descrizione ai digest del
-manifest. Il Sample dice i compiti svolti e le domande bloccate. Senza la decisione il loader fa come prima: gli shard
-di UniMER e MAVIS però si leggono solo col manifest (manifest.MANIFEST_REQUIRED).
+manifest; pixmo_caption vuole il compito ammesso e la didascalia col digest del record, senza cambiarla. Il Sample dice
+i compiti svolti e le domande bloccate. Senza la decisione il loader fa come prima: gli shard di UniMER, MAVIS e PixMo
+però si leggono solo col manifest (manifest.MANIFEST_REQUIRED).
 """
 from __future__ import annotations
 
@@ -170,11 +171,16 @@ def unimer_formula_sample(key: str, files: dict[str, bytes]) -> Sample:
 
 def pixmo_caption_sample(key: str, files: dict[str, bytes]) -> Sample:
     """PixMo-Cap (scripts/shard_parquet.py --kind pixmo): foto già a 1024 patch, didascalia densa (circa 200
-    parole) come target."""
+    parole) come target, invariata. Col manifest (manifest.TASKED): compito pixmo_caption ammesso e didascalia con lo
+    sha256 registrato nel record (didascalia_sha256), altrimenti il loader si ferma."""
     meta = json.loads(files["json"])
+    _require_task(key, files, "pixmo_caption")
+    expected = (admission_of(files) or {}).get("didascalia_sha256")
+    if expected is not None and sha256_text(meta["caption"]) != expected:
+        raise ManifestError(f"{key}: didascalia diversa da quella registrata nel manifest")
     messages = [{"role": "user", "content": [{"type": "image"}, {"type": "text", "text": pick_prompt(key, DETAILED_CAPTION_PROMPTS)}]},
                 {"role": "assistant", "content": meta["caption"], "prefill": F1_PREFILL}]
-    return Sample(messages, open_image(files["jpg"]), meta["max_patches"])
+    return Sample(messages, open_image(files["jpg"]), meta["max_patches"], tasks=("pixmo_caption",))
 
 
 # Ingrandimento massimo delle immagini STEM (2.0 nel run f1, job 29618). Con 4x le immagini di MMFineReason (lato

@@ -11,7 +11,7 @@ Con un manifest delle ammissioni (limite_vl.manifest, S1; campi `manifest` e `sp
 solo i record `ammesso` dello split richiesto, e la validazione è lo split dev del manifest. Gli shard di
 manifest.MANIFEST_REQUIRED si leggono solo così. Ogni record consegnato deve avere gli sha256 di JSON e PNG del
 manifest, controllati sui byte dello shard prima di ogni trasformazione: uno diverso è un errore contato dal reader
-(`errori_manifest`), mai un passaggio silenzioso. Per UniMER e MAVIS (manifest.TASKED) il manifest va anche
+(`errori_manifest`), mai un passaggio silenzioso. Per UniMER, MAVIS e PixMo-Cap (manifest.TASKED) il manifest va anche
 identificato (`manifest_sha256`), l'ammissione vale per record e compito, esclusioni e rietichettature vengono solo dal
 manifest e il reader allega al campione la decisione del record (manifest.ADMISSION_FILE), che stream, validazione e
 prompt di generazione usano allo stesso modo. I contatori dei reader (letti, saltati per il manifest con il motivo o
@@ -81,7 +81,7 @@ def make_sources(specs: list[dict]) -> list[Source]:
     `uncertified_reason` lo legge train_f2.py. `manifest` e `split` (insieme) legano la sorgente a un manifest delle
     ammissioni (limite_vl.manifest.load, Manifest.admission): manifest mancante o incoerente, shard non registrati o
     diversi sono errori; gli shard di MANIFEST_REQUIRED senza manifest anche. `manifest_sha256`, se indicato, deve
-    essere lo sha256 di manifest.json; per i tipi e i manifest di manifest.TASKED (UniMER, MAVIS) è obbligatorio, e
+    essere lo sha256 di manifest.json; per i tipi e i manifest di manifest.TASKED (UniMER, MAVIS, PixMo) è obbligatorio, e
     `exclude` e `relabel` non si accettano: esclusioni e rietichettature sono quelle del manifest
     (Manifest.relabels). Ogni manifest si legge e i suoi shard si verificano una volta per chiamata."""
     sources, names, manifests = [], set(), {}
