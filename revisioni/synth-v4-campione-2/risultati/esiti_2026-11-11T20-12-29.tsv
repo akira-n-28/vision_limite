@@ -1,0 +1,656 @@
+unita	variante	record	risposta_revisore	corretta	coerente_con_annotazioni	rispondibile_da_immagine	spiegazione	contratto_coppia	gravita	tipo_difetto	tempo_s	note
+C-coord-001		synth-0050652	right	si	si	si	non_applicabile	non_applicabile	nessun_difetto		264	
+C-coord-002		synth-0029076	left	si	si	si	non_applicabile	non_applicabile	nessun_difetto		95	
+C-coord-003		synth-0012892	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		159	
+C-coord-004		synth-0028024	yes	si	si	si	non_applicabile	non_applicabile	nessun_difetto		112	
+C-coord-005		synth-0051480	(-4, 3)	si	si	si	non_applicabile	non_applicabile	nessun_difetto		141	
+C-coord-006		synth-0029824	below	si	si	si	non_applicabile	non_applicabile	nessun_difetto		108	
+C-coord-007		synth-0002376	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		59	
+C-coord-008		synth-0045252	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		339	
+C-coord-009		synth-0026564	right	si	si	si	non_applicabile	non_applicabile	nessun_difetto		66	
+C-coord-010		synth-0002528	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		40	
+C-coord-011		synth-0052672	second	si	si	si	non_applicabile	non_applicabile	nessun_difetto		59	
+C-coord-012		synth-0028364	yes	si	si	si	non_applicabile	non_applicabile	nessun_difetto		41	
+C-coord-013		synth-0016192	third	si	si	si	non_applicabile	non_applicabile	nessun_difetto		41	
+C-coord-014		synth-0003180	right	si	si	si	non_applicabile	non_applicabile	nessun_difetto		43	
+C-coord-015		synth-0024384	yes	si	si	si	non_applicabile	non_applicabile	nessun_difetto		26	
+C-coord-016		synth-0015848	second	si	si	si	non_applicabile	non_applicabile	nessun_difetto		274	
+C-coord-017		synth-0007344	left	si	si	si	non_applicabile	non_applicabile	nessun_difetto		67	
+C-coord-018		synth-0035284	second	si	si	si	non_applicabile	non_applicabile	nessun_difetto		37	
+C-coord-019		synth-0002144	right	si	si	si	non_applicabile	non_applicabile	nessun_difetto		27	
+C-coord-020		synth-0010532	right	si	si	si	non_applicabile	non_applicabile	nessun_difetto		80	
+C-coord-021		synth-0023428	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		347	
+C-coord-022		synth-0001376	two	si	si	si	non_applicabile	non_applicabile	nessun_difetto		62	
+C-coord-023		synth-0058632	left	si	si	si	non_applicabile	non_applicabile	nessun_difetto		48	
+C-coord-024		synth-0044584	third	si	si	si	non_applicabile	non_applicabile	nessun_difetto		31	
+C-coord-025		synth-0054392	(4, -2)	si	si	si	non_applicabile	non_applicabile	nessun_difetto		49	
+C-coord-026		synth-0039480	right	si	si	si	non_applicabile	non_applicabile	nessun_difetto		49	
+C-coord-027		synth-0002252	right	si	si	si	non_applicabile	non_applicabile	nessun_difetto		37	
+C-coord-028		synth-0048516	2	si	si	si	non_applicabile	non_applicabile	nessun_difetto		31	
+C-coord-029		synth-0015896	right	si	si	si	non_applicabile	non_applicabile	nessun_difetto		56	
+C-coord-030		synth-0029624	right	si	si	si	non_applicabile	non_applicabile	nessun_difetto		29	
+C-coord-031		synth-0020192	(-5, -4)	si	si	si	non_applicabile	non_applicabile	nessun_difetto		94	
+C-coord-032		synth-0022920	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		53	
+C-coord-033		synth-0050848	below	si	si	si	non_applicabile	non_applicabile	nessun_difetto		26	
+C-coord-034		synth-0033824	yes	si	si	si	non_applicabile	non_applicabile	nessun_difetto		29	
+C-coord-035		synth-0045092	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		33	
+C-coord-036		synth-0045420	right	si	si	si	non_applicabile	non_applicabile	nessun_difetto		151	
+C-coord-037		synth-0013396	fourth	si	si	si	non_applicabile	non_applicabile	nessun_difetto		47	
+C-coord-038		synth-0001548	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		21	
+C-coord-039		synth-0037616	second	si	si	si	non_applicabile	non_applicabile	nessun_difetto		30	
+C-coord-040		synth-0056612	left	si	si	si	non_applicabile	non_applicabile	nessun_difetto		24	
+C-coord-041		synth-0019140	left	si	si	si	non_applicabile	non_applicabile	nessun_difetto		89	
+C-coord-042		synth-0042884	right	si	si	si	non_applicabile	non_applicabile	nessun_difetto		24	
+C-coord-043		synth-0007012	right	si	si	si	non_applicabile	non_applicabile	nessun_difetto		56	
+C-coord-044		synth-0054052	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		88	
+C-coord-045		synth-0011380	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		54	
+C-coord-046		synth-0043988	below	si	si	si	non_applicabile	non_applicabile	nessun_difetto		205	
+C-coord-047		synth-0014908	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		42	
+C-coord-048		synth-0056836	right	si	si	si	non_applicabile	non_applicabile	nessun_difetto		43	
+C-coord-049		synth-0049432	left	si	si	si	non_applicabile	non_applicabile	nessun_difetto		106	la gold è giusta ho sbagliato io 
+C-coord-050		synth-0006584	left	si	si	si	non_applicabile	non_applicabile	nessun_difetto		36	
+C-coord-051		synth-0033560	third	si	si	si	non_applicabile	non_applicabile	nessun_difetto		42	
+C-coord-052		synth-0050828	left	si	si	si	non_applicabile	non_applicabile	nessun_difetto		45	
+C-coord-053		synth-0051620	below	si	si	si	non_applicabile	non_applicabile	nessun_difetto		27	
+C-coord-054		synth-0021648	(-4, -4)	si	si	si	non_applicabile	non_applicabile	nessun_difetto		38	
+C-coord-055		synth-0038572	below	si	si	si	non_applicabile	non_applicabile	nessun_difetto		27	
+C-coord-056		synth-0030972	left	si	si	si	non_applicabile	non_applicabile	nessun_difetto		31	
+C-coord-057		synth-0039436	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		294	
+C-coord-058		synth-0059852	3	si	si	si	non_applicabile	non_applicabile	nessun_difetto		45	
+C-coord-059		synth-0023228	2	si	si	si	non_applicabile	non_applicabile	nessun_difetto		30	
+C-coord-060		synth-0012204	yes	si	si	si	non_applicabile	non_applicabile	nessun_difetto		18	
+C-coord-061		synth-0036168	left	si	si	si	non_applicabile	non_applicabile	nessun_difetto		22	
+C-coord-062		synth-0022408	fourth	si	si	si	non_applicabile	non_applicabile	nessun_difetto		46	
+C-coord-063		synth-0023388	yes	si	si	si	non_applicabile	non_applicabile	nessun_difetto		209	
+C-coord-064		synth-0059504	right	si	si	si	non_applicabile	non_applicabile	nessun_difetto		37	
+C-coord-065		synth-0058308	left	si	si	si	non_applicabile	non_applicabile	nessun_difetto		83	
+C-coord-066		synth-0007768	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		32	
+C-coord-067		synth-0008212	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		18	
+C-coord-068		synth-0025668	left	si	si	si	non_applicabile	non_applicabile	nessun_difetto		26	
+C-coord-069		synth-0019544	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		35	
+C-coord-070		synth-0046368	below	si	si	si	non_applicabile	non_applicabile	nessun_difetto		27	
+C-coord-071		synth-0012920	(5, 6)	si	si	si	non_applicabile	non_applicabile	nessun_difetto		48	
+C-coord-072		synth-0011964	left	si	si	si	non_applicabile	non_applicabile	nessun_difetto		74	
+C-coord-073		synth-0035408	yes	si	si	si	non_applicabile	non_applicabile	nessun_difetto		28	
+C-coord-074		synth-0056764	left	si	si	si	non_applicabile	non_applicabile	nessun_difetto		23	
+C-coord-075		synth-0049456	right	si	si	si	non_applicabile	non_applicabile	nessun_difetto		22	
+C-function-001		synth-0036834	below	si	si	si	non_applicabile	non_applicabile	nessun_difetto		40	
+C-function-002		synth-0052878	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		22	
+C-function-003		synth-0031350	yes	si	si	si	non_applicabile	non_applicabile	nessun_difetto		51	
+C-function-004		synth-0015034	below	si	si	si	non_applicabile	non_applicabile	nessun_difetto		36	
+C-function-005		synth-0019094	increasing	si	si	si	non_applicabile	non_applicabile	nessun_difetto		24	
+C-function-006		synth-0033146	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		48	
+C-function-007		synth-0059770	increasing	si	si	si	non_applicabile	non_applicabile	nessun_difetto		20	
+C-function-008		synth-0046822	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		20	
+C-function-009		synth-0041574	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		31	
+C-function-010		synth-0026578	below	si	si	si	non_applicabile	non_applicabile	nessun_difetto		83	
+C-function-011		synth-0051002	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		28	
+C-function-012		synth-0051850	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		20	
+C-function-013		synth-0018886	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		27	
+C-function-014		synth-0020138	yes	si	si	si	non_applicabile	non_applicabile	nessun_difetto		19	
+C-function-015		synth-0059350	decreasing	si	si	si	non_applicabile	non_applicabile	nessun_difetto		21	
+C-function-016		synth-0018190	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		23	
+C-function-017		synth-0031702	increasing	si	si	si	non_applicabile	non_applicabile	nessun_difetto		25	
+C-function-018		synth-0029514	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		35	
+C-function-019		synth-0047326	below	si	si	si	non_applicabile	non_applicabile	nessun_difetto		20	
+C-function-020		synth-0032614	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		20	
+C-function-021		synth-0046914	yes	si	si	si	non_applicabile	non_applicabile	nessun_difetto		28	
+C-function-022		synth-0011802	downward	si	si	si	non_applicabile	non_applicabile	nessun_difetto		26	
+C-function-023		synth-0058910	yes	si	si	si	non_applicabile	non_applicabile	nessun_difetto		20	
+C-function-024		synth-0005050	downward	si	si	si	non_applicabile	non_applicabile	nessun_difetto		272	
+C-function-025		synth-0015370	below	si	si	si	non_applicabile	non_applicabile	nessun_difetto		28	
+C-function-026		synth-0029378	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		17	
+C-function-027		synth-0006178	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		19	
+C-function-028		synth-0019706	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		21	
+C-function-029		synth-0013070	upward	si	si	si	non_applicabile	non_applicabile	nessun_difetto		20	
+C-function-030		synth-0038538	below	si	si	si	non_applicabile	non_applicabile	nessun_difetto		22	
+C-function-031		synth-0050226	decreasing	si	si	si	non_applicabile	non_applicabile	nessun_difetto		26	
+C-function-032		synth-0041294	right	si	si	si	non_applicabile	non_applicabile	nessun_difetto		30	
+C-function-033		synth-0008694	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		32	
+C-function-034		synth-0025774	increasing	si	si	si	non_applicabile	non_applicabile	nessun_difetto		32	
+C-function-035		synth-0003062	below	si	si	si	non_applicabile	non_applicabile	nessun_difetto		38	
+C-function-036		synth-0030298	below	si	si	si	non_applicabile	non_applicabile	nessun_difetto		70	
+C-function-037		synth-0003430	right	si	si	si	non_applicabile	non_applicabile	nessun_difetto		25	
+C-function-038		synth-0035358	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		30	
+C-function-039		synth-0029730	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		39	
+C-function-040		synth-0034194	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		24	
+C-function-041		synth-0005118	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		37	
+C-function-042		synth-0055146	below	si	si	si	non_applicabile	non_applicabile	nessun_difetto		38	
+C-function-043		synth-0044378	yes	si	si	si	non_applicabile	non_applicabile	nessun_difetto		23	
+C-function-044		synth-0034966	upward	si	si	si	non_applicabile	non_applicabile	nessun_difetto		20	
+C-function-045		synth-0031262	1	si	si	si	non_applicabile	non_applicabile	nessun_difetto		24	
+C-function-046		synth-0045802	below	si	si	si	non_applicabile	non_applicabile	nessun_difetto		18	
+C-function-047		synth-0050246	below	si	si	si	non_applicabile	non_applicabile	nessun_difetto		25	
+C-function-048		synth-0022310	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		21	
+C-function-049		synth-0042190	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		25	
+C-function-050		synth-0010910	downward	si	si	si	non_applicabile	non_applicabile	nessun_difetto		22	
+C-function-051		synth-0050086	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		29	
+C-function-052		synth-0013638	increasing	si	si	si	non_applicabile	non_applicabile	nessun_difetto		23	
+C-function-053		synth-0025458	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		22	
+C-function-054		synth-0052826	increasing	si	si	si	non_applicabile	non_applicabile	nessun_difetto		17	
+C-function-055		synth-0012114	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		20	
+C-function-056		synth-0019786	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		24	
+C-function-057		synth-0034362	decreasing	si	si	si	non_applicabile	non_applicabile	nessun_difetto		27	
+C-function-058		synth-0009582	below	si	si	si	non_applicabile	non_applicabile	nessun_difetto		22	
+C-function-059		synth-0040802	decreasing	si	si	si	non_applicabile	non_applicabile	nessun_difetto		23	
+C-function-060		synth-0001070	1	si	si	si	non_applicabile	non_applicabile	nessun_difetto		20	
+C-function-061		synth-0034726	increasing	si	si	si	non_applicabile	non_applicabile	nessun_difetto		29	
+C-function-062		synth-0046950	increasing	si	si	si	non_applicabile	non_applicabile	nessun_difetto		690	
+C-function-063		synth-0004250	below	si	si	si	non_applicabile	non_applicabile	nessun_difetto		23	
+C-function-064		synth-0018382	1	si	si	si	non_applicabile	non_applicabile	nessun_difetto		102	
+C-function-065		synth-0048438	left	si	si	si	non_applicabile	non_applicabile	nessun_difetto		123	
+C-function-066		synth-0034078	increasing	si	si	si	non_applicabile	non_applicabile	nessun_difetto		563	
+C-function-067		synth-0059830	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		17	
+C-function-068		synth-0007698	upward	si	si	si	non_applicabile	non_applicabile	nessun_difetto		17	
+C-function-069		synth-0039794	decreasing	si	si	si	non_applicabile	non_applicabile	nessun_difetto		20	
+C-function-070		synth-0029962	yes	si	si	si	non_applicabile	non_applicabile	nessun_difetto		63	
+C-function-071		synth-0035070	left	si	si	si	non_applicabile	non_applicabile	nessun_difetto		20	
+C-function-072		synth-0003582	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		38	
+C-function-073		synth-0036602	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		43	
+C-function-074		synth-0011854	below	si	si	si	non_applicabile	non_applicabile	nessun_difetto		30	
+C-function-075		synth-0008850	below	si	si	si	non_applicabile	non_applicabile	nessun_difetto		36	
+C-polygon-001		synth-0018253	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		70	
+C-polygon-002		synth-0013749	3	si	si	si	non_applicabile	non_applicabile	nessun_difetto		25	
+C-polygon-003		synth-0039537	yes	si	si	si	non_applicabile	non_applicabile	nessun_difetto		52	
+C-polygon-004		synth-0056465	isosceles triangle	si	si	si	non_applicabile	non_applicabile	nessun_difetto		210	
+C-polygon-005		synth-0058549	6.4	si	si	si	non_applicabile	non_applicabile	nessun_difetto		28	
+C-polygon-006		synth-0052609	5	si	si	si	non_applicabile	non_applicabile	nessun_difetto		26	
+C-polygon-007		synth-0051301	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		25	
+C-polygon-008		synth-0040937	N	si	si	si	non_applicabile	non_applicabile	nessun_difetto		41	
+C-polygon-009		synth-0020129	N	si	si	si	non_applicabile	non_applicabile	nessun_difetto		40	
+C-polygon-010		synth-0042045	yes	si	si	si	non_applicabile	non_applicabile	nessun_difetto		20	
+C-polygon-011		synth-0043781	5	si	si	si	non_applicabile	non_applicabile	nessun_difetto		18	
+C-polygon-012		synth-0045661	3	si	si	si	non_applicabile	non_applicabile	nessun_difetto		26	
+C-polygon-013		synth-0009497	R	si	si	si	non_applicabile	non_applicabile	nessun_difetto		37	
+C-polygon-014		synth-0036573	Q	si	si	si	non_applicabile	non_applicabile	nessun_difetto		37	
+C-polygon-015		synth-0045049	26	si	si	si	non_applicabile	non_applicabile	nessun_difetto		33	
+C-polygon-016		synth-0035541	T	si	si	si	non_applicabile	non_applicabile	nessun_difetto		19	
+C-polygon-017		synth-0046477	H	si	si	si	non_applicabile	non_applicabile	nessun_difetto		31	
+C-polygon-018		synth-0003137	rectangle	si	si	si	non_applicabile	non_applicabile	nessun_difetto		40	
+C-polygon-019		synth-0020353	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		23	
+C-polygon-020		synth-0039041	square	si	si	si	non_applicabile	non_applicabile	nessun_difetto		28	
+C-polygon-021		synth-0011177	R	si	si	si	non_applicabile	non_applicabile	nessun_difetto		40	
+C-polygon-022		synth-0043833	3	si	si	si	non_applicabile	non_applicabile	nessun_difetto		44	
+C-polygon-023		synth-0040129	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		22	
+C-polygon-024		synth-0023297	5.8	si	si	si	non_applicabile	non_applicabile	nessun_difetto		27	
+C-polygon-025		synth-0001581	trapezoid	si	si	si	non_applicabile	non_applicabile	nessun_difetto		28	
+C-polygon-026		synth-0022709	4.6	si	si	si	non_applicabile	non_applicabile	nessun_difetto		27	
+C-polygon-027		synth-0055793	yes	si	si	si	non_applicabile	non_applicabile	nessun_difetto		152	
+C-polygon-028		synth-0001997	N	si	si	si	non_applicabile	non_applicabile	nessun_difetto		43	
+C-polygon-029		synth-0044489	1	si	si	si	non_applicabile	non_applicabile	nessun_difetto		25	
+C-polygon-030		synth-0046801	M	si	si	si	non_applicabile	non_applicabile	nessun_difetto		20	
+C-polygon-031		synth-0002993	N	si	si	si	non_applicabile	non_applicabile	nessun_difetto		20	
+C-polygon-032		synth-0042893	4.2	si	si	si	non_applicabile	non_applicabile	nessun_difetto		30	
+C-polygon-033		synth-0035065	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		22	
+C-polygon-034		synth-0000929	S	si	si	si	non_applicabile	non_applicabile	nessun_difetto		27	
+C-polygon-035		synth-0013193	C	si	si	si	non_applicabile	non_applicabile	nessun_difetto		39	
+C-polygon-036		synth-0055033	right triangle	si	si	si	non_applicabile	non_applicabile	nessun_difetto		31	
+C-polygon-037		synth-0031017	1	si	si	si	non_applicabile	non_applicabile	nessun_difetto		29	
+C-polygon-038		synth-0020721	D	si	si	si	non_applicabile	non_applicabile	nessun_difetto		167	
+C-polygon-039		synth-0012233	S	si	si	si	non_applicabile	non_applicabile	nessun_difetto		27	
+C-polygon-040		synth-0053897	4	si	si	si	non_applicabile	non_applicabile	nessun_difetto		89	
+C-polygon-041		synth-0032297	VT	si	si	si	non_applicabile	non_applicabile	nessun_difetto		57	
+C-polygon-042		synth-0005589	yes	si	si	si	non_applicabile	non_applicabile	nessun_difetto		79	
+C-polygon-043		synth-0051929	F	si	si	si	non_applicabile	non_applicabile	nessun_difetto		49	
+C-polygon-044		synth-0007581	yes	si	si	si	non_applicabile	non_applicabile	nessun_difetto		273	
+C-polygon-045		synth-0018637	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		22	
+C-polygon-046		synth-0005553	1	si	si	si	non_applicabile	non_applicabile	nessun_difetto		21	
+C-polygon-047		synth-0002641	Q	si	si	si	non_applicabile	non_applicabile	nessun_difetto		31	
+C-polygon-048		synth-0035561	FG	si	si	si	non_applicabile	non_applicabile	nessun_difetto		26	
+C-polygon-049		synth-0000613	11.8	si	si	si	non_applicabile	non_applicabile	nessun_difetto		29	
+C-polygon-050		synth-0046897	6	si	si	si	non_applicabile	non_applicabile	nessun_difetto		19	
+C-polygon-051		synth-0051573	P	si	si	si	non_applicabile	non_applicabile	nessun_difetto		20	
+C-polygon-052		synth-0028605	2	si	si	si	non_applicabile	non_applicabile	nessun_difetto		26	
+C-polygon-053		synth-0027277	2	si	si	si	non_applicabile	non_applicabile	nessun_difetto		66	ho sbagliato io la risposta, la golden è esatta
+C-polygon-054		synth-0054717	2	si	si	si	non_applicabile	non_applicabile	nessun_difetto		28	
+C-polygon-055		synth-0031953	yes	si	si	si	non_applicabile	non_applicabile	nessun_difetto		30	
+C-polygon-056		synth-0042057	Q	si	si	si	non_applicabile	non_applicabile	nessun_difetto		22	
+C-polygon-057		synth-0057493	WU	si	si	si	non_applicabile	non_applicabile	nessun_difetto		21	
+C-polygon-058		synth-0033797	3	si	si	si	non_applicabile	non_applicabile	nessun_difetto		20	
+C-polygon-059		synth-0012201	M	si	si	si	non_applicabile	non_applicabile	nessun_difetto		32	
+C-polygon-060		synth-0047621	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		16	
+C-polygon-061		synth-0017369	3	si	si	si	non_applicabile	non_applicabile	nessun_difetto		23	
+C-polygon-062		synth-0018345	3	si	si	si	non_applicabile	non_applicabile	nessun_difetto		18	
+C-polygon-063		synth-0059441	trapezoid	si	si	si	non_applicabile	non_applicabile	nessun_difetto		26	
+C-polygon-064		synth-0046653	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		24	
+C-polygon-065		synth-0013977	K	si	si	si	non_applicabile	non_applicabile	nessun_difetto		24	
+C-polygon-066		synth-0014297	yes	si	si	si	non_applicabile	non_applicabile	nessun_difetto		19	
+C-polygon-067		synth-0009245	1	si	si	si	non_applicabile	non_applicabile	nessun_difetto		97	
+C-polygon-068		synth-0051065	10	si	si	si	non_applicabile	non_applicabile	nessun_difetto		22	
+C-polygon-069		synth-0051277	L	si	si	si	non_applicabile	non_applicabile	nessun_difetto		30	
+C-polygon-070		synth-0012009	N	si	si	si	non_applicabile	non_applicabile	nessun_difetto		21	
+C-polygon-071		synth-0004185	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		35	
+C-polygon-072		synth-0018733	4	si	si	si	non_applicabile	non_applicabile	nessun_difetto		21	
+C-polygon-073		synth-0042309	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		25	
+C-polygon-074		synth-0053061	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		24	
+C-polygon-075		synth-0038349	1	si	si	si	non_applicabile	non_applicabile	nessun_difetto		28	
+C-shapes-001		synth-0028943	4	si	si	si	non_applicabile	non_applicabile	nessun_difetto		18	
+C-shapes-002		synth-0025115	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		19	
+C-shapes-003		synth-0004239	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		27	
+C-shapes-004		synth-0026047	0	si	si	si	non_applicabile	non_applicabile	nessun_difetto		38	
+C-shapes-005		synth-0057347	0	si	si	si	non_applicabile	non_applicabile	nessun_difetto		17	
+C-shapes-006		synth-0026523	2	si	si	si	non_applicabile	non_applicabile	nessun_difetto		25	
+C-shapes-007		synth-0052655	yes	si	si	si	non_applicabile	non_applicabile	nessun_difetto		18	
+C-shapes-008		synth-0001143	triangle	si	si	si	non_applicabile	non_applicabile	nessun_difetto		36	
+C-shapes-009		synth-0055331	0	si	si	si	non_applicabile	non_applicabile	nessun_difetto		185	la mia risposta è sbagliata, la gold è giusta
+C-shapes-010		synth-0048487	yes	si	si	si	non_applicabile	non_applicabile	nessun_difetto		1287	
+C-shapes-011		synth-0051455	yes	si	si	si	non_applicabile	non_applicabile	nessun_difetto		20	
+C-shapes-012		synth-0021915	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		26	
+C-shapes-013		synth-0016967	2	si	si	si	non_applicabile	non_applicabile	nessun_difetto		18	
+C-shapes-014		synth-0055523	circle	si	si	si	non_applicabile	non_applicabile	nessun_difetto		19	
+C-shapes-015		synth-0006411	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		22	
+C-shapes-016		synth-0034855	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		21	
+C-shapes-017		synth-0046335	yes	si	si	si	non_applicabile	non_applicabile	nessun_difetto		22	
+C-shapes-018		synth-0028747	yes	si	si	si	non_applicabile	non_applicabile	nessun_difetto		24	
+C-shapes-019		synth-0035979	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		19	
+C-shapes-020		synth-0036087	2	si	si	si	non_applicabile	non_applicabile	nessun_difetto		19	
+C-shapes-021		synth-0035855	square	si	si	si	non_applicabile	non_applicabile	nessun_difetto		36	
+C-shapes-022		synth-0037731	4	si	si	si	non_applicabile	non_applicabile	nessun_difetto		19	
+C-shapes-023		synth-0017395	rectangle	si	si	si	non_applicabile	non_applicabile	nessun_difetto		23	
+C-shapes-024		synth-0043991	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		30	
+C-shapes-025		synth-0009583	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		157	
+C-shapes-026		synth-0053063	yes	si	si	si	non_applicabile	non_applicabile	nessun_difetto		19	
+C-shapes-027		synth-0040975	triangle	si	si	si	non_applicabile	non_applicabile	nessun_difetto		23	
+C-shapes-028		synth-0029467	triangle	si	si	si	non_applicabile	non_applicabile	nessun_difetto		35	
+C-shapes-029		synth-0020703	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		20	
+C-shapes-030		synth-0049691	yes	si	si	si	non_applicabile	non_applicabile	nessun_difetto		27	
+C-shapes-031		synth-0019351	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		26	
+C-shapes-032		synth-0002667	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		21	
+C-shapes-033		synth-0044327	triangle	si	si	si	non_applicabile	non_applicabile	nessun_difetto		25	
+C-shapes-034		synth-0036007	square	si	si	si	non_applicabile	non_applicabile	nessun_difetto		25	
+C-shapes-035		synth-0047707	yes	si	si	si	non_applicabile	non_applicabile	nessun_difetto		22	
+C-shapes-036		synth-0054835	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		20	
+C-shapes-037		synth-0011971	circle	si	si	si	non_applicabile	non_applicabile	nessun_difetto		27	
+C-shapes-038		synth-0053687	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		19	
+C-shapes-039		synth-0047435	1	si	si	si	non_applicabile	non_applicabile	nessun_difetto		21	
+C-shapes-040		synth-0022215	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		17	
+C-shapes-041		synth-0041695	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		20	
+C-shapes-042		synth-0054995	0	si	si	si	non_applicabile	non_applicabile	nessun_difetto		18	
+C-shapes-043		synth-0031863	2	si	si	si	non_applicabile	non_applicabile	nessun_difetto		14	
+C-shapes-044		synth-0017335	square	si	si	si	non_applicabile	non_applicabile	nessun_difetto		33	
+C-shapes-045		synth-0034883	0	si	si	si	non_applicabile	non_applicabile	nessun_difetto		17	
+C-shapes-046		synth-0001687	yes	si	si	si	non_applicabile	non_applicabile	nessun_difetto		20	
+C-shapes-047		synth-0058587	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		24	
+C-shapes-048		synth-0040439	rectangle	si	si	si	non_applicabile	non_applicabile	nessun_difetto		33	
+C-shapes-049		synth-0039923	circle	si	si	si	non_applicabile	non_applicabile	nessun_difetto		24	
+C-shapes-050		synth-0050215	yes	si	si	si	non_applicabile	non_applicabile	nessun_difetto		609	
+C-shapes-051		synth-0034787	circle	si	si	si	non_applicabile	non_applicabile	nessun_difetto		442	
+C-shapes-052		synth-0005519	1	si	si	si	non_applicabile	non_applicabile	nessun_difetto		32	
+C-shapes-053		synth-0021647	2	si	si	si	non_applicabile	non_applicabile	nessun_difetto		83	ho sbagliato a rispondere con 2, la gold è esatta
+C-shapes-054		synth-0031627	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		18	
+C-shapes-055		synth-0020379	3	si	si	si	non_applicabile	non_applicabile	nessun_difetto		18	
+C-shapes-056		synth-0001671	yes	si	si	si	non_applicabile	non_applicabile	nessun_difetto		24	
+C-shapes-057		synth-0026679	yes	si	si	si	non_applicabile	non_applicabile	nessun_difetto		20	
+C-shapes-058		synth-0038803	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		16	
+C-shapes-059		synth-0049707	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		18	
+C-shapes-060		synth-0030691	0	si	si	si	non_applicabile	non_applicabile	nessun_difetto		18	
+C-shapes-061		synth-0056211	yes	si	si	si	non_applicabile	non_applicabile	nessun_difetto		17	
+C-shapes-062		synth-0011635	circle	si	si	si	non_applicabile	non_applicabile	nessun_difetto		17	
+C-shapes-063		synth-0019643	circle	si	si	si	non_applicabile	non_applicabile	nessun_difetto		49	
+C-shapes-064		synth-0037691	triangle	si	si	si	non_applicabile	non_applicabile	nessun_difetto		22	
+C-shapes-065		synth-0051535	0	si	si	si	non_applicabile	non_applicabile	nessun_difetto		15	
+C-shapes-066		synth-0022387	1	si	si	si	non_applicabile	non_applicabile	nessun_difetto		19	
+C-shapes-067		synth-0025059	yes	si	si	si	non_applicabile	non_applicabile	nessun_difetto		26	
+C-shapes-068		synth-0033423	1	si	si	si	non_applicabile	non_applicabile	nessun_difetto		28	
+C-shapes-069		synth-0007911	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		18	
+C-shapes-070		synth-0021019	yes	si	si	si	non_applicabile	non_applicabile	nessun_difetto		25	
+C-shapes-071		synth-0034327	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		42	
+C-shapes-072		synth-0022855	1	si	si	si	non_applicabile	non_applicabile	nessun_difetto		20	
+C-shapes-073		synth-0051071	circle	si	si	si	non_applicabile	non_applicabile	nessun_difetto		19	
+C-shapes-074		synth-0051255	1	si	si	si	non_applicabile	non_applicabile	nessun_difetto		21	
+C-shapes-075		synth-0049727	0	si	si	si	non_applicabile	non_applicabile	nessun_difetto		30	
+C-test-001		synth-test-00271	1	si	si	si	non_applicabile	non_applicabile	nessun_difetto		25	
+C-test-002		synth-test-00152	(-2, 4)	si	si	si	non_applicabile	non_applicabile	nessun_difetto		28	
+C-test-003		synth-test-00100	first	si	si	si	non_applicabile	non_applicabile	nessun_difetto		19	
+C-test-004		synth-test-00264	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		890	
+C-test-005		synth-test-00248	second	si	si	si	non_applicabile	non_applicabile	nessun_difetto		52	
+C-test-006		synth-test-00216	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		24	
+C-test-007		synth-test-00184	below	si	si	si	non_applicabile	non_applicabile	nessun_difetto		58	
+C-test-008		synth-test-00038	below	si	si	si	non_applicabile	non_applicabile	nessun_difetto		46	
+C-test-009		synth-test-00175	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		26	
+C-test-010		synth-test-00288	right	si	si	si	non_applicabile	non_applicabile	nessun_difetto		22	
+C-test-011		synth-test-00265	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		19	
+C-test-012		synth-test-00038	decreasing	si	si	si	non_applicabile	non_applicabile	nessun_difetto		80	
+C-test-013		synth-test-00201	R	si	si	si	non_applicabile	non_applicabile	nessun_difetto		31	
+C-test-014		synth-test-00032	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		19	
+C-test-015		synth-test-00045	H	si	si	si	non_applicabile	non_applicabile	nessun_difetto		16	
+C-test-016		synth-test-00248	left	si	si	si	non_applicabile	non_applicabile	nessun_difetto		50	
+C-test-017		synth-test-00285	yes	si	si	si	non_applicabile	non_applicabile	nessun_difetto		25	
+C-test-018		synth-test-00057	Q	si	si	si	non_applicabile	non_applicabile	nessun_difetto		20	
+C-test-019		synth-test-00004	right	si	si	si	non_applicabile	non_applicabile	nessun_difetto		77	
+C-test-020		synth-test-00272	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		16	
+C-test-021		synth-test-00091	yes	si	si	si	non_applicabile	non_applicabile	nessun_difetto		18	
+C-test-022		synth-test-00004	left	si	si	si	non_applicabile	non_applicabile	nessun_difetto		44	
+C-test-023		synth-test-00088	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		30	
+C-test-024		synth-test-00033	8	si	si	si	non_applicabile	non_applicabile	nessun_difetto		19	
+C-test-025		synth-test-00240	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		18	
+C-test-026		synth-test-00048	right	si	si	si	non_applicabile	non_applicabile	nessun_difetto		29	
+C-test-027		synth-test-00286	yes	si	si	si	non_applicabile	non_applicabile	nessun_difetto		40	
+C-test-028		synth-test-00220	below	si	si	si	non_applicabile	non_applicabile	nessun_difetto		36	
+C-test-029		synth-test-00192	third	si	si	si	non_applicabile	non_applicabile	nessun_difetto		22	
+C-test-030		synth-test-00156	below	si	si	si	non_applicabile	non_applicabile	nessun_difetto		19	
+C-test-031		synth-test-00260	below	si	si	si	non_applicabile	non_applicabile	nessun_difetto		19	
+C-test-032		synth-test-00149	K	si	si	si	non_applicabile	non_applicabile	nessun_difetto		17	
+C-test-033		synth-test-00104	left	si	si	si	non_applicabile	non_applicabile	nessun_difetto		20	
+C-test-034		synth-test-00296	4	si	si	si	non_applicabile	non_applicabile	nessun_difetto		20	
+C-test-035		synth-test-00096	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		21	
+C-test-036		synth-test-00040	below	si	si	si	non_applicabile	non_applicabile	nessun_difetto		23	
+C-test-037		synth-test-00172	left	si	si	si	non_applicabile	non_applicabile	nessun_difetto		25	
+C-test-038		synth-test-00131	square	si	si	si	non_applicabile	non_applicabile	nessun_difetto		20	
+C-test-039		synth-test-00251	4	si	si	si	non_applicabile	non_applicabile	nessun_difetto		116	
+C-test-040		synth-test-00220	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		28	
+C-test-041		synth-test-00020	yes	si	si	si	non_applicabile	non_applicabile	nessun_difetto		21	
+C-test-042		synth-test-00160	right	si	si	si	non_applicabile	non_applicabile	nessun_difetto		24	
+C-test-043		synth-test-00247	circle	si	si	si	non_applicabile	non_applicabile	nessun_difetto		20	
+C-test-044		synth-test-00244	5	si	si	si	non_applicabile	non_applicabile	nessun_difetto		22	
+C-test-045		synth-test-00127	0	si	si	si	non_applicabile	non_applicabile	nessun_difetto		21	
+C-test-046		synth-test-00220	left	si	si	si	non_applicabile	non_applicabile	nessun_difetto		28	
+C-test-047		synth-test-00060	left	si	si	si	non_applicabile	non_applicabile	nessun_difetto		32	
+C-test-048		synth-test-00201	no	si	si	si	non_applicabile	non_applicabile	nessun_difetto		24	
+C-test-049		synth-test-00124	right	si	si	si	non_applicabile	non_applicabile	nessun_difetto		30	
+C-test-050		synth-test-00014	decreasing	si	si	si	non_applicabile	non_applicabile	nessun_difetto		132	
+C-coppie-001	a	synth-pair-00140-a	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		427	
+C-coppie-001	b	synth-pair-00140-b	below	si	si	si	non_applicabile	non_applicabile	nessun_difetto		427	
+C-coppie-001	coppia	synth-pair-00140-a|synth-pair-00140-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		427	
+C-coppie-002	a	synth-pair-00109-a	9	si	si	si	non_applicabile	non_applicabile	nessun_difetto		71	
+C-coppie-002	b	synth-pair-00109-b	11	si	si	si	non_applicabile	non_applicabile	nessun_difetto		71	
+C-coppie-002	coppia	synth-pair-00109-a|synth-pair-00109-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		71	
+C-coppie-003	a	synth-pair-00171-a	3	si	si	si	non_applicabile	non_applicabile	nessun_difetto		127	
+C-coppie-003	b	synth-pair-00171-b	4	si	si	si	non_applicabile	non_applicabile	nessun_difetto		127	
+C-coppie-003	coppia	synth-pair-00171-a|synth-pair-00171-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		127	
+C-coppie-004	a	synth-pair-00208-a	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		81	
+C-coppie-004	b	synth-pair-00208-b	below	si	si	si	non_applicabile	non_applicabile	nessun_difetto		81	
+C-coppie-004	coppia	synth-pair-00208-a|synth-pair-00208-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		81	
+C-coppie-005	a	synth-pair-00060-a	left	si	si	si	non_applicabile	non_applicabile	nessun_difetto		255	
+C-coppie-005	b	synth-pair-00060-b	right	si	si	si	non_applicabile	non_applicabile	nessun_difetto		255	
+C-coppie-005	coppia	synth-pair-00060-a|synth-pair-00060-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		255	
+C-coppie-006	a	synth-pair-00075-a	1	si	si	si	non_applicabile	non_applicabile	nessun_difetto		76	
+C-coppie-006	b	synth-pair-00075-b	2	si	si	si	non_applicabile	non_applicabile	nessun_difetto		76	
+C-coppie-006	coppia	synth-pair-00075-a|synth-pair-00075-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		76	
+C-coppie-007	a	synth-pair-00221-a	8.5	si	si	si	non_applicabile	non_applicabile	nessun_difetto		114	
+C-coppie-007	b	synth-pair-00221-b	11.5	si	si	si	non_applicabile	non_applicabile	nessun_difetto		114	
+C-coppie-007	coppia	synth-pair-00221-a|synth-pair-00221-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		114	
+C-coppie-008	a	synth-pair-00006-a	downward	si	si	si	non_applicabile	non_applicabile	nessun_difetto		50	
+C-coppie-008	b	synth-pair-00006-b	upward	si	si	si	non_applicabile	non_applicabile	nessun_difetto		50	
+C-coppie-008	coppia	synth-pair-00006-a|synth-pair-00006-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		50	
+C-coppie-009	a	synth-pair-00291-a	1	si	si	si	non_applicabile	non_applicabile	nessun_difetto		69	
+C-coppie-009	b	synth-pair-00291-b	2	si	si	si	non_applicabile	non_applicabile	nessun_difetto		69	
+C-coppie-009	coppia	synth-pair-00291-a|synth-pair-00291-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		69	
+C-coppie-010	a	synth-pair-00072-a	right	si	si	si	non_applicabile	non_applicabile	nessun_difetto		42	
+C-coppie-010	b	synth-pair-00072-b	left	si	si	si	non_applicabile	non_applicabile	nessun_difetto		42	
+C-coppie-010	coppia	synth-pair-00072-a|synth-pair-00072-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		42	
+C-coppie-011	a	synth-pair-00154-a	increasing	si	si	si	non_applicabile	non_applicabile	nessun_difetto		64	
+C-coppie-011	b	synth-pair-00154-b	decreasing	si	si	si	non_applicabile	non_applicabile	nessun_difetto		64	
+C-coppie-011	coppia	synth-pair-00154-a|synth-pair-00154-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		64	
+C-coppie-012	a	synth-pair-00271-a	3	si	si	si	non_applicabile	non_applicabile	nessun_difetto		37	
+C-coppie-012	b	synth-pair-00271-b	2	si	si	si	non_applicabile	non_applicabile	nessun_difetto		37	
+C-coppie-012	coppia	synth-pair-00271-a|synth-pair-00271-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		37	
+C-coppie-013	a	synth-pair-00094-a	decreasing	si	si	si	non_applicabile	non_applicabile	nessun_difetto		121	
+C-coppie-013	b	synth-pair-00094-b	increasing	si	si	si	non_applicabile	non_applicabile	nessun_difetto		121	
+C-coppie-013	coppia	synth-pair-00094-a|synth-pair-00094-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		121	
+C-coppie-014	a	synth-pair-00263-a	3	si	si	si	non_applicabile	non_applicabile	nessun_difetto		28	
+C-coppie-014	b	synth-pair-00263-b	2	si	si	si	non_applicabile	non_applicabile	nessun_difetto		28	
+C-coppie-014	coppia	synth-pair-00263-a|synth-pair-00263-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		28	
+C-coppie-015	a	synth-pair-00245-a	10.4	si	si	si	non_applicabile	non_applicabile	nessun_difetto		44	
+C-coppie-015	b	synth-pair-00245-b	12.4	si	si	si	non_applicabile	non_applicabile	nessun_difetto		44	
+C-coppie-015	coppia	synth-pair-00245-a|synth-pair-00245-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		44	
+C-coppie-016	a	synth-pair-00081-a	8	si	si	si	non_applicabile	non_applicabile	nessun_difetto		38	
+C-coppie-016	b	synth-pair-00081-b	12	si	si	si	non_applicabile	non_applicabile	nessun_difetto		38	
+C-coppie-016	coppia	synth-pair-00081-a|synth-pair-00081-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		38	
+C-coppie-017	a	synth-pair-00158-a	decreasing	si	si	si	non_applicabile	non_applicabile	nessun_difetto		42	
+C-coppie-017	b	synth-pair-00158-b	increasing	si	si	si	non_applicabile	non_applicabile	nessun_difetto		42	
+C-coppie-017	coppia	synth-pair-00158-a|synth-pair-00158-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		42	
+C-coppie-018	a	synth-pair-00273-a	12.4	si	si	si	non_applicabile	non_applicabile	nessun_difetto		46	
+C-coppie-018	b	synth-pair-00273-b	15.4	si	si	si	non_applicabile	non_applicabile	nessun_difetto		46	
+C-coppie-018	coppia	synth-pair-00273-a|synth-pair-00273-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		46	
+C-coppie-019	a	synth-pair-00139-a	4	si	si	si	non_applicabile	non_applicabile	nessun_difetto		52	
+C-coppie-019	b	synth-pair-00139-b	3	si	si	si	non_applicabile	non_applicabile	nessun_difetto		52	
+C-coppie-019	coppia	synth-pair-00139-a|synth-pair-00139-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		52	
+C-coppie-020	a	synth-pair-00143-a	3	si	si	si	non_applicabile	non_applicabile	nessun_difetto		43	
+C-coppie-020	b	synth-pair-00143-b	4	si	si	si	non_applicabile	non_applicabile	nessun_difetto		43	
+C-coppie-020	coppia	synth-pair-00143-a|synth-pair-00143-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		43	
+C-coppie-021	a	synth-pair-00145-a	6	si	si	si	non_applicabile	non_applicabile	nessun_difetto		452	
+C-coppie-021	b	synth-pair-00145-b	9	si	si	si	non_applicabile	non_applicabile	nessun_difetto		452	
+C-coppie-021	coppia	synth-pair-00145-a|synth-pair-00145-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		452	
+C-coppie-022	a	synth-pair-00130-a	increasing	si	si	si	non_applicabile	non_applicabile	nessun_difetto		52	
+C-coppie-022	b	synth-pair-00130-b	decreasing	si	si	si	non_applicabile	non_applicabile	nessun_difetto		52	
+C-coppie-022	coppia	synth-pair-00130-a|synth-pair-00130-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		52	
+C-coppie-023	a	synth-pair-00163-a	2	si	si	si	non_applicabile	non_applicabile	nessun_difetto		102	
+C-coppie-023	b	synth-pair-00163-b	3	si	si	si	non_applicabile	non_applicabile	nessun_difetto		102	
+C-coppie-023	coppia	synth-pair-00163-a|synth-pair-00163-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		102	
+C-coppie-024	a	synth-pair-00157-a	6	si	si	si	non_applicabile	non_applicabile	nessun_difetto		35	
+C-coppie-024	b	synth-pair-00157-b	8	si	si	si	non_applicabile	non_applicabile	nessun_difetto		35	
+C-coppie-024	coppia	synth-pair-00157-a|synth-pair-00157-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		35	
+C-coppie-025	a	synth-pair-00114-a	upward	si	si	si	non_applicabile	non_applicabile	nessun_difetto		44	
+C-coppie-025	b	synth-pair-00114-b	downward	si	si	si	non_applicabile	non_applicabile	nessun_difetto		44	
+C-coppie-025	coppia	synth-pair-00114-a|synth-pair-00114-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		44	
+C-coppie-026	a	synth-pair-00040-a	below	si	si	si	non_applicabile	non_applicabile	nessun_difetto		34	
+C-coppie-026	b	synth-pair-00040-b	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		34	
+C-coppie-026	coppia	synth-pair-00040-a|synth-pair-00040-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		34	
+C-coppie-027	a	synth-pair-00278-a	increasing	si	si	si	non_applicabile	non_applicabile	nessun_difetto		38	
+C-coppie-027	b	synth-pair-00278-b	decreasing	si	si	si	non_applicabile	non_applicabile	nessun_difetto		38	
+C-coppie-027	coppia	synth-pair-00278-a|synth-pair-00278-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		38	
+C-coppie-028	a	synth-pair-00251-a	2	si	si	si	non_applicabile	non_applicabile	nessun_difetto		36	
+C-coppie-028	b	synth-pair-00251-b	1	si	si	si	non_applicabile	non_applicabile	nessun_difetto		36	
+C-coppie-028	coppia	synth-pair-00251-a|synth-pair-00251-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		36	
+C-coppie-029	a	synth-pair-00088-a	left	si	si	si	non_applicabile	non_applicabile	nessun_difetto		51	
+C-coppie-029	b	synth-pair-00088-b	right	si	si	si	non_applicabile	non_applicabile	nessun_difetto		51	
+C-coppie-029	coppia	synth-pair-00088-a|synth-pair-00088-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		51	
+C-coppie-030	a	synth-pair-00277-a	8	si	si	si	non_applicabile	non_applicabile	nessun_difetto		56	
+C-coppie-030	b	synth-pair-00277-b	10	si	si	si	non_applicabile	non_applicabile	nessun_difetto		56	
+C-coppie-030	coppia	synth-pair-00277-a|synth-pair-00277-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		56	
+M-quarantena-001		synth-0001536	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		388	
+M-quarantena-002		synth-0001776	below	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		2190	
+M-quarantena-003		synth-0003364	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		101	
+M-quarantena-004		synth-0004682	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		166	
+M-quarantena-005		synth-0005100	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		87	
+M-quarantena-006		synth-0005940	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		32	
+M-quarantena-007		synth-0008056	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		29	
+M-quarantena-008		synth-0008380	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		79	
+M-quarantena-009		synth-0010448	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		26	
+M-quarantena-010		synth-0010604	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		24	
+M-quarantena-011		synth-0011772	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		42	
+M-quarantena-012		synth-0012376	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		24	
+M-quarantena-013		synth-0015860	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		25	
+M-quarantena-014		synth-0017844	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		18	
+M-quarantena-015		synth-0018520	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		55	
+M-quarantena-016		synth-0018636	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		30	
+M-quarantena-017		synth-0018736	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		308	
+M-quarantena-018		synth-0018744	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		23	
+M-quarantena-019		synth-0018756	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		32	
+M-quarantena-020		synth-0019480	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		25	
+M-quarantena-021		synth-0019904	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		26	
+M-quarantena-022		synth-0020420	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		21	
+M-quarantena-023		synth-0021048	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		24	
+M-quarantena-024		synth-0022020	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		91	
+M-quarantena-025		synth-0022688	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		32	
+M-quarantena-026		synth-0022848	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		20	
+M-quarantena-027		synth-0023052	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		25	
+M-quarantena-028		synth-0024320	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		50	
+M-quarantena-029		synth-0024800	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		29	
+M-quarantena-030		synth-0024890	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		21	
+M-quarantena-031		synth-0025660	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		41	
+M-quarantena-032		synth-0026224	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		40	
+M-quarantena-033		synth-0027352	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		17	
+M-quarantena-034		synth-0027624	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		19	
+M-quarantena-035		synth-0029208	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		15	
+M-quarantena-036		synth-0030984	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		23	
+M-quarantena-037		synth-0031164	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		15	
+M-quarantena-038		synth-0031520	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		15	
+M-quarantena-039		synth-0031584	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		32	
+M-quarantena-040		synth-0032100	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		19	
+M-quarantena-041		synth-0032152	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		21	
+M-quarantena-042		synth-0032488	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		18	
+M-quarantena-043		synth-0033172	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		16	
+M-quarantena-044		synth-0033324	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		17	
+M-quarantena-045		synth-0034184	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		20	
+M-quarantena-046		synth-0035864	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		21	
+M-quarantena-047		synth-0036196	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		30	
+M-quarantena-048		synth-0036652	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		21	
+M-quarantena-049		synth-0036716	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		33	
+M-quarantena-050		synth-0038964	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		23	
+M-quarantena-051		synth-0043128	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		22	
+M-quarantena-052		synth-0044384	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		25	
+M-quarantena-053		synth-0045280	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		15	
+M-quarantena-054		synth-0045848	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		16	
+M-quarantena-055		synth-0046360	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		27	
+M-quarantena-056		synth-0046704	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		23	
+M-quarantena-057		synth-0047232	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		20	
+M-quarantena-058		synth-0047600	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		12	
+M-quarantena-059		synth-0048520	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		15	
+M-quarantena-060		synth-0050060	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		20	
+M-quarantena-061		synth-0050276	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		21	
+M-quarantena-062		synth-0050540	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		34	
+M-quarantena-063		synth-0050956	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		21	
+M-quarantena-064		synth-0051036	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		18	
+M-quarantena-065		synth-0053732	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		19	
+M-quarantena-066		synth-0054752	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		30	
+M-quarantena-067		synth-0055244	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		52	
+M-coppie_per_famiglia-001	a	synth-pair-00000-a	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		131	
+M-coppie_per_famiglia-001	b	synth-pair-00000-b	below	si	si	si	non_applicabile	non_applicabile	nessun_difetto		131	
+M-coppie_per_famiglia-001	coppia	synth-pair-00000-a|synth-pair-00000-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		131	
+M-coppie_per_famiglia-002	a	synth-pair-00100-a	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		90	
+M-coppie_per_famiglia-002	b	synth-pair-00100-b	below	si	si	si	non_applicabile	non_applicabile	nessun_difetto		90	
+M-coppie_per_famiglia-002	coppia	synth-pair-00100-a|synth-pair-00100-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		90	
+M-coppie_per_famiglia-003	a	synth-pair-00244-a	left	si	si	si	non_applicabile	non_applicabile	nessun_difetto		149	
+M-coppie_per_famiglia-003	b	synth-pair-00244-b	right	si	si	si	non_applicabile	non_applicabile	nessun_difetto		149	
+M-coppie_per_famiglia-003	coppia	synth-pair-00244-a|synth-pair-00244-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		149	
+M-coppie_per_famiglia-004	a	synth-pair-00204-a	below	si	si	si	non_applicabile	non_applicabile	nessun_difetto		106	
+M-coppie_per_famiglia-004	b	synth-pair-00204-b	above	si	si	si	non_applicabile	non_applicabile	nessun_difetto		106	
+M-coppie_per_famiglia-004	coppia	synth-pair-00204-a|synth-pair-00204-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		106	
+M-coppie_per_famiglia-005	a	synth-pair-00200-a	right	si	si	si	non_applicabile	non_applicabile	nessun_difetto		74	
+M-coppie_per_famiglia-005	b	synth-pair-00200-b	left	si	si	si	non_applicabile	non_applicabile	nessun_difetto		74	
+M-coppie_per_famiglia-005	coppia	synth-pair-00200-a|synth-pair-00200-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		74	
+M-coppie_per_famiglia-006	a	synth-pair-00274-a	increasing	si	si	si	non_applicabile	non_applicabile	nessun_difetto		55	
+M-coppie_per_famiglia-006	b	synth-pair-00274-b	decreasing	si	si	si	non_applicabile	non_applicabile	nessun_difetto		55	
+M-coppie_per_famiglia-006	coppia	synth-pair-00274-a|synth-pair-00274-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		55	
+M-coppie_per_famiglia-007	a	synth-pair-00270-a	decreasing	si	si	si	non_applicabile	non_applicabile	nessun_difetto		69	
+M-coppie_per_famiglia-007	b	synth-pair-00270-b	increasing	si	si	si	non_applicabile	non_applicabile	nessun_difetto		69	
+M-coppie_per_famiglia-007	coppia	synth-pair-00270-a|synth-pair-00270-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		69	
+M-coppie_per_famiglia-008	a	synth-pair-00182-a	decreasing	si	si	si	non_applicabile	non_applicabile	nessun_difetto		83	
+M-coppie_per_famiglia-008	b	synth-pair-00182-b	increasing	si	si	si	non_applicabile	non_applicabile	nessun_difetto		83	
+M-coppie_per_famiglia-008	coppia	synth-pair-00182-a|synth-pair-00182-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		83	
+M-coppie_per_famiglia-009	a	synth-pair-00170-a	increasing	si	si	si	non_applicabile	non_applicabile	nessun_difetto		53	
+M-coppie_per_famiglia-009	b	synth-pair-00170-b	decreasing	si	si	si	non_applicabile	non_applicabile	nessun_difetto		53	
+M-coppie_per_famiglia-009	coppia	synth-pair-00170-a|synth-pair-00170-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		53	
+M-coppie_per_famiglia-010	a	synth-pair-00262-a	decreasing	si	si	si	non_applicabile	non_applicabile	nessun_difetto		585	
+M-coppie_per_famiglia-010	b	synth-pair-00262-b	increasing	si	si	si	non_applicabile	non_applicabile	nessun_difetto		585	
+M-coppie_per_famiglia-010	coppia	synth-pair-00262-a|synth-pair-00262-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		585	
+M-coppie_per_famiglia-011	a	synth-pair-00053-a	7.6	si	si	si	non_applicabile	non_applicabile	nessun_difetto		419	
+M-coppie_per_famiglia-011	b	synth-pair-00053-b	10.6	si	si	si	non_applicabile	non_applicabile	nessun_difetto		419	
+M-coppie_per_famiglia-011	coppia	synth-pair-00053-a|synth-pair-00053-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		419	
+M-coppie_per_famiglia-012	a	synth-pair-00193-a	5	si	si	si	non_applicabile	non_applicabile	nessun_difetto		107	
+M-coppie_per_famiglia-012	b	synth-pair-00193-b	9	si	si	si	non_applicabile	non_applicabile	nessun_difetto		107	
+M-coppie_per_famiglia-012	coppia	synth-pair-00193-a|synth-pair-00193-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		107	
+M-coppie_per_famiglia-013	a	synth-pair-00101-a	6.3	si	si	si	non_applicabile	non_applicabile	nessun_difetto		40	
+M-coppie_per_famiglia-013	b	synth-pair-00101-b	8.3	si	si	si	non_applicabile	non_applicabile	nessun_difetto		40	
+M-coppie_per_famiglia-013	coppia	synth-pair-00101-a|synth-pair-00101-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		40	
+M-coppie_per_famiglia-014	a	synth-pair-00045-a	11.6	si	si	si	non_applicabile	non_applicabile	nessun_difetto		39	
+M-coppie_per_famiglia-014	b	synth-pair-00045-b	15.6	si	si	si	non_applicabile	non_applicabile	nessun_difetto		39	
+M-coppie_per_famiglia-014	coppia	synth-pair-00045-a|synth-pair-00045-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		39	
+M-coppie_per_famiglia-015	a	synth-pair-00153-a	8	si	si	si	non_applicabile	non_applicabile	nessun_difetto		38	
+M-coppie_per_famiglia-015	b	synth-pair-00153-b	11	si	si	si	non_applicabile	non_applicabile	nessun_difetto		38	
+M-coppie_per_famiglia-015	coppia	synth-pair-00153-a|synth-pair-00153-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		38	
+M-coppie_per_famiglia-016	a	synth-pair-00035-a	1	si	si	si	non_applicabile	non_applicabile	nessun_difetto		41	
+M-coppie_per_famiglia-016	b	synth-pair-00035-b	2	si	si	si	non_applicabile	non_applicabile	nessun_difetto		41	
+M-coppie_per_famiglia-016	coppia	synth-pair-00035-a|synth-pair-00035-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		41	
+M-coppie_per_famiglia-017	a	synth-pair-00159-a	1	si	si	si	non_applicabile	non_applicabile	nessun_difetto		43	
+M-coppie_per_famiglia-017	b	synth-pair-00159-b	2	si	si	si	non_applicabile	non_applicabile	nessun_difetto		43	
+M-coppie_per_famiglia-017	coppia	synth-pair-00159-a|synth-pair-00159-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		43	
+M-coppie_per_famiglia-018	a	synth-pair-00299-a	2	si	si	si	non_applicabile	non_applicabile	nessun_difetto		54	
+M-coppie_per_famiglia-018	b	synth-pair-00299-b	3	si	si	si	non_applicabile	non_applicabile	nessun_difetto		54	
+M-coppie_per_famiglia-018	coppia	synth-pair-00299-a|synth-pair-00299-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		54	
+M-coppie_per_famiglia-019	a	synth-pair-00231-a	4	si	si	si	non_applicabile	non_applicabile	nessun_difetto		89	
+M-coppie_per_famiglia-019	b	synth-pair-00231-b	3	si	si	si	non_applicabile	non_applicabile	nessun_difetto		89	
+M-coppie_per_famiglia-019	coppia	synth-pair-00231-a|synth-pair-00231-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		89	
+M-coppie_per_famiglia-020	a	synth-pair-00219-a	3	si	si	si	non_applicabile	non_applicabile	nessun_difetto		47	
+M-coppie_per_famiglia-020	b	synth-pair-00219-b	2	si	si	si	non_applicabile	non_applicabile	nessun_difetto		47	
+M-coppie_per_famiglia-020	coppia	synth-pair-00219-a|synth-pair-00219-b	non_applicabile	non_applicabile	non_applicabile	non_applicabile	non_applicabile	si	nessun_difetto		47	
+M-esclusioni_contaminazione-001		synth-0040146|synth-pair-00002-a	sì	non_applicabile	si	non_applicabile	non_applicabile	non_applicabile	nessun_difetto		109	
+M-esclusioni_contaminazione-002		synth-0022918|synth-pair-00134-b	sì	non_applicabile	si	non_applicabile	non_applicabile	non_applicabile	nessun_difetto		32	
+M-esclusioni_contaminazione-003		synth-0049946|synth-pair-00050-b	sì	non_applicabile	si	non_applicabile	non_applicabile	non_applicabile	nessun_difetto		31	
+M-esclusioni_contaminazione-004		synth-0012190|synth-pair-00158-a	sì	non_applicabile	si	non_applicabile	non_applicabile	non_applicabile	nessun_difetto		56	
+M-esclusioni_contaminazione-005		synth-0033446|synth-pair-00178-a	sì	non_applicabile	si	non_applicabile	non_applicabile	non_applicabile	nessun_difetto		49	
+M-esclusioni_contaminazione-006		synth-0056410|synth-pair-00202-b	sì	non_applicabile	si	non_applicabile	non_applicabile	non_applicabile	nessun_difetto		81	
+M-esclusioni_contaminazione-007		synth-0011982|synth-pair-00134-a	sì	non_applicabile	si	non_applicabile	non_applicabile	non_applicabile	nessun_difetto		24	
+M-esclusioni_contaminazione-008		synth-0016086|synth-pair-00002-b	sì	non_applicabile	si	non_applicabile	non_applicabile	non_applicabile	nessun_difetto		3175	
+M-esclusioni_contaminazione-009		synth-0045138|synth-pair-00066-a	nessuna_risposta_caso_sulla_scena	non_applicabile	si	non_applicabile	non_applicabile	non_applicabile	nessun_difetto		133	stesso stato della scena
+M-esclusioni_contaminazione-010		synth-0003898|synth-test-00134	stesso stato della scena	non_applicabile	si	non_applicabile	non_applicabile	non_applicabile	nessun_difetto		52	
+M-regole_nuove_v4-001		synth-0026430	0	si	si	si	non_applicabile	non_applicabile	nessun_difetto		24	
+M-regole_nuove_v4-002		synth-0017898	0	si	si	si	non_applicabile	non_applicabile	nessun_difetto		27	
+M-regole_nuove_v4-003		synth-0007398	1	si	si	si	non_applicabile	non_applicabile	nessun_difetto		33	
+M-regole_nuove_v4-004		synth-0016634	1	si	si	si	non_applicabile	non_applicabile	nessun_difetto		20	
+M-regole_nuove_v4-005		synth-0012594	0	si	si	si	non_applicabile	non_applicabile	nessun_difetto		16	
+M-regole_nuove_v4-006		synth-0002366	0	si	si	si	non_applicabile	non_applicabile	nessun_difetto		18	
+M-regole_nuove_v4-007		synth-0015302	2	si	si	si	non_applicabile	non_applicabile	nessun_difetto		14	
+M-regole_nuove_v4-008		synth-0047350	1	si	si	si	non_applicabile	non_applicabile	nessun_difetto		22	
+M-regole_nuove_v4-009		synth-0045962	2	si	si	si	non_applicabile	non_applicabile	nessun_difetto		17	
+M-regole_nuove_v4-010		synth-0040298	1	si	si	si	non_applicabile	non_applicabile	nessun_difetto		22	
+M-regole_nuove_v4-011		synth-0008293	rectangle	si	si	si	non_applicabile	non_applicabile	nessun_difetto		21	
+M-regole_nuove_v4-012		synth-0013421	rectangle	si	si	si	non_applicabile	non_applicabile	nessun_difetto		26	
+M-regole_nuove_v4-013		synth-0034569	isosceles triangle	si	si	si	non_applicabile	non_applicabile	nessun_difetto		92	
+M-regole_nuove_v4-014		synth-0016157	right triangle	si	si	si	non_applicabile	non_applicabile	nessun_difetto		29	
+M-regole_nuove_v4-015		synth-0034757	right triangle	si	si	si	non_applicabile	non_applicabile	nessun_difetto		15	
+M-regole_nuove_v4-016		synth-0040045	isosceles triangle	si	si	si	non_applicabile	non_applicabile	nessun_difetto		35	
+M-regole_nuove_v4-017		synth-0042525	parallelogram	si	si	si	non_applicabile	non_applicabile	nessun_difetto		23	
+M-regole_nuove_v4-018		synth-0039085	square	si	si	si	non_applicabile	non_applicabile	nessun_difetto		34	
+M-regole_nuove_v4-019		synth-0042785	square	si	si	si	non_applicabile	non_applicabile	nessun_difetto		22	
+M-regole_nuove_v4-020		synth-0001445	isosceles triangle	si	si	si	non_applicabile	non_applicabile	nessun_difetto		24	
+M-regole_nuove_v4-021		synth-0013327	triangle	si	si	si	non_applicabile	non_applicabile	nessun_difetto		20	
+M-regole_nuove_v4-022		synth-0044191	rectangle	si	si	si	non_applicabile	non_applicabile	nessun_difetto		16	
+M-regole_nuove_v4-023		synth-0053695	rectangle	si	si	si	non_applicabile	non_applicabile	nessun_difetto		41	
+M-regole_nuove_v4-024		synth-0026587	triangle	si	si	si	non_applicabile	non_applicabile	nessun_difetto		24	
+M-regole_nuove_v4-025		synth-0052719	rectangle	si	si	si	non_applicabile	non_applicabile	nessun_difetto		27	
+M-regole_nuove_v4-026		synth-0052871	circle	si	si	si	non_applicabile	non_applicabile	nessun_difetto		16	
+M-regole_nuove_v4-027		synth-0059615	triangle	si	si	si	non_applicabile	non_applicabile	nessun_difetto		21	
+M-regole_nuove_v4-028		synth-0017551	triangle	si	si	si	non_applicabile	non_applicabile	nessun_difetto		41	
+M-regole_nuove_v4-029		synth-0042195	square	si	si	si	non_applicabile	non_applicabile	nessun_difetto		23	
+M-regole_nuove_v4-030		synth-0058207	square	si	si	si	non_applicabile	non_applicabile	nessun_difetto		21	
+M-soglia_testo_basso-001		synth-0051300	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		354	
+M-soglia_testo_basso-002		synth-0050800	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		49	
+M-soglia_testo_basso-003		synth-0004388	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		50	
+M-soglia_testo_basso-004		synth-0030580	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		33	
+M-soglia_testo_basso-005		synth-0038820	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		42	
+M-soglia_testo_basso-006		synth-0006312	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		49	
+M-soglia_testo_basso-007		synth-0051656	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		51	
+M-soglia_testo_basso-008		synth-0032124	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		26	
+M-soglia_riquadri_vicini-001		synth-0042220	above	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		378	
+M-soglia_riquadri_vicini-002		synth-0036028	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		41	
+M-soglia_riquadri_vicini-003		synth-0042576	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		33	
+M-soglia_riquadri_vicini-004		synth-0054628	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		36	
+M-soglia_riquadri_vicini-005		synth-0005324	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		48	
+M-soglia_riquadri_vicini-006		synth-0028076	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		26	
+M-soglia_riquadri_vicini-007		synth-0041544	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		27	
+M-soglia_riquadri_vicini-008		synth-0024436	nessuna_risposta_caso_sulla_scena	non_applicabile	si	si	non_applicabile	non_applicabile	nessun_difetto		68	
+M-soglia_intersezione_bordo-001		synth-0041230	2	si	si	si	non_applicabile	non_applicabile	nessun_difetto		22	
+M-soglia_intersezione_bordo-002		synth-0023090	1	si	si	si	non_applicabile	non_applicabile	nessun_difetto		21	
+M-soglia_intersezione_bordo-003		synth-0049786	2	si	si	si	non_applicabile	non_applicabile	nessun_difetto		21	
+M-soglia_intersezione_bordo-004		synth-0045006	2	si	si	si	non_applicabile	non_applicabile	nessun_difetto		24	
+M-soglia_intersezione_bordo-005		synth-0035738	2	si	si	si	non_applicabile	non_applicabile	nessun_difetto		16	
+M-soglia_intersezione_bordo-006		synth-0017582	1	si	si	si	non_applicabile	non_applicabile	nessun_difetto		18	
+M-soglia_intersezione_bordo-007		synth-0037982	2	si	si	si	non_applicabile	non_applicabile	nessun_difetto		18	
+M-soglia_intersezione_bordo-008		synth-0051938	2	si	si	si	non_applicabile	non_applicabile	nessun_difetto		50	
+M-soglia_grafici_vicini-001		synth-0010434	0	si	si	si	non_applicabile	non_applicabile	nessun_difetto		31	
+M-soglia_grafici_vicini-002		synth-0055214	0	si	si	si	non_applicabile	non_applicabile	nessun_difetto		15	
+M-soglia_grafici_vicini-003		synth-0040450	0	si	si	si	non_applicabile	non_applicabile	nessun_difetto		29	
+M-soglia_grafici_vicini-004		synth-0008742	0	si	si	si	non_applicabile	non_applicabile	nessun_difetto		21	
+M-soglia_grafici_vicini-005		synth-0044382	0	si	si	si	non_applicabile	non_applicabile	nessun_difetto		25	
+M-soglia_grafici_vicini-006		synth-0050770	0	si	si	si	non_applicabile	non_applicabile	nessun_difetto		14	
+M-soglia_grafici_vicini-007		synth-0018366	0	si	si	si	non_applicabile	non_applicabile	nessun_difetto		32	
+M-soglia_grafici_vicini-008		synth-0012062	0	si	si	si	non_applicabile	non_applicabile	nessun_difetto		13	
+M-soglia_vertice_estremo-001		synth-0037401	Q	si	si	si	non_applicabile	non_applicabile	nessun_difetto		20	
+M-soglia_vertice_estremo-002		synth-0034205	M	si	si	si	non_applicabile	non_applicabile	nessun_difetto		41	
+M-soglia_vertice_estremo-003		synth-0056085	F	si	si	si	non_applicabile	non_applicabile	nessun_difetto		22	
+M-soglia_vertice_estremo-004		synth-0006337	Q	si	si	si	non_applicabile	non_applicabile	nessun_difetto		15	
+M-soglia_vertice_estremo-005		synth-0039949	S	si	si	si	non_applicabile	non_applicabile	nessun_difetto		30	
+M-soglia_vertice_estremo-006		synth-0056045	Q	si	si	si	non_applicabile	non_applicabile	nessun_difetto		15	
+M-soglia_vertice_estremo-007		synth-0059545	Q	si	si	si	non_applicabile	non_applicabile	nessun_difetto		198	
+M-soglia_vertice_estremo-008		synth-0059545	S	si	si	si	non_applicabile	non_applicabile	nessun_difetto		31	
+M-coordinate_dalle_tacche-001		synth-0047656	(5, -5)	si	si	si	non_applicabile	non_applicabile	nessun_difetto		152	il target è giusto, ho sbagliato io a rispondere 
+M-coordinate_dalle_tacche-002		synth-0010920	(-3, -4) 	si	si	si	non_applicabile	non_applicabile	nessun_difetto		62	
+M-coordinate_dalle_tacche-003		synth-0022576	(-7, -5)	si	si	si	non_applicabile	non_applicabile	nessun_difetto		1908	
+M-coordinate_dalle_tacche-004		synth-0020160	(-4, -5)	si	si	si	non_applicabile	non_applicabile	nessun_difetto		53	
+M-coordinate_dalle_tacche-005		synth-0040760	(3, -3)	si	si	si	non_applicabile	non_applicabile	nessun_difetto		35	
+M-coordinate_dalle_tacche-006		synth-0038376	(-4, -5)	si	si	si	non_applicabile	non_applicabile	nessun_difetto		21	
+M-coordinate_dalle_tacche-007		synth-0046540	(3, -7)	si	si	si	non_applicabile	non_applicabile	nessun_difetto		42	
+M-coordinate_dalle_tacche-008		synth-0008712	(-8, 5)	si	si	si	non_applicabile	non_applicabile	nessun_difetto		200	
