@@ -410,3 +410,33 @@ il modello della versione 2 dei sintetici (§2.9 di S2):
     provenienza e conteggi; `keys/` ricalcolati. Poi i valori contro i JSON originali degli shard, come per
     candidato-4. Un cambio non voluto dalla regola, o una differenza non prevista, fa fallire la verifica.
   - Nessuna configurazione la usa: `config/runs/f0-c7-reader-unimer-mavis.json` resta su candidato-3.
+
+**Estensione a PixMo-Cap: manifest e reader** (2026-11-11, `scripts/pixmo_manifest.py`,
+`data/manifests/pixmo-cap-candidato-1`, job 30815; reader nei job 30816-30817; dettagli in
+`docs/F0_CAMPIONE_CANDIDATO.md` §8). Stesso schema, stessa lettura verificata (`manifest.load`) e stesso reader di C7.
+- **Derivazione senza rileggere le immagini.** Il manifest nasce dall'inventario, dalla verifica e dalla scansione di
+  `scripts/pixmo_inventory.py` (job 30813), dopo il controllo dei loro digest, della revisione, della completezza e
+  della compatibilità. Gli sha256 dei tar vengono dal registro dello sharding, già ritrovati dall'inventario; il reader
+  li verifica a ogni caricamento.
+- **Record.** Uno per record degli shard, nell'insieme `train`, col compito `pixmo_caption`. Ha i digest di JSON e JPEG,
+  i pixel del JPEG, lo sha256 della didascalia del loader (`didascalia_sha256`) e quello dell'URL, la richiesta del
+  loader e l'originale (file, riga, pixel, orientamento EXIF). Le righe scartate dallo sharding non hanno record: sono
+  contate in `scarti_dello_sharding`.
+- **Gruppi** (§3). Unioni transitive per uguaglianza esatta: pixel dell'immagine originale, pixel e byte del JPEG dello
+  shard, stesso URL non vuoto. Gli input finali identici stanno nello stesso gruppo anche con originali diversi.
+- **Blocchi.**
+  - `blocchi.diretti` sono i motivi del record: identità confermata col pannello o difetto strutturale (escluso);
+    candidato della decontaminazione, possibile segnaposto, orientamento EXIF da 2 a 8 (quarantena).
+  - `blocchi.ereditati` sono quelli degli altri record del gruppo che il record non ha. Lo stato del gruppo è il più
+    grave, senza riammissioni.
+  - I segnali di run4 sono solo evidenze. I conteggi autorizzati dall'utente sono parametri obbligatori della
+    costruzione.
+- **Reader.**
+  - `pixmo-cap` sta in `TASKED` (`pixmo_caption`, insieme train) e in `MANIFEST_REQUIRED`.
+  - `Admission.check` confronta il JPEG quando il campione non ha PNG.
+  - La decisione allegata porta `didascalia_sha256`, che il loader verifica senza cambiare didascalia, immagine o
+    richiesta.
+  - `data_lists.MANIFEST_FAMILIES` comprende `pixmo-cap`.
+- **Verifica** (15 su 15). Rilegge il manifest e ricalcola partizione e `group_id` dai campi dei record. Controlla che
+  ogni legame resti dentro un gruppo e uno split, ricalcola blocchi e stati dalle evidenze originali e rifà split,
+  conteggi, ranghi e file derivati.

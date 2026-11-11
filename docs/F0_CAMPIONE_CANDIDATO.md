@@ -1,7 +1,7 @@
 # Campione candidato di F0: selezione riproducibile
 
 **Stato al 2026-11-11.** È una proposta. PixMo-Cap ha l'inventario tecnico e la decontaminazione contro `pannello-v3`
-(§7, job 30812-30813).
+(§7, job 30812-30813), il manifest candidato e il reader col manifest (§8, job 30814-30817).
 - Nessuna sorgente è ammessa o gold.
 - Il campione non è ancora caricabile per un pilota: mancano i passi di §5.
 - Avere i file non vuol dire che F0 sia completo.
@@ -53,7 +53,7 @@ capacità senza sorgente locale sono in §4.
 | Geometria, coordinate e grafici di funzioni (sintetici) | `src/limite_vl/synth.py` v4 (`284e8f1`), `data/shards/synth/v4` (job 30447), manifest `synth-v4-candidato-2` (job 30518) | split `train`, stato `ammesso`: 53.997 scene; dev 2.864. Per train e dev il loader costruisce 170.572 QA (coord 45.056, function 35.961, polygon 44.941, shapes 44.614) | calcolata dal codice del generatore e approvata dal checker sul layout (C2) | integrità, riproducibilità, checker su tutti i 60.900 record, gruppi e split, filtro dei loader (job 30447-30451); decontaminazione esterna contro `pannello-v3`: pixel, pHash e domande (job 30518, S2 §2.9) | il checker legge il layout, non i pixel; 367 scene in quarantena, cioè 67 per testi sovrapposti e 300 per i 264 candidati pHash del pannello, propagati al gruppo; audit visivo non fatto, campione preparato (S2 §2.10) | `variant_id` e contratto (C3, C5); audit e verifica dei candidati (D5) |
 | Geometria (MAVIS-Geometry) | `CaraJ/MAVIS-Geometry@9c80fff3`, `data/shards/mavis-geometry/9c80fff3-caption` (11 tar, job 29419) | 199.050 immagini `caption.jpg`; esclusi `d3-3228` e 552 didascalie duplicate. Manifest candidato `mavis-geometry-candidato-1` (job 30630): tutti i record ammessi come candidati, 9.951 in dev; `shape_type` in quarantena come compito | regole del motore di MAVIS (`diagram_generation`): descrizione canonica e domande costruite dal codice (`f1_schema.py`, `f1_mavis.py`) | andata e ritorno su 199.050 (job 30033, 30052); valori razionali disegnati come decimali (job 30049) | la coerenza fra due descrizioni non prova la fedeltà ai pixel; solo 40 immagini guardate; `shape_type` ambigua, in quarantena; renderer non nostro; stessi autori di MathVerse | C9 (opzioni di `shape_type`, valore visualizzato ed esatto); reader col manifest (C7); controllo visivo campionario (S4); scansione contro le geometrie del pannello |
 | Formule stampate (UniMER-1M) | `wanderkid/UniMER_Dataset@2343ddd9`, `data/shards/unimer/2343ddd9-dense` (5 tar, job 29729; più `lines/` con 30.685 righe ritagliate) | 985.450 formule, meno 51 errori certi (`escluso`) e 1.119 incerti (`quarantena`), di cui 1.116 in 402 gruppi in conflitto. Le 18.827 rietichettature sono tracciate (S2 §4). Manifest candidato `unimer-candidato-1` (job 30625): 983.875 formule ammesse, di cui 49.195 in dev; 1.523 in quarantena e 52 escluse, contando anche le contaminazioni con UniMER-Test; 30.588 righe ritagliate ammesse | LaTeX della sorgente, senza gli spazi del formato im2latex (`latex.despace`); uguaglianza dei token, non equivalenza matematica | `outputs/unimer_check/run4` (job 30047: struttura, rendering, conflitti); sovrapposizioni col test (`outputs/unimer_overlap/run2`) | le formule CROHME manoscritte (meno dell'1%) non si separano per indice: restano (v1.5); un LaTeX compilabile può descrivere un'altra formula | reader col manifest (C7); decontaminazione esterna contro `pannello-v3`; confronto con HME100K di OCRBench |
-| Scene reali, descrizioni dettagliate (PixMo-Cap) | `anthracite-org/pixmo-cap-images@3e42775e`, 25 parquet su 75 (`train-00000`-`00024`: il prefisso dei file, non un campione casuale); `data/shards/pixmo-cap/3e42775e` (25 tar, job 29560) | 235.897 righe dei parquet locali, il 33,3% dei 707.647 esempi della scheda; 235.896 negli shard (scartata solo `pixmo-00024-007342`, immagine illeggibile) | descrizione riscritta da un modello (Claude, secondo la scheda) dalle trascrizioni degli annotatori di Ai2, che non sono negli shard; immagini riscaricate da anthracite-org dagli URL | inventario e decontaminazione del 2026-11-11 (§7, job 30813): collegamento originale → shard riga per riga, trasformazione dello sharding riprodotta byte per byte, `pixmo_check/run4` riprodotto riga per riga (25.578 righe con segnali: conteggi 2-12 10.181, colori 8.803, testi citati 3.564); nessun pixel identico al pannello, 248 candidati | testo libero senza verità strutturata: target controllato, non gold (pipeline §5.7); probabili segnaposto (297 righe con lo stesso file di `i.imgur.com`, 146 con quello di `i.ebayimg.com`, gruppi minori); 59 immagini con un orientamento EXIF che lo shard non applica | decisioni sulle proposte di §7.7 e verifica a vista di duplicati e candidati; audit campionario (D5); manifest (C5) e reader (C7) |
+| Scene reali, descrizioni dettagliate (PixMo-Cap) | `anthracite-org/pixmo-cap-images@3e42775e`, 25 parquet su 75 (`train-00000`-`00024`: il prefisso dei file, non un campione casuale); `data/shards/pixmo-cap/3e42775e` (25 tar, job 29560) | 235.897 righe dei parquet locali, il 33,3% dei 707.647 esempi della scheda; 235.896 negli shard (scartata solo `pixmo-00024-007342`, immagine illeggibile) | descrizione riscritta da un modello (Claude, secondo la scheda) dalle trascrizioni degli annotatori di Ai2, che non sono negli shard; immagini riscaricate da anthracite-org dagli URL | inventario e decontaminazione del 2026-11-11 (§7, job 30813): collegamento originale → shard riga per riga, trasformazione dello sharding riprodotta byte per byte, `pixmo_check/run4` riprodotto riga per riga (25.578 righe con segnali: conteggi 2-12 10.181, colori 8.803, testi citati 3.564); nessun pixel identico al pannello, 248 candidati | testo libero senza verità strutturata: target controllato, non gold (pipeline §5.7); probabili segnaposto (297 righe con lo stesso file di `i.imgur.com`, 146 con quello di `i.ebayimg.com`, gruppi minori); 59 immagini con un orientamento EXIF che lo shard non applica | manifest `pixmo-cap-candidato-1` e reader col manifest fatti (§8): 235.098 record ammessi come candidati per i controlli operativi (11.755 in dev), 798 in quarantena; restano la verifica a vista di duplicati e candidati, l'audit campionario delle didascalie (D5) e la decisione sul training |
 | Scene reali, didascalie brevi (LLaVA-Pretrain), solo complemento | `liuhaotian/LLaVA-Pretrain@70f9d1e5`, `data/shards/llava-pretrain/70f9d1e5` (29 tar, job 29388) | 558.128 esempi | didascalie BLIP generate su immagini di LAION, CC e SBU | sha256 degli shard; decontaminazione storica p6 (761 candidati pHash, lista finale vuota); confronto preliminare in §7.8 | testo di un modello, spesso generico; pixel mai decodificati dallo sharding | inventario e decontaminazione come per PixMo (§7.8), se entra nel mix |
 
 **Sorgenti locali fuori dal minimo di F0:**
@@ -110,14 +110,13 @@ per `p10-pannello`.
 3. **C5 e C7 per le altre sorgenti.** I sintetici v4, UniMER e MAVIS hanno un manifest delle ammissioni e i reader
    filtrati. Per UniMER (`unimer-candidato-2`) e MAVIS (`mavis-geometry-candidato-3`) l'ammissione vale per record,
    split e compito, con la configurazione di collaudo `config/runs/f0-c7-reader-unimer-mavis.json` (C7 del 2026-11-06,
-   job 30686-30688, S1 §9). Mancano per PixMo e LLaVA:
+   job 30686-30688, S1 §9). Dal 2026-11-11 anche PixMo-Cap: manifest `pixmo-cap-candidato-1` dall'inventario, senza
+   rileggere le immagini, e reader per il compito `pixmo_caption` con la configurazione di collaudo
+   `config/runs/f0-c7-reader-pixmo.json` (§8, job 30814-30817). Mancano per LLaVA:
    - record e gruppi;
    - stati, esclusioni e quarantene importate;
    - split di sviluppo per gruppo;
    - contatori per compito e `too_long` per sorgente.
-
-   Per PixMo l'inventario tecnico del 2026-11-11 (§7) ha già identità, collegamenti, digest ed evidenze per riga: il
-   manifest si può costruire da lì, senza rileggere le immagini.
 4. **C9 per MAVIS:** `shape_type` con le opzioni, e valore visualizzato ed esatto nel record.
 5. **Esclusioni storiche come evidenze (C6):** `unimer_check/run4`, `pixmo_check/run4`, `split_duplicates/run1`, liste di
    `p6` e `f1eval`, ciascuna con motivo, versione e stato. `unimer_check/run4` e `unimer_overlap/run2` sono importate e
@@ -420,11 +419,137 @@ di revisione.
 
 ### 7.9 Prossimo passo minimo
 
-1. Decisioni dell'utente sulle proposte di §7.7: segnaposto, candidati, orientamento.
+1. Decisioni dell'utente sulle proposte di §7.7: segnaposto, candidati, orientamento. *Prese il 2026-11-11 come
+   trattamento operativo: tutto in quarantena (§8).*
 2. Poi, senza rileggere le immagini, il manifest candidato `pixmo-cap-candidato-1` dall'inventario (C5):
    - record, gruppi per pixel dell'originale e per URL, stati dalle proposte approvate;
    - evidenze per riferimento: scansione, run4, liste storiche;
    - dev per gruppo col seme 0.
 
-   Quindi il reader di `pixmo_caption` col manifest (C7).
+   Quindi il reader di `pixmo_caption` col manifest (C7). *Fatti il 2026-11-11 (§8), con i gruppi estesi anche
+   all'immagine dello shard.*
 3. LLaVA solo se il mix lo richiede, con una sonda e la scansione con lo stesso schema.
+
+## 8. PixMo-Cap: manifest candidato e reader (2026-11-11)
+
+Lotto chiesto dall'utente il 2026-11-11: rendere il sottoinsieme locale caricabile per i collaudi di F0, partendo dalla
+preparazione di §7.
+- **Non autorizza il training** e non certifica le didascalie.
+- **Strumenti** (`8eb716c`):
+  - `scripts/pixmo_manifest.py` costruisce e verifica il manifest dall'inventario, dalla verifica e dalla scansione del
+    job 30813, senza rileggere parquet né immagini;
+  - il reader di C7 è esteso al compito `pixmo_caption`;
+  - `slurm/pixmo_manifest.sbatch`, `tests/test_pixmo_manifest.py`.
+- **Job:** test (30814), costruzione e verifica (30815), collaudo del reader (30816), regressione di UniMER e MAVIS
+  (30817): 17 min 34 s di job CPU in tutto.
+
+### 8.1 Percorsi, digest e ingressi
+
+- **Manifest** `data/manifests/pixmo-cap-candidato-1`: `manifest.json` `794787ab…`, `records.jsonl.gz` `d3eee365…`
+  (235.896 righe, 92 MB), `keys/` (train, dev, non ammessi).
+- **Verifica** `outputs/manifest_check/pixmo-cap-candidato-1/verifica.json`: 15 controlli su 15.
+- **Riepilogo** versionato `docs/manifests/pixmo-cap-candidato-1.json`.
+- **Ingressi verificati prima di derivare:**
+  - inventario (`records.jsonl.gz` `ade3e0c2…`) e scansione (`767658e0…`) del job 30813, con gli sha256 di summary.json,
+    quelli ritrovati dalla verifica e quelli attesi dal launcher;
+  - verifica senza controlli falliti, con duplicati e proposte coi digest del rapporto;
+  - indice `pannello-v3` `02fb3cbf…`;
+  - sharding del job 29560, coi tar presenti e la dimensione registrata. Gli sha256 dei tar vengono dal registro, già
+    ritrovati nel job 30813, e il reader li verifica a ogni caricamento.
+- run4 e liste storiche sono registrati solo per riferimento.
+
+### 8.2 Trattamento applicato
+
+Sono le scelte dell'utente. I conteggi autorizzati sono passati al launcher, e la costruzione si ferma se non tornano.
+- **Candidati della decontaminazione:** 248 righe in quarantena.
+- **Possibili segnaposto:** i 18 gruppi da almeno 3 righe per pixel dell'immagine originale, presi dall'elenco completo
+  dei duplicati, 526 righe. È una quarantena cautelativa: non un errore dimostrato.
+- **Orientamento EXIF 3, 6 o 8:** 59 righe in quarantena, senza rotazioni né shard nuovi.
+- **Riga illeggibile:** `pixmo-00024-007342` non ha record ed è contata in `scarti_dello_sharding`.
+- **Segnali di run4:** restano evidenze nei record (25.578), senza effetto sullo stato.
+- **Altri duplicati:** si raggruppano senza scarti.
+
+I blocchi si propagano al gruppo con la politica già adottata (`panel_decontam.decide`): lo stato del gruppo è il più
+grave fra quelli dei suoi record, senza riammissioni. Ogni record registra i blocchi diretti (`blocchi.diretti`) e quelli
+ereditati dagli altri record del gruppo (`blocchi.ereditati`).
+
+### 8.3 Gruppi: prima e dopo le unioni
+
+Le unioni sono transitive, per uguaglianza esatta.
+
+| Relazione | Legami | Gruppi con più record | Record coinvolti |
+| --- | --- | --- | --- |
+| Pixel dell'immagine originale | 683 | 193 | 876 |
+| Pixel del JPEG dello shard | 685 | 194 | 879 |
+| Byte del JPEG dello shard | 684 | 194 | 878 |
+| Stesso URL non vuoto | 72 | 72 | 144 |
+
+- **Gruppi cumulativi:** 235.213 col solo originale, 235.211 dopo il pixel dello shard. Le immagini finali identiche
+  uniscono 3 record con originali diversi; i byte del JPEG e gli URL non aggiungono altro.
+- **Esito:** 235.211 gruppi, 194 con più record (879 record), il più grande di 297.
+- Ogni legame resta dentro un solo gruppo e un solo split: gli input finali identici non attraversano train e dev
+  (controllo della verifica, zero eccezioni per relazione).
+
+### 8.4 Stati, quarantene e split
+
+| Split | Ammessi | Quarantena | Esclusi | Gruppi |
+| --- | --- | --- | --- | --- |
+| train | 223.343 | 798 | 0 | 223.461 (288 in quarantena) |
+| dev | 11.755 | 0 | 0 | 11.750 |
+
+- **Quarantene dirette:** 798 record.
+  - Solo candidati 213; candidati che sono anche possibili segnaposto 35; solo segnaposto 491; solo EXIF 59.
+  - EXIF e segnaposto non si sovrappongono.
+- **Quarantene ereditate:** nessun record è in quarantena solo per eredità. Un record ha, oltre al proprio, anche il
+  motivo segnaposto ereditato da un gruppo unito per l'immagine dello shard.
+- **Split:** dev per gruppo col seme 0 e la quota dei manifest esistenti (5% dei record ammessi): 11.755 su 235.098, cioè
+  il 5,000%. I gruppi in quarantena restano in train, dove nessun record si legge.
+- **Segnali di run4:** 25.492 record ammessi li hanno come evidenza (1.256 in dev), più 86 in quarantena per altri
+  motivi.
+- **"Ammesso"** riguarda i controlli operativi effettuati: collegamento, integrità, decontaminazione nei controlli
+  dichiarati, compito `pixmo_caption`. La fedeltà delle didascalie ai pixel resta da valutare, e il training richiede
+  una decisione successiva.
+
+### 8.5 Reader
+
+- **Codice condiviso:**
+  - `pixmo-cap` entra in `manifest.TASKED`, col compito `pixmo_caption` sull'insieme train, e in `MANIFEST_REQUIRED`:
+    gli shard locali di PixMo non si leggono senza manifest;
+  - `Admission.check` controlla il JPEG quando lo shard non ha PNG;
+  - la decisione allegata porta lo sha256 della didascalia, che `data.pixmo_caption_sample` verifica senza cambiare
+    didascalia, immagine o richiesta;
+  - `data_lists.MANIFEST_FAMILIES` comprende `pixmo-cap`.
+- **Invariati:** tokenizer, template, prefill, contratto e config storiche.
+- **Config di collaudo:** `config/runs/f0-c7-reader-pixmo.json`. È solo collaudo CPU, non una ricetta.
+- **Collaudo sui dati reali** (job 30816, `docs/reader_smoke/c7-pixmo-1.json`): 8 controlli su 8.
+  - Il manifest è identificato dallo sha256 della config, e i 25 shard sono verificati.
+  - Il primo shard è letto per intero. In train consegna esattamente gli 8.928 ammessi e salta 471 record di dev e 37
+    in quarantena, coi motivi attesi; consegna 976 ammessi coi segnali di run4. In dev consegna 471 su 471.
+  - 318 esempi col processor senza errori, con didascalia, richiesta e JPEG invariati e coi digest del manifest.
+  - Validazione dal dev: 200; flusso misto: 630 esempi, tutti ammessi di train.
+- **Regressione** (job 30817): i reader di UniMER e MAVIS danno 22 controlli su 22. `docs/reader_smoke/c7-4.json` è
+  uguale a `c7-3`, tolti job, tempi, memoria e identità del codice.
+
+### 8.6 Test, costi e limiti
+
+- **Test** (job 30814): `tests/test_pixmo_manifest.py` 33 su 33. Copre:
+  - unioni transitive, comprese immagini finali identiche con originali diversi;
+  - blocchi sovrapposti, propagati ed ereditati;
+  - run4 senza effetto;
+  - manifest e verifica su una fixture vera, arresti, manifest alterato;
+  - reader.
+
+  Regressioni: `test_reader_manifest` 48 su 48, `test_manifest` e `test_data_lists` superati.
+- **Costi:**
+  - costruzione e verifica in 97 s, con RSS di 5,0 GiB. Si rileggono solo l'inventario (120 MB), la scansione (55 MB) e
+    i file piccoli della verifica: nessun parquet né immagine;
+  - collaudo del reader in 96 s, con RSS di 2,4 GiB. Rilegge i 25 shard (20,6 GB) per gli sha256, come vuole il
+    contratto del reader, e il primo shard due volte;
+  - spazio: 92 MB del manifest.
+- **Limiti aperti:**
+  - la fedeltà visiva delle didascalie (oggetti, posizioni, relazioni, attributi, testi) non è valutata;
+  - i 248 candidati e i gruppi di possibili segnaposto non sono risolti, e restano in quarantena;
+  - non si sa quale orientamento abbiano visto gli annotatori, né se l'immagine riscaricata dagli URL sia quella
+    annotata;
+  - la leggibilità a 1024 patch non è controllata;
+  - mancano `variant_id`, `uid` e i digest dei token, che dipendono dal contratto (D3).

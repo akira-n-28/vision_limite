@@ -350,8 +350,16 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
     tutti diversi: 297 righe col file 161×81 di `i.imgur.com`, 146 con un 80×80 di `i.ebayimg.com`. Sono probabili
     segnaposto, da guardare a vista.
   - **EXIF.** Lo shard non applica l'orientamento EXIF (59 immagini con 3, 6 o 8).
-  - **Pannello.** Nessun pixel identico a `pannello-v3`; 248 candidati. Nessun manifest: le proposte di trattamento
-    aspettano l'utente.
+  - **Pannello.** Nessun pixel identico a `pannello-v3`; 248 candidati.
+  - **Manifest e reader** (job 30814-30817; `docs/F0_CAMPIONE_CANDIDATO.md` §8). `data/manifests/pixmo-cap-candidato-1`
+    (`794787ab…`) deriva dall'inventario senza rileggere le immagini.
+    - **Gruppi:** unione transitiva di pixel dell'originale, pixel e byte del JPEG dello shard e URL esatto.
+    - **Quarantena (798 record):** 248 candidati, 18 gruppi di possibili segnaposto (526 righe, cautelativa, non un
+      errore dimostrato) e 59 EXIF; nessuna solo ereditata. run4 resta evidenza.
+    - **Ammessi:** 223.343 in train e 11.755 in dev (5%), candidati per i soli controlli operativi. La fedeltà delle
+      didascalie ai pixel resta da valutare e il training va deciso a parte.
+    - **Reader:** `pixmo-cap` sta in `manifest.TASKED` (compito `pixmo_caption`) e in `MANIFEST_REQUIRED`, quindi gli
+      shard locali non si leggono senza manifest. Config di collaudo `config/runs/f0-c7-reader-pixmo.json`.
 - MAVIS-Caption non esiste su Hugging Face; le didascalie vengono da CaraJ/MAVIS-Geometry @ 9c80fff3
   (`RuleBaseGeo.zip`), una parte di MAVIS-Instruct.
   - Struttura dello zip (job 29415): 199.603 cartelle `RuleBaseGeo/depthK/<i>/`, 50 mila per profondità
@@ -622,7 +630,8 @@ parametri in `groups.py` sono ipotesi da verificare con `f0_checks.py` (sezione 
   artefatti, indice dei file, rilievi e rapporti delle revisioni; `docs/inventari/`: rapporti degli inventari tecnici per
   sorgente (PixMo-Cap)
 - `config/paths.env` — percorsi e variabili offline; `config/runs/` — nessuna ricetta di training finché non ci sono
-  ricette collaudate, solo la config di collaudo di C7 (`f0-c7-reader-unimer-mavis.json`, non una ricetta);
+  ricette collaudate, solo le config di collaudo di C7 (`f0-c7-reader-unimer-mavis.json`, `f0-c7-reader-pixmo.json`,
+  non ricette);
   `config/audit/` — istruzioni e politica degli audit storici (congelate)
 - `downloads/` — `sources.tsv`, `catalog_status.tsv`, `build_manifests.sh`, `manifests/`
 - `scripts/` — ambiente, download, verifica, ispezione e shard dei dati, controlli deterministici, decontaminazione,
@@ -638,9 +647,9 @@ parametri in `groups.py` sono ipotesi da verificare con `f0_checks.py` (sezione 
   - `collator.py`: packing e collate;
   - `data.py`: lettura degli shard tar ed esempi per tipo di sorgente (un'immagine per `Sample`);
   - `stream.py`: flusso misto e riprendibile di micro-batch, esclusioni, rietichettature e filtro del manifest (per
-    UniMER e MAVIS anche per compito, con la decisione del record allegata al campione);
+    UniMER, MAVIS e PixMo-Cap anche per compito, con la decisione del record allegata al campione);
   - `manifest.py`: identità sha256, gruppi e split, lettura verificata del manifest delle ammissioni e ammissione per
-    compito di UniMER e MAVIS (`TASKED`, S1 §9);
+    compito di UniMER, MAVIS e PixMo-Cap (`TASKED`, S1 §9);
   - `data_lists.py`: liste obbligatorie e loro provenienza;
   - `latex.py`, `latex_render.py`: formule e confronto fra trascrizioni;
   - `mavis_c9.py`: valori esatti e visualizzati e `shape_type` con opzioni di MAVIS (C9), col controllo indipendente;

@@ -1,0 +1,473 @@
+{
+ "schema": "limite-vl-manifest-riepilogo/1",
+ "manifest": "data/manifests/pixmo-cap-candidato-1",
+ "nome": "pixmo-cap-candidato",
+ "versione": "1",
+ "job_id": "30815",
+ "manifest_sha256": "794787abffd51a9ddc7f12227d7ac6a2eb3a922bc3c4f5fac496cb96a7b9d850",
+ "records_sha256": "d3eee36538b25b697c65d19624b4623912853e5060e520c85bbaa3bf315d3f1e",
+ "righe": 235896,
+ "sorgente": "pixmo-cap",
+ "revisione": "3e42775eea79dd4874c41379230c7f871b10218e",
+ "ingressi": {
+  "inventario": {
+   "summary.json": "5db9a01018a441ccf400a048388dbac504e93104ff41aa35e032406085439b5a",
+   "records.jsonl.gz": "ade3e0c26bd19dd8ac9df60039ada6edf6743eb19b05c2ef1285f2b9e6458578"
+  },
+  "scansione": {
+   "summary.json": "0a4efe09bdf1e37af5821b45c3634affd584440ceb802d0fa676115fcbf682c3",
+   "records.jsonl.gz": "767658e01af10762f772e39de6a5a954c9bc314620675aa65a025732c0f9b27d"
+  },
+  "verifica": {
+   "report.json": "58179a040cc59fd04314f89a0e879ec60428476f7207fb6b7b359240102e5338",
+   "duplicati.jsonl.gz": "22e71df5cf0ef5bbb391cd608e0bfb534569d40141cd2fc76bbf2b8e47e6f8c1",
+   "proposte_di_trattamento.jsonl.gz": "5b36052212ee3bb93b9f12753ce629616f0f9fa0b9762a377cd2f98dcd2a57c6"
+  },
+  "sharding": {
+   "plan.json": "aea0a7bd2c79738608ed35c486bca4123283decbcf66d3466fa64a571e7326f8",
+   "shards.jsonl": "daa39aa46159b8b2d4e9a749a2a5648152bc14e8a0654bb88a5dc4419d2039f1",
+   "manifest.json": "7df3e6d05261db9e86b481172238be3dffa35c26265845a98cbb0799c0565ef0"
+  }
+ },
+ "shards": [
+  {
+   "insieme": "train",
+   "nome": "pixmo-cap-00000.tar",
+   "percorso": "data/shards/pixmo-cap/3e42775e/pixmo-cap-00000.tar",
+   "sha256": "326f02f64bff080c1b666682803974052251e0d5e64b1c6e5b989f23daaa7d11",
+   "bytes": 821104640,
+   "record": 9436
+  },
+  {
+   "insieme": "train",
+   "nome": "pixmo-cap-00001.tar",
+   "percorso": "data/shards/pixmo-cap/3e42775e/pixmo-cap-00001.tar",
+   "sha256": "5307465dda3e9a116ba85273ab60f8f3333dba1260a8438273e06b106cd9911d",
+   "bytes": 823664640,
+   "record": 9436
+  },
+  {
+   "insieme": "train",
+   "nome": "pixmo-cap-00002.tar",
+   "percorso": "data/shards/pixmo-cap/3e42775e/pixmo-cap-00002.tar",
+   "sha256": "598cd47e23c3550cc0e2328288eb8320894a3cad1cfae047c93af8769805c6cf",
+   "bytes": 826705920,
+   "record": 9436
+  },
+  {
+   "insieme": "train",
+   "nome": "pixmo-cap-00003.tar",
+   "percorso": "data/shards/pixmo-cap/3e42775e/pixmo-cap-00003.tar",
+   "sha256": "96882faf8744b4ea47e6e09975e91d56942855e3a5f032c0e92b0f9d5313170f",
+   "bytes": 822784000,
+   "record": 9436
+  },
+  {
+   "insieme": "train",
+   "nome": "pixmo-cap-00004.tar",
+   "percorso": "data/shards/pixmo-cap/3e42775e/pixmo-cap-00004.tar",
+   "sha256": "535091152cfe40908dd599289c07fbc308c3f4ed7a1aee72200dd23e208734ab",
+   "bytes": 818472960,
+   "record": 9436
+  },
+  {
+   "insieme": "train",
+   "nome": "pixmo-cap-00005.tar",
+   "percorso": "data/shards/pixmo-cap/3e42775e/pixmo-cap-00005.tar",
+   "sha256": "9b00970c7c13c9837f76c15b39eb66d37b4f073aedf2f920e8270f890035a34f",
+   "bytes": 821565440,
+   "record": 9436
+  },
+  {
+   "insieme": "train",
+   "nome": "pixmo-cap-00006.tar",
+   "percorso": "data/shards/pixmo-cap/3e42775e/pixmo-cap-00006.tar",
+   "sha256": "287babca366aa030ae011a8f50120a75575fe68d0da5977a93cae2246ff24cdf",
+   "bytes": 822405120,
+   "record": 9436
+  },
+  {
+   "insieme": "train",
+   "nome": "pixmo-cap-00007.tar",
+   "percorso": "data/shards/pixmo-cap/3e42775e/pixmo-cap-00007.tar",
+   "sha256": "a30c25e0f3f7b1d4bdca27aa28f430bd9be6b128a2fc6abdada197509be5c1d7",
+   "bytes": 820541440,
+   "record": 9436
+  },
+  {
+   "insieme": "train",
+   "nome": "pixmo-cap-00008.tar",
+   "percorso": "data/shards/pixmo-cap/3e42775e/pixmo-cap-00008.tar",
+   "sha256": "3b77f1bae38fed68cdf36dfcf9a4af02232a36dc76d27a5c46dc9895b947c79b",
+   "bytes": 824135680,
+   "record": 9436
+  },
+  {
+   "insieme": "train",
+   "nome": "pixmo-cap-00009.tar",
+   "percorso": "data/shards/pixmo-cap/3e42775e/pixmo-cap-00009.tar",
+   "sha256": "4d26e045bafee4ca88cc574a46b5a0934a39e919cc3c11fa044ba3214412964f",
+   "bytes": 820049920,
+   "record": 9436
+  },
+  {
+   "insieme": "train",
+   "nome": "pixmo-cap-00010.tar",
+   "percorso": "data/shards/pixmo-cap/3e42775e/pixmo-cap-00010.tar",
+   "sha256": "2dbbf7582906fa1a3b5400d32ed577bf6dfcc0b6453a2080d16be762a66b0d34",
+   "bytes": 823552000,
+   "record": 9436
+  },
+  {
+   "insieme": "train",
+   "nome": "pixmo-cap-00011.tar",
+   "percorso": "data/shards/pixmo-cap/3e42775e/pixmo-cap-00011.tar",
+   "sha256": "1c3bb30a85beca849659f44600c3d3af2f1aa582b11d7b3001605373dc4ab3ce",
+   "bytes": 818944000,
+   "record": 9436
+  },
+  {
+   "insieme": "train",
+   "nome": "pixmo-cap-00012.tar",
+   "percorso": "data/shards/pixmo-cap/3e42775e/pixmo-cap-00012.tar",
+   "sha256": "41d980ebf93a940b50c908a8b7e88b50c6442bfeb5ffe5787d95537b8517a793",
+   "bytes": 823490560,
+   "record": 9436
+  },
+  {
+   "insieme": "train",
+   "nome": "pixmo-cap-00013.tar",
+   "percorso": "data/shards/pixmo-cap/3e42775e/pixmo-cap-00013.tar",
+   "sha256": "e3c487f4b196a38c098999a2504b166b284543dcc9c3457d008a1c3a9f54782d",
+   "bytes": 824176640,
+   "record": 9436
+  },
+  {
+   "insieme": "train",
+   "nome": "pixmo-cap-00014.tar",
+   "percorso": "data/shards/pixmo-cap/3e42775e/pixmo-cap-00014.tar",
+   "sha256": "004db4928a11b4231f6594a7aad5c268f148684c377062921974a1c2b9259e6f",
+   "bytes": 818513920,
+   "record": 9436
+  },
+  {
+   "insieme": "train",
+   "nome": "pixmo-cap-00015.tar",
+   "percorso": "data/shards/pixmo-cap/3e42775e/pixmo-cap-00015.tar",
+   "sha256": "7d88fdf6476c33e2738d3156f25977fcb7f8038517318e3ae6f02be9b5280fd7",
+   "bytes": 824852480,
+   "record": 9436
+  },
+  {
+   "insieme": "train",
+   "nome": "pixmo-cap-00016.tar",
+   "percorso": "data/shards/pixmo-cap/3e42775e/pixmo-cap-00016.tar",
+   "sha256": "151127f0109df0a626ec1bfa9163d3cf33856d0e8b505a0c0916413c04d23f19",
+   "bytes": 826859520,
+   "record": 9436
+  },
+  {
+   "insieme": "train",
+   "nome": "pixmo-cap-00017.tar",
+   "percorso": "data/shards/pixmo-cap/3e42775e/pixmo-cap-00017.tar",
+   "sha256": "8038719f42ad9a1f3f6b14d419e56dc235755d1b0c04f6c2dbb64e6dc9fa1bc2",
+   "bytes": 822661120,
+   "record": 9436
+  },
+  {
+   "insieme": "train",
+   "nome": "pixmo-cap-00018.tar",
+   "percorso": "data/shards/pixmo-cap/3e42775e/pixmo-cap-00018.tar",
+   "sha256": "66a0739e7a4aeb6ec0f2b61a9fd0dfecbb6fdebfc78ffbe86f1b4aa9a5e684f1",
+   "bytes": 826992640,
+   "record": 9436
+  },
+  {
+   "insieme": "train",
+   "nome": "pixmo-cap-00019.tar",
+   "percorso": "data/shards/pixmo-cap/3e42775e/pixmo-cap-00019.tar",
+   "sha256": "8892c0d4ea8f50dab30ed98055656be0361e78328e98d2c0b26ca7d70870c7a7",
+   "bytes": 824340480,
+   "record": 9436
+  },
+  {
+   "insieme": "train",
+   "nome": "pixmo-cap-00020.tar",
+   "percorso": "data/shards/pixmo-cap/3e42775e/pixmo-cap-00020.tar",
+   "sha256": "5246097e9789db25874105cdb52bff1737c9f97f628f785a65378887f1b5b1ad",
+   "bytes": 825989120,
+   "record": 9436
+  },
+  {
+   "insieme": "train",
+   "nome": "pixmo-cap-00021.tar",
+   "percorso": "data/shards/pixmo-cap/3e42775e/pixmo-cap-00021.tar",
+   "sha256": "1785ab5114f612dc02d36af85c4b4c7adb4d8881591ea801b6e94d5b7552e5f3",
+   "bytes": 826245120,
+   "record": 9436
+  },
+  {
+   "insieme": "train",
+   "nome": "pixmo-cap-00022.tar",
+   "percorso": "data/shards/pixmo-cap/3e42775e/pixmo-cap-00022.tar",
+   "sha256": "487f731f852713e6628bc8ab47963ff00501ec5156c4712f692d67e61dd9e80c",
+   "bytes": 821176320,
+   "record": 9435
+  },
+  {
+   "insieme": "train",
+   "nome": "pixmo-cap-00023.tar",
+   "percorso": "data/shards/pixmo-cap/3e42775e/pixmo-cap-00023.tar",
+   "sha256": "c0a6530af61018f69bfb1d74b093539906617af7a4fd496f8dfb1bf194ff2d4a",
+   "bytes": 819240960,
+   "record": 9435
+  },
+  {
+   "insieme": "train",
+   "nome": "pixmo-cap-00024.tar",
+   "percorso": "data/shards/pixmo-cap/3e42775e/pixmo-cap-00024.tar",
+   "sha256": "cd36c31ab5c8c22e685548fa495d039791cb80cc58269c6b5248177929b80ee0",
+   "bytes": 818216960,
+   "record": 9434
+  }
+ ],
+ "split": {
+  "valori": [
+   "train",
+   "dev",
+   "test"
+  ],
+  "unita": "gruppo",
+  "quota_dev": 0.05,
+  "seme": 0,
+  "strati": "un solo strato (PixMo-Cap)",
+  "regola": "in ordine di sha256({seme, gruppo}), dev finché i record ammessi di dev sono meno di round(quota * record ammessi); il resto train (manifest.assign_splits); i gruppi senza record ammessi restano in train, dove nessun record si legge",
+  "record_ammessi": 235098,
+  "record_ammessi_dev": 11755,
+  "gruppi_dev": 11750,
+  "quota_ottenuta": 0.05
+ },
+ "unioni": {
+  "record": 235896,
+  "per_relazione": {
+   "pixel_originale": {
+    "legami": 683,
+    "valori_ripetuti": 193,
+    "record_coinvolti": 876,
+    "gruppi": 235213,
+    "gruppi_da_almeno_due": 193,
+    "record_in_gruppi_da_almeno_due": 876,
+    "massimo": 297
+   },
+   "pixel_shard": {
+    "legami": 685,
+    "valori_ripetuti": 194,
+    "record_coinvolti": 879,
+    "gruppi": 235211,
+    "gruppi_da_almeno_due": 194,
+    "record_in_gruppi_da_almeno_due": 879,
+    "massimo": 297
+   },
+   "jpeg_shard": {
+    "legami": 684,
+    "valori_ripetuti": 194,
+    "record_coinvolti": 878,
+    "gruppi": 235212,
+    "gruppi_da_almeno_due": 194,
+    "record_in_gruppi_da_almeno_due": 878,
+    "massimo": 297
+   },
+   "url": {
+    "legami": 72,
+    "valori_ripetuti": 72,
+    "record_coinvolti": 144,
+    "gruppi": 235824,
+    "gruppi_da_almeno_due": 72,
+    "record_in_gruppi_da_almeno_due": 144,
+    "massimo": 2
+   }
+  },
+  "cumulative": [
+   {
+    "fino_a": "pixel_originale",
+    "gruppi": 235213,
+    "gruppi_da_almeno_due": 193,
+    "record_in_gruppi_da_almeno_due": 876,
+    "massimo": 297
+   },
+   {
+    "fino_a": "pixel_shard",
+    "gruppi": 235211,
+    "gruppi_da_almeno_due": 194,
+    "record_in_gruppi_da_almeno_due": 879,
+    "massimo": 297
+   },
+   {
+    "fino_a": "jpeg_shard",
+    "gruppi": 235211,
+    "gruppi_da_almeno_due": 194,
+    "record_in_gruppi_da_almeno_due": 879,
+    "massimo": 297
+   },
+   {
+    "fino_a": "url",
+    "gruppi": 235211,
+    "gruppi_da_almeno_due": 194,
+    "record_in_gruppi_da_almeno_due": 879,
+    "massimo": 297
+   }
+  ]
+ },
+ "conteggi_autorizzati": {
+  "gruppi_segnaposto": 18,
+  "righe_segnaposto": 526,
+  "orientamento_exif": 59,
+  "candidati": 248
+ },
+ "conteggi": {
+  "per_split_stato": {
+   "dev/ammesso": 11755,
+   "train/ammesso": 223343,
+   "train/quarantena": 798
+  },
+  "per_compito_split_stato": {
+   "pixmo_caption/dev/ammesso": 11755,
+   "pixmo_caption/train/ammesso": 223343,
+   "pixmo_caption/train/quarantena": 798
+  },
+  "per_motivo_diretto": {
+   "decontaminazione_candidato": 248,
+   "orientamento_exif": 59,
+   "possibile_segnaposto": 526
+  },
+  "per_motivo_ereditato": {
+   "possibile_segnaposto": 1
+  },
+  "sovrapposizioni_dirette": {
+   "decontaminazione_candidato": 213,
+   "decontaminazione_candidato+possibile_segnaposto": 35,
+   "orientamento_exif": 59,
+   "possibile_segnaposto": 491
+  },
+  "gruppi_per_split": {
+   "dev": 11750,
+   "train": 223461
+  },
+  "gruppi_per_stato": {
+   "dev/ammesso": 11750,
+   "train/ammesso": 223173,
+   "train/quarantena": 288
+  },
+  "segnali_run4_per_stato": {
+   "dev/ammesso": 1256,
+   "train/ammesso": 24236,
+   "train/quarantena": 86
+  },
+  "non_ammessi_per_origine": {
+   "quarantena/diretto": 798
+  }
+ },
+ "scarti_dello_sharding": [
+  {
+   "chiave": "pixmo-00024-007342",
+   "record_id": "6cda34e58514ea07ecfbc65a54dc4e332bf3a375f2c304b43353dedc92171ae0",
+   "esito_sharding": "scartata:illeggibile",
+   "file": "data/train-00024-of-00075.parquet",
+   "riga": 7342,
+   "difetti": [
+    "immagine originale illeggibile"
+   ],
+   "originale": {
+    "lettura": "illeggibile",
+    "byte_sha256": "49f9395484bc60ab33575c7b27be68a518d4fd2599a6542f8b0eeecad23e4824",
+    "byte": 2547,
+    "errore": "UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x757514c18e50>"
+   },
+   "esito_decontaminazione": "non_verificabile"
+  }
+ ],
+ "controlli": [
+  {
+   "controllo": "manifest letto e verificato da manifest.load (sha256 dei record, record_id ricalcolati, un solo split per gruppo, conteggi per shard)",
+   "esito": true
+  },
+  {
+   "controllo": "identità: sorgente, revisione e repository; solo l'insieme train e il compito pixmo_caption",
+   "esito": true
+  },
+  {
+   "controllo": "record: uno per record degli shard dell'inventario, con shard, posizione, sha256 di JSON e JPEG, pixel, didascalia, URL, originale e richiesta uguali",
+   "esito": true
+  },
+  {
+   "controllo": "scarti dello sharding: fuori dai record e contati in manifest.json",
+   "esito": true
+  },
+  {
+   "controllo": "gruppi ricalcolati dai pixel dell'originale e dello shard, dai byte del JPEG e dall'URL: stessa partizione",
+   "esito": true
+  },
+  {
+   "controllo": "group_id ricalcolati dai membri e dall'indice",
+   "esito": true
+  },
+  {
+   "controllo": "ogni legame dentro un solo gruppo e un solo split: gli input finali identici (pixel e byte del JPEG) non attraversano train e dev",
+   "esito": true
+  },
+  {
+   "controllo": "blocchi diretti ed ereditati, motivi e stato di ogni record ricalcolati dalla scansione, dall'elenco completo dei duplicati e dall'inventario (stato del gruppo il più grave, nessuna riammissione)",
+   "esito": true
+  },
+  {
+   "controllo": "ogni gruppo con un solo stato (propagazione completa)",
+   "esito": true
+  },
+  {
+   "controllo": "segnali di run4: evidenze di tutti e soli i record con segnali, nessun blocco ne deriva (ammessi con segnali)",
+   "esito": true
+  },
+  {
+   "controllo": "split ricalcolato con quota e seme del manifest: uguale a quello scritto",
+   "esito": true
+  },
+  {
+   "controllo": "dev: almeno l'obiettivo di record ammessi, superato al più dall'ultimo gruppo; quarantene ed esclusi in train",
+   "esito": true
+  },
+  {
+   "controllo": "conteggi uguali a manifest.json",
+   "esito": true
+  },
+  {
+   "controllo": "ranghi del campione candidato ricalcolati",
+   "esito": true
+  },
+  {
+   "controllo": "file derivati (keys/) con gli sha256 registrati",
+   "esito": true
+  }
+ ],
+ "esito_verifica": true,
+ "stati": {
+  "ammesso": "candidato per i controlli operativi effettuati (collegamento originale -> shard, integrità, decontaminazione contro pannello-v3 nei controlli dichiarati), per il compito pixmo_caption; la fedeltà delle didascalie ai pixel resta da valutare e il training richiede una decisione successiva",
+  "quarantena": "candidati della decontaminazione, possibili segnaposto (cautelativa, non un errore dimostrato), orientamento EXIF non applicato, e i record del loro gruppo",
+  "escluso": "identità d'immagine confermata col pannello o difetto strutturale dimostrato, e i record del loro gruppo (quanti, nei conteggi)"
+ },
+ "fuori_dal_sottoinsieme": [
+  "variant_id e uid (S1 §1): dipendono dal contratto di risposta (S3, D3); l'ammissione è per record e compito, la richiesta è scelta dal loader con la chiave (data.pick_prompt), registrata in `richiesta`",
+  "hash dei token di input e di target, tokenizer, template e contratti (S1 §2, §7)",
+  "indice globale fra sorgenti (S1 §4): i gruppi sono i legami esatti dentro PixMo-Cap",
+  "campo gold: nessuno; una didascalia di PixMo è al più un target controllato (pipeline §5.7)"
+ ],
+ "verifiche_mancanti": [
+  "fedeltà delle didascalie all'immagine (oggetti, posizioni, relazioni, attributi, testi): da valutare con un campione e immagini (D5); i segnali di run4 sono solo evidenze di rischio",
+  "verifica a vista dei 248 candidati della decontaminazione e dei gruppi di possibili segnaposto (nessuno è risolto)",
+  "corrispondenza fra l'immagine riscaricata dagli URL e quella vista dagli annotatori",
+  "orientamento EXIF: quale versione abbiano visto gli annotatori; nessuno shard rigenerato",
+  "leggibilità dei dettagli a 1024 patch; i 50 parquet non locali"
+ ],
+ "nota": "organizza candidati ed evidenze: non certifica le didascalie e non autorizza il training",
+ "secondi_totali": 97.4,
+ "rss_max_mib": 5003.0
+}

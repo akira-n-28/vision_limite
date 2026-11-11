@@ -1,0 +1,14 @@
+{
+ "notes": "Collaudo F0 del reader di PixMo-Cap col manifest candidato (scripts/reader_smoke.py, slurm/pixmo_manifest.sbatch lettore). Solo collaudo CPU: non è una ricetta di training e non autorizza nessun run; pesi, durate e mix non sono decisi, e le config storiche non cambiano. Il manifest è identificato dallo sha256 di manifest.json; la validazione è lo split dev dello stesso manifest. 'Ammesso' è la decisione operativa del candidato per i controlli effettuati, non gold: la fedeltà delle didascalie ai pixel resta da valutare.",
+ "sources": [
+  {
+   "name": "pixmo",
+   "kind": "pixmo_caption",
+   "shards": "data/shards/pixmo-cap/3e42775e/pixmo-cap-*.tar",
+   "weight": 1.0,
+   "manifest": "data/manifests/pixmo-cap-candidato-1",
+   "manifest_sha256": "794787abffd51a9ddc7f12227d7ac6a2eb3a922bc3c4f5fac496cb96a7b9d850",
+   "split": "train"
+  }
+ ]
+}

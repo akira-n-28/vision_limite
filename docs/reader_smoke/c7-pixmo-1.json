@@ -1,0 +1,209 @@
+{
+ "schema": "reader-smoke/1",
+ "job_id": "30816",
+ "codice": {
+  "commit": "8eb716cc06af63b063bc41126a62a04b34deac36",
+  "dirty": true,
+  "diff_sha256": "9b7929addc7f38ee6f5cd8dd35eead1ab35c19a03304f925f63d41c9586d3aba",
+  "untracked": [
+   "config/runs/f0-c7-reader-pixmo.json",
+   "docs/manifests/pixmo-cap-candidato-1.json"
+  ]
+ },
+ "config": {
+  "path": "/home/prignano/vision_limite/config/runs/f0-c7-reader-pixmo.json",
+  "bytes": 866,
+  "sha256": "6a12a77f0df7ff63a46304ef0ac43bcba1ae58bddca5deb3140463b5bf726afe",
+  "notes": "Collaudo F0 del reader di PixMo-Cap col manifest candidato (scripts/reader_smoke.py, slurm/pixmo_manifest.sbatch lettore). Solo collaudo CPU: non è una ricetta di training e non autorizza nessun run; pesi, durate e mix non sono decisi, e le config storiche non cambiano. Il manifest è identificato dallo sha256 di manifest.json; la validazione è lo split dev dello stesso manifest. 'Ammesso' è la decisione operativa del candidato per i controlli effettuati, non gold: la fedeltà delle didascalie ai pixel resta da valutare."
+ },
+ "fasi": {
+  "make_sources": {
+   "secondi": 33.6,
+   "rss_max_mib": 2438.1
+  },
+  "record_grezzi": {
+   "secondi": 3.5,
+   "rss_max_mib": 2438.1
+  },
+  "sottoinsieme": {
+   "secondi": 3.2,
+   "rss_max_mib": 2438.1
+  },
+  "esempi": {
+   "secondi": 45.4,
+   "rss_max_mib": 2438.1
+  },
+  "flusso": {
+   "secondi": 2.0,
+   "rss_max_mib": 2438.1
+  }
+ },
+ "superati": 8,
+ "totale": 8,
+ "falliti": [],
+ "secondi": 96.2,
+ "rss_max_mib": 2438.1,
+ "nota": "attesi del manifest per la sorgente intera; osservati su un sottoinsieme deterministico (primo shard di ogni tipo) e su letture parziali (esempi, flusso): smoke test, non verifica completa del training. Ammesso = decisione operativa del candidato, non gold",
+ "sorgenti": {
+  "pixmo": {
+   "manifest": "data/manifests/pixmo-cap-candidato-1/manifest.json",
+   "manifest_sha256": "794787abffd51a9ddc7f12227d7ac6a2eb3a922bc3c4f5fac496cb96a7b9d850",
+   "sorgente": "pixmo-cap",
+   "revisione": "3e42775eea79dd4874c41379230c7f871b10218e",
+   "nome": "pixmo-cap-candidato",
+   "versione": "1",
+   "insieme": "train",
+   "tipo": "pixmo_caption",
+   "compito_del_tipo": "pixmo_caption",
+   "split": "train",
+   "n_shard": 25,
+   "attesi": {
+    "dev/ammesso": 11755,
+    "train/ammesso": 223343,
+    "train/quarantena": 798
+   },
+   "attesi_per_compito": {
+    "dev/ammesso/pixmo_caption": 11755,
+    "train/ammesso/pixmo_caption": 223343,
+    "train/quarantena/pixmo_caption": 798
+   },
+   "ammessi_nello_split": 223343,
+   "record_in_questi_shard": 235896,
+   "rietichettature": 0
+  }
+ },
+ "sottoinsieme": {
+  "pixmo@pixmo-cap-00000/train": {
+   "shard": "pixmo-cap-00000.tar",
+   "split": "train",
+   "tipo": "pixmo_caption",
+   "record_nello_shard": 9436,
+   "attesi_dal_manifest": 8928,
+   "consegnati": 8928,
+   "uguali": true,
+   "motivi_attesi": {
+    "quarantena": 37,
+    "split_dev": 471
+   },
+   "secondi": 2.5,
+   "casi_mirati_tenuti": 40,
+   "non_ammessi_per_origine": {
+    "train/quarantena/decontaminazione_candidato": 11,
+    "train/quarantena/decontaminazione_candidato+possibile_segnaposto": 3,
+    "train/quarantena/orientamento_exif": 1,
+    "train/quarantena/possibile_segnaposto": 22
+   },
+   "ammessi_con_segnali_run4": 976
+  },
+  "pixmo@pixmo-cap-00000/dev": {
+   "shard": "pixmo-cap-00000.tar",
+   "split": "dev",
+   "tipo": "pixmo_caption",
+   "record_nello_shard": 9436,
+   "attesi_dal_manifest": 471,
+   "consegnati": 471,
+   "uguali": true,
+   "motivi_attesi": {
+    "split_train": 8965
+   },
+   "secondi": 0.6,
+   "casi_mirati_tenuti": 0,
+   "non_ammessi_per_origine": {
+    "train/quarantena/decontaminazione_candidato": 11,
+    "train/quarantena/decontaminazione_candidato+possibile_segnaposto": 3,
+    "train/quarantena/orientamento_exif": 1,
+    "train/quarantena/possibile_segnaposto": 22
+   },
+   "ammessi_con_segnali_run4": 57
+  }
+ },
+ "esempi_train": {
+  "pixmo@pixmo-cap-00000/train": {
+   "costruiti": 318,
+   "n_errori": 0,
+   "compiti_emessi": {
+    "pixmo_caption": 318
+   },
+   "domande_bloccate": {},
+   "token_medi": 512.0,
+   "token_max": 1068,
+   "fuori_dai_compiti_ammessi": [],
+   "n_fuori": 0,
+   "rietichettati_controllati": 0,
+   "rietichettati_sbagliati": [],
+   "righe_con_target_fuori_dal_record": [],
+   "pixmo_invariati": 318,
+   "pixmo_diversi": []
+  }
+ },
+ "esempi_dev": {
+  "pixmo": {
+   "letti": 200,
+   "fuori_dal_dev_ammesso": [],
+   "costruiti": 200,
+   "n_errori": 0,
+   "compiti_emessi": {
+    "pixmo_caption": 200
+   },
+   "domande_bloccate": {},
+   "token_medi": 507.9,
+   "token_max": 827,
+   "fuori_dai_compiti_ammessi": [],
+   "n_fuori": 0,
+   "rietichettati_controllati": 0,
+   "rietichettati_sbagliati": [],
+   "righe_con_target_fuori_dal_record": [],
+   "pixmo_invariati": 200,
+   "pixmo_diversi": []
+  }
+ },
+ "flusso": {
+  "micro_batch": 20,
+  "esempi": 630,
+  "per_sorgente": {
+   "pixmo": 630
+  },
+  "fuori_ammissione": [],
+  "stats": {
+   "loaded/pixmo": 687,
+   "compiti/pixmo/pixmo_caption": 687,
+   "examples": 687,
+   "rows": 80,
+   "tokens": 324675
+  }
+ },
+ "controlli": [
+  {
+   "controllo": "pixmo: manifest identificato dallo sha256 della config, della sorgente, revisione, insieme e tipo",
+   "esito": true
+  },
+  {
+   "controllo": "pixmo@pixmo-cap-00000/train: un'epoca consegna esattamente i record che il manifest ammette in questo shard, una volta e nell'ordine dello shard, e salta gli altri coi motivi attesi",
+   "esito": true
+  },
+  {
+   "controllo": "pixmo@pixmo-cap-00000/train: nessun record in quarantena o escluso consegnato; ammessi coi segnali di run4 consegnati",
+   "esito": true
+  },
+  {
+   "controllo": "pixmo@pixmo-cap-00000/dev: un'epoca consegna esattamente i record che il manifest ammette in questo shard, una volta e nell'ordine dello shard, e salta gli altri coi motivi attesi",
+   "esito": true
+  },
+  {
+   "controllo": "pixmo@pixmo-cap-00000/dev: nessun record in quarantena o escluso consegnato; ammessi coi segnali di run4 consegnati",
+   "esito": true
+  },
+  {
+   "controllo": "pixmo@pixmo-cap-00000/train: esempi costruiti senza errori, compiti emessi solo fra gli ammessi (shape_type mai), rietichettature applicate e target delle righe dal record",
+   "esito": true
+  },
+  {
+   "controllo": "pixmo: validazione dal dev del manifest (record ammessi col compito), esempi costruiti",
+   "esito": true
+  },
+  {
+   "controllo": "flusso misto: solo chiavi ammesse di train di ogni sorgente, esempi da tutte, nessun errore, nessun shape_type, contatori per sorgente e compito",
+   "esito": true
+  }
+ ]
+}
