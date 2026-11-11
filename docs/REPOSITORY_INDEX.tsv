@@ -147,6 +147,7 @@ scripts/eval_compare.py	script	riutilizzabile	valutazione testuale con il valuta
 scripts/eval_f1_formulas.py	script	da adeguare	trascrizione su UniMER-Test con adapter; da collegare al contratto e ai pannelli	importato da f1c_eval, tests/test_f1_data
 scripts/eval_f1_val.py	script	da adeguare	loss di validazione con immagine vera/bianca/assente; base per i controfattuali (§11)	-
 scripts/eval_text_local.py	script	riutilizzabile	valutazione testuale con il valutatore ufficiale, export del decoder	-
+scripts/exact_overlap.py	script	corrente	primo sottoinsieme di C6 (S1 §§4, 9): identità esatte delle immagini fra sintetici v4, UniMER-1M, MAVIS-Geometry e PixMo-Cap dai manifest candidati e dalle scansioni di decontaminazione già fatte (byte e pixel rgb-su-bianco/1 di originale, shard e ritagli delle righe), senza rileggere immagini né ricalcolare hash di immagini; ingressi verificati (sha256 di manifest, record e scansioni citate dal manifest, record_id, un gruppo in un solo split, righe ritagliate col gruppo della formula, ogni riga della scansione ricollegata a una sola voce coi digest del manifest); componenti diagnostiche transitive dei gruppi esistenti attraverso le classi di digest uguali, con categoria (train_dev, riservati, solo_train, solo_dev, un_gruppo_caricabile, non_caricabili), portata dei motivi dei record non caricabili, coppie di sorgenti, copertura per rappresentazione e proposte non applicate; prova limitata con stima (--limit)	solo in un job SLURM CPU; importa scripts/unimer_manifest.py; non cambia gruppi, split o stati, non scrive liste per i loader e non sostituisce i group_id; non è l'indice globale
 scripts/export_decoder.py	script	riutilizzabile	valutazione testuale con il valutatore ufficiale, export del decoder	-
 scripts/f0_checks.py	script	corrente	verifiche F0 di Violetto (inputs_embeds, checkpointing, loss a blocchi, gruppi)	-
 scripts/f0_vl_checks.py	script	da adeguare	verifiche del modello VL baseline: mancano encoder B, più immagini, ViT addestrabile (§3.2)	-
@@ -254,6 +255,7 @@ slurm/eval_f1_formulas.sbatch	launcher	da adeguare	launcher di uno strumento da 
 slurm/eval_text_baseline.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
 slurm/eval_text_local.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
 slurm/eval_text_resolve.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
+slurm/exact_overlap.sbatch	launcher	corrente	test mirato, poi prova limitata (prime 20.000 righe di ogni records.jsonl.gz) o confronto completo delle identità esatte fra le quattro sorgenti (scripts/exact_overlap.py), riepilogo per git in docs/indice_globale	ingressi fissi coi sha256 di manifest.json: synth-v4-candidato-2, unimer-candidato-2, mavis-geometry-candidato-3, pixmo-cap-candidato-1; mavis-geometry-candidato-5 solo per la catena
 slurm/export_decoder.sbatch	launcher	riutilizzabile	launcher di ispezione, shard, controllo, decontaminazione o valutazione	-
 slurm/extract_tools.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
 slurm/f0_checks.sbatch	launcher	corrente	launcher dell'ambiente, delle verifiche o dei test	-
@@ -352,6 +354,7 @@ tests/data/violetto_params_b1f3d572.json	test	riutilizzabile	dati dei test	-
 tests/test_data_lists.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
 tests/test_decontam.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
 tests/test_estimate.py	test	corrente	test CPU di C8 su dati fittizi: enumerazione e copertura esatte, casi limite, Clopper-Pearson, controesempio di S4 §4, Bonferroni, rifiuti, esempio dei documenti (slurm/tests_cpu.sbatch, job 30616-30617)	importa stem_audit (storico) in sola lettura, per i confronti di S4 §4
+tests/test_exact_overlap.py	test	corrente	test CPU del primo sottoinsieme di C6 (42 controlli, job 30818): copia identica in due sorgenti, catena transitiva fra gruppi esistenti con un membro senza legame diretto, immagine finale identica con originali diversi, digest mancanti, pixel RGBA dei sintetici mai confrontato, convenzione incompatibile, formula e riga ritagliata di UniMER con chiave e record_id comuni, legame nuovo dentro una sorgente, conflitto train/dev fra ammessi, riservati, quarantene distinte dai conflitti con la portata dei motivi, arresti e controlli falliti, prova limitata con stima	fixture di manifest e scansioni, nessun dato reale; solo in un job
 tests/test_f1_data.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
 tests/test_f1_errors.py	test	da adeguare	test CPU (slurm/tests_cpu.sbatch)	-
 tests/test_f1_mavis.py	test	riutilizzabile	test CPU (slurm/tests_cpu.sbatch)	-
