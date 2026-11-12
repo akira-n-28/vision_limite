@@ -24,7 +24,7 @@ decontaminazione (D6, S1 §3) è in `pannello-v3` (`docs/PANNELLO_VALUTAZIONE.md
 | --- | --- | --- |
 | [S1](S1_RECORD_MANIFEST.md) | Identificatori sha256 completi e controllo delle collisioni; record con contratto, modalità e prefill; gruppi, split, indice globale; esclusioni storiche risolte su un solo record; reader e contabilità | — |
 | [S2](S2_AMMISSIONE_PRIME_FAMIGLIE.md) | Correttezza rispetto all'immagine; evidenze per ogni tipo di domanda; stati `escluso`/`quarantena` per tipo; errore confermato di `intersections` e ambiguità di classificazione dei sintetici; MAVIS e UniMER | soglia di altezza del testo (proposta 10 px) |
-| [S3](S3_CONTRATTO_ESTRAZIONE.md) | Contratto `vl-contract/1`; quattro forme; completezza dai metadati di terminazione; formato, completezza e correttezza separati; politica per SFT, valutazione e RL | D3: template, modalità, forma della risposta diretta, prefill |
+| [S3](S3_CONTRATTO_ESTRAZIONE.md) | Contratto `vl-contract/1`; quattro forme; completezza dai metadati di terminazione; formato, completezza e correttezza separati; politica per SFT, valutazione e RL | D3: template, modalità, forma della risposta diretta, prefill. Bozza 3 del 2026-11-12: alternative, proposta e proprietà verificate dalla sonda (job 30910); D3 aperta |
 | [S4](S4_CAMPIONAMENTO_BUDGET.md) | Disegno con unità di campionamento uguale all'unità della quantità e limiti esatti; metodi storici non adottati; budget degli audit; nucleo implementato in C8 (§9) | D4 (soglie), D5 (budget); proposta per le prime famiglie (§7). Nucleo tecnico adottato dall'utente il 2026-11-05 |
 
 ## Decisioni tecniche prese nelle specifiche

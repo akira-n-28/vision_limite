@@ -329,6 +329,16 @@ prompt diversi.
 - Il prefill `<think></think>` senza label delle didascalie (`F1_PREFILL`, opzione B del 2026-10-09) è uno strumento
   della F1 precedente. La pipeline lo ammette come strumento dichiarato di F1, ma la modalità d'uso finale si valuta
   senza prefill nascosti.
+- Sonda D3 (job 30910, `scripts/contract_probe.py`, `docs/contratto/sonda-1.md`; S3 §2). Sono proprietà meccaniche, non
+  il comportamento del modello:
+  - **Intestazioni.** Il template dello snapshot rifiuta anche il system VL `You are a helpful assistant.`.
+    L'intestazione canonica è di 27 token, quella VL di 12, e il system VL non è un prefisso in token del canonico.
+  - **Template della sonda.** È lo snapshot più un system iniziale canonico o VL: senza system, o col system canonico,
+    rende testo e token identici allo snapshot e alla resa del valutatore ufficiale.
+  - **Processor operativo.** Accetta tag duplicati o malformati: prefill più tag nel contenuto, `reasoning_content` più
+    `<think>`, `</think>` senza `<think>`, due blocchi. Le regole vanno messe nel contratto (C3).
+  - **Proposta, non approvata.** B, cioè `<think></think>` con label nelle dirette, da F2; gli stessi token col prefill
+    dichiarato in F1; baseline canonica separata. D3 resta aperta: nessun contratto è attivato.
 
 ## Fatti sui dati locali
 
@@ -640,7 +650,8 @@ parametri in `groups.py` sono ipotesi da verificare con `f0_checks.py` (sezione 
   `ISTRUZIONI_MIGRAZIONE_LAGRANGE.md` — incarico della migrazione del 2026-10-28
 - `docs/` — stato del repository, piano F0, pannello di valutazione, campione candidato di F0, inventario degli
   artefatti, indice dei file, rilievi e rapporti delle revisioni; `docs/inventari/`: rapporti degli inventari tecnici per
-  sorgente (PixMo-Cap); `docs/indice_globale/`: riepiloghi dei confronti fra sorgenti (C6)
+  sorgente (PixMo-Cap); `docs/indice_globale/`: riepiloghi dei confronti fra sorgenti (C6); `docs/contratto/`: rapporti
+  della sonda del contratto di risposta (D3)
 - `config/paths.env` — percorsi e variabili offline; `config/runs/` — nessuna ricetta di training finché non ci sono
   ricette collaudate, solo le config di collaudo di C7 (`f0-c7-reader-unimer-mavis.json`, `f0-c7-reader-pixmo.json`,
   non ricette);

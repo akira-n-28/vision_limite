@@ -80,6 +80,8 @@ docs/PANNELLO_VALUTAZIONE.md	documento	corrente	pannello di valutazione (D6): in
 docs/REPOSITORY_INDEX.tsv	documento	corrente	stato, piano o inventario della migrazione	-
 docs/REPOSITORY_STATUS.md	documento	corrente	stato, piano o inventario della migrazione	-
 docs/REVIEW_ACTIONS.md	documento	corrente	stato, piano o inventario della migrazione	-
+docs/contratto/sonda-1.json	rapporto	corrente	riepilogo della sonda D3 (job 30910, scripts/contract_probe.py): identità dello snapshot e del template della sonda con sha256, alternative, fatti misurati, 329 controlli, rifiuti, combinazioni accettate dal processor operativo, confine della cronologia, esempi senza le liste dei token (complete in outputs/contract_probe/sonda-1/report.json)	scritto dal job; non si modifica: una nuova esecuzione ha un nome nuovo
+docs/contratto/sonda-1.md	rapporto	corrente	rapporto leggibile della sonda D3 (job 30910): intestazioni, alternative, sei esempi per alternativa con prompt, target e conteggi, tabelle token per token, controlli, rifiuti, processor operativo, confine della cronologia, limiti	scritto dal job; proprietà meccaniche del formato, non il comportamento del modello
 docs/img/synth-0000043-v3.svg	immagine	corrente	schema di un caso documentato (scripts/synth_case_svg.py)	non è il PNG del renderer
 docs/img/synth-0000043-v4.svg	immagine	corrente	schema di un caso documentato (scripts/synth_case_svg.py)	non è il PNG del renderer
 docs/img/synth-review/campione-altro.png	immagine	corrente	analisi degli scarti (job 30400, S2 §2.5): campione, etichette di punti e tacche (coord)	ritagli dei PNG del renderer (scripts/synth_review.py)
@@ -121,7 +123,7 @@ docs/reviews/REVISIONE_INDIPENDENTE_PIPELINE_LIMITE_VL.md	documento	storico	rapp
 docs/specs/README.md	specifica	irrisolto	specifica F0 in bozza, da approvare	nessun codice la implementa
 docs/specs/S1_RECORD_MANIFEST.md	specifica	irrisolto	specifica F0 in bozza, da approvare	nessun codice la implementa
 docs/specs/S2_AMMISSIONE_PRIME_FAMIGLIE.md	specifica	irrisolto	specifica F0 in bozza, da approvare	nessun codice la implementa
-docs/specs/S3_CONTRATTO_ESTRAZIONE.md	specifica	irrisolto	specifica F0 in bozza, da approvare	nessun codice la implementa
+docs/specs/S3_CONTRATTO_ESTRAZIONE.md	specifica	irrisolto	specifica F0 in bozza (bozza 3 del 2026-11-12), da approvare: alternative e proposta per D3, proprietà verificate dalla sonda (job 30910), decisioni aperte, conseguenze per C4, piano minimo di C3	nessun codice operativo la implementa; D3 aperta
 docs/specs/S4_CAMPIONAMENTO_BUDGET.md	specifica	irrisolto	specifica F0 in bozza, da approvare	nessun codice la implementa
 downloads/build_manifests.sh	catalogo	corrente	catalogo e manifest dei download	-
 downloads/catalog_status.tsv	catalogo	corrente	catalogo e manifest dei download	-

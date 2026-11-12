@@ -1,0 +1,4023 @@
+{
+ "schema": "contract-probe/1",
+ "nome": "sonda-1",
+ "job_id": "30910",
+ "codice": {
+  "commit": "1addc90cea28eb318f09bf2692139a6b1b88198b",
+  "dirty": true,
+  "diff_sha256": "4bfc08e6ef069ef6b39e9bc430cd73d367789232af2a11960e5e8b9e6906caa6",
+  "untracked": []
+ },
+ "perimetro": "sonda CPU del contratto D3: tokenizer e template dello snapshot, esempi scritti a mano; nessun peso, nessun dataset, nessun contratto attivato",
+ "identita": {
+  "snapshot": "hf/hub/models--paradigma-inc--limite-1b-violetto/snapshots/b1f3d572ccacb6919f4d64c321b70ba034ddaef2",
+  "file_sha256": {
+   "tokenizer.json": "296e081e2f5ecf9d87814aa9b0f4b12d670ed2b2e2be6c84e01a9466c953afb7",
+   "tokenizer_config.json": "7c9b02a0378ecebbf99549aea37259bc8183df58a70c3d3f564f8ea7d4144681",
+   "special_tokens_map.json": "6676f091c8bc4d1b50146427cfde92073402866b87b6e39223227931b70083e9",
+   "chat_template.jinja": "f6bd2b6bf08be63507e9da57900f5b4572be94605074eff65423da5374c48011",
+   "generation_config.json": "f512b06d847fbceacedadb3414fa9b99f7568c98ecbe3039841ff6cdb32d5bc5"
+  },
+  "chat_template_del_tokenizer_sha256": "f6bd2b6bf08be63507e9da57900f5b4572be94605074eff65423da5374c48011",
+  "chat_template_del_tokenizer_uguale_al_file": true,
+  "template_della_sonda": {
+   "nome": "limite-vl-sonda/1",
+   "sha256": "02da63de40f82869c087661810da9c8b0c973344f70e160d6d65be008a4ec1ca"
+  },
+  "tokenizer": {
+   "classe": "Qwen2Tokenizer",
+   "voci": 151667,
+   "transformers": "5.6.2",
+   "tokenizers": "0.22.2"
+  },
+  "generation_config_eos": 151643
+ },
+ "alternative": {
+  "A": {
+   "system": null,
+   "template": "snapshot",
+   "diretta": "prefill",
+   "ragionata": true,
+   "un_turno": false,
+   "fase": "F1 storico (decoder congelato); il ragionato è il formato del replay e di F2 storici",
+   "descrizione": "template dello snapshot (system canonico); diretta: prefill <think></think> senza label, poi risposta ed EOS con label; ragionata: <think>…</think> e risposta con label"
+  },
+  "B": {
+   "system": "You are a helpful assistant.",
+   "template": "sonda",
+   "diretta": "think_vuoto",
+   "ragionata": true,
+   "un_turno": false,
+   "fase": "uso finale, decoder addestrabile",
+   "descrizione": "system VL; diretta: <think></think> generato e con label, poi risposta ed EOS; ragionata: <think>…</think> e risposta con label"
+  },
+  "B-F1": {
+   "system": "You are a helpful assistant.",
+   "template": "sonda",
+   "diretta": "prefill",
+   "ragionata": false,
+   "un_turno": true,
+   "fase": "F1, decoder congelato",
+   "descrizione": "token di B; il <think></think> della diretta è un prefill dichiarato senza label; un turno, nessun target ragionato"
+  },
+  "C": {
+   "system": "You are a helpful assistant.",
+   "template": "sonda",
+   "diretta": "senza_tag",
+   "ragionata": true,
+   "un_turno": false,
+   "fase": "uso finale, decoder addestrabile",
+   "descrizione": "system VL; diretta: risposta ed EOS senza tag; ragionata: <think>…</think> e risposta"
+  },
+  "M": {
+   "system": null,
+   "template": "snapshot",
+   "diretta": null,
+   "ragionata": true,
+   "un_turno": true,
+   "istruzione": "\nPlease reason step by step, and put your final answer within \\boxed{}.",
+   "fase": "baseline matematica e replay (modalità canonica)",
+   "descrizione": "template dello snapshot; istruzione di MATH-500 dopo il problema; sempre <think>…</think> e \\boxed{} nella risposta finale"
+  }
+ },
+ "fatti_misurati": {
+  "id_dei_token": {
+   "<think>": 151665,
+   "</think>": 151666,
+   "<|im_start|>": 151644,
+   "<|im_end|>": 151645,
+   "<|endoftext|>": 151643
+  },
+  "system": {
+   "canonico": {
+    "token": 21,
+    "intestazione": 27
+   },
+   "vl": {
+    "token": 6,
+    "intestazione": 12
+   },
+   "prefisso_comune_in_token": 5,
+   "token_divergenti": {
+    "canonico": [
+     ".\n",
+     "Please"
+    ],
+    "vl": [
+     "."
+    ]
+   }
+  },
+  "reasoning_content_nel_template": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.\nPlease reason step by step, and put your final answer within \\boxed{}.<|im_end|>\n<|im_start|>user\nQ<|im_end|>\n<|im_start|>assistant\n<think>\nr\n</think>\n\nA<|im_end|>\n",
+  "reasoning_content_nel_processor": "<think>r</think>A"
+ },
+ "controlli": [
+  {
+   "gruppo": "fatti",
+   "controllo": "id: <think> 151665, </think> 151666, <|im_start|> 151644, <|im_end|> 151645, <|endoftext|> 151643",
+   "esito": true,
+   "dettaglio": {
+    "<think>": 151665,
+    "</think>": 151666,
+    "<|im_start|>": 151644,
+    "<|im_end|>": 151645,
+    "<|endoftext|>": 151643
+   }
+  },
+  {
+   "gruppo": "fatti",
+   "controllo": "generation_config: si ferma solo su <|endoftext|> (151643)",
+   "esito": true,
+   "dettaglio": 151643
+  },
+  {
+   "gruppo": "fatti",
+   "controllo": "il tokenizer usa il chat_template.jinja dello snapshot",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "fatti",
+   "controllo": "istruzione di MATH-500 di replay.py uguale a quella del valutatore (suites.py)",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "fatti",
+   "controllo": "reasoning_content nel template: <think>\\n…\\n</think>\\n\\n; il processor lo scrive invece inline come lo genera Violetto",
+   "esito": true,
+   "dettaglio": "end|>\\n<|im_start|>assistant\\n<think>\\nr\\n</think>\\n\\nA<|im_end|>\\n"
+  },
+  {
+   "gruppo": "latex/A",
+   "controllo": "testo dell'esempio di training uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "latex/A",
+   "controllo": "prompt d'inferenza uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "latex/A",
+   "controllo": "parità del prefisso: il prompt d'inferenza è un prefisso dell'esempio di training",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "latex/A",
+   "controllo": "intervalli con label uguali agli attesi",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "latex/A",
+   "controllo": "label uguali agli input dove ci sono",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "latex/A",
+   "controllo": "target: token del testo atteso più EOS (151643), tutti con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "latex/A",
+   "controllo": "prefill: [151665, 151666] senza label se c'è, altrimenti nulla",
+   "esito": true,
+   "dettaglio": [
+    151665,
+    151666
+   ]
+  },
+  {
+   "gruppo": "latex/A",
+   "controllo": "nessun tag o terminatore duplicato: conteggi uguali all'atteso",
+   "esito": true,
+   "dettaglio": {
+    "<think>": [
+     1,
+     1
+    ],
+    "</think>": [
+     1,
+     1
+    ],
+    "<|endoftext|>": [
+     2,
+     2
+    ],
+    "<|im_end|>": [
+     2,
+     2
+    ],
+    "<|im_start|>": [
+     3,
+     3
+    ]
+   }
+  },
+  {
+   "gruppo": "latex/A",
+   "controllo": "EOS solo in apertura (senza label) e alla fine (con label); nel prompt solo in apertura",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "latex/A",
+   "controllo": "<|im_end|> e <|im_start|> mai con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "latex/B",
+   "controllo": "testo dell'esempio di training uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "latex/B",
+   "controllo": "prompt d'inferenza uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "latex/B",
+   "controllo": "parità del prefisso: il prompt d'inferenza è un prefisso dell'esempio di training",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "latex/B",
+   "controllo": "intervalli con label uguali agli attesi",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "latex/B",
+   "controllo": "label uguali agli input dove ci sono",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "latex/B",
+   "controllo": "target: token del testo atteso più EOS (151643), tutti con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "latex/B",
+   "controllo": "prefill: [151665, 151666] senza label se c'è, altrimenti nulla",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "gruppo": "latex/B",
+   "controllo": "B: i primi due token con label sono <think> e </think>",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "latex/B",
+   "controllo": "nessun tag o terminatore duplicato: conteggi uguali all'atteso",
+   "esito": true,
+   "dettaglio": {
+    "<think>": [
+     1,
+     1
+    ],
+    "</think>": [
+     1,
+     1
+    ],
+    "<|endoftext|>": [
+     2,
+     2
+    ],
+    "<|im_end|>": [
+     2,
+     2
+    ],
+    "<|im_start|>": [
+     3,
+     3
+    ]
+   }
+  },
+  {
+   "gruppo": "latex/B",
+   "controllo": "EOS solo in apertura (senza label) e alla fine (con label); nel prompt solo in apertura",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "latex/B",
+   "controllo": "<|im_end|> e <|im_start|> mai con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "latex/B-F1",
+   "controllo": "testo dell'esempio di training uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "latex/B-F1",
+   "controllo": "prompt d'inferenza uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "latex/B-F1",
+   "controllo": "parità del prefisso: il prompt d'inferenza è un prefisso dell'esempio di training",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "latex/B-F1",
+   "controllo": "intervalli con label uguali agli attesi",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "latex/B-F1",
+   "controllo": "label uguali agli input dove ci sono",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "latex/B-F1",
+   "controllo": "target: token del testo atteso più EOS (151643), tutti con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "latex/B-F1",
+   "controllo": "prefill: [151665, 151666] senza label se c'è, altrimenti nulla",
+   "esito": true,
+   "dettaglio": [
+    151665,
+    151666
+   ]
+  },
+  {
+   "gruppo": "latex/B-F1",
+   "controllo": "nessun tag o terminatore duplicato: conteggi uguali all'atteso",
+   "esito": true,
+   "dettaglio": {
+    "<think>": [
+     1,
+     1
+    ],
+    "</think>": [
+     1,
+     1
+    ],
+    "<|endoftext|>": [
+     2,
+     2
+    ],
+    "<|im_end|>": [
+     2,
+     2
+    ],
+    "<|im_start|>": [
+     3,
+     3
+    ]
+   }
+  },
+  {
+   "gruppo": "latex/B-F1",
+   "controllo": "EOS solo in apertura (senza label) e alla fine (con label); nel prompt solo in apertura",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "latex/B-F1",
+   "controllo": "<|im_end|> e <|im_start|> mai con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "latex/C",
+   "controllo": "testo dell'esempio di training uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "latex/C",
+   "controllo": "prompt d'inferenza uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "latex/C",
+   "controllo": "parità del prefisso: il prompt d'inferenza è un prefisso dell'esempio di training",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "latex/C",
+   "controllo": "intervalli con label uguali agli attesi",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "latex/C",
+   "controllo": "label uguali agli input dove ci sono",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "latex/C",
+   "controllo": "target: token del testo atteso più EOS (151643), tutti con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "latex/C",
+   "controllo": "prefill: [151665, 151666] senza label se c'è, altrimenti nulla",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "gruppo": "latex/C",
+   "controllo": "C: nessun tag nel target diretto",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "latex/C",
+   "controllo": "nessun tag o terminatore duplicato: conteggi uguali all'atteso",
+   "esito": true,
+   "dettaglio": {
+    "<think>": [
+     0,
+     0
+    ],
+    "</think>": [
+     0,
+     0
+    ],
+    "<|endoftext|>": [
+     2,
+     2
+    ],
+    "<|im_end|>": [
+     2,
+     2
+    ],
+    "<|im_start|>": [
+     3,
+     3
+    ]
+   }
+  },
+  {
+   "gruppo": "latex/C",
+   "controllo": "EOS solo in apertura (senza label) e alla fine (con label); nel prompt solo in apertura",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "latex/C",
+   "controllo": "<|im_end|> e <|im_start|> mai con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "didascalia/A",
+   "controllo": "testo dell'esempio di training uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "didascalia/A",
+   "controllo": "prompt d'inferenza uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "didascalia/A",
+   "controllo": "parità del prefisso: il prompt d'inferenza è un prefisso dell'esempio di training",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "didascalia/A",
+   "controllo": "intervalli con label uguali agli attesi",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "didascalia/A",
+   "controllo": "label uguali agli input dove ci sono",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "didascalia/A",
+   "controllo": "target: token del testo atteso più EOS (151643), tutti con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "didascalia/A",
+   "controllo": "prefill: [151665, 151666] senza label se c'è, altrimenti nulla",
+   "esito": true,
+   "dettaglio": [
+    151665,
+    151666
+   ]
+  },
+  {
+   "gruppo": "didascalia/A",
+   "controllo": "nessun tag o terminatore duplicato: conteggi uguali all'atteso",
+   "esito": true,
+   "dettaglio": {
+    "<think>": [
+     1,
+     1
+    ],
+    "</think>": [
+     1,
+     1
+    ],
+    "<|endoftext|>": [
+     2,
+     2
+    ],
+    "<|im_end|>": [
+     2,
+     2
+    ],
+    "<|im_start|>": [
+     3,
+     3
+    ]
+   }
+  },
+  {
+   "gruppo": "didascalia/A",
+   "controllo": "EOS solo in apertura (senza label) e alla fine (con label); nel prompt solo in apertura",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "didascalia/A",
+   "controllo": "<|im_end|> e <|im_start|> mai con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "didascalia/B",
+   "controllo": "testo dell'esempio di training uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "didascalia/B",
+   "controllo": "prompt d'inferenza uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "didascalia/B",
+   "controllo": "parità del prefisso: il prompt d'inferenza è un prefisso dell'esempio di training",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "didascalia/B",
+   "controllo": "intervalli con label uguali agli attesi",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "didascalia/B",
+   "controllo": "label uguali agli input dove ci sono",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "didascalia/B",
+   "controllo": "target: token del testo atteso più EOS (151643), tutti con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "didascalia/B",
+   "controllo": "prefill: [151665, 151666] senza label se c'è, altrimenti nulla",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "gruppo": "didascalia/B",
+   "controllo": "B: i primi due token con label sono <think> e </think>",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "didascalia/B",
+   "controllo": "nessun tag o terminatore duplicato: conteggi uguali all'atteso",
+   "esito": true,
+   "dettaglio": {
+    "<think>": [
+     1,
+     1
+    ],
+    "</think>": [
+     1,
+     1
+    ],
+    "<|endoftext|>": [
+     2,
+     2
+    ],
+    "<|im_end|>": [
+     2,
+     2
+    ],
+    "<|im_start|>": [
+     3,
+     3
+    ]
+   }
+  },
+  {
+   "gruppo": "didascalia/B",
+   "controllo": "EOS solo in apertura (senza label) e alla fine (con label); nel prompt solo in apertura",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "didascalia/B",
+   "controllo": "<|im_end|> e <|im_start|> mai con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "didascalia/B-F1",
+   "controllo": "testo dell'esempio di training uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "didascalia/B-F1",
+   "controllo": "prompt d'inferenza uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "didascalia/B-F1",
+   "controllo": "parità del prefisso: il prompt d'inferenza è un prefisso dell'esempio di training",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "didascalia/B-F1",
+   "controllo": "intervalli con label uguali agli attesi",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "didascalia/B-F1",
+   "controllo": "label uguali agli input dove ci sono",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "didascalia/B-F1",
+   "controllo": "target: token del testo atteso più EOS (151643), tutti con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "didascalia/B-F1",
+   "controllo": "prefill: [151665, 151666] senza label se c'è, altrimenti nulla",
+   "esito": true,
+   "dettaglio": [
+    151665,
+    151666
+   ]
+  },
+  {
+   "gruppo": "didascalia/B-F1",
+   "controllo": "nessun tag o terminatore duplicato: conteggi uguali all'atteso",
+   "esito": true,
+   "dettaglio": {
+    "<think>": [
+     1,
+     1
+    ],
+    "</think>": [
+     1,
+     1
+    ],
+    "<|endoftext|>": [
+     2,
+     2
+    ],
+    "<|im_end|>": [
+     2,
+     2
+    ],
+    "<|im_start|>": [
+     3,
+     3
+    ]
+   }
+  },
+  {
+   "gruppo": "didascalia/B-F1",
+   "controllo": "EOS solo in apertura (senza label) e alla fine (con label); nel prompt solo in apertura",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "didascalia/B-F1",
+   "controllo": "<|im_end|> e <|im_start|> mai con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "didascalia/C",
+   "controllo": "testo dell'esempio di training uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "didascalia/C",
+   "controllo": "prompt d'inferenza uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "didascalia/C",
+   "controllo": "parità del prefisso: il prompt d'inferenza è un prefisso dell'esempio di training",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "didascalia/C",
+   "controllo": "intervalli con label uguali agli attesi",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "didascalia/C",
+   "controllo": "label uguali agli input dove ci sono",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "didascalia/C",
+   "controllo": "target: token del testo atteso più EOS (151643), tutti con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "didascalia/C",
+   "controllo": "prefill: [151665, 151666] senza label se c'è, altrimenti nulla",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "gruppo": "didascalia/C",
+   "controllo": "C: nessun tag nel target diretto",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "didascalia/C",
+   "controllo": "nessun tag o terminatore duplicato: conteggi uguali all'atteso",
+   "esito": true,
+   "dettaglio": {
+    "<think>": [
+     0,
+     0
+    ],
+    "</think>": [
+     0,
+     0
+    ],
+    "<|endoftext|>": [
+     2,
+     2
+    ],
+    "<|im_end|>": [
+     2,
+     2
+    ],
+    "<|im_start|>": [
+     3,
+     3
+    ]
+   }
+  },
+  {
+   "gruppo": "didascalia/C",
+   "controllo": "EOS solo in apertura (senza label) e alla fine (con label); nel prompt solo in apertura",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "didascalia/C",
+   "controllo": "<|im_end|> e <|im_start|> mai con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "numerica/A",
+   "controllo": "testo dell'esempio di training uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "numerica/A",
+   "controllo": "prompt d'inferenza uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "numerica/A",
+   "controllo": "parità del prefisso: il prompt d'inferenza è un prefisso dell'esempio di training",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "numerica/A",
+   "controllo": "intervalli con label uguali agli attesi",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "numerica/A",
+   "controllo": "label uguali agli input dove ci sono",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "numerica/A",
+   "controllo": "target: token del testo atteso più EOS (151643), tutti con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "numerica/A",
+   "controllo": "prefill: [151665, 151666] senza label se c'è, altrimenti nulla",
+   "esito": true,
+   "dettaglio": [
+    151665,
+    151666
+   ]
+  },
+  {
+   "gruppo": "numerica/A",
+   "controllo": "nessun tag o terminatore duplicato: conteggi uguali all'atteso",
+   "esito": true,
+   "dettaglio": {
+    "<think>": [
+     1,
+     1
+    ],
+    "</think>": [
+     1,
+     1
+    ],
+    "<|endoftext|>": [
+     2,
+     2
+    ],
+    "<|im_end|>": [
+     2,
+     2
+    ],
+    "<|im_start|>": [
+     3,
+     3
+    ]
+   }
+  },
+  {
+   "gruppo": "numerica/A",
+   "controllo": "EOS solo in apertura (senza label) e alla fine (con label); nel prompt solo in apertura",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "numerica/A",
+   "controllo": "<|im_end|> e <|im_start|> mai con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "numerica/B",
+   "controllo": "testo dell'esempio di training uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "numerica/B",
+   "controllo": "prompt d'inferenza uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "numerica/B",
+   "controllo": "parità del prefisso: il prompt d'inferenza è un prefisso dell'esempio di training",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "numerica/B",
+   "controllo": "intervalli con label uguali agli attesi",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "numerica/B",
+   "controllo": "label uguali agli input dove ci sono",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "numerica/B",
+   "controllo": "target: token del testo atteso più EOS (151643), tutti con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "numerica/B",
+   "controllo": "prefill: [151665, 151666] senza label se c'è, altrimenti nulla",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "gruppo": "numerica/B",
+   "controllo": "B: i primi due token con label sono <think> e </think>",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "numerica/B",
+   "controllo": "nessun tag o terminatore duplicato: conteggi uguali all'atteso",
+   "esito": true,
+   "dettaglio": {
+    "<think>": [
+     1,
+     1
+    ],
+    "</think>": [
+     1,
+     1
+    ],
+    "<|endoftext|>": [
+     2,
+     2
+    ],
+    "<|im_end|>": [
+     2,
+     2
+    ],
+    "<|im_start|>": [
+     3,
+     3
+    ]
+   }
+  },
+  {
+   "gruppo": "numerica/B",
+   "controllo": "EOS solo in apertura (senza label) e alla fine (con label); nel prompt solo in apertura",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "numerica/B",
+   "controllo": "<|im_end|> e <|im_start|> mai con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "numerica/B-F1",
+   "controllo": "testo dell'esempio di training uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "numerica/B-F1",
+   "controllo": "prompt d'inferenza uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "numerica/B-F1",
+   "controllo": "parità del prefisso: il prompt d'inferenza è un prefisso dell'esempio di training",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "numerica/B-F1",
+   "controllo": "intervalli con label uguali agli attesi",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "numerica/B-F1",
+   "controllo": "label uguali agli input dove ci sono",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "numerica/B-F1",
+   "controllo": "target: token del testo atteso più EOS (151643), tutti con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "numerica/B-F1",
+   "controllo": "prefill: [151665, 151666] senza label se c'è, altrimenti nulla",
+   "esito": true,
+   "dettaglio": [
+    151665,
+    151666
+   ]
+  },
+  {
+   "gruppo": "numerica/B-F1",
+   "controllo": "nessun tag o terminatore duplicato: conteggi uguali all'atteso",
+   "esito": true,
+   "dettaglio": {
+    "<think>": [
+     1,
+     1
+    ],
+    "</think>": [
+     1,
+     1
+    ],
+    "<|endoftext|>": [
+     2,
+     2
+    ],
+    "<|im_end|>": [
+     2,
+     2
+    ],
+    "<|im_start|>": [
+     3,
+     3
+    ]
+   }
+  },
+  {
+   "gruppo": "numerica/B-F1",
+   "controllo": "EOS solo in apertura (senza label) e alla fine (con label); nel prompt solo in apertura",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "numerica/B-F1",
+   "controllo": "<|im_end|> e <|im_start|> mai con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "numerica/C",
+   "controllo": "testo dell'esempio di training uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "numerica/C",
+   "controllo": "prompt d'inferenza uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "numerica/C",
+   "controllo": "parità del prefisso: il prompt d'inferenza è un prefisso dell'esempio di training",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "numerica/C",
+   "controllo": "intervalli con label uguali agli attesi",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "numerica/C",
+   "controllo": "label uguali agli input dove ci sono",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "numerica/C",
+   "controllo": "target: token del testo atteso più EOS (151643), tutti con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "numerica/C",
+   "controllo": "prefill: [151665, 151666] senza label se c'è, altrimenti nulla",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "gruppo": "numerica/C",
+   "controllo": "C: nessun tag nel target diretto",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "numerica/C",
+   "controllo": "nessun tag o terminatore duplicato: conteggi uguali all'atteso",
+   "esito": true,
+   "dettaglio": {
+    "<think>": [
+     0,
+     0
+    ],
+    "</think>": [
+     0,
+     0
+    ],
+    "<|endoftext|>": [
+     2,
+     2
+    ],
+    "<|im_end|>": [
+     2,
+     2
+    ],
+    "<|im_start|>": [
+     3,
+     3
+    ]
+   }
+  },
+  {
+   "gruppo": "numerica/C",
+   "controllo": "EOS solo in apertura (senza label) e alla fine (con label); nel prompt solo in apertura",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "numerica/C",
+   "controllo": "<|im_end|> e <|im_start|> mai con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "scelta_multipla/A",
+   "controllo": "testo dell'esempio di training uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "scelta_multipla/A",
+   "controllo": "prompt d'inferenza uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "scelta_multipla/A",
+   "controllo": "parità del prefisso: il prompt d'inferenza è un prefisso dell'esempio di training",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "scelta_multipla/A",
+   "controllo": "intervalli con label uguali agli attesi",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "scelta_multipla/A",
+   "controllo": "label uguali agli input dove ci sono",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "scelta_multipla/A",
+   "controllo": "target: token del testo atteso più EOS (151643), tutti con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "scelta_multipla/A",
+   "controllo": "prefill: [151665, 151666] senza label se c'è, altrimenti nulla",
+   "esito": true,
+   "dettaglio": [
+    151665,
+    151666
+   ]
+  },
+  {
+   "gruppo": "scelta_multipla/A",
+   "controllo": "nessun tag o terminatore duplicato: conteggi uguali all'atteso",
+   "esito": true,
+   "dettaglio": {
+    "<think>": [
+     1,
+     1
+    ],
+    "</think>": [
+     1,
+     1
+    ],
+    "<|endoftext|>": [
+     2,
+     2
+    ],
+    "<|im_end|>": [
+     2,
+     2
+    ],
+    "<|im_start|>": [
+     3,
+     3
+    ]
+   }
+  },
+  {
+   "gruppo": "scelta_multipla/A",
+   "controllo": "EOS solo in apertura (senza label) e alla fine (con label); nel prompt solo in apertura",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "scelta_multipla/A",
+   "controllo": "<|im_end|> e <|im_start|> mai con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "scelta_multipla/B",
+   "controllo": "testo dell'esempio di training uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "scelta_multipla/B",
+   "controllo": "prompt d'inferenza uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "scelta_multipla/B",
+   "controllo": "parità del prefisso: il prompt d'inferenza è un prefisso dell'esempio di training",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "scelta_multipla/B",
+   "controllo": "intervalli con label uguali agli attesi",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "scelta_multipla/B",
+   "controllo": "label uguali agli input dove ci sono",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "scelta_multipla/B",
+   "controllo": "target: token del testo atteso più EOS (151643), tutti con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "scelta_multipla/B",
+   "controllo": "prefill: [151665, 151666] senza label se c'è, altrimenti nulla",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "gruppo": "scelta_multipla/B",
+   "controllo": "B: i primi due token con label sono <think> e </think>",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "scelta_multipla/B",
+   "controllo": "nessun tag o terminatore duplicato: conteggi uguali all'atteso",
+   "esito": true,
+   "dettaglio": {
+    "<think>": [
+     1,
+     1
+    ],
+    "</think>": [
+     1,
+     1
+    ],
+    "<|endoftext|>": [
+     2,
+     2
+    ],
+    "<|im_end|>": [
+     2,
+     2
+    ],
+    "<|im_start|>": [
+     3,
+     3
+    ]
+   }
+  },
+  {
+   "gruppo": "scelta_multipla/B",
+   "controllo": "EOS solo in apertura (senza label) e alla fine (con label); nel prompt solo in apertura",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "scelta_multipla/B",
+   "controllo": "<|im_end|> e <|im_start|> mai con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "scelta_multipla/B-F1",
+   "controllo": "testo dell'esempio di training uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "scelta_multipla/B-F1",
+   "controllo": "prompt d'inferenza uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "scelta_multipla/B-F1",
+   "controllo": "parità del prefisso: il prompt d'inferenza è un prefisso dell'esempio di training",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "scelta_multipla/B-F1",
+   "controllo": "intervalli con label uguali agli attesi",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "scelta_multipla/B-F1",
+   "controllo": "label uguali agli input dove ci sono",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "scelta_multipla/B-F1",
+   "controllo": "target: token del testo atteso più EOS (151643), tutti con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "scelta_multipla/B-F1",
+   "controllo": "prefill: [151665, 151666] senza label se c'è, altrimenti nulla",
+   "esito": true,
+   "dettaglio": [
+    151665,
+    151666
+   ]
+  },
+  {
+   "gruppo": "scelta_multipla/B-F1",
+   "controllo": "nessun tag o terminatore duplicato: conteggi uguali all'atteso",
+   "esito": true,
+   "dettaglio": {
+    "<think>": [
+     1,
+     1
+    ],
+    "</think>": [
+     1,
+     1
+    ],
+    "<|endoftext|>": [
+     2,
+     2
+    ],
+    "<|im_end|>": [
+     2,
+     2
+    ],
+    "<|im_start|>": [
+     3,
+     3
+    ]
+   }
+  },
+  {
+   "gruppo": "scelta_multipla/B-F1",
+   "controllo": "EOS solo in apertura (senza label) e alla fine (con label); nel prompt solo in apertura",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "scelta_multipla/B-F1",
+   "controllo": "<|im_end|> e <|im_start|> mai con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "scelta_multipla/C",
+   "controllo": "testo dell'esempio di training uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "scelta_multipla/C",
+   "controllo": "prompt d'inferenza uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "scelta_multipla/C",
+   "controllo": "parità del prefisso: il prompt d'inferenza è un prefisso dell'esempio di training",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "scelta_multipla/C",
+   "controllo": "intervalli con label uguali agli attesi",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "scelta_multipla/C",
+   "controllo": "label uguali agli input dove ci sono",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "scelta_multipla/C",
+   "controllo": "target: token del testo atteso più EOS (151643), tutti con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "scelta_multipla/C",
+   "controllo": "prefill: [151665, 151666] senza label se c'è, altrimenti nulla",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "gruppo": "scelta_multipla/C",
+   "controllo": "C: nessun tag nel target diretto",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "scelta_multipla/C",
+   "controllo": "nessun tag o terminatore duplicato: conteggi uguali all'atteso",
+   "esito": true,
+   "dettaglio": {
+    "<think>": [
+     0,
+     0
+    ],
+    "</think>": [
+     0,
+     0
+    ],
+    "<|endoftext|>": [
+     2,
+     2
+    ],
+    "<|im_end|>": [
+     2,
+     2
+    ],
+    "<|im_start|>": [
+     3,
+     3
+    ]
+   }
+  },
+  {
+   "gruppo": "scelta_multipla/C",
+   "controllo": "EOS solo in apertura (senza label) e alla fine (con label); nel prompt solo in apertura",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "scelta_multipla/C",
+   "controllo": "<|im_end|> e <|im_start|> mai con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "spiegazione/A",
+   "controllo": "testo dell'esempio di training uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "spiegazione/A",
+   "controllo": "prompt d'inferenza uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "spiegazione/A",
+   "controllo": "parità del prefisso: il prompt d'inferenza è un prefisso dell'esempio di training",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "spiegazione/A",
+   "controllo": "intervalli con label uguali agli attesi",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "spiegazione/A",
+   "controllo": "label uguali agli input dove ci sono",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "spiegazione/A",
+   "controllo": "target: token del testo atteso più EOS (151643), tutti con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "spiegazione/A",
+   "controllo": "prefill: [151665, 151666] senza label se c'è, altrimenti nulla",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "gruppo": "spiegazione/A",
+   "controllo": "nessun tag o terminatore duplicato: conteggi uguali all'atteso",
+   "esito": true,
+   "dettaglio": {
+    "<think>": [
+     1,
+     1
+    ],
+    "</think>": [
+     1,
+     1
+    ],
+    "<|endoftext|>": [
+     2,
+     2
+    ],
+    "<|im_end|>": [
+     2,
+     2
+    ],
+    "<|im_start|>": [
+     3,
+     3
+    ]
+   }
+  },
+  {
+   "gruppo": "spiegazione/A",
+   "controllo": "EOS solo in apertura (senza label) e alla fine (con label); nel prompt solo in apertura",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "spiegazione/A",
+   "controllo": "<|im_end|> e <|im_start|> mai con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "spiegazione/B",
+   "controllo": "testo dell'esempio di training uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "spiegazione/B",
+   "controllo": "prompt d'inferenza uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "spiegazione/B",
+   "controllo": "parità del prefisso: il prompt d'inferenza è un prefisso dell'esempio di training",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "spiegazione/B",
+   "controllo": "intervalli con label uguali agli attesi",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "spiegazione/B",
+   "controllo": "label uguali agli input dove ci sono",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "spiegazione/B",
+   "controllo": "target: token del testo atteso più EOS (151643), tutti con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "spiegazione/B",
+   "controllo": "prefill: [151665, 151666] senza label se c'è, altrimenti nulla",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "gruppo": "spiegazione/B",
+   "controllo": "nessun tag o terminatore duplicato: conteggi uguali all'atteso",
+   "esito": true,
+   "dettaglio": {
+    "<think>": [
+     1,
+     1
+    ],
+    "</think>": [
+     1,
+     1
+    ],
+    "<|endoftext|>": [
+     2,
+     2
+    ],
+    "<|im_end|>": [
+     2,
+     2
+    ],
+    "<|im_start|>": [
+     3,
+     3
+    ]
+   }
+  },
+  {
+   "gruppo": "spiegazione/B",
+   "controllo": "EOS solo in apertura (senza label) e alla fine (con label); nel prompt solo in apertura",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "spiegazione/B",
+   "controllo": "<|im_end|> e <|im_start|> mai con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "spiegazione/C",
+   "controllo": "testo dell'esempio di training uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "spiegazione/C",
+   "controllo": "prompt d'inferenza uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "spiegazione/C",
+   "controllo": "parità del prefisso: il prompt d'inferenza è un prefisso dell'esempio di training",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "spiegazione/C",
+   "controllo": "intervalli con label uguali agli attesi",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "spiegazione/C",
+   "controllo": "label uguali agli input dove ci sono",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "spiegazione/C",
+   "controllo": "target: token del testo atteso più EOS (151643), tutti con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "spiegazione/C",
+   "controllo": "prefill: [151665, 151666] senza label se c'è, altrimenti nulla",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "gruppo": "spiegazione/C",
+   "controllo": "nessun tag o terminatore duplicato: conteggi uguali all'atteso",
+   "esito": true,
+   "dettaglio": {
+    "<think>": [
+     1,
+     1
+    ],
+    "</think>": [
+     1,
+     1
+    ],
+    "<|endoftext|>": [
+     2,
+     2
+    ],
+    "<|im_end|>": [
+     2,
+     2
+    ],
+    "<|im_start|>": [
+     3,
+     3
+    ]
+   }
+  },
+  {
+   "gruppo": "spiegazione/C",
+   "controllo": "EOS solo in apertura (senza label) e alla fine (con label); nel prompt solo in apertura",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "spiegazione/C",
+   "controllo": "<|im_end|> e <|im_start|> mai con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "spiegazione/M",
+   "controllo": "testo dell'esempio di training uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "spiegazione/M",
+   "controllo": "prompt d'inferenza uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "spiegazione/M",
+   "controllo": "parità del prefisso: il prompt d'inferenza è un prefisso dell'esempio di training",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "spiegazione/M",
+   "controllo": "intervalli con label uguali agli attesi",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "spiegazione/M",
+   "controllo": "label uguali agli input dove ci sono",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "spiegazione/M",
+   "controllo": "target: token del testo atteso più EOS (151643), tutti con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "spiegazione/M",
+   "controllo": "prefill: [151665, 151666] senza label se c'è, altrimenti nulla",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "gruppo": "spiegazione/M",
+   "controllo": "nessun tag o terminatore duplicato: conteggi uguali all'atteso",
+   "esito": true,
+   "dettaglio": {
+    "<think>": [
+     1,
+     1
+    ],
+    "</think>": [
+     1,
+     1
+    ],
+    "<|endoftext|>": [
+     2,
+     2
+    ],
+    "<|im_end|>": [
+     2,
+     2
+    ],
+    "<|im_start|>": [
+     3,
+     3
+    ]
+   }
+  },
+  {
+   "gruppo": "spiegazione/M",
+   "controllo": "EOS solo in apertura (senza label) e alla fine (con label); nel prompt solo in apertura",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "spiegazione/M",
+   "controllo": "<|im_end|> e <|im_start|> mai con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "dialogo/A",
+   "controllo": "testo dell'esempio di training uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "dialogo/A",
+   "controllo": "prompt d'inferenza uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "dialogo/A",
+   "controllo": "parità del prefisso: il prompt d'inferenza è un prefisso dell'esempio di training",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "dialogo/A",
+   "controllo": "parità del prefisso al turno 1",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "dialogo/A",
+   "controllo": "intervalli con label uguali agli attesi",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "dialogo/A",
+   "controllo": "label uguali agli input dove ci sono",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "dialogo/A",
+   "controllo": "target: token del testo atteso più EOS (151643), tutti con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "dialogo/A",
+   "controllo": "prefill: [151665, 151666] senza label se c'è, altrimenti nulla",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "gruppo": "dialogo/A",
+   "controllo": "nessun tag o terminatore duplicato: conteggi uguali all'atteso",
+   "esito": true,
+   "dettaglio": {
+    "<think>": [
+     2,
+     2
+    ],
+    "</think>": [
+     2,
+     2
+    ],
+    "<|endoftext|>": [
+     2,
+     2
+    ],
+    "<|im_end|>": [
+     4,
+     4
+    ],
+    "<|im_start|>": [
+     5,
+     5
+    ]
+   }
+  },
+  {
+   "gruppo": "dialogo/A",
+   "controllo": "EOS solo in apertura (senza label) e alla fine (con label); nel prompt solo in apertura",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "dialogo/A",
+   "controllo": "<|im_end|> e <|im_start|> mai con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "dialogo/A",
+   "controllo": "cronologia 1: i token nel contesto sono quelli del testo generato, con label, e <|im_end|>\\n senza label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "dialogo/B",
+   "controllo": "testo dell'esempio di training uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "dialogo/B",
+   "controllo": "prompt d'inferenza uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "dialogo/B",
+   "controllo": "parità del prefisso: il prompt d'inferenza è un prefisso dell'esempio di training",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "dialogo/B",
+   "controllo": "parità del prefisso al turno 1",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "dialogo/B",
+   "controllo": "intervalli con label uguali agli attesi",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "dialogo/B",
+   "controllo": "label uguali agli input dove ci sono",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "dialogo/B",
+   "controllo": "target: token del testo atteso più EOS (151643), tutti con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "dialogo/B",
+   "controllo": "prefill: [151665, 151666] senza label se c'è, altrimenti nulla",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "gruppo": "dialogo/B",
+   "controllo": "nessun tag o terminatore duplicato: conteggi uguali all'atteso",
+   "esito": true,
+   "dettaglio": {
+    "<think>": [
+     2,
+     2
+    ],
+    "</think>": [
+     2,
+     2
+    ],
+    "<|endoftext|>": [
+     2,
+     2
+    ],
+    "<|im_end|>": [
+     4,
+     4
+    ],
+    "<|im_start|>": [
+     5,
+     5
+    ]
+   }
+  },
+  {
+   "gruppo": "dialogo/B",
+   "controllo": "EOS solo in apertura (senza label) e alla fine (con label); nel prompt solo in apertura",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "dialogo/B",
+   "controllo": "<|im_end|> e <|im_start|> mai con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "dialogo/B",
+   "controllo": "cronologia 1: i token nel contesto sono quelli del testo generato, con label, e <|im_end|>\\n senza label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "dialogo/C",
+   "controllo": "testo dell'esempio di training uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "dialogo/C",
+   "controllo": "prompt d'inferenza uguale all'atteso",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "dialogo/C",
+   "controllo": "parità del prefisso: il prompt d'inferenza è un prefisso dell'esempio di training",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "dialogo/C",
+   "controllo": "parità del prefisso al turno 1",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "dialogo/C",
+   "controllo": "intervalli con label uguali agli attesi",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "dialogo/C",
+   "controllo": "label uguali agli input dove ci sono",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "dialogo/C",
+   "controllo": "target: token del testo atteso più EOS (151643), tutti con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "dialogo/C",
+   "controllo": "prefill: [151665, 151666] senza label se c'è, altrimenti nulla",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "gruppo": "dialogo/C",
+   "controllo": "nessun tag o terminatore duplicato: conteggi uguali all'atteso",
+   "esito": true,
+   "dettaglio": {
+    "<think>": [
+     1,
+     1
+    ],
+    "</think>": [
+     1,
+     1
+    ],
+    "<|endoftext|>": [
+     2,
+     2
+    ],
+    "<|im_end|>": [
+     4,
+     4
+    ],
+    "<|im_start|>": [
+     5,
+     5
+    ]
+   }
+  },
+  {
+   "gruppo": "dialogo/C",
+   "controllo": "EOS solo in apertura (senza label) e alla fine (con label); nel prompt solo in apertura",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "dialogo/C",
+   "controllo": "<|im_end|> e <|im_start|> mai con label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "dialogo/C",
+   "controllo": "cronologia 1: i token nel contesto sono quelli del testo generato, con label, e <|im_end|>\\n senza label",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "latex/B~B-F1",
+   "controllo": "stessi input; le label differiscono solo su <think> e </think>",
+   "esito": true,
+   "dettaglio": [
+    96,
+    97
+   ]
+  },
+  {
+   "gruppo": "latex/B~C",
+   "controllo": "C = B senza i due tag del target (2 token in meno)",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "latex/A~B-F1",
+   "controllo": "stessi token e label dopo l'intestazione: differisce solo il system",
+   "esito": true,
+   "dettaglio": {
+    "intestazione A": 27,
+    "intestazione B-F1": 12
+   }
+  },
+  {
+   "gruppo": "didascalia/B~B-F1",
+   "controllo": "stessi input; le label differiscono solo su <think> e </think>",
+   "esito": true,
+   "dettaglio": [
+    91,
+    92
+   ]
+  },
+  {
+   "gruppo": "didascalia/B~C",
+   "controllo": "C = B senza i due tag del target (2 token in meno)",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "didascalia/A~B-F1",
+   "controllo": "stessi token e label dopo l'intestazione: differisce solo il system",
+   "esito": true,
+   "dettaglio": {
+    "intestazione A": 27,
+    "intestazione B-F1": 12
+   }
+  },
+  {
+   "gruppo": "numerica/B~B-F1",
+   "controllo": "stessi input; le label differiscono solo su <think> e </think>",
+   "esito": true,
+   "dettaglio": [
+    102,
+    103
+   ]
+  },
+  {
+   "gruppo": "numerica/B~C",
+   "controllo": "C = B senza i due tag del target (2 token in meno)",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "numerica/A~B-F1",
+   "controllo": "stessi token e label dopo l'intestazione: differisce solo il system",
+   "esito": true,
+   "dettaglio": {
+    "intestazione A": 27,
+    "intestazione B-F1": 12
+   }
+  },
+  {
+   "gruppo": "scelta_multipla/B~B-F1",
+   "controllo": "stessi input; le label differiscono solo su <think> e </think>",
+   "esito": true,
+   "dettaglio": [
+    117,
+    118
+   ]
+  },
+  {
+   "gruppo": "scelta_multipla/B~C",
+   "controllo": "C = B senza i due tag del target (2 token in meno)",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "scelta_multipla/A~B-F1",
+   "controllo": "stessi token e label dopo l'intestazione: differisce solo il system",
+   "esito": true,
+   "dettaglio": {
+    "intestazione A": 27,
+    "intestazione B-F1": 12
+   }
+  },
+  {
+   "gruppo": "spiegazione/B~C",
+   "controllo": "risposta ragionata: B e C identiche",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "dialogo/B~C",
+   "controllo": "stesso ultimo turno ragionato; la cronologia diretta differisce per i due tag",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "latex/A",
+   "controllo": "baseline canonica: sonda senza system = snapshot (testo, token e label)",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "latex/A",
+   "controllo": "baseline canonica: sonda col system canonico = snapshot (testo, token e label)",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "didascalia/A",
+   "controllo": "baseline canonica: sonda senza system = snapshot (testo, token e label)",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "didascalia/A",
+   "controllo": "baseline canonica: sonda col system canonico = snapshot (testo, token e label)",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "numerica/A",
+   "controllo": "baseline canonica: sonda senza system = snapshot (testo, token e label)",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "numerica/A",
+   "controllo": "baseline canonica: sonda col system canonico = snapshot (testo, token e label)",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "scelta_multipla/A",
+   "controllo": "baseline canonica: sonda senza system = snapshot (testo, token e label)",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "scelta_multipla/A",
+   "controllo": "baseline canonica: sonda col system canonico = snapshot (testo, token e label)",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "spiegazione/A",
+   "controllo": "baseline canonica: sonda senza system = snapshot (testo, token e label)",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "spiegazione/A",
+   "controllo": "baseline canonica: sonda col system canonico = snapshot (testo, token e label)",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "spiegazione/M",
+   "controllo": "baseline canonica: sonda senza system = snapshot (testo, token e label)",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "spiegazione/M",
+   "controllo": "baseline canonica: sonda col system canonico = snapshot (testo, token e label)",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "dialogo/A",
+   "controllo": "baseline canonica: sonda senza system = snapshot (testo, token e label)",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "dialogo/A",
+   "controllo": "baseline canonica: sonda col system canonico = snapshot (testo, token e label)",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "spiegazione/M",
+   "controllo": "prompt di M = resa del valutatore ufficiale (solo il messaggio utente, template dello snapshot) = stringa attesa",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "sonda: system non ammesso",
+   "esito": true,
+   "dettaglio": "TemplateError: Limite-VL probe admits only the canonical and the VL system prompts."
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "snapshot: system VL",
+   "esito": true,
+   "dettaglio": "TemplateError: Limite Violetto requires its fixed mathematical system prompt; custom system messages are not supported."
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "sonda: system non in prima posizione",
+   "esito": true,
+   "dettaglio": "TemplateError: Limite-VL probe admits a system message only as the first message."
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "A: prefill <think></think> e tag nel contenuto",
+   "esito": true,
+   "dettaglio": "ContractError: prefill <think></think> e tag nel contenuto: tag duplicati"
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "reasoning_content e <think> nel contenuto",
+   "esito": true,
+   "dettaglio": "ContractError: tag malformati: 2 <think>, 2 </think>, inizio '<think>r</th'"
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "B: prefill nell'ultimo turno",
+   "esito": true,
+   "dettaglio": "ContractError: B: prefill non ammesso"
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "C: prefill nell'ultimo turno",
+   "esito": true,
+   "dettaglio": "ContractError: C: prefill non ammesso"
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "B: prefill nel prompt d'inferenza",
+   "esito": true,
+   "dettaglio": "ContractError: B: prefill nel prompt d'inferenza della modalità d'uso finale"
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "C: prefill nel prompt d'inferenza",
+   "esito": true,
+   "dettaglio": "ContractError: C: prefill nel prompt d'inferenza della modalità d'uso finale"
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "C: <think></think> vuoto",
+   "esito": true,
+   "dettaglio": "ContractError: C: <think></think> vuoto con label non ammesso"
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "B: risposta diretta senza <think>",
+   "esito": true,
+   "dettaglio": "ContractError: B: risposta senza <think>"
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "A: <think></think> vuoto con label nell'ultimo turno",
+   "esito": true,
+   "dettaglio": "ContractError: A: <think></think> vuoto con label non ammesso"
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "M: risposta diretta con <think></think>",
+   "esito": true,
+   "dettaglio": "ContractError: M: <think></think> vuoto con label non ammesso"
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "M: risposta senza tag",
+   "esito": true,
+   "dettaglio": "ContractError: M: risposta senza <think>"
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "M: risposta finale senza \\boxed{}",
+   "esito": true,
+   "dettaglio": "ContractError: M: risposta finale senza \\boxed{}"
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "M: system VL",
+   "esito": true,
+   "dettaglio": "ContractError: M: modalità canonica con un system diverso dal canonico"
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "B: system canonico",
+   "esito": true,
+   "dettaglio": "ContractError: B: modalità VL senza il system VL ('You are a helpful assistant.\\nPlease reason step by step, and put your final answer within \\\\boxed{}.')"
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "B-F1: target ragionato",
+   "esito": true,
+   "dettaglio": "ContractError: B-F1: target ragionato non ammesso"
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "B-F1: più turni",
+   "esito": true,
+   "dettaglio": "ContractError: B-F1: un solo turno"
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "tag nel testo dato al contratto",
+   "esito": true,
+   "dettaglio": "ContractError: tag nel testo della risposta o del ragionamento: li scrive il contratto"
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "A: tag malformati '</think>12'",
+   "esito": true,
+   "dettaglio": "ContractError: tag malformati: 0 <think>, 1 </think>, inizio '</think>12'"
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "B: tag malformati '</think>12'",
+   "esito": true,
+   "dettaglio": "ContractError: tag malformati: 0 <think>, 1 </think>, inizio '</think>12'"
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "B-F1: tag malformati '</think>12'",
+   "esito": true,
+   "dettaglio": "ContractError: tag malformati: 0 <think>, 1 </think>, inizio '</think>12'"
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "C: tag malformati '</think>12'",
+   "esito": true,
+   "dettaglio": "ContractError: tag malformati: 0 <think>, 1 </think>, inizio '</think>12'"
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "M: tag malformati '</think>12'",
+   "esito": true,
+   "dettaglio": "ContractError: tag malformati: 0 <think>, 1 </think>, inizio '</think>12'"
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "A: tag malformati '<think>a</think>b<think>c</think>d'",
+   "esito": true,
+   "dettaglio": "ContractError: tag malformati: 2 <think>, 2 </think>, inizio '<think>a</th'"
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "B: tag malformati '<think>a</think>b<think>c</think>d'",
+   "esito": true,
+   "dettaglio": "ContractError: tag malformati: 2 <think>, 2 </think>, inizio '<think>a</th'"
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "B-F1: tag malformati '<think>a</think>b<think>c</think>d'",
+   "esito": true,
+   "dettaglio": "ContractError: tag malformati: 2 <think>, 2 </think>, inizio '<think>a</th'"
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "C: tag malformati '<think>a</think>b<think>c</think>d'",
+   "esito": true,
+   "dettaglio": "ContractError: tag malformati: 2 <think>, 2 </think>, inizio '<think>a</th'"
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "M: tag malformati '<think>a</think>b<think>c</think>d'",
+   "esito": true,
+   "dettaglio": "ContractError: tag malformati: 2 <think>, 2 </think>, inizio '<think>a</th'"
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "A: tag malformati 'x<think>a</think>b'",
+   "esito": true,
+   "dettaglio": "ContractError: tag malformati: 1 <think>, 1 </think>, inizio 'x<think>a</t'"
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "B: tag malformati 'x<think>a</think>b'",
+   "esito": true,
+   "dettaglio": "ContractError: tag malformati: 1 <think>, 1 </think>, inizio 'x<think>a</t'"
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "B-F1: tag malformati 'x<think>a</think>b'",
+   "esito": true,
+   "dettaglio": "ContractError: tag malformati: 1 <think>, 1 </think>, inizio 'x<think>a</t'"
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "C: tag malformati 'x<think>a</think>b'",
+   "esito": true,
+   "dettaglio": "ContractError: tag malformati: 1 <think>, 1 </think>, inizio 'x<think>a</t'"
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "M: tag malformati 'x<think>a</think>b'",
+   "esito": true,
+   "dettaglio": "ContractError: tag malformati: 1 <think>, 1 </think>, inizio 'x<think>a</t'"
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "A: tag malformati '<think>a'",
+   "esito": true,
+   "dettaglio": "ContractError: tag malformati: 1 <think>, 0 </think>, inizio '<think>a'"
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "B: tag malformati '<think>a'",
+   "esito": true,
+   "dettaglio": "ContractError: tag malformati: 1 <think>, 0 </think>, inizio '<think>a'"
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "B-F1: tag malformati '<think>a'",
+   "esito": true,
+   "dettaglio": "ContractError: tag malformati: 1 <think>, 0 </think>, inizio '<think>a'"
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "C: tag malformati '<think>a'",
+   "esito": true,
+   "dettaglio": "ContractError: tag malformati: 1 <think>, 0 </think>, inizio '<think>a'"
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "M: tag malformati '<think>a'",
+   "esito": true,
+   "dettaglio": "ContractError: tag malformati: 1 <think>, 0 </think>, inizio '<think>a'"
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "processor: token speciale nel testo dell'assistente",
+   "esito": true,
+   "dettaglio": "ValueError: il testo contiene il token speciale '<|im_end|>'"
+  },
+  {
+   "gruppo": "rifiuti",
+   "controllo": "processor: prefill in un turno intermedio",
+   "esito": true,
+   "dettaglio": "ValueError: prefill ammesso solo nell'ultimo turno dell'assistente"
+  },
+  {
+   "gruppo": "processor operativo",
+   "controllo": "prefill <think></think> e <think></think> nel contenuto: accettato dal processor, rifiutato dal contratto",
+   "esito": true,
+   "dettaglio": "<|im_end|>\\n<|im_start|>assistant\\n<think></think><think></think>12<|endoftext|>"
+  },
+  {
+   "gruppo": "processor operativo",
+   "controllo": "reasoning_content e <think> nel contenuto: accettato dal processor, rifiutato dal contratto",
+   "esito": true,
+   "dettaglio": "<|im_start|>assistant\\n<think>r</think><think>x</think>12<|endoftext|>"
+  },
+  {
+   "gruppo": "processor operativo",
+   "controllo": "</think> senza <think>: accettato dal processor, rifiutato dal contratto",
+   "esito": true,
+   "dettaglio": "user\\nQ<|im_end|>\\n<|im_start|>assistant\\n</think>12<|endoftext|>"
+  },
+  {
+   "gruppo": "processor operativo",
+   "controllo": "due blocchi <think>: accettato dal processor, rifiutato dal contratto",
+   "esito": true,
+   "dettaglio": "<|im_start|>assistant\\n<think>a</think><think>b</think>12<|endoftext|>"
+  },
+  {
+   "gruppo": "confine della cronologia",
+   "controllo": "C, turno precedente '\\n12': rifiuto del processor: il prefisso non si conserva (\\n\\n diventa un token)",
+   "esito": true,
+   "dettaglio": "rifiuto del processor: turno 2: la tokenizzazione del prefisso non è un prefisso di quella completa"
+  },
+  {
+   "gruppo": "confine della cronologia",
+   "controllo": "C, turno precedente '12': uguali",
+   "esito": true,
+   "dettaglio": "uguali"
+  },
+  {
+   "gruppo": "confine della cronologia",
+   "controllo": "B, turno precedente '<think></think>\\n12': uguali",
+   "esito": true,
+   "dettaglio": "uguali"
+  },
+  {
+   "gruppo": "controlli dei controlli",
+   "controllo": "un carattere in più nel testo atteso è visto",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "gruppo": "controlli dei controlli",
+   "controllo": "una label in più prima del target è vista",
+   "esito": true,
+   "dettaglio": null
+  }
+ ],
+ "falliti": [],
+ "rifiuti": [
+  {
+   "caso": "sonda: system non ammesso",
+   "atteso": "rifiuto (template)",
+   "esito": "template",
+   "messaggio": "TemplateError: Limite-VL probe admits only the canonical and the VL system prompts."
+  },
+  {
+   "caso": "snapshot: system VL",
+   "atteso": "rifiuto (template)",
+   "esito": "template",
+   "messaggio": "TemplateError: Limite Violetto requires its fixed mathematical system prompt; custom system messages are not supported."
+  },
+  {
+   "caso": "sonda: system non in prima posizione",
+   "atteso": "rifiuto (template)",
+   "esito": "template",
+   "messaggio": "TemplateError: Limite-VL probe admits a system message only as the first message."
+  },
+  {
+   "caso": "A: prefill <think></think> e tag nel contenuto",
+   "atteso": "rifiuto (contratto)",
+   "esito": "contratto",
+   "messaggio": "ContractError: prefill <think></think> e tag nel contenuto: tag duplicati"
+  },
+  {
+   "caso": "reasoning_content e <think> nel contenuto",
+   "atteso": "rifiuto (contratto)",
+   "esito": "contratto",
+   "messaggio": "ContractError: tag malformati: 2 <think>, 2 </think>, inizio '<think>r</th'"
+  },
+  {
+   "caso": "B: prefill nell'ultimo turno",
+   "atteso": "rifiuto (contratto)",
+   "esito": "contratto",
+   "messaggio": "ContractError: B: prefill non ammesso"
+  },
+  {
+   "caso": "C: prefill nell'ultimo turno",
+   "atteso": "rifiuto (contratto)",
+   "esito": "contratto",
+   "messaggio": "ContractError: C: prefill non ammesso"
+  },
+  {
+   "caso": "B: prefill nel prompt d'inferenza",
+   "atteso": "rifiuto (contratto)",
+   "esito": "contratto",
+   "messaggio": "ContractError: B: prefill nel prompt d'inferenza della modalità d'uso finale"
+  },
+  {
+   "caso": "C: prefill nel prompt d'inferenza",
+   "atteso": "rifiuto (contratto)",
+   "esito": "contratto",
+   "messaggio": "ContractError: C: prefill nel prompt d'inferenza della modalità d'uso finale"
+  },
+  {
+   "caso": "C: <think></think> vuoto",
+   "atteso": "rifiuto (contratto)",
+   "esito": "contratto",
+   "messaggio": "ContractError: C: <think></think> vuoto con label non ammesso"
+  },
+  {
+   "caso": "B: risposta diretta senza <think>",
+   "atteso": "rifiuto (contratto)",
+   "esito": "contratto",
+   "messaggio": "ContractError: B: risposta senza <think>"
+  },
+  {
+   "caso": "A: <think></think> vuoto con label nell'ultimo turno",
+   "atteso": "rifiuto (contratto)",
+   "esito": "contratto",
+   "messaggio": "ContractError: A: <think></think> vuoto con label non ammesso"
+  },
+  {
+   "caso": "M: risposta diretta con <think></think>",
+   "atteso": "rifiuto (contratto)",
+   "esito": "contratto",
+   "messaggio": "ContractError: M: <think></think> vuoto con label non ammesso"
+  },
+  {
+   "caso": "M: risposta senza tag",
+   "atteso": "rifiuto (contratto)",
+   "esito": "contratto",
+   "messaggio": "ContractError: M: risposta senza <think>"
+  },
+  {
+   "caso": "M: risposta finale senza \\boxed{}",
+   "atteso": "rifiuto (contratto)",
+   "esito": "contratto",
+   "messaggio": "ContractError: M: risposta finale senza \\boxed{}"
+  },
+  {
+   "caso": "M: system VL",
+   "atteso": "rifiuto (contratto)",
+   "esito": "contratto",
+   "messaggio": "ContractError: M: modalità canonica con un system diverso dal canonico"
+  },
+  {
+   "caso": "B: system canonico",
+   "atteso": "rifiuto (contratto)",
+   "esito": "contratto",
+   "messaggio": "ContractError: B: modalità VL senza il system VL ('You are a helpful assistant.\\nPlease reason step by step, and put your final answer within \\\\boxed{}.')"
+  },
+  {
+   "caso": "B-F1: target ragionato",
+   "atteso": "rifiuto (contratto)",
+   "esito": "contratto",
+   "messaggio": "ContractError: B-F1: target ragionato non ammesso"
+  },
+  {
+   "caso": "B-F1: più turni",
+   "atteso": "rifiuto (contratto)",
+   "esito": "contratto",
+   "messaggio": "ContractError: B-F1: un solo turno"
+  },
+  {
+   "caso": "tag nel testo dato al contratto",
+   "atteso": "rifiuto (contratto)",
+   "esito": "contratto",
+   "messaggio": "ContractError: tag nel testo della risposta o del ragionamento: li scrive il contratto"
+  },
+  {
+   "caso": "A: tag malformati '</think>12'",
+   "atteso": "rifiuto (contratto)",
+   "esito": "contratto",
+   "messaggio": "ContractError: tag malformati: 0 <think>, 1 </think>, inizio '</think>12'"
+  },
+  {
+   "caso": "B: tag malformati '</think>12'",
+   "atteso": "rifiuto (contratto)",
+   "esito": "contratto",
+   "messaggio": "ContractError: tag malformati: 0 <think>, 1 </think>, inizio '</think>12'"
+  },
+  {
+   "caso": "B-F1: tag malformati '</think>12'",
+   "atteso": "rifiuto (contratto)",
+   "esito": "contratto",
+   "messaggio": "ContractError: tag malformati: 0 <think>, 1 </think>, inizio '</think>12'"
+  },
+  {
+   "caso": "C: tag malformati '</think>12'",
+   "atteso": "rifiuto (contratto)",
+   "esito": "contratto",
+   "messaggio": "ContractError: tag malformati: 0 <think>, 1 </think>, inizio '</think>12'"
+  },
+  {
+   "caso": "M: tag malformati '</think>12'",
+   "atteso": "rifiuto (contratto)",
+   "esito": "contratto",
+   "messaggio": "ContractError: tag malformati: 0 <think>, 1 </think>, inizio '</think>12'"
+  },
+  {
+   "caso": "A: tag malformati '<think>a</think>b<think>c</think>d'",
+   "atteso": "rifiuto (contratto)",
+   "esito": "contratto",
+   "messaggio": "ContractError: tag malformati: 2 <think>, 2 </think>, inizio '<think>a</th'"
+  },
+  {
+   "caso": "B: tag malformati '<think>a</think>b<think>c</think>d'",
+   "atteso": "rifiuto (contratto)",
+   "esito": "contratto",
+   "messaggio": "ContractError: tag malformati: 2 <think>, 2 </think>, inizio '<think>a</th'"
+  },
+  {
+   "caso": "B-F1: tag malformati '<think>a</think>b<think>c</think>d'",
+   "atteso": "rifiuto (contratto)",
+   "esito": "contratto",
+   "messaggio": "ContractError: tag malformati: 2 <think>, 2 </think>, inizio '<think>a</th'"
+  },
+  {
+   "caso": "C: tag malformati '<think>a</think>b<think>c</think>d'",
+   "atteso": "rifiuto (contratto)",
+   "esito": "contratto",
+   "messaggio": "ContractError: tag malformati: 2 <think>, 2 </think>, inizio '<think>a</th'"
+  },
+  {
+   "caso": "M: tag malformati '<think>a</think>b<think>c</think>d'",
+   "atteso": "rifiuto (contratto)",
+   "esito": "contratto",
+   "messaggio": "ContractError: tag malformati: 2 <think>, 2 </think>, inizio '<think>a</th'"
+  },
+  {
+   "caso": "A: tag malformati 'x<think>a</think>b'",
+   "atteso": "rifiuto (contratto)",
+   "esito": "contratto",
+   "messaggio": "ContractError: tag malformati: 1 <think>, 1 </think>, inizio 'x<think>a</t'"
+  },
+  {
+   "caso": "B: tag malformati 'x<think>a</think>b'",
+   "atteso": "rifiuto (contratto)",
+   "esito": "contratto",
+   "messaggio": "ContractError: tag malformati: 1 <think>, 1 </think>, inizio 'x<think>a</t'"
+  },
+  {
+   "caso": "B-F1: tag malformati 'x<think>a</think>b'",
+   "atteso": "rifiuto (contratto)",
+   "esito": "contratto",
+   "messaggio": "ContractError: tag malformati: 1 <think>, 1 </think>, inizio 'x<think>a</t'"
+  },
+  {
+   "caso": "C: tag malformati 'x<think>a</think>b'",
+   "atteso": "rifiuto (contratto)",
+   "esito": "contratto",
+   "messaggio": "ContractError: tag malformati: 1 <think>, 1 </think>, inizio 'x<think>a</t'"
+  },
+  {
+   "caso": "M: tag malformati 'x<think>a</think>b'",
+   "atteso": "rifiuto (contratto)",
+   "esito": "contratto",
+   "messaggio": "ContractError: tag malformati: 1 <think>, 1 </think>, inizio 'x<think>a</t'"
+  },
+  {
+   "caso": "A: tag malformati '<think>a'",
+   "atteso": "rifiuto (contratto)",
+   "esito": "contratto",
+   "messaggio": "ContractError: tag malformati: 1 <think>, 0 </think>, inizio '<think>a'"
+  },
+  {
+   "caso": "B: tag malformati '<think>a'",
+   "atteso": "rifiuto (contratto)",
+   "esito": "contratto",
+   "messaggio": "ContractError: tag malformati: 1 <think>, 0 </think>, inizio '<think>a'"
+  },
+  {
+   "caso": "B-F1: tag malformati '<think>a'",
+   "atteso": "rifiuto (contratto)",
+   "esito": "contratto",
+   "messaggio": "ContractError: tag malformati: 1 <think>, 0 </think>, inizio '<think>a'"
+  },
+  {
+   "caso": "C: tag malformati '<think>a'",
+   "atteso": "rifiuto (contratto)",
+   "esito": "contratto",
+   "messaggio": "ContractError: tag malformati: 1 <think>, 0 </think>, inizio '<think>a'"
+  },
+  {
+   "caso": "M: tag malformati '<think>a'",
+   "atteso": "rifiuto (contratto)",
+   "esito": "contratto",
+   "messaggio": "ContractError: tag malformati: 1 <think>, 0 </think>, inizio '<think>a'"
+  },
+  {
+   "caso": "processor: token speciale nel testo dell'assistente",
+   "atteso": "rifiuto (processor)",
+   "esito": "processor",
+   "messaggio": "ValueError: il testo contiene il token speciale '<|im_end|>'"
+  },
+  {
+   "caso": "processor: prefill in un turno intermedio",
+   "atteso": "rifiuto (processor)",
+   "esito": "processor",
+   "messaggio": "ValueError: prefill ammesso solo nell'ultimo turno dell'assistente"
+  }
+ ],
+ "processor_operativo": [
+  {
+   "caso": "prefill <think></think> e <think></think> nel contenuto",
+   "processor_operativo": "accettato",
+   "coda": "<|im_end|>\n<|im_start|>assistant\n<think></think><think></think>12<|endoftext|>",
+   "contratto_della_sonda": "rifiutato"
+  },
+  {
+   "caso": "reasoning_content e <think> nel contenuto",
+   "processor_operativo": "accettato",
+   "coda": "<|im_start|>assistant\n<think>r</think><think>x</think>12<|endoftext|>",
+   "contratto_della_sonda": "rifiutato"
+  },
+  {
+   "caso": "</think> senza <think>",
+   "processor_operativo": "accettato",
+   "coda": "user\nQ<|im_end|>\n<|im_start|>assistant\n</think>12<|endoftext|>",
+   "contratto_della_sonda": "rifiutato"
+  },
+  {
+   "caso": "due blocchi <think>",
+   "processor_operativo": "accettato",
+   "coda": "<|im_start|>assistant\n<think>a</think><think>b</think>12<|endoftext|>",
+   "contratto_della_sonda": "rifiutato"
+  }
+ ],
+ "confini": [
+  {
+   "alternativa": "C",
+   "contenuto": "\n12",
+   "atteso": "rifiuto del processor: il prefisso non si conserva (\\n\\n diventa un token)",
+   "esito": "rifiuto del processor: turno 2: la tokenizzazione del prefisso non è un prefisso di quella completa"
+  },
+  {
+   "alternativa": "C",
+   "contenuto": "12",
+   "atteso": "uguali",
+   "esito": "uguali"
+  },
+  {
+   "alternativa": "B",
+   "contenuto": "<think></think>\n12",
+   "atteso": "uguali",
+   "esito": "uguali"
+  },
+  {
+   "nota": "ritokenizzazione di 'assistant\\n\\n12'",
+   "token": [
+    77091,
+    271,
+    16,
+    17,
+    151645,
+    198
+   ]
+  }
+ ],
+ "limiti": [
+  "proprietà meccaniche del formato (testo, token, label, prefisso, terminatori, rifiuti), non il comportamento del modello: quale alternativa Violetto o il modello VL seguiranno meglio richiede un esperimento GPU autorizzato",
+  "pochi esempi scritti a mano; il segnaposto visivo ha 64 token, il numero reale dipende dalla risoluzione",
+  "il template della sonda e le regole del contratto esistono solo qui: il processor, i loader e le configurazioni operative restano quelli storici (A)",
+  "la baseline canonica è verificata sul dominio condiviso: senza system o col system canonico in prima posizione; un system canonico in un'altra posizione, che lo snapshot accetta e non scrive, la sonda lo rifiuta",
+  "la ritokenizzazione dei turni generati è provata sul testo; i token generati davvero da un modello possono avere una segmentazione diversa da quella canonica del tokenizer"
+ ],
+ "costi": {
+  "secondi": 13.3,
+  "rss_max_mib": 813.7
+ },
+ "esempi": {
+  "latex/A": {
+   "alternativa": "A",
+   "caso": "latex",
+   "template": "snapshot",
+   "messaggi": [
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "image"
+      },
+      {
+       "type": "text",
+       "text": "Transcribe the formula in the image into LaTeX."
+      }
+     ]
+    },
+    {
+     "role": "assistant",
+     "content": "\\frac{a+b}{2}\\geq\\sqrt{ab}",
+     "prefill": "<think></think>"
+    }
+   ],
+   "atteso": {
+    "prompt": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.\nPlease reason step by step, and put your final answer within \\boxed{}.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>Transcribe the formula in the image into LaTeX.<|im_end|>\n<|im_start|>assistant\n<think></think>",
+    "training": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.\nPlease reason step by step, and put your final answer within \\boxed{}.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>Transcribe the formula in the image into LaTeX.<|im_end|>\n<|im_start|>assistant\n<think></think>\\frac{a+b}{2}\\geq\\sqrt{ab}<|endoftext|>",
+    "intervalli_con_label": [
+     "\\frac{a+b}{2}\\geq\\sqrt{ab}<|endoftext|>"
+    ]
+   },
+   "cronologia": [],
+   "conteggi": {
+    "intestazione": 27,
+    "immagine": 64,
+    "resto_del_prompt": 20,
+    "prefill": 2,
+    "target": 16,
+    "cronologia_con_label": 0,
+    "con_label": 16,
+    "prompt_d_inferenza": 113,
+    "totale": 129
+   }
+  },
+  "latex/B": {
+   "alternativa": "B",
+   "caso": "latex",
+   "template": "sonda",
+   "messaggi": [
+    {
+     "role": "system",
+     "content": "You are a helpful assistant."
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "image"
+      },
+      {
+       "type": "text",
+       "text": "Transcribe the formula in the image into LaTeX."
+      }
+     ]
+    },
+    {
+     "role": "assistant",
+     "content": "<think></think>\\frac{a+b}{2}\\geq\\sqrt{ab}"
+    }
+   ],
+   "atteso": {
+    "prompt": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>Transcribe the formula in the image into LaTeX.<|im_end|>\n<|im_start|>assistant\n",
+    "training": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>Transcribe the formula in the image into LaTeX.<|im_end|>\n<|im_start|>assistant\n<think></think>\\frac{a+b}{2}\\geq\\sqrt{ab}<|endoftext|>",
+    "intervalli_con_label": [
+     "<think></think>\\frac{a+b}{2}\\geq\\sqrt{ab}<|endoftext|>"
+    ]
+   },
+   "cronologia": [],
+   "conteggi": {
+    "intestazione": 12,
+    "immagine": 64,
+    "resto_del_prompt": 20,
+    "prefill": 0,
+    "target": 18,
+    "cronologia_con_label": 0,
+    "con_label": 18,
+    "prompt_d_inferenza": 96,
+    "totale": 114
+   }
+  },
+  "latex/B-F1": {
+   "alternativa": "B-F1",
+   "caso": "latex",
+   "template": "sonda",
+   "messaggi": [
+    {
+     "role": "system",
+     "content": "You are a helpful assistant."
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "image"
+      },
+      {
+       "type": "text",
+       "text": "Transcribe the formula in the image into LaTeX."
+      }
+     ]
+    },
+    {
+     "role": "assistant",
+     "content": "\\frac{a+b}{2}\\geq\\sqrt{ab}",
+     "prefill": "<think></think>"
+    }
+   ],
+   "atteso": {
+    "prompt": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>Transcribe the formula in the image into LaTeX.<|im_end|>\n<|im_start|>assistant\n<think></think>",
+    "training": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>Transcribe the formula in the image into LaTeX.<|im_end|>\n<|im_start|>assistant\n<think></think>\\frac{a+b}{2}\\geq\\sqrt{ab}<|endoftext|>",
+    "intervalli_con_label": [
+     "\\frac{a+b}{2}\\geq\\sqrt{ab}<|endoftext|>"
+    ]
+   },
+   "cronologia": [],
+   "conteggi": {
+    "intestazione": 12,
+    "immagine": 64,
+    "resto_del_prompt": 20,
+    "prefill": 2,
+    "target": 16,
+    "cronologia_con_label": 0,
+    "con_label": 16,
+    "prompt_d_inferenza": 98,
+    "totale": 114
+   }
+  },
+  "latex/C": {
+   "alternativa": "C",
+   "caso": "latex",
+   "template": "sonda",
+   "messaggi": [
+    {
+     "role": "system",
+     "content": "You are a helpful assistant."
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "image"
+      },
+      {
+       "type": "text",
+       "text": "Transcribe the formula in the image into LaTeX."
+      }
+     ]
+    },
+    {
+     "role": "assistant",
+     "content": "\\frac{a+b}{2}\\geq\\sqrt{ab}"
+    }
+   ],
+   "atteso": {
+    "prompt": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>Transcribe the formula in the image into LaTeX.<|im_end|>\n<|im_start|>assistant\n",
+    "training": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>Transcribe the formula in the image into LaTeX.<|im_end|>\n<|im_start|>assistant\n\\frac{a+b}{2}\\geq\\sqrt{ab}<|endoftext|>",
+    "intervalli_con_label": [
+     "\\frac{a+b}{2}\\geq\\sqrt{ab}<|endoftext|>"
+    ]
+   },
+   "cronologia": [],
+   "conteggi": {
+    "intestazione": 12,
+    "immagine": 64,
+    "resto_del_prompt": 20,
+    "prefill": 0,
+    "target": 16,
+    "cronologia_con_label": 0,
+    "con_label": 16,
+    "prompt_d_inferenza": 96,
+    "totale": 112
+   }
+  },
+  "didascalia/A": {
+   "alternativa": "A",
+   "caso": "didascalia",
+   "template": "snapshot",
+   "messaggi": [
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "image"
+      },
+      {
+       "type": "text",
+       "text": "Describe this image briefly."
+      }
+     ]
+    },
+    {
+     "role": "assistant",
+     "content": "A red bicycle leaning against a white brick wall.",
+     "prefill": "<think></think>"
+    }
+   ],
+   "atteso": {
+    "prompt": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.\nPlease reason step by step, and put your final answer within \\boxed{}.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>Describe this image briefly.<|im_end|>\n<|im_start|>assistant\n<think></think>",
+    "training": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.\nPlease reason step by step, and put your final answer within \\boxed{}.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>Describe this image briefly.<|im_end|>\n<|im_start|>assistant\n<think></think>A red bicycle leaning against a white brick wall.<|endoftext|>",
+    "intervalli_con_label": [
+     "A red bicycle leaning against a white brick wall.<|endoftext|>"
+    ]
+   },
+   "cronologia": [],
+   "conteggi": {
+    "intestazione": 27,
+    "immagine": 64,
+    "resto_del_prompt": 15,
+    "prefill": 2,
+    "target": 11,
+    "cronologia_con_label": 0,
+    "con_label": 11,
+    "prompt_d_inferenza": 108,
+    "totale": 119
+   }
+  },
+  "didascalia/B": {
+   "alternativa": "B",
+   "caso": "didascalia",
+   "template": "sonda",
+   "messaggi": [
+    {
+     "role": "system",
+     "content": "You are a helpful assistant."
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "image"
+      },
+      {
+       "type": "text",
+       "text": "Describe this image briefly."
+      }
+     ]
+    },
+    {
+     "role": "assistant",
+     "content": "<think></think>A red bicycle leaning against a white brick wall."
+    }
+   ],
+   "atteso": {
+    "prompt": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>Describe this image briefly.<|im_end|>\n<|im_start|>assistant\n",
+    "training": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>Describe this image briefly.<|im_end|>\n<|im_start|>assistant\n<think></think>A red bicycle leaning against a white brick wall.<|endoftext|>",
+    "intervalli_con_label": [
+     "<think></think>A red bicycle leaning against a white brick wall.<|endoftext|>"
+    ]
+   },
+   "cronologia": [],
+   "conteggi": {
+    "intestazione": 12,
+    "immagine": 64,
+    "resto_del_prompt": 15,
+    "prefill": 0,
+    "target": 13,
+    "cronologia_con_label": 0,
+    "con_label": 13,
+    "prompt_d_inferenza": 91,
+    "totale": 104
+   }
+  },
+  "didascalia/B-F1": {
+   "alternativa": "B-F1",
+   "caso": "didascalia",
+   "template": "sonda",
+   "messaggi": [
+    {
+     "role": "system",
+     "content": "You are a helpful assistant."
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "image"
+      },
+      {
+       "type": "text",
+       "text": "Describe this image briefly."
+      }
+     ]
+    },
+    {
+     "role": "assistant",
+     "content": "A red bicycle leaning against a white brick wall.",
+     "prefill": "<think></think>"
+    }
+   ],
+   "atteso": {
+    "prompt": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>Describe this image briefly.<|im_end|>\n<|im_start|>assistant\n<think></think>",
+    "training": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>Describe this image briefly.<|im_end|>\n<|im_start|>assistant\n<think></think>A red bicycle leaning against a white brick wall.<|endoftext|>",
+    "intervalli_con_label": [
+     "A red bicycle leaning against a white brick wall.<|endoftext|>"
+    ]
+   },
+   "cronologia": [],
+   "conteggi": {
+    "intestazione": 12,
+    "immagine": 64,
+    "resto_del_prompt": 15,
+    "prefill": 2,
+    "target": 11,
+    "cronologia_con_label": 0,
+    "con_label": 11,
+    "prompt_d_inferenza": 93,
+    "totale": 104
+   }
+  },
+  "didascalia/C": {
+   "alternativa": "C",
+   "caso": "didascalia",
+   "template": "sonda",
+   "messaggi": [
+    {
+     "role": "system",
+     "content": "You are a helpful assistant."
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "image"
+      },
+      {
+       "type": "text",
+       "text": "Describe this image briefly."
+      }
+     ]
+    },
+    {
+     "role": "assistant",
+     "content": "A red bicycle leaning against a white brick wall."
+    }
+   ],
+   "atteso": {
+    "prompt": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>Describe this image briefly.<|im_end|>\n<|im_start|>assistant\n",
+    "training": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>Describe this image briefly.<|im_end|>\n<|im_start|>assistant\nA red bicycle leaning against a white brick wall.<|endoftext|>",
+    "intervalli_con_label": [
+     "A red bicycle leaning against a white brick wall.<|endoftext|>"
+    ]
+   },
+   "cronologia": [],
+   "conteggi": {
+    "intestazione": 12,
+    "immagine": 64,
+    "resto_del_prompt": 15,
+    "prefill": 0,
+    "target": 11,
+    "cronologia_con_label": 0,
+    "con_label": 11,
+    "prompt_d_inferenza": 91,
+    "totale": 102
+   }
+  },
+  "numerica/A": {
+   "alternativa": "A",
+   "caso": "numerica",
+   "template": "snapshot",
+   "messaggi": [
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "image"
+      },
+      {
+       "type": "text",
+       "text": "Answer the question with a short answer.\nWhat is the length of side AB?"
+      }
+     ]
+    },
+    {
+     "role": "assistant",
+     "content": "12",
+     "prefill": "<think></think>"
+    }
+   ],
+   "atteso": {
+    "prompt": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.\nPlease reason step by step, and put your final answer within \\boxed{}.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>Answer the question with a short answer.\nWhat is the length of side AB?<|im_end|>\n<|im_start|>assistant\n<think></think>",
+    "training": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.\nPlease reason step by step, and put your final answer within \\boxed{}.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>Answer the question with a short answer.\nWhat is the length of side AB?<|im_end|>\n<|im_start|>assistant\n<think></think>12<|endoftext|>",
+    "intervalli_con_label": [
+     "12<|endoftext|>"
+    ]
+   },
+   "cronologia": [],
+   "conteggi": {
+    "intestazione": 27,
+    "immagine": 64,
+    "resto_del_prompt": 26,
+    "prefill": 2,
+    "target": 3,
+    "cronologia_con_label": 0,
+    "con_label": 3,
+    "prompt_d_inferenza": 119,
+    "totale": 122
+   }
+  },
+  "numerica/B": {
+   "alternativa": "B",
+   "caso": "numerica",
+   "template": "sonda",
+   "messaggi": [
+    {
+     "role": "system",
+     "content": "You are a helpful assistant."
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "image"
+      },
+      {
+       "type": "text",
+       "text": "Answer the question with a short answer.\nWhat is the length of side AB?"
+      }
+     ]
+    },
+    {
+     "role": "assistant",
+     "content": "<think></think>12"
+    }
+   ],
+   "atteso": {
+    "prompt": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>Answer the question with a short answer.\nWhat is the length of side AB?<|im_end|>\n<|im_start|>assistant\n",
+    "training": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>Answer the question with a short answer.\nWhat is the length of side AB?<|im_end|>\n<|im_start|>assistant\n<think></think>12<|endoftext|>",
+    "intervalli_con_label": [
+     "<think></think>12<|endoftext|>"
+    ]
+   },
+   "cronologia": [],
+   "conteggi": {
+    "intestazione": 12,
+    "immagine": 64,
+    "resto_del_prompt": 26,
+    "prefill": 0,
+    "target": 5,
+    "cronologia_con_label": 0,
+    "con_label": 5,
+    "prompt_d_inferenza": 102,
+    "totale": 107
+   }
+  },
+  "numerica/B-F1": {
+   "alternativa": "B-F1",
+   "caso": "numerica",
+   "template": "sonda",
+   "messaggi": [
+    {
+     "role": "system",
+     "content": "You are a helpful assistant."
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "image"
+      },
+      {
+       "type": "text",
+       "text": "Answer the question with a short answer.\nWhat is the length of side AB?"
+      }
+     ]
+    },
+    {
+     "role": "assistant",
+     "content": "12",
+     "prefill": "<think></think>"
+    }
+   ],
+   "atteso": {
+    "prompt": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>Answer the question with a short answer.\nWhat is the length of side AB?<|im_end|>\n<|im_start|>assistant\n<think></think>",
+    "training": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>Answer the question with a short answer.\nWhat is the length of side AB?<|im_end|>\n<|im_start|>assistant\n<think></think>12<|endoftext|>",
+    "intervalli_con_label": [
+     "12<|endoftext|>"
+    ]
+   },
+   "cronologia": [],
+   "conteggi": {
+    "intestazione": 12,
+    "immagine": 64,
+    "resto_del_prompt": 26,
+    "prefill": 2,
+    "target": 3,
+    "cronologia_con_label": 0,
+    "con_label": 3,
+    "prompt_d_inferenza": 104,
+    "totale": 107
+   }
+  },
+  "numerica/C": {
+   "alternativa": "C",
+   "caso": "numerica",
+   "template": "sonda",
+   "messaggi": [
+    {
+     "role": "system",
+     "content": "You are a helpful assistant."
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "image"
+      },
+      {
+       "type": "text",
+       "text": "Answer the question with a short answer.\nWhat is the length of side AB?"
+      }
+     ]
+    },
+    {
+     "role": "assistant",
+     "content": "12"
+    }
+   ],
+   "atteso": {
+    "prompt": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>Answer the question with a short answer.\nWhat is the length of side AB?<|im_end|>\n<|im_start|>assistant\n",
+    "training": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>Answer the question with a short answer.\nWhat is the length of side AB?<|im_end|>\n<|im_start|>assistant\n12<|endoftext|>",
+    "intervalli_con_label": [
+     "12<|endoftext|>"
+    ]
+   },
+   "cronologia": [],
+   "conteggi": {
+    "intestazione": 12,
+    "immagine": 64,
+    "resto_del_prompt": 26,
+    "prefill": 0,
+    "target": 3,
+    "cronologia_con_label": 0,
+    "con_label": 3,
+    "prompt_d_inferenza": 102,
+    "totale": 105
+   }
+  },
+  "scelta_multipla/A": {
+   "alternativa": "A",
+   "caso": "scelta_multipla",
+   "template": "snapshot",
+   "messaggi": [
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "image"
+      },
+      {
+       "type": "text",
+       "text": "Which shape has the largest area?\nA. the square\nB. the circle\nC. the triangle\nAnswer with the letter of the correct option."
+      }
+     ]
+    },
+    {
+     "role": "assistant",
+     "content": "B",
+     "prefill": "<think></think>"
+    }
+   ],
+   "atteso": {
+    "prompt": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.\nPlease reason step by step, and put your final answer within \\boxed{}.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>Which shape has the largest area?\nA. the square\nB. the circle\nC. the triangle\nAnswer with the letter of the correct option.<|im_end|>\n<|im_start|>assistant\n<think></think>",
+    "training": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.\nPlease reason step by step, and put your final answer within \\boxed{}.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>Which shape has the largest area?\nA. the square\nB. the circle\nC. the triangle\nAnswer with the letter of the correct option.<|im_end|>\n<|im_start|>assistant\n<think></think>B<|endoftext|>",
+    "intervalli_con_label": [
+     "B<|endoftext|>"
+    ]
+   },
+   "cronologia": [],
+   "conteggi": {
+    "intestazione": 27,
+    "immagine": 64,
+    "resto_del_prompt": 41,
+    "prefill": 2,
+    "target": 2,
+    "cronologia_con_label": 0,
+    "con_label": 2,
+    "prompt_d_inferenza": 134,
+    "totale": 136
+   }
+  },
+  "scelta_multipla/B": {
+   "alternativa": "B",
+   "caso": "scelta_multipla",
+   "template": "sonda",
+   "messaggi": [
+    {
+     "role": "system",
+     "content": "You are a helpful assistant."
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "image"
+      },
+      {
+       "type": "text",
+       "text": "Which shape has the largest area?\nA. the square\nB. the circle\nC. the triangle\nAnswer with the letter of the correct option."
+      }
+     ]
+    },
+    {
+     "role": "assistant",
+     "content": "<think></think>B"
+    }
+   ],
+   "atteso": {
+    "prompt": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>Which shape has the largest area?\nA. the square\nB. the circle\nC. the triangle\nAnswer with the letter of the correct option.<|im_end|>\n<|im_start|>assistant\n",
+    "training": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>Which shape has the largest area?\nA. the square\nB. the circle\nC. the triangle\nAnswer with the letter of the correct option.<|im_end|>\n<|im_start|>assistant\n<think></think>B<|endoftext|>",
+    "intervalli_con_label": [
+     "<think></think>B<|endoftext|>"
+    ]
+   },
+   "cronologia": [],
+   "conteggi": {
+    "intestazione": 12,
+    "immagine": 64,
+    "resto_del_prompt": 41,
+    "prefill": 0,
+    "target": 4,
+    "cronologia_con_label": 0,
+    "con_label": 4,
+    "prompt_d_inferenza": 117,
+    "totale": 121
+   }
+  },
+  "scelta_multipla/B-F1": {
+   "alternativa": "B-F1",
+   "caso": "scelta_multipla",
+   "template": "sonda",
+   "messaggi": [
+    {
+     "role": "system",
+     "content": "You are a helpful assistant."
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "image"
+      },
+      {
+       "type": "text",
+       "text": "Which shape has the largest area?\nA. the square\nB. the circle\nC. the triangle\nAnswer with the letter of the correct option."
+      }
+     ]
+    },
+    {
+     "role": "assistant",
+     "content": "B",
+     "prefill": "<think></think>"
+    }
+   ],
+   "atteso": {
+    "prompt": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>Which shape has the largest area?\nA. the square\nB. the circle\nC. the triangle\nAnswer with the letter of the correct option.<|im_end|>\n<|im_start|>assistant\n<think></think>",
+    "training": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>Which shape has the largest area?\nA. the square\nB. the circle\nC. the triangle\nAnswer with the letter of the correct option.<|im_end|>\n<|im_start|>assistant\n<think></think>B<|endoftext|>",
+    "intervalli_con_label": [
+     "B<|endoftext|>"
+    ]
+   },
+   "cronologia": [],
+   "conteggi": {
+    "intestazione": 12,
+    "immagine": 64,
+    "resto_del_prompt": 41,
+    "prefill": 2,
+    "target": 2,
+    "cronologia_con_label": 0,
+    "con_label": 2,
+    "prompt_d_inferenza": 119,
+    "totale": 121
+   }
+  },
+  "scelta_multipla/C": {
+   "alternativa": "C",
+   "caso": "scelta_multipla",
+   "template": "sonda",
+   "messaggi": [
+    {
+     "role": "system",
+     "content": "You are a helpful assistant."
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "image"
+      },
+      {
+       "type": "text",
+       "text": "Which shape has the largest area?\nA. the square\nB. the circle\nC. the triangle\nAnswer with the letter of the correct option."
+      }
+     ]
+    },
+    {
+     "role": "assistant",
+     "content": "B"
+    }
+   ],
+   "atteso": {
+    "prompt": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>Which shape has the largest area?\nA. the square\nB. the circle\nC. the triangle\nAnswer with the letter of the correct option.<|im_end|>\n<|im_start|>assistant\n",
+    "training": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>Which shape has the largest area?\nA. the square\nB. the circle\nC. the triangle\nAnswer with the letter of the correct option.<|im_end|>\n<|im_start|>assistant\nB<|endoftext|>",
+    "intervalli_con_label": [
+     "B<|endoftext|>"
+    ]
+   },
+   "cronologia": [],
+   "conteggi": {
+    "intestazione": 12,
+    "immagine": 64,
+    "resto_del_prompt": 41,
+    "prefill": 0,
+    "target": 2,
+    "cronologia_con_label": 0,
+    "con_label": 2,
+    "prompt_d_inferenza": 117,
+    "totale": 119
+   }
+  },
+  "spiegazione/A": {
+   "alternativa": "A",
+   "caso": "spiegazione",
+   "template": "snapshot",
+   "messaggi": [
+    {
+     "role": "user",
+     "content": "A rectangle has a perimeter of 20 cm and one side of length 3 cm. What is its area?"
+    },
+    {
+     "role": "assistant",
+     "content": "<think>Half the perimeter is 10 cm, so the other side is 10 - 3 = 7 cm. The area is 3 \\times 7 = 21.</think>The other side is 7 cm, so the area is \\boxed{21} square centimetres."
+    }
+   ],
+   "atteso": {
+    "prompt": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.\nPlease reason step by step, and put your final answer within \\boxed{}.<|im_end|>\n<|im_start|>user\nA rectangle has a perimeter of 20 cm and one side of length 3 cm. What is its area?<|im_end|>\n<|im_start|>assistant\n",
+    "training": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.\nPlease reason step by step, and put your final answer within \\boxed{}.<|im_end|>\n<|im_start|>user\nA rectangle has a perimeter of 20 cm and one side of length 3 cm. What is its area?<|im_end|>\n<|im_start|>assistant\n<think>Half the perimeter is 10 cm, so the other side is 10 - 3 = 7 cm. The area is 3 \\times 7 = 21.</think>The other side is 7 cm, so the area is \\boxed{21} square centimetres.<|endoftext|>",
+    "intervalli_con_label": [
+     "<think>Half the perimeter is 10 cm, so the other side is 10 - 3 = 7 cm. The area is 3 \\times 7 = 21.</think>The other side is 7 cm, so the area is \\boxed{21} square centimetres.<|endoftext|>"
+    ]
+   },
+   "cronologia": [],
+   "conteggi": {
+    "intestazione": 27,
+    "immagine": 0,
+    "resto_del_prompt": 32,
+    "prefill": 0,
+    "target": 65,
+    "cronologia_con_label": 0,
+    "con_label": 65,
+    "prompt_d_inferenza": 59,
+    "totale": 124
+   }
+  },
+  "spiegazione/B": {
+   "alternativa": "B",
+   "caso": "spiegazione",
+   "template": "sonda",
+   "messaggi": [
+    {
+     "role": "system",
+     "content": "You are a helpful assistant."
+    },
+    {
+     "role": "user",
+     "content": "A rectangle has a perimeter of 20 cm and one side of length 3 cm. What is its area?"
+    },
+    {
+     "role": "assistant",
+     "content": "<think>Half the perimeter is 10 cm, so the other side is 10 - 3 = 7 cm. The area is 3 \\times 7 = 21.</think>The other side is 7 cm, so the area is \\boxed{21} square centimetres."
+    }
+   ],
+   "atteso": {
+    "prompt": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\nA rectangle has a perimeter of 20 cm and one side of length 3 cm. What is its area?<|im_end|>\n<|im_start|>assistant\n",
+    "training": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\nA rectangle has a perimeter of 20 cm and one side of length 3 cm. What is its area?<|im_end|>\n<|im_start|>assistant\n<think>Half the perimeter is 10 cm, so the other side is 10 - 3 = 7 cm. The area is 3 \\times 7 = 21.</think>The other side is 7 cm, so the area is \\boxed{21} square centimetres.<|endoftext|>",
+    "intervalli_con_label": [
+     "<think>Half the perimeter is 10 cm, so the other side is 10 - 3 = 7 cm. The area is 3 \\times 7 = 21.</think>The other side is 7 cm, so the area is \\boxed{21} square centimetres.<|endoftext|>"
+    ]
+   },
+   "cronologia": [],
+   "conteggi": {
+    "intestazione": 12,
+    "immagine": 0,
+    "resto_del_prompt": 32,
+    "prefill": 0,
+    "target": 65,
+    "cronologia_con_label": 0,
+    "con_label": 65,
+    "prompt_d_inferenza": 44,
+    "totale": 109
+   }
+  },
+  "spiegazione/C": {
+   "alternativa": "C",
+   "caso": "spiegazione",
+   "template": "sonda",
+   "messaggi": [
+    {
+     "role": "system",
+     "content": "You are a helpful assistant."
+    },
+    {
+     "role": "user",
+     "content": "A rectangle has a perimeter of 20 cm and one side of length 3 cm. What is its area?"
+    },
+    {
+     "role": "assistant",
+     "content": "<think>Half the perimeter is 10 cm, so the other side is 10 - 3 = 7 cm. The area is 3 \\times 7 = 21.</think>The other side is 7 cm, so the area is \\boxed{21} square centimetres."
+    }
+   ],
+   "atteso": {
+    "prompt": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\nA rectangle has a perimeter of 20 cm and one side of length 3 cm. What is its area?<|im_end|>\n<|im_start|>assistant\n",
+    "training": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\nA rectangle has a perimeter of 20 cm and one side of length 3 cm. What is its area?<|im_end|>\n<|im_start|>assistant\n<think>Half the perimeter is 10 cm, so the other side is 10 - 3 = 7 cm. The area is 3 \\times 7 = 21.</think>The other side is 7 cm, so the area is \\boxed{21} square centimetres.<|endoftext|>",
+    "intervalli_con_label": [
+     "<think>Half the perimeter is 10 cm, so the other side is 10 - 3 = 7 cm. The area is 3 \\times 7 = 21.</think>The other side is 7 cm, so the area is \\boxed{21} square centimetres.<|endoftext|>"
+    ]
+   },
+   "cronologia": [],
+   "conteggi": {
+    "intestazione": 12,
+    "immagine": 0,
+    "resto_del_prompt": 32,
+    "prefill": 0,
+    "target": 65,
+    "cronologia_con_label": 0,
+    "con_label": 65,
+    "prompt_d_inferenza": 44,
+    "totale": 109
+   }
+  },
+  "spiegazione/M": {
+   "alternativa": "M",
+   "caso": "spiegazione",
+   "template": "snapshot",
+   "messaggi": [
+    {
+     "role": "user",
+     "content": "A rectangle has a perimeter of 20 cm and one side of length 3 cm. What is its area?\nPlease reason step by step, and put your final answer within \\boxed{}."
+    },
+    {
+     "role": "assistant",
+     "content": "<think>Half the perimeter is 10 cm, so the other side is 10 - 3 = 7 cm. The area is 3 \\times 7 = 21.</think>The other side is 7 cm, so the area is \\boxed{21} square centimetres."
+    }
+   ],
+   "atteso": {
+    "prompt": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.\nPlease reason step by step, and put your final answer within \\boxed{}.<|im_end|>\n<|im_start|>user\nA rectangle has a perimeter of 20 cm and one side of length 3 cm. What is its area?\nPlease reason step by step, and put your final answer within \\boxed{}.<|im_end|>\n<|im_start|>assistant\n",
+    "training": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.\nPlease reason step by step, and put your final answer within \\boxed{}.<|im_end|>\n<|im_start|>user\nA rectangle has a perimeter of 20 cm and one side of length 3 cm. What is its area?\nPlease reason step by step, and put your final answer within \\boxed{}.<|im_end|>\n<|im_start|>assistant\n<think>Half the perimeter is 10 cm, so the other side is 10 - 3 = 7 cm. The area is 3 \\times 7 = 21.</think>The other side is 7 cm, so the area is \\boxed{21} square centimetres.<|endoftext|>",
+    "intervalli_con_label": [
+     "<think>Half the perimeter is 10 cm, so the other side is 10 - 3 = 7 cm. The area is 3 \\times 7 = 21.</think>The other side is 7 cm, so the area is \\boxed{21} square centimetres.<|endoftext|>"
+    ]
+   },
+   "cronologia": [],
+   "conteggi": {
+    "intestazione": 27,
+    "immagine": 0,
+    "resto_del_prompt": 47,
+    "prefill": 0,
+    "target": 65,
+    "cronologia_con_label": 0,
+    "con_label": 65,
+    "prompt_d_inferenza": 74,
+    "totale": 139
+   }
+  },
+  "dialogo/A": {
+   "alternativa": "A",
+   "caso": "dialogo",
+   "template": "snapshot",
+   "messaggi": [
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "image"
+      },
+      {
+       "type": "text",
+       "text": "What shape is shown in the image?"
+      }
+     ]
+    },
+    {
+     "role": "assistant",
+     "content": "<think></think>A right triangle."
+    },
+    {
+     "role": "user",
+     "content": "Its legs are 3 and 4. What is its area?"
+    },
+    {
+     "role": "assistant",
+     "content": "<think>The area of a right triangle is half the product of its legs: 3 \\times 4 / 2 = 6.</think>The area is \\boxed{6}."
+    }
+   ],
+   "atteso": {
+    "prompt": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.\nPlease reason step by step, and put your final answer within \\boxed{}.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>What shape is shown in the image?<|im_end|>\n<|im_start|>assistant\n<think></think>A right triangle.<|im_end|>\n<|im_start|>user\nIts legs are 3 and 4. What is its area?<|im_end|>\n<|im_start|>assistant\n",
+    "training": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.\nPlease reason step by step, and put your final answer within \\boxed{}.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>What shape is shown in the image?<|im_end|>\n<|im_start|>assistant\n<think></think>A right triangle.<|im_end|>\n<|im_start|>user\nIts legs are 3 and 4. What is its area?<|im_end|>\n<|im_start|>assistant\n<think>The area of a right triangle is half the product of its legs: 3 \\times 4 / 2 = 6.</think>The area is \\boxed{6}.<|endoftext|>",
+    "intervalli_con_label": [
+     "<think></think>A right triangle.",
+     "<think>The area of a right triangle is half the product of its legs: 3 \\times 4 / 2 = 6.</think>The area is \\boxed{6}.<|endoftext|>"
+    ]
+   },
+   "cronologia": [
+    {
+     "contenuto": "<think></think>A right triangle.",
+     "token": [
+      151665,
+      151666,
+      32,
+      1290,
+      21495,
+      13
+     ],
+     "ritokenizzati_uguali": true
+    }
+   ],
+   "conteggi": {
+    "intestazione": 27,
+    "immagine": 64,
+    "resto_del_prompt": 48,
+    "prefill": 0,
+    "target": 38,
+    "cronologia_con_label": 6,
+    "con_label": 44,
+    "prompt_d_inferenza": 139,
+    "totale": 177
+   }
+  },
+  "dialogo/B": {
+   "alternativa": "B",
+   "caso": "dialogo",
+   "template": "sonda",
+   "messaggi": [
+    {
+     "role": "system",
+     "content": "You are a helpful assistant."
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "image"
+      },
+      {
+       "type": "text",
+       "text": "What shape is shown in the image?"
+      }
+     ]
+    },
+    {
+     "role": "assistant",
+     "content": "<think></think>A right triangle."
+    },
+    {
+     "role": "user",
+     "content": "Its legs are 3 and 4. What is its area?"
+    },
+    {
+     "role": "assistant",
+     "content": "<think>The area of a right triangle is half the product of its legs: 3 \\times 4 / 2 = 6.</think>The area is \\boxed{6}."
+    }
+   ],
+   "atteso": {
+    "prompt": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>What shape is shown in the image?<|im_end|>\n<|im_start|>assistant\n<think></think>A right triangle.<|im_end|>\n<|im_start|>user\nIts legs are 3 and 4. What is its area?<|im_end|>\n<|im_start|>assistant\n",
+    "training": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>What shape is shown in the image?<|im_end|>\n<|im_start|>assistant\n<think></think>A right triangle.<|im_end|>\n<|im_start|>user\nIts legs are 3 and 4. What is its area?<|im_end|>\n<|im_start|>assistant\n<think>The area of a right triangle is half the product of its legs: 3 \\times 4 / 2 = 6.</think>The area is \\boxed{6}.<|endoftext|>",
+    "intervalli_con_label": [
+     "<think></think>A right triangle.",
+     "<think>The area of a right triangle is half the product of its legs: 3 \\times 4 / 2 = 6.</think>The area is \\boxed{6}.<|endoftext|>"
+    ]
+   },
+   "cronologia": [
+    {
+     "contenuto": "<think></think>A right triangle.",
+     "token": [
+      151665,
+      151666,
+      32,
+      1290,
+      21495,
+      13
+     ],
+     "ritokenizzati_uguali": true
+    }
+   ],
+   "conteggi": {
+    "intestazione": 12,
+    "immagine": 64,
+    "resto_del_prompt": 48,
+    "prefill": 0,
+    "target": 38,
+    "cronologia_con_label": 6,
+    "con_label": 44,
+    "prompt_d_inferenza": 124,
+    "totale": 162
+   }
+  },
+  "dialogo/C": {
+   "alternativa": "C",
+   "caso": "dialogo",
+   "template": "sonda",
+   "messaggi": [
+    {
+     "role": "system",
+     "content": "You are a helpful assistant."
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "image"
+      },
+      {
+       "type": "text",
+       "text": "What shape is shown in the image?"
+      }
+     ]
+    },
+    {
+     "role": "assistant",
+     "content": "A right triangle."
+    },
+    {
+     "role": "user",
+     "content": "Its legs are 3 and 4. What is its area?"
+    },
+    {
+     "role": "assistant",
+     "content": "<think>The area of a right triangle is half the product of its legs: 3 \\times 4 / 2 = 6.</think>The area is \\boxed{6}."
+    }
+   ],
+   "atteso": {
+    "prompt": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>What shape is shown in the image?<|im_end|>\n<|im_start|>assistant\nA right triangle.<|im_end|>\n<|im_start|>user\nIts legs are 3 and 4. What is its area?<|im_end|>\n<|im_start|>assistant\n",
+    "training": "<|endoftext|><|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>What shape is shown in the image?<|im_end|>\n<|im_start|>assistant\nA right triangle.<|im_end|>\n<|im_start|>user\nIts legs are 3 and 4. What is its area?<|im_end|>\n<|im_start|>assistant\n<think>The area of a right triangle is half the product of its legs: 3 \\times 4 / 2 = 6.</think>The area is \\boxed{6}.<|endoftext|>",
+    "intervalli_con_label": [
+     "A right triangle.",
+     "<think>The area of a right triangle is half the product of its legs: 3 \\times 4 / 2 = 6.</think>The area is \\boxed{6}.<|endoftext|>"
+    ]
+   },
+   "cronologia": [
+    {
+     "contenuto": "A right triangle.",
+     "token": [
+      32,
+      1290,
+      21495,
+      13
+     ],
+     "ritokenizzati_uguali": true
+    }
+   ],
+   "conteggi": {
+    "intestazione": 12,
+    "immagine": 64,
+    "resto_del_prompt": 46,
+    "prefill": 0,
+    "target": 38,
+    "cronologia_con_label": 4,
+    "con_label": 42,
+    "prompt_d_inferenza": 122,
+    "totale": 160
+   }
+  }
+ },
+ "rapporto_completo": "outputs/contract_probe/sonda-1/report.json"
+}
