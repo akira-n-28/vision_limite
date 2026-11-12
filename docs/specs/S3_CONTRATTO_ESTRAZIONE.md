@@ -83,15 +83,23 @@ testo senza tag.
   - Il system canonico chiede ragionamento e `\boxed{}`, in contrasto coi target di F1 (trascrizioni, didascalie,
     risposte brevi): col decoder congelato anche questo contrasto può finire nel proiettore. È un'ipotesi da misurare,
     non un fatto.
-- **Decoder addestrabile (da F2).** B e C insegnano la scelta senza prefill. A no: le label cominciano dopo il prefill,
-  quindi il modello non impara mai a chiudere da solo il `<think>`, e senza prefill ragiona come Violetto. Contraddice il
-  criterio di F3: il formato diretto deve funzionare senza un prefill usato solo in training (pipeline §9).
+- **Decoder addestrabile (da F2).** B e C supervisionano direttamente la scelta, senza prefill.
+  - **In A** le label dell'ultimo turno cominciano dopo il prefill. Quello che la sonda dimostra è l'assenza di
+    supervisione diretta sui due token precompilati di quel turno. Nei turni precedenti della cronologia gli stessi tag
+    possono avere label (punto "Tag ed EOS", sotto).
+  - **Non è dimostrato** che con A il modello non impari a chiudere subito il `<think>`, né che senza prefill continui a
+    ragionare come Violetto: il comportamento senza prefill va misurato.
+  - **Criterio di F3.** Il formato diretto deve funzionare senza un prefill usato solo in training (pipeline §9). Con A
+    dipenderebbe da segnali indiretti, con B e C dalla supervisione diretta; in tutti i casi va verificato.
 - **Prefill, apprendimento e valutazione.**
-  - **Apprendimento.** I token dati come prefill non hanno label: non si impara la scelta che sostituiscono.
+  - **Apprendimento.** I token dati come prefill non hanno label: in quel turno manca la supervisione diretta della
+    scelta che sostituiscono. Se il modello la impari per altre vie, per esempio dai turni precedenti con label, va
+    misurato.
   - **Valutazione.** Una valutazione col prefill è condizionata alla forzatura: va dichiarata e non misura la modalità
     d'uso finale. Il comportamento ottenuto col prefill non prova che il modello sappia scegliere lo stile.
-  - **Forzatura in B.** La forzatura dichiarata `<think></think>` coincide coi token che il modello genera in B: una
-    valutazione forzata, per separare la percezione dalla scelta dello stile, e una libera hanno la stessa sequenza.
+  - **Forzatura in B.** La forzatura dichiarata `<think></think>` coincide coi token che i target di B supervisionano:
+    una valutazione forzata, per separare la percezione dalla scelta dello stile, e una libera conforme al contratto
+    hanno la stessa sequenza.
   - **Forzatura in C.** Per forzare la diretta bisogna vietare in decodifica il token `<think>`: è un vincolo, non un
     prefill.
 - **Tag ed EOS** (verificati, §2.5).
@@ -107,9 +115,14 @@ testo senza tag.
   - L'intestazione VL costa 15 token meno di quella canonica (12 contro 27).
   - Il prefill di A e di B-F1 sono 2 token senza label.
   - Davanti ai 256-576 token reali di un'immagine le differenze sono trascurabili.
-- **Cronologia.** In B ogni turno dell'assistente comincia con un token aggiunto (`<think>`): la ritokenizzazione della
-  cronologia coincide sempre coi token generati. In C un turno precedente che comincia con un a capo non si conserva,
-  perché `\n\n` diventa un token, e il processor lo rifiuta (sonda). È un rischio piccolo, ma meccanico.
+- **Cronologia.**
+  - **B.** Ogni turno dell'assistente comincia con un token aggiunto (`<think>`), che separa `assistant\n` del template
+    dalla risposta: il confine fra template e risposta non si fonde. Nei casi verificati dalla sonda, compreso un turno
+    che dopo `</think>` comincia con un a capo, la cronologia si ritokenizza come la tokenizzazione canonica del testo.
+  - **C.** Un turno precedente che comincia con un a capo non si conserva, perché `\n\n` diventa un token, e il
+    processor lo rifiuta (sonda). È un rischio piccolo, ma meccanico.
+  - **Limite.** La sonda confronta col tokenizer, non con token generati: le segmentazioni generate davvero da un
+    modello possono differire da quelle canoniche, in B come in C.
 - **Effetti per famiglia.**
   - **Replay matematico:** M è invariata in tutte. In B il primo token resta `<think>` anche nelle dirette VL. In C il
     modello deve legare il primo token al system: va misurato il rischio di risposte senza ragionamento nella modalità
@@ -135,7 +148,7 @@ testo senza tag.
 - Ha gli stessi token in F1 e nelle fasi successive: cambiano solo le label di due token.
 - Rende la scelta di stile un solo token misurabile.
 - Permette una forzatura dichiarata identica alla sequenza libera.
-- Non ha il rischio di confine della cronologia.
+- Non ha il rischio di confine della cronologia visto in C, perché il token `<think>` separa template e risposta.
 
 **Il costo** è di 2 token per risposta diretta.
 
@@ -154,7 +167,8 @@ precedente. Tutti hanno un segnaposto visivo di 64 token, tranne il problema.
 - **Duplicazioni.** Nessun tag o terminatore duplicato: un solo EOS in apertura e uno in chiusura, `<|im_end|>` e
   `<|im_start|>` mai con label.
 - **Label.** Il prefill è senza label, il contenuto e l'EOS hanno label, il turno precedente ha label e `<|im_end|>\n` no.
-- **Cronologia.** I turni precedenti si ritokenizzano coi token del testo generato.
+- **Cronologia.** Nei casi verificati i turni precedenti si ritokenizzano come la tokenizzazione canonica del loro
+  testo; non è un confronto con token generati da un modello (§2.6).
 - **Confronti fra alternative:**
   - B e B-F1 hanno gli stessi input, con label diverse solo sui due tag;
   - C è uguale a B tolti i due tag del target;
