@@ -611,8 +611,11 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
     scansioni che citano, senza rileggere immagini; copertura del 100% (1.511.981 voci).
   - **Esito:** nessuna classe di digest uguali fra gruppi diversi, quindi nessuna sovrapposizione fra sorgenti, nessun
     legame nuovo dentro una sorgente e nessun conflitto train/dev. I gruppi non cambiano.
-  - **Limiti:** non vede quasi-duplicati, non copre LLaVA e MMFineReason e non è la decontaminazione globale. Restano da
-    guardare 11 righe di UniMER con due ritagli identici (`transcribe_line_select`).
+  - **Limiti:** non vede quasi-duplicati, non copre LLaVA e MMFineReason e non è la decontaminazione globale.
+  - **Ritagli uguali:** dentro una stessa riga ritagliata di UniMER ci sono 11 classi di ritagli con pixel uguali. Sono
+    classi di digest, non 11 record né per forza coppie, e da sole non provano annotazioni discordi né esempi sbagliati:
+    `transcribe_line` riceve il ritaglio, `transcribe_line_select` l'immagine intera e il numero della riga, e il loader
+    usa una sola riga per record (§9.4, con la precisazione sul rapporto del job 30819, che resta immutato).
 
 ## Strumenti congelati
 

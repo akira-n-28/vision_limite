@@ -626,16 +626,39 @@ una sorgente con lo shard di un'altra. Nessun hash è ricalcolato.
     originali e shard di record diversi dello stesso gruppo, e 81 di ritagli. MAVIS ne ha 10.294 per ciascuna identità.
     PixMo ne ha 116 per i byte e 191 per i pixel dell'originale, 194 e 192 per lo shard, e 2 di pixel che uniscono
     originali e shard di record dello stesso gruppo.
-  - **Dentro una voce, 2.259.** Sono 1.124 PNG densi di UniMER uguali al file originale, per byte e per pixel, e 11
-    righe ritagliate con due ritagli identici nella stessa immagine.
+  - **Dentro una voce, 2.259.** Sono 1.124 PNG densi di UniMER uguali al file originale, per byte e per pixel (2.248
+    classi), e 11 classi di pixel uguali fra ritagli della stessa riga ritagliata. Il contatore `stessa_voce` conta
+    classi di digest, non voci o record: le 11 classi possono stare in meno di 11 righe ritagliate, e una classe può
+    avere più di due ritagli (precisazione sotto, §9.4).
 
 ### 9.4 Proposte e limiti
 
 - **Trattamento:** nessuno da applicare, perché non ci sono conflitti. Proposta: l'indice globale di C6 può ereditare i
   gruppi di queste quattro sorgenti senza fusioni dovute a identità esatte.
-- **Da guardare, non conflitti:** le 11 righe con due ritagli identici. Per `transcribe_line_select` due righe uguali
-  nei pixel con target diversi sarebbero ambigue. In questo lotto i target non si confrontano e le voci non sono
-  elencate. Per averle basta rifare il confronto con l'elenco: circa 2 minuti, senza leggere immagini.
+- **Ritagli con pixel uguali dentro una riga ritagliata (11 classi): da guardare, non conflitti.** Sono tre fatti
+  distinti, e solo il primo è misurato:
+  - *ripetizione dei pixel*: in una stessa riga ritagliata di UniMER due o più ritagli hanno gli stessi pixel. Il
+    rapporto non dice in quante righe ritagliate stanno le 11 classi né quanti ritagli ha ciascuna;
+  - *discordanza delle annotazioni*: le trascrizioni dei ritagli uguali (`rows` dello shard) non sono state confrontate.
+    Se coincidono, la formula ripete una riga; se differiscono, almeno una trascrizione o una fascia non corrisponde ai
+    pixel;
+  - *conflitto nell'esempio che il loader costruisce*: il loader sceglie dalla chiave una sola riga k per record
+    (`data._unimer_line`), la stessa per i due compiti. `transcribe_line` riceve il ritaglio della riga k;
+    `transcribe_line_select` riceve l'immagine intera e la richiesta `Transcribe only line {k+1} of the formula in the
+    image into LaTeX.`, che individua la riga anche quando due righe hanno gli stessi pixel.
+
+  La sola identità dei ritagli non dimostra quindi un compito `transcribe_line_select` ambiguo né risposte sbagliate. Per
+  sapere se c'è un problema servono l'elenco delle classi (circa 2 minuti, senza leggere immagini) e il confronto delle
+  trascrizioni, che è un confronto testuale fuori da questo lotto. La correzione non richiede quarantene, scansioni o
+  revisioni visive, e l'esito del confronto fra sorgenti resta valido.
+- **Precisazione sul rapporto del job 30819** (2026-11-11). `outputs/exact_overlap/completo-1/report.json` e il
+  riepilogo `docs/indice_globale/identita-esatte-completo-1.json` restano immutati. La loro descrizione della
+  rappresentazione `ritaglio` ("l'immagine data al processor per transcribe_line e transcribe_line_select") è sbagliata
+  per `transcribe_line_select`, che riceve l'immagine intera (la rappresentazione `shard`) col numero della riga. Allo
+  stesso modo "11 righe con due ritagli identici" della nota del ledger va letto come 11 classi di pixel uguali dentro
+  una riga ritagliata. Lo script corretto scrive nelle esecuzioni future la descrizione giusta e una nota sui contatori
+  (`classi_nota`); conteggi ed esiti non cambiano. Il test del loader (`tests/test_f1c.py`) ora verifica immagine
+  intera, numero della riga e riga scelta.
 - **Limiti residui:**
   - solo uguaglianza esatta: la stessa immagine ricompressa, ridimensionata o ritagliata con margini diversi non si
     vede. Servono pHash o somiglianze, fuori da questo lotto;

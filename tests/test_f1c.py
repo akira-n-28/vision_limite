@@ -175,11 +175,15 @@ def test_loaders(proc):
     img = Image.new("L", (640, 192), 255)
     um = {"rows": ["{a+b}{=c}", "{d}{=e}"], "lines": [[20, 80], [110, 170]], "max_patches": 480, "height": 192}
     files = {"png": png(img), "json": json.dumps(um).encode()}
+    k = data._unimer_line("train-0000001", um)  # una sola riga per record, scelta dalla chiave
     s = data.unimer_line_sample("train-0000001", files)
-    check("unimer_line: ritaglio di una riga", s.image.height < 192 and s.messages[1]["content"] in um["rows"], s.image.size)
+    check("unimer_line: ritaglio della riga scelta dalla chiave", s.image.height < 192
+          and s.messages[1]["content"] == um["rows"][k], s.image.size)
     s = data.unimer_line_select_sample("train-0000001", files)
-    check("unimer_line_select: richiesta della riga", "line" in s.messages[0]["content"][1]["text"]
-          and s.messages[1]["content"] in um["rows"])
+    check("unimer_line_select: immagine intera, non il ritaglio, e richiesta col numero della stessa riga",
+          s.image.size == img.size and s.messages[1]["content"] == um["rows"][k]
+          and s.messages[0]["content"][1]["text"] == f"Transcribe only line {k + 1} of the formula in the image into LaTeX.",
+          (s.image.size, s.messages[0]["content"][1]["text"]))
 
 
 def test_left_pad():

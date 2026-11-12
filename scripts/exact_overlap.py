@@ -23,9 +23,12 @@ Rappresentazioni (nessun hash ricalcolato):
   parquet di PixMo); per i sintetici non c'è un file distinto, perché il PNG dello shard è l'immagine generata;
 - `shard`: il file immagine dello shard che il loader legge e passa al processor (PNG generato, PNG denso di UniMER, PNG
   a 2304 patch di MAVIS, JPEG a 1024 patch di PixMo); per le righe ritagliate di UniMER è l'immagine intera da cui il
-  loader ritaglia;
-- `ritaglio k`: la riga k di UniMER come la ritaglia il loader (data.unimer_line_sample), cioè l'immagine data al
-  processor per transcribe_line e transcribe_line_select; solo pixel.
+  loader ritaglia, ed è anche l'immagine che riceve transcribe_line_select (data.unimer_line_select_sample), insieme
+  alla richiesta col numero della riga;
+- `ritaglio k`: la riga k di UniMER come la ritaglia il loader di transcribe_line (data.unimer_line_sample), cioè
+  l'immagine che quel compito dà al processor; solo pixel. transcribe_line_select non riceve ritagli. Il loader usa
+  una sola riga per record, scelta dalla chiave (data._unimer_line) e uguale per i due compiti; la scansione ha i pixel
+  di tutti i ritagli.
 Tipi di identità: `byte` (sha256 dei byte del file; originale e shard) e `pixel` (sha256 di dimensioni e valori RGB dopo
 processing.to_rgb, convenzione rgb-su-bianco/1, senza orientamento EXIF), usato solo se la scansione dichiara quella
 convenzione. Il pixel_sha256 del manifest dei sintetici è RGBA diretto (synth_candidate.decode_png): un'altra convenzione,
@@ -47,6 +50,12 @@ La stessa immagine è un legame visivo, non l'identità della domanda o della ri
 record non caricabili si riportano i motivi, con la loro portata (immagine, testo o risposta, gruppo, da esaminare).
 Una formula e la sua riga ritagliata (stessa chiave e stesso record_id) sono due voci e un solo record: i conteggi per
 record usano il record_id.
+
+Ripetizioni già coperte dai gruppi (`classi`): `legami_nei_gruppi` conta le classi con voci diverse tutte in un solo
+gruppo, `stessa_voce` quelle con tutte le occorrenze in una sola voce (originale e shard dello stesso file, due o più
+ritagli della stessa riga ritagliata). Sono conteggi di classi di digest per firma, non di voci o record: una voce può
+avere più classi e una classe più di due occorrenze. La ripetizione dei pixel non dice se le annotazioni coincidono né
+se input, richiesta e target costruiti dal loader sono in conflitto.
 
 Con --limit N si leggono solo le prime N righe di ogni records.jsonl.gz (prova limitata); gli sha256 dei file restano
 completi. Il rapporto ha allora `parziale` e la stima del lavoro completo.
@@ -91,10 +100,17 @@ REPRESENTATIONS = {
     "originale": "file dello snapshot: UniMER images/<i>.png e MAVIS <cartella>/<n>_caption.jpg degli zip, immagine del "
                  "parquet di PixMo; i sintetici non ne hanno uno distinto (il PNG dello shard è l'immagine generata)",
     "shard": "file immagine dello shard letto dal loader: PNG generato (sintetici), PNG denso (UniMER), PNG a 2304 patch "
-             "(MAVIS), JPEG a 1024 patch (PixMo); per le righe ritagliate di UniMER l'immagine intera da cui si ritaglia",
-    "ritaglio": "riga k di UniMER ritagliata come in data.unimer_line_sample (to_rgb), l'immagine data al processor per "
-                "transcribe_line e transcribe_line_select; solo pixel",
+             "(MAVIS), JPEG a 1024 patch (PixMo); per le righe ritagliate di UniMER l'immagine intera da cui si ritaglia, "
+             "che transcribe_line_select riceve intera con la richiesta del numero di riga",
+    "ritaglio": "riga k di UniMER ritagliata come in data.unimer_line_sample (to_rgb): l'immagine che transcribe_line dà "
+                "al processor; transcribe_line_select non riceve ritagli. Il loader usa una sola riga per record, scelta "
+                "dalla chiave e uguale per i due compiti; la scansione ha i pixel di tutti i ritagli; solo pixel",
 }
+CLASSES_NOTE = ("conteggi di classi di digest per firma, non di voci o record: `legami_nei_gruppi` = classi con voci "
+                "diverse tutte in un solo gruppo del manifest; `stessa_voce` = classi con tutte le occorrenze in una sola "
+                "voce (originale e shard dello stesso file, due o più ritagli della stessa riga ritagliata). Una voce può "
+                "avere più classi e una classe più di due occorrenze. La ripetizione dei pixel non dice se le annotazioni "
+                "coincidono né se input, richiesta e target costruiti dal loader sono in conflitto")
 TYPES = {"byte": "sha256 dei byte del file immagine (originale e shard; i ritagli non sono file)",
          "pixel": f"sha256 di dimensioni e valori RGB dopo processing.to_rgb, convenzione {IMAGE_CONVENTION} (trasparenze "
                   "su bianco, nessun orientamento EXIF), dalle scansioni che la dichiarano"}
@@ -888,7 +904,7 @@ def run(args) -> int:
         "copertura_nota": "per voce e rappresentazione (i ritagli per ritaglio): `disponibile` = digest confrontato con "
                           "tutti quelli dello stesso tipo; gli altri esiti sono controlli non eseguibili. Il pixel_sha256 "
                           "del manifest dei sintetici (RGBA diretto) non si usa: convenzione diversa",
-        "classi": built,
+        "classi": built, "classi_nota": CLASSES_NOTE,
         "componenti_con_piu_gruppi": len(comps),
         "categorie": categories,
         "coppie_di_sorgenti": pair_stats(comps, names),
