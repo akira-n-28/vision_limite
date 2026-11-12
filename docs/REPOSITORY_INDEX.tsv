@@ -120,6 +120,7 @@ docs/reader_smoke/c9-lettore-1.json	rapporto	corrente	collegamento del candidato
 docs/reviews/README.md	documento	corrente	navigazione dei rapporti	-
 docs/reviews/REVISIONE_INDIPENDENTE_GOLD_E_DECONTAMINAZIONE.md	documento	storico	rapporto indipendente immutato (versione e hash propri)	-
 docs/reviews/REVISIONE_INDIPENDENTE_PIPELINE_LIMITE_VL.md	documento	storico	rapporto indipendente immutato (versione e hash propri)	-
+docs/revisioni/synth-v4-campione-2-riesame-incerti.tsv	rapporto	corrente	riesame tecnico dei 15 candidati della decontaminazione con esito umano incerto (unita, record, conclusione, motivazione): 14 contenuto_diverso (y=x+1, coincidenza di una formula comune con domande e risposte diverse da DynaMath 96 e MV-MATH 1008), D-188 irrisolto (triangolo isoscele con angolo annotato di 74 gradi e stessa risposta di Geoperception 7600); ingresso di scripts/review_results.py --riesame	separato dal giudizio umano, che resta nei file caricati; non risolve nulla da solo: le riammissioni che ne dipendono chiedono l'approvazione dell'utente
 docs/specs/README.md	specifica	irrisolto	specifica F0 in bozza, da approvare	nessun codice la implementa
 docs/specs/S1_RECORD_MANIFEST.md	specifica	irrisolto	specifica F0 in bozza, da approvare	nessun codice la implementa
 docs/specs/S2_AMMISSIONE_PRIME_FAMIGLIE.md	specifica	irrisolto	specifica F0 in bozza, da approvare	nessun codice la implementa
