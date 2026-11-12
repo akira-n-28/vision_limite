@@ -124,3 +124,19 @@ contenuto. Il record resta nello stato conservativo corrente.
 - Non cambia il giudizio umano né il manifest. Le quattro riammissioni che ne dipendono restano proposte da approvare.
 - La mia lettura delle immagini è un controllo tecnico, non una seconda revisione umana indipendente.
 - Non cerca altri quasi-duplicati oltre ai candidati pHash della scansione.
+
+## Verifica degli ingressi (2026-11-12, integrazione-3, job 30917)
+
+Aggiunta dopo il riesame; le conclusioni del TSV (`cfb9651f…`) non cambiano.
+- **Identità degli ingressi.** `scripts/review_results.py` confronta, prima di usarli, gli ingressi del materiale con le
+  identità registrate:
+  - `index.json` (`02fb3cbf…`) ed `elements.jsonl.gz` (`dacbea54…`) di `pannello-v3`, con la sezione decontaminazione di
+    `synth-v4-candidato-2`;
+  - i parquet dei benchmark consultati, DynaMath `sample8` (`d886452b…`, `downloads/manifests/p6.tsv`) e Geoperception
+    (`30ac27c3…`, `downloads/manifests/p8-f1clean.tsv`). MV-MATH è letto solo dal testo dell'indice.
+
+  Una differenza ferma l'esecuzione; gli ingressi verificati sono in `ingressi_del_riesame` del rapporto.
+- **Esito.** Il materiale del riesame è uguale byte per byte a quello di integrazione-2, su cui il riesame è stato
+  scritto: le conclusioni valgono per gli ingressi verificati, e la revisione visiva non si ripete.
+- **Uso.** `synth-v4-candidato-3` accetta il riesame (S2 §2.14): riammette le quattro coppie e lascia `synth-0016025` in
+  quarantena.

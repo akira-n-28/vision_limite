@@ -21,6 +21,12 @@ pannello cambia; nessuna stima (C8) e nessuna certificazione. Fa:
    delle corrispondenze, testo dell'elemento del pannello (indice) e riga del benchmark;
 8. proposta per record e gruppo di aggiornamento delle ammissioni, non applicata; il riesame tecnico facoltativo
    (--riesame) resta separato dal giudizio umano.
+Gli ingressi del riesame (index.json ed elements.jsonl.gz del pannello, file dei benchmark consultati) si confrontano,
+prima di usarli, con le identità registrate: la sezione decontaminazione del manifest e i manifest di download
+(downloads/manifests). Una differenza ferma l'esecuzione; gli ingressi verificati sono nel rapporto
+(ingressi_del_riesame). Con --precedente NOME materiale del riesame e proposta si confrontano con quelli di
+outputs/review_results/NOME: se coincidono, il riesame tecnico già scritto vale e il TSV della proposta per git resta
+quello del run precedente.
 
     srun $RUN_PYTHON -u -B scripts/review_results.py --pacchetto DIR --avanzamento FILE SHA256 --esiti FILE SHA256 \\
         --esiti-decontaminazione FILE SHA256 --campione DIR --manifest DIR --indice DIR --pannello DIR \\
@@ -259,12 +265,84 @@ def norm_answer(text: str):
     return ("testo", s)
 
 
-def compare_answer(first: dict, target: str) -> str:
+PRESENCE_TYPES = ("exists", "has_type")  # domande sì/no sulla presenza di un'etichetta o di un tipo di figura
+POSSIBLE = "possibile_equivalenza_semantica"
+
+
+def compare_answer(first: dict, target: str, qtype: str | None = None) -> str:
+    """Prima risposta contro il target: uguale, equivalente nella scrittura, possibile equivalenza semantica (0 per no
+    a una domanda di presenza: zero figure di quel tipo è la loro assenza), diversa. Il confronto non legge le note del
+    revisore e non decide se una risposta diversa sia un errore semantico."""
     if first["non_riesco"]:
         return "non_riesco"
     if first["risposta"].strip() == target.strip():
         return "uguale"
-    return "equivalente_nella_scrittura" if norm_answer(first["risposta"]) == norm_answer(target) else "diversa"
+    if norm_answer(first["risposta"]) == norm_answer(target):
+        return "equivalente_nella_scrittura"
+    if qtype in PRESENCE_TYPES and norm_answer(target) == ("testo", "no") \
+            and norm_answer(first["risposta"]) == ("numero", 0.0):
+        return POSSIBLE
+    return "diversa"
+
+
+# ---------------------------------------------------------------- identità degli ingressi del riesame
+
+DOWNLOADS = ROOT / "downloads" / "manifests"
+
+
+def registered_inputs(meta: dict) -> dict[str, dict]:
+    """Identità di indice e gruppi del pannello registrate dal manifest revisionato (sezione decontaminazione di
+    synth-v4-candidato-2): percorso, byte e sha256 attesi."""
+    d = meta.get("decontaminazione") or {}
+    out = {}
+    if d.get("indice"):
+        out["index.json"] = {k: d["indice"].get(k) for k in ("path", "bytes", "sha256")}
+    if (d.get("pannello") or {}).get("elements"):
+        out["elements.jsonl.gz"] = {k: d["pannello"]["elements"].get(k) for k in ("path", "bytes", "sha256")}
+    return out
+
+
+def download_identity(path: Path, folder: Path = DOWNLOADS) -> dict | None:
+    """Riga del manifest di download (url, dest, byte, hash, etichetta) del blob a cui punta un file dello snapshot
+    Hugging Face: l'identità con cui scripts/fetch_manifest.sh lo ha scaricato e slurm/verify_hashes.sbatch verificato."""
+    blob = str(Path(path).resolve())
+    for tsv in sorted(folder.glob("*.tsv")):
+        for line in tsv.read_text(encoding="utf-8").splitlines():
+            cells = line.split("\t")
+            if len(cells) >= 4 and cells[1] == blob:
+                try:
+                    size = int(cells[2])
+                except ValueError:
+                    continue
+                return {"manifest": str(tsv.relative_to(ROOT)) if tsv.is_relative_to(ROOT) else str(tsv),
+                        "dest": blob, "bytes": size, "hash": cells[3], "etichetta": cells[4] if len(cells) > 4 else None}
+    return None
+
+
+def check_input(path: Path, expected: dict | None, what: str) -> dict:
+    """Identità di un ingresso confrontata con quella registrata, prima di usarlo: percorso (se registrato), byte e
+    sha256 uguali, altrimenti Failed. Restituisce la voce per il rapporto."""
+    path = Path(path)
+    if not expected or not expected.get("sha256"):
+        raise Failed(f"{what}: nessuna identità registrata per {path}")
+    if expected.get("path") and Path(expected["path"]).resolve() != path.resolve():
+        raise Failed(f"{what}: {path} non è il file registrato {expected['path']}")
+    if not path.is_file():
+        raise Failed(f"{what}: {path} mancante")
+    size, digest = path.stat().st_size, sha256_file(path)
+    if size != expected.get("bytes") or digest != expected["sha256"]:
+        raise Failed(f"{what}: {path} con {size} byte e sha256 {digest[:12]}, registrati {expected.get('bytes')} e "
+                     f"{expected['sha256'][:12]}")
+    return {"ingresso": what, "percorso": str(path), "bytes": size, "sha256": digest}
+
+
+def benchmark_identity(path: Path) -> dict | None:
+    """Identità attesa di un file di benchmark dal manifest di download, solo se è uno sha256."""
+    ident = download_identity(path)
+    if ident is None or not ident["hash"].startswith("sha256:"):
+        return None
+    return {"bytes": ident["bytes"], "sha256": ident["hash"].split(":", 1)[1], "registrato_da": ident["manifest"],
+            "etichetta": ident["etichetta"]}
 
 
 def visual_positive(unit_state: dict, independent: bool) -> tuple[bool, dict]:
@@ -409,6 +487,7 @@ def run_logic(pkg_dir: Path, text: str) -> dict:
 
 
 TABLES: dict[Path, list[dict]] = {}
+INPUTS: list[dict] = []  # ingressi del riesame verificati, nell'ordine d'uso (incerti_material li azzera)
 
 
 def bench_row(entry: dict) -> dict | None:
@@ -421,7 +500,10 @@ def bench_row(entry: dict) -> dict | None:
     if spec is None:
         return None
     path = pi.snap(spec["repo"], spec["rev"]) / entry["file"]
-    if path not in TABLES:
+    if path not in TABLES:  # prima di leggerlo: il file deve avere l'identità del manifest di download
+        expected = benchmark_identity(path)
+        INPUTS.append({**check_input(path, expected, f"file del benchmark {entry['benchmark']}"),
+                       "registrato_da": expected["registrato_da"], "etichetta": expected["etichetta"]})
         keep = [f.name for f in pq.read_schema(path)
                 if not str(f.type).startswith(("binary", "large_binary", "struct", "list", "large_list"))]
         TABLES[path] = pq.read_table(path, columns=keep).to_pylist()
@@ -433,10 +515,19 @@ def bench_row(entry: dict) -> dict | None:
 
 
 def incerti_material(pkg: dict, state: dict, by_key: dict, groups: dict, index_dir: Path, panel_dir: Path,
-                     checks: Checks) -> list[dict]:
+                     checks: Checks, registered: dict | None = None) -> list[dict]:
     """Materiale del riesame per i candidati con esito umano incerto: record (JSON dallo shard, sha256 del manifest),
     gruppo, corrispondenze con esame e note, elementi del pannello (voce dell'indice, riga del benchmark, gruppo e
-    ruoli del pannello)."""
+    ruoli del pannello). Prima di usarli, index.json ed elements.jsonl.gz devono avere le identità registrate dal
+    manifest (`registered`, registered_inputs) e ogni file di benchmark consultato quella del suo manifest di download:
+    una differenza ferma l'esecuzione (Failed). Gli ingressi verificati vanno nei controlli e in INPUTS."""
+    INPUTS.clear()
+    registered = registered or {}
+    INPUTS.append({**check_input(index_dir / "index.json", registered.get("index.json"), "index.json del pannello"),
+                   "registrato_da": "manifest: decontaminazione.indice"})
+    INPUTS.append({**check_input(panel_dir / "elements.jsonl.gz", registered.get("elements.jsonl.gz"),
+                                 "elements.jsonl.gz del pannello"),
+                   "registrato_da": "manifest: decontaminazione.pannello.elements"})
     incerti = [d for d in pkg["decontaminazione"] if state["decontaminazione"][d["id"]]["esito"] == "incerto"]
     keys = {d["record"] for d in incerti}
     found = {}
@@ -487,6 +578,9 @@ def incerti_material(pkg: dict, state: dict, by_key: dict, groups: dict, index_d
                     "esito_umano": v["esito"], "nota_umana": v["note"], "spec": data.get("spec"),
                     "qa": data.get("qa"), "domanda_della_coppia": data.get("pair"), "membri_del_gruppo": members,
                     "corrispondenze": matches})
+    for x in INPUTS:
+        checks(f"riesame: ingresso {x['ingresso']} con l'identità registrata ({x['registrato_da']})", True,
+               {"percorso": x["percorso"], "sha256": x["sha256"], "bytes": x["bytes"]})
     return out
 
 
@@ -679,7 +773,7 @@ def run(args) -> int:
             targets = {x["variante"]: x["risposta"] for x in s["varianti"]}
             for k in u["varianti"]:
                 p, d = v["prima"]["varianti"][k], v["dopo"]["varianti"][k]
-                cmp_ = compare_answer(p, targets[k]) if u["livello"] == "qa" else "caso_sulla_scena"
+                cmp_ = compare_answer(p, targets[k], u["tipo"]) if u["livello"] == "qa" else "caso_sulla_scena"
                 targets.setdefault(k, None)
                 g = table[u["gruppo"]]
                 g["varianti"]["n"] += 1
@@ -706,7 +800,9 @@ def run(args) -> int:
     not_pos += [f"{u['id']}/coppia: {c}" for u in units if u["coppia"]
                 for c in [state["unita"][u["id"]]["dopo"]["coppia"]] if (c["contratto_coppia"], c["gravita"])
                 != ("si", "nessun_difetto")]
-    diverse = [x for x in per_unit if x["confronto"] == "diversa"]
+    # prime risposte che il confronto classifica diverse o possibili equivalenze: con le note originali, senza dedurne
+    # errori semantici né una sensibilità del revisore
+    diverse = [x for x in per_unit if x["confronto"] in ("diversa", POSSIBLE)]
     notes = [x for x in per_unit if x["note"].strip() or x["risposta_dopo_soluzione"].strip()]
     dec = Counter(state["decontaminazione"][i]["esito"] for i in didx)
     exams = values["esame_corrispondenza"]
@@ -726,7 +822,8 @@ def run(args) -> int:
     groups = defaultdict(list)
     for r in by_key.values():
         groups[r["gruppo"]].append(r)
-    incerti = incerti_material(pkg, state, by_key, groups, args.indice, args.pannello, checks)
+    incerti = incerti_material(pkg, state, by_key, groups, args.indice, args.pannello, checks,
+                               registered_inputs(m.meta))
     technical = read_technical(args.riesame, {x["unita"]: x["record"] for x in incerti})
 
     # ---- 8. proposta per record e gruppo
@@ -799,6 +896,13 @@ def run(args) -> int:
               "conteggi": {"osservati": observed, "dichiarati": stated, "valori": {k: dict(c) for k, c in values.items()},
                            "per_sezione": by_section},
               "prime_risposte_diverse": diverse, "note_del_revisore": notes,
+              "prime_risposte": {
+                  "confronto": dict(Counter(x["confronto"] for x in per_unit)),
+                  "lettura": "confronto di stringhe dopo le equivalenze di scrittura; una possibile equivalenza "
+                             "semantica (0 per no a una domanda di presenza) resta distinta. Le prime risposte diverse "
+                             "hanno un'autocorrezione del revisore nelle note, conservate come sono: non sono errori "
+                             "semantici dimostrati e non misurano la sensibilità del revisore"},
+              "ingressi_del_riesame": list(INPUTS),
               "riesame_incerti": incerti, "riesame_tecnico": technical,
               "proposta": {"riepilogo": summary, "gruppi": group_rows},
               "c8": {"stato": "non applicato: la corrispondenza fra esiti del pacchetto ed esiti di C8 è una proposta "
@@ -809,16 +913,47 @@ def run(args) -> int:
                                                "sensibilità del revisore non misurata: conclusioni condizionate"],
                      "certificazione": "nessuna"},
               "costi": {"secondi": round(time.time() - t0, 1)}}
-    write_new_json(out_dir / "report.json", report)
-    write_tsv(out_dir / "esiti_per_unita.tsv", per_unit)
     flat = [{**{k: v for k, v in x.items() if k not in ("motivi", "motivi_rimovibili", "blocchi_rimanenti")},
              "motivi": "; ".join(f"{k}={v}" for k, v in x["motivi"].items()),
              "motivi_rimovibili": ",".join(x["motivi_rimovibili"]), "blocchi_rimanenti": ",".join(x["blocchi_rimanenti"])}
             for x in rows]
-    write_tsv(out_dir / "proposta_ammissioni.tsv", flat)
     touched = {g for g in (x["gruppo"] for x in group_rows)} | {by_key[r]["gruppo"] for r in visual}
+    docs_rows = [x for x in flat if x["gruppo"] in touched]
+    same_docs = False
+    if args.precedente:  # stesso riesame su ingressi verificati: materiale e proposta confrontati col run precedente
+        prev_dir = ROOT / "outputs" / "review_results" / args.precedente
+        prev = json.loads((prev_dir / "report.json").read_text(encoding="utf-8"))
+        norm = lambda x: json.dumps(json.loads(json.dumps(x, ensure_ascii=False)), sort_keys=True,  # noqa: E731
+                                    ensure_ascii=False)
+        prev_docs = Path(docs).parent / f"{pkg['id']}-{args.precedente}-proposta.tsv"
+        new_full, new_docs = tsv_text(flat), tsv_text(docs_rows)
+        same_full = (prev_dir / "proposta_ammissioni.tsv").read_text(encoding="utf-8") == new_full
+        same_docs = prev_docs.is_file() and prev_docs.read_text(encoding="utf-8") == new_docs
+        prev_units = {(x["unita"], x["variante"]): x["confronto"] for x in prev["prime_risposte_diverse"]}
+        now_units = {(x["unita"], x["variante"]): x["confronto"] for x in diverse}
+        report["confronto_col_precedente"] = {
+            "nome": args.precedente, "rapporto": file_entry(prev_dir / "report.json"),
+            "materiale_riesame_uguale": norm(prev["riesame_incerti"]) == norm(incerti),
+            "riesame_tecnico_uguale": prev.get("riesame_tecnico") == technical,
+            "proposta_completa": {"sha256": mf.sha256_text(new_full), "uguale": same_full},
+            "proposta_docs": {"path": str(prev_docs.relative_to(ROOT)), "uguale": same_docs,
+                              "sha256": mf.sha256_text(new_docs)},
+            "confronto_delle_prime_risposte_cambiato": sorted(
+                f"{u}/{v}: {prev_units.get((u, v), 'uguale o equivalente')} -> {now_units.get((u, v), 'uguale o equivalente')}"
+                for (u, v) in set(prev_units) | set(now_units) if prev_units.get((u, v)) != now_units.get((u, v)))}
+        checks(f"riesame: materiale uguale a quello di {args.precedente} (record, corrispondenze, voci e righe dei "
+               "benchmark), quindi il riesame tecnico già scritto vale per gli ingressi verificati",
+               report["confronto_col_precedente"]["materiale_riesame_uguale"]
+               and report["confronto_col_precedente"]["riesame_tecnico_uguale"])
+        checks(f"proposta uguale byte per byte a quella di {args.precedente} (completa e per git)", same_full and same_docs,
+               {"completa": same_full, "per_git": same_docs})
+        report["controlli"], report["falliti"] = checks.items, checks.failed()
+    write_new_json(out_dir / "report.json", report)
+    write_tsv(out_dir / "esiti_per_unita.tsv", per_unit)
+    write_tsv(out_dir / "proposta_ammissioni.tsv", flat)
     Path(f"{docs}.json").parent.mkdir(parents=True, exist_ok=True)
-    write_tsv(Path(f"{docs}-proposta.tsv"), [x for x in flat if x["gruppo"] in touched])
+    if not same_docs:  # con la proposta uguale a quella del run precedente, il TSV per git resta quello
+        write_tsv(Path(f"{docs}-proposta.tsv"), docs_rows)
     def slim(x: dict) -> dict:  # nel riepilogo per git i membri dei gruppi si riassumono; l'elenco è in report.json
         ms = x["membri_del_gruppo"]
         return {**x, "membri_del_gruppo": {
@@ -855,13 +990,16 @@ def _motive_counts(rows):
     return out
 
 
+def tsv_text(rows: list[dict]) -> str:
+    cols = list(rows[0]) if rows else []
+    cell = lambda v: "" if v is None else str(v).replace("\\", "\\\\").replace("\n", "\\n").replace("\t", "\\t")  # noqa: E731
+    return "\t".join(cols) + "\n" + "".join("\t".join(cell(r[c]) for c in cols) + "\n" for r in rows)
+
+
 def write_tsv(path: Path, rows: list[dict]) -> None:
     if path.exists():
         raise Failed(f"{path} esiste già")
-    cols = list(rows[0]) if rows else []
-    cell = lambda v: "" if v is None else str(v).replace("\\", "\\\\").replace("\n", "\\n").replace("\t", "\\t")  # noqa: E731
-    path.write_text("\t".join(cols) + "\n" + "".join("\t".join(cell(r[c]) for c in cols) + "\n" for r in rows),
-                    encoding="utf-8")
+    path.write_text(tsv_text(rows), encoding="utf-8")
 
 
 def main() -> None:
@@ -874,6 +1012,7 @@ def main() -> None:
     ap.add_argument("--indice", type=Path, required=True)
     ap.add_argument("--pannello", type=Path, required=True)
     ap.add_argument("--riesame", type=Path)
+    ap.add_argument("--precedente", help="nome del run precedente in outputs/review_results, per il confronto")
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--docs", required=True, help="prefisso del riepilogo versionato (.json e -proposta.tsv)")
     args = ap.parse_args()

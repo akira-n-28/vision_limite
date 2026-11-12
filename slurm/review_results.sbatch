@@ -4,8 +4,12 @@
 # synth-v4-candidato-2, indice e gruppi di pannello-v3 in sola lettura; nessun manifest, config o ruolo cambiato.
 # Prima: i tre file di risultati uguali ai blob del commit che li ha caricati (777e30c) e pacchetto senza modifiche
 # locali; poi il test mirato; se uno dei due fallisce non si legge nulla.
-# Uso: sbatch slurm/review_results.sbatch NOME [RIESAME]
+# Uso: sbatch slurm/review_results.sbatch NOME [RIESAME [PRECEDENTE]]
 #   RIESAME: TSV del riesame tecnico dei candidati incerti (unita, record, conclusione, motivazione), facoltativo
+#   PRECEDENTE: nome di un run precedente (outputs/review_results/PRECEDENTE): materiale del riesame e proposta si
+#     confrontano con i suoi; con la proposta uguale il TSV per git resta quello del run precedente
+#   Gli ingressi del riesame (indice, gruppi del pannello, file dei benchmark) si verificano sempre contro le identità
+#   registrate (manifest e downloads/manifests) prima di usarli.
 #   -> outputs/review_results/NOME/{report.json, verifica_pacchetto.json, esiti_per_unita.tsv, proposta_ammissioni.tsv}
 #      e, per git, docs/revisioni/synth-v4-campione-2-NOME.json e docs/revisioni/synth-v4-campione-2-NOME-proposta.tsv
 #SBATCH --job-name=lvl-review-results
@@ -20,8 +24,8 @@
 
 set -euo pipefail
 : "${SLURM_JOB_ID:?Submit through SLURM}"
-(( $# == 1 || $# == 2 )) && [[ $1 =~ ^[A-Za-z0-9_-]+$ ]] || { echo "uso: review_results.sbatch NOME [RIESAME]" >&2; exit 2; }
-NAME=$1 TECH=${2:-}
+(( $# >= 1 && $# <= 3 )) && [[ $1 =~ ^[A-Za-z0-9_-]+$ ]] || { echo "uso: review_results.sbatch NOME [RIESAME [PRECEDENTE]]" >&2; exit 2; }
+NAME=$1 TECH=${2:-} PREV=${3:-}
 source /home/prignano/vision_limite/config/paths.env
 export SEED=0 CONFIG_PATH=-
 PKG="$PROJECT_ROOT/revisioni/synth-v4-campione-2"
@@ -59,6 +63,11 @@ if [[ -n $TECH ]]; then
   test -s "$TECH" || { echo "riesame mancante: $TECH" >&2; exit 2; }
   EXTRA=(--riesame "$TECH")
 fi
+if [[ -n $PREV ]]; then
+  [[ $PREV =~ ^[A-Za-z0-9_-]+$ && -s $OUTPUT_ROOT/review_results/$PREV/report.json ]] \
+    || { echo "run precedente mancante: $PREV" >&2; exit 2; }
+  EXTRA+=(--precedente "$PREV")
+fi
 [[ ! -e $OUT && ! -e $DOCS.json && ! -e $DOCS-proposta.tsv ]] || { echo "uscite già presenti per $NAME" >&2; exit 1; }
 mkdir -p "$(dirname "$OUT")" "$(dirname "$DOCS")"
 export OMP_NUM_THREADS=1
@@ -72,7 +81,7 @@ if srun "$RUN_PYTHON" -u -B scripts/review_results.py --pacchetto "$PKG" \
     --campione "$OUTPUT_ROOT/synth_gold_review/campione-2" --manifest "$DATA_ROOT/manifests/synth-v4-candidato-2" \
     --indice "$DATA_ROOT/decontam/pannello-v3" --pannello "$DATA_ROOT/panel/pannello-v3" "${EXTRA[@]}" \
     --out "$OUT" --docs "$DOCS"; then
-  ledger_note ok "review_results $NAME -> $OUT/report.json, riepilogo $DOCS.json e $DOCS-proposta.tsv"
+  ledger_note ok "review_results $NAME -> $OUT/report.json, riepilogo $DOCS.json$([[ -e $DOCS-proposta.tsv ]] && echo " e $DOCS-proposta.tsv")"
 else
   ledger_note failed "review_results $NAME: controlli falliti o arresto -> $OUT"
   exit 1

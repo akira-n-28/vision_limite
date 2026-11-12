@@ -216,6 +216,50 @@ def test_technical():
             check(f"riesame: {name} rifiutata", raises(lambda: rr.read_technical(p, incerti)))
 
 
+def test_possible_equivalence():
+    first = lambda a: {"risposta": a, "non_riesco": False}  # noqa: E731
+    check("risposte: 0 per no a una domanda di presenza è una possibile equivalenza semantica, distinta",
+          rr.compare_answer(first("0"), "no", "has_type") == rr.POSSIBLE
+          and rr.compare_answer(first("zero"), "no", "exists") == rr.POSSIBLE)
+    check("risposte: 2 per no a una domanda di presenza resta diversa, come 0 per no a un conteggio",
+          rr.compare_answer(first("2"), "no", "exists") == "diversa"
+          and rr.compare_answer(first("0"), "no", "count") == "diversa"
+          and rr.compare_answer(first("0"), "no") == "diversa")
+
+
+def test_input_identity():
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp = Path(tmp)
+        f = tmp / "index.json"
+        f.write_text('{"items": []}', encoding="utf-8")
+        good = {"path": str(f), "bytes": f.stat().st_size, "sha256": hashlib.sha256(f.read_bytes()).hexdigest()}
+        check("ingressi: file con percorso, byte e sha256 registrati accettato",
+              rr.check_input(f, good, "indice")["sha256"] == good["sha256"])
+        check("ingressi: sha256 diverso da quello registrato rifiutato",
+              raises(lambda: rr.check_input(f, {**good, "sha256": "0" * 64}, "indice")))
+        check("ingressi: file diverso da quello registrato rifiutato",
+              raises(lambda: rr.check_input(f, {**good, "path": str(tmp / "altro.json")}, "indice")))
+        check("ingressi: nessuna identità registrata rifiutata", raises(lambda: rr.check_input(f, None, "indice")))
+        manifests = tmp / "manifests"
+        manifests.mkdir()
+        blob = tmp / "blob"
+        blob.write_bytes(b"parquet")
+        digest = hashlib.sha256(b"parquet").hexdigest()
+        (manifests / "p.tsv").write_text(f"url\tdest\tsize_bytes\thash\tlabel\nhttps://x\t{blob}\t7\tsha256:{digest}\tr@1:f\n"
+                                         f"https://y\t{tmp / 'small'}\t3\tgitsha1:abc\tr@1:g\n", encoding="utf-8")
+        link = tmp / "snapshot.parquet"
+        link.symlink_to(blob)
+        ident = rr.download_identity(link, manifests)
+        check("ingressi: identità di un file dello snapshot dal manifest di download (blob a cui punta)",
+              ident is not None and ident["hash"] == f"sha256:{digest}" and ident["bytes"] == 7, ident)
+        check("ingressi: nessuna riga per un file non scaricato col kit", rr.download_identity(tmp / "index.json",
+                                                                                                manifests) is None)
+        meta = {"decontaminazione": {"indice": good, "pannello": {"elements": {**good, "path": str(tmp / "e.gz")}}}}
+        reg = rr.registered_inputs(meta)
+        check("ingressi: identità di indice e gruppi del pannello dal manifest revisionato",
+              reg["index.json"] == good and reg["elements.jsonl.gz"]["path"] == str(tmp / "e.gz"))
+
+
 if __name__ == "__main__":
     test_tsv()
     test_read_results()
@@ -223,6 +267,8 @@ if __name__ == "__main__":
     test_rows()
     test_decontam()
     test_answers()
+    test_possible_equivalence()
+    test_input_identity()
     test_propose()
     test_technical()
     print(f"\n{'falliti: ' + ', '.join(FAILS) if FAILS else 'falliti: nessuno'}")
