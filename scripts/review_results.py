@@ -237,10 +237,17 @@ def decontam_errors(d: dict, v: dict) -> list[str]:
     return out
 
 
+NUMBER_WORDS = {w: str(i) for i, w in enumerate(
+    "zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen "
+    "eighteen nineteen twenty".split())}
+
+
 def norm_answer(text: str):
     """Forma normalizzata di una risposta breve, per riconoscere equivalenze di scrittura (maiuscole, spazi, punto
-    finale, gradi, zeri decimali, coordinate): non decide equivalenze semantiche."""
+    finale, gradi, zeri decimali, numeri in lettere fino a venti, coordinate). Le altre equivalenze semantiche restano
+    da leggere caso per caso."""
     s = re.sub(r"\s+", " ", text.strip().lower().replace("\u2212", "-").replace("°", "")).rstrip(".").strip()
+    s = NUMBER_WORDS.get(s, s)
     t = s.replace(" ", "")
     try:
         return ("numero", float(t))
@@ -748,7 +755,30 @@ def run(args) -> int:
         "gruppi_con_candidati": dict(Counter(g["stato_decontaminazione"] for g in group_rows)),
         "regola_quarantena_visiva": VISUAL_RULE,
         "quarantene_visive": dict(Counter("positiva" if v[0] else "non_positiva" for v in visual.values())),
+        # i 264 candidati per esito umano e categoria proposta: un "no" non vuol dire riammesso
+        "candidati_per_esito_umano_e_categoria": dict(sorted(Counter(
+            f"{x['esito_umano']}/{x['categoria']}" for x in rows
+            if x["esito_proprio_decontaminazione"] == "candidato").items())),
+        "riammissioni_per_motivo_tolto": dict(sorted(Counter(
+            ",".join(x["motivi_rimovibili"]) + (" (candidato)" if x["esito_proprio_decontaminazione"] == "candidato"
+                                                else " (membro del gruppo)")
+            for x in rows if x["categoria"] == "riammissione_proposta").items())),
     }
+    status_of = {g["gruppo"]: g["stato_decontaminazione"] for g in group_rows}
+    category_of = {x["record"]: x["categoria"] for x in rows}
+    panel = []  # record sintetici di sviluppo o valutazione con candidati (regola del pannello, PANNELLO_VALUTAZIONE §3.1)
+    for d in pkg["decontaminazione"]:
+        rec = by_key[d["record"]]
+        if rec["insieme"] == "train" and rec["split"] != "dev":
+            continue
+        panel.append({"record": d["record"], "unita": d["id"], "insieme": rec["insieme"], "split": rec["split"],
+                      "esito_umano": human[d["record"]], "riesame_tecnico": technical.get(d["record"]),
+                      "stato_decontaminazione_gruppo": status_of.get(rec["gruppo"]),
+                      "categoria": category_of.get(d["record"]),
+                      "elementi_test": sorted({x["elemento"] for x in d["elenco"] if x["ruolo"] == "test"}),
+                      "altri_elementi": sorted({f"{x['elemento']} ({x['ruolo']})" for x in d["elenco"]
+                                                if x["ruolo"] != "test"})})
+    summary["record_di_sviluppo_e_valutazione_con_candidati"] = panel
 
     # ---- uscite
     report = {"schema": SCHEMA, "job_id": os.environ.get("SLURM_JOB_ID"), "codice": code_identity(),
@@ -789,8 +819,17 @@ def run(args) -> int:
     touched = {g for g in (x["gruppo"] for x in group_rows)} | {by_key[r]["gruppo"] for r in visual}
     Path(f"{docs}.json").parent.mkdir(parents=True, exist_ok=True)
     write_tsv(Path(f"{docs}-proposta.tsv"), [x for x in flat if x["gruppo"] in touched])
-    light = {**report, "file_completi": {n: str((out_dir / n).relative_to(ROOT)) for n in
-                                         ("report.json", "esiti_per_unita.tsv", "proposta_ammissioni.tsv")}}
+    def slim(x: dict) -> dict:  # nel riepilogo per git i membri dei gruppi si riassumono; l'elenco è in report.json
+        ms = x["membri_del_gruppo"]
+        return {**x, "membri_del_gruppo": {
+            "n": len(ms), "valutazione": [m["record"] for m in ms if m["insieme"] != "train"],
+            "per_insieme_split_stato_esito": dict(Counter(f"{m['insieme']}/{m['split']}/{m['stato']}/{m['esito_proprio']}"
+                                                          for m in ms))}}
+
+    light = {**report, "riesame_incerti": [slim(x) for x in incerti],
+             "proposta": {**report["proposta"], "gruppi": [{**g, "membri": len(g["membri"])} for g in group_rows]},
+             "file_completi": {n: str((out_dir / n).relative_to(ROOT)) for n in
+                               ("report.json", "esiti_per_unita.tsv", "proposta_ammissioni.tsv")}}
     write_new_json(Path(f"{docs}.json"), light)
     print(json.dumps({"controlli": len(checks.items), "falliti": checks.failed(), "categorie": summary["categorie"],
                       "secondi": report["costi"]["secondi"]}, ensure_ascii=False), flush=True)

@@ -146,7 +146,7 @@ def test_decontam():
 
 
 def test_answers():
-    same = [("(5, -5)", "(5,-5)"), ("12", "12.0"), ("Above", "above"), ("60°", "60"), ("yes.", "yes")]
+    same = [("(5, -5)", "(5,-5)"), ("12", "12.0"), ("Above", "above"), ("60°", "60"), ("yes.", "yes"), ("two", "2")]
     check("risposte: equivalenze di scrittura riconosciute",
           all(rr.compare_answer({"risposta": a, "non_riesco": False}, b) == "equivalente_nella_scrittura" for a, b in same))
     check("risposte: uguali, diverse e non date distinte",
