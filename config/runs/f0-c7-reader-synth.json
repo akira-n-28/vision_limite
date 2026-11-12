@@ -1,0 +1,41 @@
+{
+ "notes": "Collaudo F0 del reader dei sintetici v4 col manifest candidato synth-v4-candidato-3 (scripts/manifest_check.py --config, slurm/synth_qa_policy.sbatch verifica; S2 §2.14). Solo collaudo CPU: non è una ricetta di training e non autorizza nessun run; pesi, durate e mix non sono decisi. Il manifest è identificato dallo sha256 di manifest.json e dichiara la politica delle domande: il tipo synth_qa legge per compito, function/exists è escluso prima della scelta delle domande, e un record riammesso dalla revisione non riabilita un compito escluso. La validazione è lo split dev dello stesso manifest; test e coppie sono valutazione riservata. 'Ammesso' è la decisione operativa del candidato, non gold e non certificazione.",
+ "sources": [
+  {
+   "name": "synth-train",
+   "kind": "synth_qa",
+   "shards": "data/shards/synth/v4/train/*.tar",
+   "weight": 1.0,
+   "manifest": "data/manifests/synth-v4-candidato-3",
+   "manifest_sha256": "95a4ac348158633a03e14dc20a06174d2ced3b3a45cabb618827d0b0d256386f",
+   "split": "train"
+  },
+  {
+   "name": "synth-dev",
+   "kind": "synth_qa",
+   "shards": "data/shards/synth/v4/train/*.tar",
+   "weight": 1.0,
+   "manifest": "data/manifests/synth-v4-candidato-3",
+   "manifest_sha256": "95a4ac348158633a03e14dc20a06174d2ced3b3a45cabb618827d0b0d256386f",
+   "split": "dev"
+  },
+  {
+   "name": "synth-test",
+   "kind": "synth_qa",
+   "shards": "data/shards/synth/v4/test/*.tar",
+   "weight": 1.0,
+   "manifest": "data/manifests/synth-v4-candidato-3",
+   "manifest_sha256": "95a4ac348158633a03e14dc20a06174d2ced3b3a45cabb618827d0b0d256386f",
+   "split": "test"
+  },
+  {
+   "name": "synth-coppie",
+   "kind": "synth_qa",
+   "shards": "data/shards/synth/v4/pairs/*.tar",
+   "weight": 1.0,
+   "manifest": "data/manifests/synth-v4-candidato-3",
+   "manifest_sha256": "95a4ac348158633a03e14dc20a06174d2ced3b3a45cabb618827d0b0d256386f",
+   "split": "test"
+  }
+ ]
+}

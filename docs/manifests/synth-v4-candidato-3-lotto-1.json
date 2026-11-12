@@ -1,0 +1,1767 @@
+{
+ "schema": "manifest-check/1",
+ "job_id": "30923",
+ "code": {
+  "commit": "5038c6667bec9d66d56c9b5dd62d85fb23655e6b",
+  "dirty": true,
+  "diff_sha256": "cc7bbf793b2dce11c7e4a69ee0f4602115fc78536795042957952b5f1875c422",
+  "untracked": [
+   "config/runs/f0-c7-reader-synth.json",
+   "docs/inventari/synth-v4-scorciatoia-exists-lotto-1.json",
+   "docs/inventari/synth-v5-diagnostica-lotto-1.json",
+   "docs/revisioni/synth-v4-campione-2-integrazione-3.json",
+   "scripts/synth_qa_policy.py",
+   "slurm/synth_qa_policy.sbatch",
+   "tests/test_synth_policy.py"
+  ]
+ },
+ "args": {
+  "manifest": "/home/prignano/vision_limite/data/manifests/synth-v4-candidato-3",
+  "shards": "/home/prignano/vision_limite/data/shards/synth/v4",
+  "v3_shards": "/home/prignano/vision_limite/data/shards/synth/v3",
+  "out": "/home/prignano/vision_limite/outputs/manifest_check/synth-v4-candidato-3-lotto-1",
+  "workers": "2",
+  "stream_batches": "30",
+  "config": "config/runs/f0-c7-reader-synth.json"
+ },
+ "manifest": {
+  "path": "/home/prignano/vision_limite/data/manifests/synth-v4-candidato-3",
+  "manifest_sha256": "95a4ac348158633a03e14dc20a06174d2ced3b3a45cabb618827d0b0d256386f",
+  "records_sha256": "fb8fca145c52447dcf9025b18260e8cfaa7a01e806bac09bb829a9111a4268ce",
+  "split_ereditato_da": {
+   "percorso": "data/manifests/synth-v4-candidato-2",
+   "versione": "2",
+   "manifest_sha256": "9a8104cdea4b56ef333e7d1e9629d7cfd638ccd1a6be18336137c717ae2d824e"
+  },
+  "catena": [
+   {
+    "percorso": "/home/prignano/vision_limite/data/manifests/synth-v4-candidato-3",
+    "versione": "3",
+    "manifest_sha256": "95a4ac348158633a03e14dc20a06174d2ced3b3a45cabb618827d0b0d256386f"
+   },
+   {
+    "percorso": "/home/prignano/vision_limite/data/manifests/synth-v4-candidato-2",
+    "versione": "2",
+    "manifest_sha256": "9a8104cdea4b56ef333e7d1e9629d7cfd638ccd1a6be18336137c717ae2d824e"
+   },
+   {
+    "percorso": "/home/prignano/vision_limite/data/manifests/synth-v4-candidato-1",
+    "versione": "1",
+    "manifest_sha256": "975dfe420b31b3a1520ac521e6830ade27e99e8c3f994b9225e671c983827e6b"
+   }
+  ],
+  "split_assegnati_da": {
+   "percorso": "/home/prignano/vision_limite/data/manifests/synth-v4-candidato-1",
+   "versione": "1",
+   "manifest_sha256": "975dfe420b31b3a1520ac521e6830ade27e99e8c3f994b9225e671c983827e6b"
+  }
+ },
+ "controlli": [
+  {
+   "controllo": "manifest letto e verificato (sha256 dei record, record_id, un solo split per gruppo, conteggi per shard)",
+   "esito": true,
+   "dettaglio": 60900
+  },
+  {
+   "controllo": "shard su disco con gli sha256 del manifest",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "controllo": "file derivati (keys/) uguali alle chiavi del manifest e ai loro sha256",
+   "esito": true,
+   "dettaglio": [
+    true,
+    true,
+    true,
+    true,
+    true
+   ]
+  },
+  {
+   "controllo": "catena delle versioni: ogni anello letto e verificato, con lo sha256 di manifest.json registrato dal figlio, fino alla versione che assegnò gli split",
+   "esito": true,
+   "dettaglio": [
+    "3: 95a4ac348158",
+    "2: 9a8104cdea4b",
+    "1: 975dfe420b31"
+   ]
+  },
+  {
+   "controllo": "genitore immediato: stessi record, gruppi, insiemi, split e posizioni",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "revisione: proposta e riesame tecnico registrati presenti con gli sha256 del manifest",
+   "esito": true,
+   "dettaglio": {
+    "proposta": true,
+    "riesame_tecnico": true
+   }
+  },
+  {
+   "controllo": "revisione: ogni riga della proposta è un record del genitore",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "controllo": "revisione: record senza genitore",
+   "esito": true,
+   "dettaglio": {
+    "casi": 0,
+    "esempi": []
+   }
+  },
+  {
+   "controllo": "revisione: evidenze del genitore non conservate",
+   "esito": true,
+   "dettaglio": {
+    "casi": 0,
+    "esempi": []
+   }
+  },
+  {
+   "controllo": "revisione: QA, immagini o JSON cambiati",
+   "esito": true,
+   "dettaglio": {
+    "casi": 0,
+    "esempi": []
+   }
+  },
+  {
+   "controllo": "revisione: cambi senza riga della proposta",
+   "esito": true,
+   "dettaglio": {
+    "casi": 0,
+    "esempi": []
+   }
+  },
+  {
+   "controllo": "revisione: riga della proposta diversa dal genitore",
+   "esito": true,
+   "dettaglio": {
+    "casi": 0,
+    "esempi": []
+   }
+  },
+  {
+   "controllo": "revisione: stato diverso dalla regola o dalla colonna della proposta",
+   "esito": true,
+   "dettaglio": {
+    "casi": 0,
+    "esempi": []
+   }
+  },
+  {
+   "controllo": "revisione: motivi diversi da quelli del genitore meno i risolti",
+   "esito": true,
+   "dettaglio": {
+    "casi": 0,
+    "esempi": []
+   }
+  },
+  {
+   "controllo": "revisione: stato ammesso con motivi, o non ammesso senza motivi",
+   "esito": true,
+   "dettaglio": {
+    "casi": 0,
+    "esempi": []
+   }
+  },
+  {
+   "controllo": "revisione: evidenza della revisione mancante o diversa",
+   "esito": true,
+   "dettaglio": {
+    "casi": 0,
+    "esempi": []
+   }
+  },
+  {
+   "controllo": "revisione: i record che passano a uno stato meno grave sono esattamente le riammissioni previste",
+   "esito": true,
+   "dettaglio": {
+    "migliorati": 366,
+    "previsti": 366
+   }
+  },
+  {
+   "controllo": "politica delle domande: versione e compiti bloccati dichiarati (function/exists, escluso)",
+   "esito": true,
+   "dettaglio": {
+    "versione": "synth-domande/1",
+    "bloccati": [
+     "function/exists"
+    ]
+   }
+  },
+  {
+   "controllo": "politica delle domande: ogni record ha un compito per famiglia e tipo delle sue QA, col numero di domande; escluso solo function/exists",
+   "esito": true,
+   "dettaglio": {
+    "casi": 0,
+    "esempi": []
+   }
+  },
+  {
+   "controllo": "politica delle domande: record ammessi senza domande di compiti ammessi (il reader li salta col motivo nessun_compito_ammesso)",
+   "esito": true,
+   "dettaglio": 0
+  },
+  {
+   "controllo": "regola degli split (valori, quota, seme, dev per famiglia) uguale lungo la catena",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "assegnazione originale: stessi record, gruppi, insiemi, split e posizioni in ogni versione della catena",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "catena: nessuna versione migliora lo stato di un record della precedente, salvo le riammissioni con l'evidenza della revisione dichiarata dalla versione",
+   "esito": true,
+   "dettaglio": {
+    "non_giustificati": 0,
+    "riammissioni_della_revisione": 366
+   }
+  },
+  {
+   "controllo": "split ricalcolato due volte con quota e seme del manifest sulla versione 1 che li assegnò: identico a quello scritto",
+   "esito": true,
+   "dettaglio": 0
+  },
+  {
+   "controllo": "con un altro seme lo split di dev cambia (la scelta dipende dal seme)",
+   "esito": true,
+   "dettaglio": 4948
+  },
+  {
+   "controllo": "dev per famiglia (alla versione che assegnò gli split): almeno l'obiettivo, superato al più dall'ultimo gruppo",
+   "esito": true,
+   "dettaglio": {
+    "coord": {
+     "ammesse_fuori_valutazione": 14935,
+     "obiettivo": 747,
+     "dev": 747,
+     "quota": 0.05002,
+     "gruppo_dev_piu_grande": 1,
+     "entro_la_quota": true
+    },
+    "function": {
+     "ammesse_fuori_valutazione": 12206,
+     "obiettivo": 610,
+     "dev": 623,
+     "quota": 0.05104,
+     "gruppo_dev_piu_grande": 50,
+     "entro_la_quota": true
+    },
+    "polygon": {
+     "ammesse_fuori_valutazione": 15000,
+     "obiettivo": 750,
+     "dev": 750,
+     "quota": 0.05,
+     "gruppo_dev_piu_grande": 2,
+     "entro_la_quota": true
+    },
+    "shapes": {
+     "ammesse_fuori_valutazione": 15000,
+     "obiettivo": 750,
+     "dev": 750,
+     "quota": 0.05,
+     "gruppo_dev_piu_grande": 1,
+     "entro_la_quota": true
+    }
+   }
+  },
+  {
+   "controllo": "ogni gruppo ha una sola famiglia",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "legami esatti ricalcolati dagli hash del manifest: stessi gruppi",
+   "esito": true,
+   "dettaglio": 52457
+  },
+  {
+   "controllo": "nessun gruppo in due split (train, dev, test)",
+   "esito": true,
+   "dettaglio": 0
+  },
+  {
+   "controllo": "nessun gruppo legato a test o coppie in train o dev",
+   "esito": true,
+   "dettaglio": 0
+  },
+  {
+   "controllo": "config di collaudo f0-c7-reader-synth.json: le quattro sorgenti del manifest, identificato dal suo sha256",
+   "esito": true,
+   "dettaglio": [
+    "synth-coppie",
+    "synth-dev",
+    "synth-test",
+    "synth-train"
+   ]
+  },
+  {
+   "controllo": "tipo synth_qa letto per compito se e solo se il manifest dichiara la politica delle domande",
+   "esito": true,
+   "dettaglio": {
+    "politica": true
+   }
+  },
+  {
+   "controllo": "politica delle domande: record ammessi senza domande di compiti ammessi, saltati dal reader",
+   "esito": true,
+   "dettaglio": 0
+  },
+  {
+   "controllo": "train: un'epoca con 2 worker consegna esattamente le chiavi ammesse dello split, una volta",
+   "esito": true,
+   "dettaglio": {
+    "consegnati": 54337,
+    "attesi": 54337,
+    "doppi": 0,
+    "non_ammessi": 0,
+    "altro_split": 0,
+    "problemi": 0
+   }
+  },
+  {
+   "controllo": "train: domande costruite con gli stessi digest delle QA ammesse e gli stessi conteggi per compito",
+   "esito": true,
+   "dettaglio": 0
+  },
+  {
+   "controllo": "train: col loader reale (data.synth_qa_sample) prompt e target uguali alla scelta attesa sul pool filtrato, per ogni campione",
+   "esito": true,
+   "dettaglio": {
+    "campioni": 54337,
+    "uguali": 54337
+   }
+  },
+  {
+   "controllo": "train: nessuna domanda di un compito escluso nei prompt, nessuna risposta yes o no nei target dei function",
+   "esito": true,
+   "dettaglio": {
+    "escluse_nei_prompt": 0,
+    "yes_no_nei_function": 0
+   }
+  },
+  {
+   "controllo": "train: domande tolte prima della scelta e compiti bloccati del loader uguali a quelli attesi dal manifest",
+   "esito": true,
+   "dettaglio": {
+    "tolte": 23170,
+    "attese": 23170,
+    "bloccati": {
+     "compito_bloccato/function/exists": 23170
+    }
+   }
+  },
+  {
+   "controllo": "dev: un'epoca con 2 worker consegna esattamente le chiavi ammesse dello split, una volta",
+   "esito": true,
+   "dettaglio": {
+    "consegnati": 2870,
+    "attesi": 2870,
+    "doppi": 0,
+    "non_ammessi": 0,
+    "altro_split": 0,
+    "problemi": 0
+   }
+  },
+  {
+   "controllo": "dev: domande costruite con gli stessi digest delle QA ammesse e gli stessi conteggi per compito",
+   "esito": true,
+   "dettaglio": 0
+  },
+  {
+   "controllo": "dev: col loader reale (data.synth_qa_sample) prompt e target uguali alla scelta attesa sul pool filtrato, per ogni campione",
+   "esito": true,
+   "dettaglio": {
+    "campioni": 2870,
+    "uguali": 2870
+   }
+  },
+  {
+   "controllo": "dev: nessuna domanda di un compito escluso nei prompt, nessuna risposta yes o no nei target dei function",
+   "esito": true,
+   "dettaglio": {
+    "escluse_nei_prompt": 0,
+    "yes_no_nei_function": 0
+   }
+  },
+  {
+   "controllo": "dev: domande tolte prima della scelta e compiti bloccati del loader uguali a quelli attesi dal manifest",
+   "esito": true,
+   "dettaglio": {
+    "tolte": 1246,
+    "attese": 1246,
+    "bloccati": {
+     "compito_bloccato/function/exists": 1246
+    }
+   }
+  },
+  {
+   "controllo": "test: un'epoca con 2 worker consegna esattamente le chiavi ammesse dello split, una volta",
+   "esito": true,
+   "dettaglio": {
+    "consegnati": 300,
+    "attesi": 300,
+    "doppi": 0,
+    "non_ammessi": 0,
+    "altro_split": 0,
+    "problemi": 0
+   }
+  },
+  {
+   "controllo": "test: domande costruite con gli stessi digest delle QA ammesse e gli stessi conteggi per compito",
+   "esito": true,
+   "dettaglio": 0
+  },
+  {
+   "controllo": "test: col loader reale (data.synth_qa_sample) prompt e target uguali alla scelta attesa sul pool filtrato, per ogni campione",
+   "esito": true,
+   "dettaglio": {
+    "campioni": 300,
+    "uguali": 300
+   }
+  },
+  {
+   "controllo": "test: nessuna domanda di un compito escluso nei prompt, nessuna risposta yes o no nei target dei function",
+   "esito": true,
+   "dettaglio": {
+    "escluse_nei_prompt": 0,
+    "yes_no_nei_function": 0
+   }
+  },
+  {
+   "controllo": "test: domande tolte prima della scelta e compiti bloccati del loader uguali a quelli attesi dal manifest",
+   "esito": true,
+   "dettaglio": {
+    "tolte": 150,
+    "attese": 150,
+    "bloccati": {
+     "compito_bloccato/function/exists": 150
+    }
+   }
+  },
+  {
+   "controllo": "coppie: un'epoca con 2 worker consegna esattamente le chiavi ammesse dello split, una volta",
+   "esito": true,
+   "dettaglio": {
+    "consegnati": 600,
+    "attesi": 600,
+    "doppi": 0,
+    "non_ammessi": 0,
+    "altro_split": 0,
+    "problemi": 0
+   }
+  },
+  {
+   "controllo": "coppie: domande costruite con gli stessi digest delle QA ammesse e gli stessi conteggi per compito",
+   "esito": true,
+   "dettaglio": 0
+  },
+  {
+   "controllo": "coppie: col loader reale (data.synth_qa_sample) prompt e target uguali alla scelta attesa sul pool filtrato, per ogni campione",
+   "esito": true,
+   "dettaglio": {
+    "campioni": 600,
+    "uguali": 600
+   }
+  },
+  {
+   "controllo": "coppie: nessuna domanda di un compito escluso nei prompt, nessuna risposta yes o no nei target dei function",
+   "esito": true,
+   "dettaglio": {
+    "escluse_nei_prompt": 0,
+    "yes_no_nei_function": 0
+   }
+  },
+  {
+   "controllo": "coppie: domande tolte prima della scelta e compiti bloccati del loader uguali a quelli attesi dal manifest",
+   "esito": true,
+   "dettaglio": {
+    "tolte": 0,
+    "attese": 0,
+    "bloccati": {}
+   }
+  },
+  {
+   "controllo": "gruppi letti: nessuno in comune fra train, dev e valutazione",
+   "esito": true,
+   "dettaglio": {
+    "train+dev": 0,
+    "train+test": 0,
+    "train+coppie": 0,
+    "dev+test": 0,
+    "dev+coppie": 0
+   }
+  },
+  {
+   "controllo": "validation_samples della sorgente di train: tutto lo split dev del manifest, nell'ordine degli shard",
+   "esito": true,
+   "dettaglio": 2870
+  },
+  {
+   "controllo": "MixedRowStream col processor vero: solo chiavi di train ammesse, esempi contati, nessun errore del manifest",
+   "esito": true,
+   "dettaglio": {
+    "esempi": 623,
+    "stats": {
+     "loaded/synth-train": 645,
+     "compiti/synth-train/shapes/exists": 115,
+     "compiti/synth-train/shapes/count_type": 60,
+     "examples": 645,
+     "compiti/synth-train/polygon/exists": 114,
+     "compiti/synth-train/polygon/side_len": 110,
+     "compiti/synth-train/polygon/rightmost": 35,
+     "compiti/synth-train/polygon/count": 54,
+     "compiti/synth-train/polygon/shape_type": 49,
+     "compiti/synth-train/polygon/lowest": 22,
+     "compiti/synth-train/coord/exists": 45,
+     "compiti/synth-train/coord/pair_lr": 121,
+     "compiti/synth-train/coord/side_x": 54,
+     "compiti/synth-train/shapes/count": 69,
+     "compiti/synth-train/shapes/has_type": 122,
+     "compiti/synth-train/shapes/label_type": 145,
+     "compiti/synth-train/coord/count": 21,
+     "compiti/synth-train/coord/pair_ud": 113,
+     "compiti/synth-train/function/slope": 74,
+     "compiti/synth-train/function/vertex_lr": 42,
+     "compiti/synth-train/function/intercept": 130,
+     "compiti/synth-train/function/vertex_ud": 53,
+     "compiti_bloccati/synth-train/function/exists": 284,
+     "compiti/synth-train/function/opens": 47,
+     "compiti/synth-train/polygon/highest": 31,
+     "compiti/synth-train/function/intersections": 31,
+     "compiti/synth-train/coord/side_y": 65,
+     "compiti/synth-train/coord/quadrant": 58,
+     "compiti/synth-train/polygon/leftmost": 24,
+     "rows": 60,
+     "tokens": 242910,
+     "compiti/synth-train/coord/coords": 38,
+     "compiti/synth-train/polygon/m_side": 19,
+     "compiti/synth-train/polygon/angle_val": 11,
+     "compiti/synth-train/polygon/right_vertex": 5,
+     "compiti/synth-train/coord/line_on": 2
+    },
+    "reader": {
+     "synth-train": {
+      "letti": 774,
+      "consegnati": 708,
+      "saltati_manifest": 66,
+      "saltati_manifest/split_test": 32,
+      "saltati_manifest/split_dev": 34
+     }
+    }
+   }
+  },
+  {
+   "controllo": "controllo dei casi: la copia non alterata si carica",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "arresto: manifest mancante",
+   "esito": true,
+   "dettaglio": "manifest mancante: /tmp/manifest_check_k2h5vyfs/inesistente/manifest.json"
+  },
+  {
+   "controllo": "arresto: records.jsonl.gz alterato",
+   "esito": true,
+   "dettaglio": "/tmp/manifest_check_k2h5vyfs/records-alterati/records.jsonl.gz: sha256 diverso da quello registrato in manifest.json"
+  },
+  {
+   "controllo": "arresto: sha256 di uno shard diverso",
+   "esito": true,
+   "dettaglio": "/home/prignano/vision_limite/data/shards/synth/v4/train/synth-train-00000.tar: sha256 diverso da quello del manifest /tmp/manifest_check_k2h5vyfs/sha-shard"
+  },
+  {
+   "controllo": "arresto: gruppo in due split",
+   "esito": true,
+   "dettaglio": "riga 467 (synth-0000466): il gruppo a786325330ceb5188fa92290c3dfed600a95d98f54287bddeb1d1364171ac36c è in due split"
+  },
+  {
+   "controllo": "arresto: record_id non ricalcolabile",
+   "esito": true,
+   "dettaglio": "riga 1 (synth-0000000x): record_id diverso da quello ricalcolato"
+  },
+  {
+   "controllo": "arresto: shard v3 col manifest v4",
+   "esito": true,
+   "dettaglio": "/home/prignano/vision_limite/data/manifests/synth-v4-candidato-3: shard non registrati nel manifest: ['/home/prignano/vision_limite/data/shards/synth/v3/train/s"
+  },
+  {
+   "controllo": "arresto: shard v4 senza manifest",
+   "esito": true,
+   "dettaglio": "sorgente synth-train: gli shard ['/home/prignano/vision_limite/data/shards/synth/v4/train/synth-train-00000.tar', '/home/prignano/vision_limite/data/shards/synt"
+  },
+  {
+   "controllo": "arresto: split senza record ammessi (test sugli shard di train)",
+   "esito": true,
+   "dettaglio": "/home/prignano/vision_limite/data/manifests/synth-v4-candidato-3: nessun record ammesso nello split test di questi shard"
+  },
+  {
+   "controllo": "arresto: split sconosciuto",
+   "esito": true,
+   "dettaglio": "split 'val': atteso uno di ('train', 'dev', 'test')"
+  },
+  {
+   "controllo": "arresto: manifest senza split",
+   "esito": true,
+   "dettaglio": "sorgente synth-train: 'manifest' e 'split' vanno indicati insieme"
+  },
+  {
+   "controllo": "arresto: politica delle domande: manifest non identificato (manca manifest_sha256)",
+   "esito": true,
+   "dettaglio": "sorgente synth-train: /home/prignano/vision_limite/data/manifests/synth-v4-candidato-3/manifest.json ha sha256 95a4ac348158633a03e14dc20a06174d2ced3b3a45cabb618"
+  },
+  {
+   "controllo": "arresto: politica delle domande: lista exclude nella config",
+   "esito": true,
+   "dettaglio": "sorgente synth-train: con il manifest di synth esclusioni e rietichettature vengono dal manifest, non da liste della config"
+  },
+  {
+   "controllo": "arresto: politica delle domande: versione sconosciuta",
+   "esito": true,
+   "dettaglio": "politica delle domande 'synth-domande/0' non prevista per la sorgente 'synth'"
+  }
+ ],
+ "falliti": [],
+ "dev": {
+  "coord": {
+   "ammesse_fuori_valutazione": 14935,
+   "obiettivo": 747,
+   "dev": 747,
+   "quota": 0.05002,
+   "gruppo_dev_piu_grande": 1,
+   "entro_la_quota": true
+  },
+  "function": {
+   "ammesse_fuori_valutazione": 12206,
+   "obiettivo": 610,
+   "dev": 623,
+   "quota": 0.05104,
+   "gruppo_dev_piu_grande": 50,
+   "entro_la_quota": true
+  },
+  "polygon": {
+   "ammesse_fuori_valutazione": 15000,
+   "obiettivo": 750,
+   "dev": 750,
+   "quota": 0.05,
+   "gruppo_dev_piu_grande": 2,
+   "entro_la_quota": true
+  },
+  "shapes": {
+   "ammesse_fuori_valutazione": 15000,
+   "obiettivo": 750,
+   "dev": 750,
+   "quota": 0.05,
+   "gruppo_dev_piu_grande": 1,
+   "entro_la_quota": true
+  }
+ },
+ "loader": {
+  "train": {
+   "split": "train",
+   "consegnati": 54337,
+   "contatori_reader": {
+    "letti": 60002,
+    "consegnati": 54339,
+    "saltati_manifest": 5663,
+    "saltati_manifest/split_test": 2792,
+    "saltati_manifest/split_dev": 2870,
+    "saltati_manifest/quarantena": 1
+   },
+   "costruiti_col_loader": {
+    "campioni": 54337,
+    "compito_bloccato/function/exists": 23170,
+    "compito_costruito/coord/coords": 2926,
+    "compito_costruito/coord/count": 1775,
+    "compito_costruito/coord/exists": 3501,
+    "compito_costruito/coord/line_on": 285,
+    "compito_costruito/coord/pair_lr": 9576,
+    "compito_costruito/coord/pair_ud": 9489,
+    "compito_costruito/coord/quadrant": 5153,
+    "compito_costruito/coord/side_x": 5078,
+    "compito_costruito/coord/side_y": 5111,
+    "compito_costruito/function/intercept": 10490,
+    "compito_costruito/function/intersections": 2890,
+    "compito_costruito/function/opens": 4308,
+    "compito_costruito/function/slope": 6464,
+    "compito_costruito/function/vertex_lr": 3361,
+    "compito_costruito/function/vertex_ud": 4238,
+    "compito_costruito/polygon/angle_val": 939,
+    "compito_costruito/polygon/count": 4976,
+    "compito_costruito/polygon/exists": 9992,
+    "compito_costruito/polygon/highest": 2662,
+    "compito_costruito/polygon/leftmost": 2999,
+    "compito_costruito/polygon/lowest": 1719,
+    "compito_costruito/polygon/m_side": 2091,
+    "compito_costruito/polygon/right_vertex": 631,
+    "compito_costruito/polygon/rightmost": 2972,
+    "compito_costruito/polygon/shape_type": 4277,
+    "compito_costruito/polygon/side_len": 9474,
+    "compito_costruito/shapes/count": 5193,
+    "compito_costruito/shapes/count_type": 5221,
+    "compito_costruito/shapes/exists": 10445,
+    "compito_costruito/shapes/has_type": 9989,
+    "compito_costruito/shapes/label_type": 11998,
+    "domande_escluse_nel_prompt": 0,
+    "domande_tolte_prima_della_scelta": 23170,
+    "prompt_e_target_uguali_alla_scelta_attesa": 54337,
+    "risposte_yes_no_nei_target_function": 0
+   },
+   "per_famiglia": {
+    "coord": 14253,
+    "function": 11585,
+    "polygon": 14249,
+    "shapes": 14250
+   },
+   "domande_costruite_per_famiglia_e_compito": {
+    "coord/coords": 2926,
+    "coord/count": 1775,
+    "coord/exists": 3501,
+    "coord/line_on": 285,
+    "coord/pair_lr": 9576,
+    "coord/pair_ud": 9489,
+    "coord/quadrant": 5153,
+    "coord/side_x": 5078,
+    "coord/side_y": 5111,
+    "function/intercept": 10490,
+    "function/intersections": 2890,
+    "function/opens": 4308,
+    "function/slope": 6464,
+    "function/vertex_lr": 3361,
+    "function/vertex_ud": 4238,
+    "polygon/angle_val": 939,
+    "polygon/count": 4976,
+    "polygon/exists": 9992,
+    "polygon/highest": 2662,
+    "polygon/leftmost": 2999,
+    "polygon/lowest": 1719,
+    "polygon/m_side": 2091,
+    "polygon/right_vertex": 631,
+    "polygon/rightmost": 2972,
+    "polygon/shape_type": 4277,
+    "polygon/side_len": 9474,
+    "shapes/count": 5193,
+    "shapes/count_type": 5221,
+    "shapes/exists": 10445,
+    "shapes/has_type": 9989,
+    "shapes/label_type": 11998
+   },
+   "atteso_dal_manifest": {
+    "manifest": "/home/prignano/vision_limite/data/manifests/synth-v4-candidato-3/manifest.json",
+    "manifest_sha256": "95a4ac348158633a03e14dc20a06174d2ced3b3a45cabb618827d0b0d256386f",
+    "split": "train",
+    "sorgente": "synth",
+    "revisione": "v4@284e8f1dac793d024865b516952cca263b8955de",
+    "nome": "synth-v4-candidato",
+    "versione": "3",
+    "insieme": [
+     "train",
+     "test",
+     "coppie"
+    ],
+    "tipo": "synth_qa",
+    "compito_del_tipo": null,
+    "shards": [
+     "synth-train-00000.tar",
+     "synth-train-00001.tar",
+     "synth-train-00002.tar",
+     "synth-train-00003.tar",
+     "synth-train-00004.tar",
+     "synth-train-00005.tar"
+    ],
+    "attesi": {
+     "dev/ammesso": 2870,
+     "test/escluso": 2792,
+     "train/ammesso": 54337,
+     "train/quarantena": 1
+    },
+    "attesi_per_compito": {
+     "dev/ammesso/coord/coords": 465,
+     "dev/ammesso/coord/count": 747,
+     "dev/ammesso/coord/exists": 747,
+     "dev/ammesso/coord/line_on": 187,
+     "dev/ammesso/coord/pair_lr": 701,
+     "dev/ammesso/coord/pair_ud": 702,
+     "dev/ammesso/coord/quadrant": 747,
+     "dev/ammesso/coord/side_x": 747,
+     "dev/ammesso/coord/side_y": 747,
+     "dev/ammesso/function/intercept": 623,
+     "dev/ammesso/function/intersections": 327,
+     "dev/ammesso/function/opens": 386,
+     "dev/ammesso/function/slope": 402,
+     "dev/ammesso/function/vertex_lr": 350,
+     "dev/ammesso/function/vertex_ud": 386,
+     "dev/ammesso/polygon/angle_val": 151,
+     "dev/ammesso/polygon/count": 750,
+     "dev/ammesso/polygon/exists": 750,
+     "dev/ammesso/polygon/highest": 463,
+     "dev/ammesso/polygon/leftmost": 488,
+     "dev/ammesso/polygon/lowest": 276,
+     "dev/ammesso/polygon/m_side": 326,
+     "dev/ammesso/polygon/right_vertex": 110,
+     "dev/ammesso/polygon/rightmost": 478,
+     "dev/ammesso/polygon/shape_type": 645,
+     "dev/ammesso/polygon/side_len": 750,
+     "dev/ammesso/shapes/count": 750,
+     "dev/ammesso/shapes/count_type": 750,
+     "dev/ammesso/shapes/exists": 750,
+     "dev/ammesso/shapes/has_type": 750,
+     "dev/ammesso/shapes/label_type": 750,
+     "dev/escluso/function/exists": 623,
+     "test/ammesso/function/intercept": 2792,
+     "test/ammesso/function/intersections": 23,
+     "test/ammesso/function/opens": 251,
+     "test/ammesso/function/slope": 2545,
+     "test/ammesso/function/vertex_lr": 211,
+     "test/ammesso/function/vertex_ud": 251,
+     "test/escluso/function/exists": 2792,
+     "train/ammesso/coord/coords": 8521,
+     "train/ammesso/coord/count": 14253,
+     "train/ammesso/coord/exists": 14253,
+     "train/ammesso/coord/line_on": 3632,
+     "train/ammesso/coord/pair_lr": 13508,
+     "train/ammesso/coord/pair_ud": 13530,
+     "train/ammesso/coord/quadrant": 14253,
+     "train/ammesso/coord/side_x": 14253,
+     "train/ammesso/coord/side_y": 14253,
+     "train/ammesso/function/intercept": 11585,
+     "train/ammesso/function/intersections": 6086,
+     "train/ammesso/function/opens": 7117,
+     "train/ammesso/function/slope": 7880,
+     "train/ammesso/function/vertex_lr": 6060,
+     "train/ammesso/function/vertex_ud": 7117,
+     "train/ammesso/polygon/angle_val": 2863,
+     "train/ammesso/polygon/count": 14250,
+     "train/ammesso/polygon/exists": 14250,
+     "train/ammesso/polygon/highest": 8850,
+     "train/ammesso/polygon/leftmost": 9381,
+     "train/ammesso/polygon/lowest": 5594,
+     "train/ammesso/polygon/m_side": 6226,
+     "train/ammesso/polygon/right_vertex": 2018,
+     "train/ammesso/polygon/rightmost": 9361,
+     "train/ammesso/polygon/shape_type": 12202,
+     "train/ammesso/polygon/side_len": 14250,
+     "train/ammesso/shapes/count": 14250,
+     "train/ammesso/shapes/count_type": 14250,
+     "train/ammesso/shapes/exists": 14250,
+     "train/ammesso/shapes/has_type": 14250,
+     "train/ammesso/shapes/label_type": 14250,
+     "train/escluso/function/exists": 11585
+    },
+    "ammessi_nello_split": 54337,
+    "record_in_questi_shard": 60000,
+    "decisione": "ammesso = decisione operativa del manifest candidato, non gold: non certifica le risposte"
+   }
+  },
+  "dev": {
+   "split": "dev",
+   "consegnati": 2870,
+   "contatori_reader": {
+    "letti": 60012,
+    "saltati_manifest": 57140,
+    "saltati_manifest/split_train": 54347,
+    "saltati_manifest/split_test": 2793,
+    "consegnati": 2872
+   },
+   "costruiti_col_loader": {
+    "campioni": 2870,
+    "compito_bloccato/function/exists": 1246,
+    "compito_costruito/coord/coords": 168,
+    "compito_costruito/coord/count": 91,
+    "compito_costruito/coord/exists": 188,
+    "compito_costruito/coord/line_on": 24,
+    "compito_costruito/coord/pair_lr": 517,
+    "compito_costruito/coord/pair_ud": 537,
+    "compito_costruito/coord/quadrant": 278,
+    "compito_costruito/coord/side_x": 283,
+    "compito_costruito/coord/side_y": 283,
+    "compito_costruito/function/intercept": 584,
+    "compito_costruito/function/intersections": 172,
+    "compito_costruito/function/opens": 240,
+    "compito_costruito/function/slope": 349,
+    "compito_costruito/function/vertex_lr": 212,
+    "compito_costruito/function/vertex_ud": 223,
+    "compito_costruito/polygon/angle_val": 58,
+    "compito_costruito/polygon/count": 275,
+    "compito_costruito/polygon/exists": 542,
+    "compito_costruito/polygon/highest": 131,
+    "compito_costruito/polygon/leftmost": 164,
+    "compito_costruito/polygon/lowest": 82,
+    "compito_costruito/polygon/m_side": 106,
+    "compito_costruito/polygon/right_vertex": 31,
+    "compito_costruito/polygon/rightmost": 152,
+    "compito_costruito/polygon/shape_type": 250,
+    "compito_costruito/polygon/side_len": 512,
+    "compito_costruito/shapes/count": 295,
+    "compito_costruito/shapes/count_type": 273,
+    "compito_costruito/shapes/exists": 541,
+    "compito_costruito/shapes/has_type": 495,
+    "compito_costruito/shapes/label_type": 608,
+    "domande_escluse_nel_prompt": 0,
+    "domande_tolte_prima_della_scelta": 1246,
+    "prompt_e_target_uguali_alla_scelta_attesa": 2870,
+    "risposte_yes_no_nei_target_function": 0
+   },
+   "per_famiglia": {
+    "coord": 747,
+    "function": 623,
+    "polygon": 750,
+    "shapes": 750
+   },
+   "domande_costruite_per_famiglia_e_compito": {
+    "coord/coords": 168,
+    "coord/count": 91,
+    "coord/exists": 188,
+    "coord/line_on": 24,
+    "coord/pair_lr": 517,
+    "coord/pair_ud": 537,
+    "coord/quadrant": 278,
+    "coord/side_x": 283,
+    "coord/side_y": 283,
+    "function/intercept": 584,
+    "function/intersections": 172,
+    "function/opens": 240,
+    "function/slope": 349,
+    "function/vertex_lr": 212,
+    "function/vertex_ud": 223,
+    "polygon/angle_val": 58,
+    "polygon/count": 275,
+    "polygon/exists": 542,
+    "polygon/highest": 131,
+    "polygon/leftmost": 164,
+    "polygon/lowest": 82,
+    "polygon/m_side": 106,
+    "polygon/right_vertex": 31,
+    "polygon/rightmost": 152,
+    "polygon/shape_type": 250,
+    "polygon/side_len": 512,
+    "shapes/count": 295,
+    "shapes/count_type": 273,
+    "shapes/exists": 541,
+    "shapes/has_type": 495,
+    "shapes/label_type": 608
+   },
+   "atteso_dal_manifest": {
+    "manifest": "/home/prignano/vision_limite/data/manifests/synth-v4-candidato-3/manifest.json",
+    "manifest_sha256": "95a4ac348158633a03e14dc20a06174d2ced3b3a45cabb618827d0b0d256386f",
+    "split": "dev",
+    "sorgente": "synth",
+    "revisione": "v4@284e8f1dac793d024865b516952cca263b8955de",
+    "nome": "synth-v4-candidato",
+    "versione": "3",
+    "insieme": [
+     "train",
+     "test",
+     "coppie"
+    ],
+    "tipo": "synth_qa",
+    "compito_del_tipo": null,
+    "shards": [
+     "synth-train-00000.tar",
+     "synth-train-00001.tar",
+     "synth-train-00002.tar",
+     "synth-train-00003.tar",
+     "synth-train-00004.tar",
+     "synth-train-00005.tar"
+    ],
+    "attesi": {
+     "dev/ammesso": 2870,
+     "test/escluso": 2792,
+     "train/ammesso": 54337,
+     "train/quarantena": 1
+    },
+    "attesi_per_compito": {
+     "dev/ammesso/coord/coords": 465,
+     "dev/ammesso/coord/count": 747,
+     "dev/ammesso/coord/exists": 747,
+     "dev/ammesso/coord/line_on": 187,
+     "dev/ammesso/coord/pair_lr": 701,
+     "dev/ammesso/coord/pair_ud": 702,
+     "dev/ammesso/coord/quadrant": 747,
+     "dev/ammesso/coord/side_x": 747,
+     "dev/ammesso/coord/side_y": 747,
+     "dev/ammesso/function/intercept": 623,
+     "dev/ammesso/function/intersections": 327,
+     "dev/ammesso/function/opens": 386,
+     "dev/ammesso/function/slope": 402,
+     "dev/ammesso/function/vertex_lr": 350,
+     "dev/ammesso/function/vertex_ud": 386,
+     "dev/ammesso/polygon/angle_val": 151,
+     "dev/ammesso/polygon/count": 750,
+     "dev/ammesso/polygon/exists": 750,
+     "dev/ammesso/polygon/highest": 463,
+     "dev/ammesso/polygon/leftmost": 488,
+     "dev/ammesso/polygon/lowest": 276,
+     "dev/ammesso/polygon/m_side": 326,
+     "dev/ammesso/polygon/right_vertex": 110,
+     "dev/ammesso/polygon/rightmost": 478,
+     "dev/ammesso/polygon/shape_type": 645,
+     "dev/ammesso/polygon/side_len": 750,
+     "dev/ammesso/shapes/count": 750,
+     "dev/ammesso/shapes/count_type": 750,
+     "dev/ammesso/shapes/exists": 750,
+     "dev/ammesso/shapes/has_type": 750,
+     "dev/ammesso/shapes/label_type": 750,
+     "dev/escluso/function/exists": 623,
+     "test/ammesso/function/intercept": 2792,
+     "test/ammesso/function/intersections": 23,
+     "test/ammesso/function/opens": 251,
+     "test/ammesso/function/slope": 2545,
+     "test/ammesso/function/vertex_lr": 211,
+     "test/ammesso/function/vertex_ud": 251,
+     "test/escluso/function/exists": 2792,
+     "train/ammesso/coord/coords": 8521,
+     "train/ammesso/coord/count": 14253,
+     "train/ammesso/coord/exists": 14253,
+     "train/ammesso/coord/line_on": 3632,
+     "train/ammesso/coord/pair_lr": 13508,
+     "train/ammesso/coord/pair_ud": 13530,
+     "train/ammesso/coord/quadrant": 14253,
+     "train/ammesso/coord/side_x": 14253,
+     "train/ammesso/coord/side_y": 14253,
+     "train/ammesso/function/intercept": 11585,
+     "train/ammesso/function/intersections": 6086,
+     "train/ammesso/function/opens": 7117,
+     "train/ammesso/function/slope": 7880,
+     "train/ammesso/function/vertex_lr": 6060,
+     "train/ammesso/function/vertex_ud": 7117,
+     "train/ammesso/polygon/angle_val": 2863,
+     "train/ammesso/polygon/count": 14250,
+     "train/ammesso/polygon/exists": 14250,
+     "train/ammesso/polygon/highest": 8850,
+     "train/ammesso/polygon/leftmost": 9381,
+     "train/ammesso/polygon/lowest": 5594,
+     "train/ammesso/polygon/m_side": 6226,
+     "train/ammesso/polygon/right_vertex": 2018,
+     "train/ammesso/polygon/rightmost": 9361,
+     "train/ammesso/polygon/shape_type": 12202,
+     "train/ammesso/polygon/side_len": 14250,
+     "train/ammesso/shapes/count": 14250,
+     "train/ammesso/shapes/count_type": 14250,
+     "train/ammesso/shapes/exists": 14250,
+     "train/ammesso/shapes/has_type": 14250,
+     "train/ammesso/shapes/label_type": 14250,
+     "train/escluso/function/exists": 11585
+    },
+    "ammessi_nello_split": 2870,
+    "record_in_questi_shard": 60000,
+    "decisione": "ammesso = decisione operativa del manifest candidato, non gold: non certifica le risposte"
+   }
+  },
+  "test": {
+   "split": "test",
+   "consegnati": 300,
+   "contatori_reader": {
+    "letti": 302,
+    "consegnati": 302
+   },
+   "costruiti_col_loader": {
+    "campioni": 300,
+    "compito_bloccato/function/exists": 150,
+    "compito_costruito/coord/coords": 12,
+    "compito_costruito/coord/count": 8,
+    "compito_costruito/coord/exists": 21,
+    "compito_costruito/coord/line_on": 3,
+    "compito_costruito/coord/pair_lr": 41,
+    "compito_costruito/coord/pair_ud": 47,
+    "compito_costruito/coord/quadrant": 32,
+    "compito_costruito/coord/side_x": 27,
+    "compito_costruito/coord/side_y": 23,
+    "compito_costruito/function/intercept": 73,
+    "compito_costruito/function/intersections": 11,
+    "compito_costruito/function/opens": 23,
+    "compito_costruito/function/slope": 54,
+    "compito_costruito/function/vertex_lr": 15,
+    "compito_costruito/function/vertex_ud": 16,
+    "compito_costruito/polygon/angle_val": 2,
+    "compito_costruito/polygon/count": 25,
+    "compito_costruito/polygon/exists": 64,
+    "compito_costruito/polygon/highest": 19,
+    "compito_costruito/polygon/leftmost": 19,
+    "compito_costruito/polygon/lowest": 9,
+    "compito_costruito/polygon/m_side": 16,
+    "compito_costruito/polygon/right_vertex": 3,
+    "compito_costruito/polygon/rightmost": 15,
+    "compito_costruito/polygon/shape_type": 24,
+    "compito_costruito/polygon/side_len": 36,
+    "compito_costruito/shapes/count": 30,
+    "compito_costruito/shapes/count_type": 23,
+    "compito_costruito/shapes/exists": 57,
+    "compito_costruito/shapes/has_type": 60,
+    "compito_costruito/shapes/label_type": 69,
+    "domande_escluse_nel_prompt": 0,
+    "domande_tolte_prima_della_scelta": 150,
+    "prompt_e_target_uguali_alla_scelta_attesa": 300,
+    "risposte_yes_no_nei_target_function": 0
+   },
+   "per_famiglia": {
+    "coord": 75,
+    "function": 75,
+    "polygon": 75,
+    "shapes": 75
+   },
+   "domande_costruite_per_famiglia_e_compito": {
+    "coord/coords": 12,
+    "coord/count": 8,
+    "coord/exists": 21,
+    "coord/line_on": 3,
+    "coord/pair_lr": 41,
+    "coord/pair_ud": 47,
+    "coord/quadrant": 32,
+    "coord/side_x": 27,
+    "coord/side_y": 23,
+    "function/intercept": 73,
+    "function/intersections": 11,
+    "function/opens": 23,
+    "function/slope": 54,
+    "function/vertex_lr": 15,
+    "function/vertex_ud": 16,
+    "polygon/angle_val": 2,
+    "polygon/count": 25,
+    "polygon/exists": 64,
+    "polygon/highest": 19,
+    "polygon/leftmost": 19,
+    "polygon/lowest": 9,
+    "polygon/m_side": 16,
+    "polygon/right_vertex": 3,
+    "polygon/rightmost": 15,
+    "polygon/shape_type": 24,
+    "polygon/side_len": 36,
+    "shapes/count": 30,
+    "shapes/count_type": 23,
+    "shapes/exists": 57,
+    "shapes/has_type": 60,
+    "shapes/label_type": 69
+   },
+   "atteso_dal_manifest": {
+    "manifest": "/home/prignano/vision_limite/data/manifests/synth-v4-candidato-3/manifest.json",
+    "manifest_sha256": "95a4ac348158633a03e14dc20a06174d2ced3b3a45cabb618827d0b0d256386f",
+    "split": "test",
+    "sorgente": "synth",
+    "revisione": "v4@284e8f1dac793d024865b516952cca263b8955de",
+    "nome": "synth-v4-candidato",
+    "versione": "3",
+    "insieme": [
+     "train",
+     "test",
+     "coppie"
+    ],
+    "tipo": "synth_qa",
+    "compito_del_tipo": null,
+    "shards": [
+     "synth-test.tar"
+    ],
+    "attesi": {
+     "test/ammesso": 300
+    },
+    "attesi_per_compito": {
+     "test/ammesso/coord/coords": 39,
+     "test/ammesso/coord/count": 75,
+     "test/ammesso/coord/exists": 75,
+     "test/ammesso/coord/line_on": 16,
+     "test/ammesso/coord/pair_lr": 71,
+     "test/ammesso/coord/pair_ud": 72,
+     "test/ammesso/coord/quadrant": 75,
+     "test/ammesso/coord/side_x": 75,
+     "test/ammesso/coord/side_y": 75,
+     "test/ammesso/function/intercept": 75,
+     "test/ammesso/function/intersections": 26,
+     "test/ammesso/function/opens": 32,
+     "test/ammesso/function/slope": 53,
+     "test/ammesso/function/vertex_lr": 28,
+     "test/ammesso/function/vertex_ud": 32,
+     "test/ammesso/polygon/angle_val": 12,
+     "test/ammesso/polygon/count": 75,
+     "test/ammesso/polygon/exists": 75,
+     "test/ammesso/polygon/highest": 54,
+     "test/ammesso/polygon/leftmost": 50,
+     "test/ammesso/polygon/lowest": 32,
+     "test/ammesso/polygon/m_side": 33,
+     "test/ammesso/polygon/right_vertex": 9,
+     "test/ammesso/polygon/rightmost": 49,
+     "test/ammesso/polygon/shape_type": 64,
+     "test/ammesso/polygon/side_len": 75,
+     "test/ammesso/shapes/count": 75,
+     "test/ammesso/shapes/count_type": 75,
+     "test/ammesso/shapes/exists": 75,
+     "test/ammesso/shapes/has_type": 75,
+     "test/ammesso/shapes/label_type": 75,
+     "test/escluso/function/exists": 75
+    },
+    "ammessi_nello_split": 300,
+    "record_in_questi_shard": 300,
+    "decisione": "ammesso = decisione operativa del manifest candidato, non gold: non certifica le risposte"
+   }
+  },
+  "coppie": {
+   "split": "test",
+   "consegnati": 600,
+   "contatori_reader": {
+    "letti": 602,
+    "consegnati": 602
+   },
+   "costruiti_col_loader": {
+    "campioni": 600,
+    "compito_costruito/coord/side_x": 70,
+    "compito_costruito/coord/side_y": 80,
+    "compito_costruito/function/opens": 44,
+    "compito_costruito/function/slope": 106,
+    "compito_costruito/polygon/side_len": 150,
+    "compito_costruito/shapes/count": 150,
+    "domande_escluse_nel_prompt": 0,
+    "domande_tolte_prima_della_scelta": 0,
+    "prompt_e_target_uguali_alla_scelta_attesa": 600,
+    "risposte_yes_no_nei_target_function": 0
+   },
+   "per_famiglia": {
+    "coord": 150,
+    "function": 150,
+    "polygon": 150,
+    "shapes": 150
+   },
+   "domande_costruite_per_famiglia_e_compito": {
+    "coord/side_x": 70,
+    "coord/side_y": 80,
+    "function/opens": 44,
+    "function/slope": 106,
+    "polygon/side_len": 150,
+    "shapes/count": 150
+   },
+   "atteso_dal_manifest": {
+    "manifest": "/home/prignano/vision_limite/data/manifests/synth-v4-candidato-3/manifest.json",
+    "manifest_sha256": "95a4ac348158633a03e14dc20a06174d2ced3b3a45cabb618827d0b0d256386f",
+    "split": "test",
+    "sorgente": "synth",
+    "revisione": "v4@284e8f1dac793d024865b516952cca263b8955de",
+    "nome": "synth-v4-candidato",
+    "versione": "3",
+    "insieme": [
+     "train",
+     "test",
+     "coppie"
+    ],
+    "tipo": "synth_qa",
+    "compito_del_tipo": null,
+    "shards": [
+     "synth-pairs.tar"
+    ],
+    "attesi": {
+     "test/ammesso": 600
+    },
+    "attesi_per_compito": {
+     "test/ammesso/coord/side_x": 70,
+     "test/ammesso/coord/side_y": 80,
+     "test/ammesso/function/opens": 44,
+     "test/ammesso/function/slope": 106,
+     "test/ammesso/polygon/side_len": 150,
+     "test/ammesso/shapes/count": 150
+    },
+    "ammessi_nello_split": 600,
+    "record_in_questi_shard": 600,
+    "decisione": "ammesso = decisione operativa del manifest candidato, non gold: non certifica le risposte"
+   }
+  }
+ },
+ "gruppi_letti_in_comune": {
+  "train+dev": 0,
+  "train+test": 0,
+  "train+coppie": 0,
+  "dev+test": 0,
+  "dev+coppie": 0
+ },
+ "qa_ammesse_per_compito_e_split": {
+  "coord/coords": {
+   "dev": 1630,
+   "test": 134,
+   "train": 29946
+  },
+  "coord/count": {
+   "dev": 747,
+   "test": 75,
+   "train": 14253
+  },
+  "coord/exists": {
+   "dev": 1494,
+   "test": 150,
+   "train": 28506
+  },
+  "coord/line_on": {
+   "dev": 187,
+   "test": 16,
+   "train": 3632
+  },
+  "coord/pair_lr": {
+   "dev": 6038,
+   "test": 558,
+   "train": 116200
+  },
+  "coord/pair_ud": {
+   "dev": 5984,
+   "test": 562,
+   "train": 115640
+  },
+  "coord/quadrant": {
+   "dev": 2605,
+   "test": 253,
+   "train": 49880
+  },
+  "coord/side_x": {
+   "dev": 2605,
+   "test": 323,
+   "train": 49880
+  },
+  "coord/side_y": {
+   "dev": 2605,
+   "test": 333,
+   "train": 49880
+  },
+  "function/exists": {
+   "dev": 1246,
+   "test": 150,
+   "train": 23170
+  },
+  "function/intercept": {
+   "dev": 1000,
+   "test": 111,
+   "train": 18638
+  },
+  "function/intersections": {
+   "dev": 327,
+   "test": 26,
+   "train": 6086
+  },
+  "function/opens": {
+   "dev": 444,
+   "test": 84,
+   "train": 8254
+  },
+  "function/slope": {
+   "dev": 556,
+   "test": 177,
+   "train": 10384
+  },
+  "function/vertex_lr": {
+   "dev": 391,
+   "test": 33,
+   "train": 6807
+  },
+  "function/vertex_ud": {
+   "dev": 444,
+   "test": 40,
+   "train": 8254
+  },
+  "polygon/angle_val": {
+   "dev": 151,
+   "test": 12,
+   "train": 2862
+  },
+  "polygon/count": {
+   "dev": 750,
+   "test": 75,
+   "train": 14249
+  },
+  "polygon/exists": {
+   "dev": 1500,
+   "test": 150,
+   "train": 28498
+  },
+  "polygon/highest": {
+   "dev": 463,
+   "test": 54,
+   "train": 8849
+  },
+  "polygon/leftmost": {
+   "dev": 488,
+   "test": 50,
+   "train": 9380
+  },
+  "polygon/lowest": {
+   "dev": 276,
+   "test": 32,
+   "train": 5593
+  },
+  "polygon/m_side": {
+   "dev": 326,
+   "test": 33,
+   "train": 6226
+  },
+  "polygon/right_vertex": {
+   "dev": 110,
+   "test": 9,
+   "train": 2018
+  },
+  "polygon/rightmost": {
+   "dev": 478,
+   "test": 49,
+   "train": 9360
+  },
+  "polygon/shape_type": {
+   "dev": 645,
+   "test": 64,
+   "train": 12201
+  },
+  "polygon/side_len": {
+   "dev": 1478,
+   "test": 299,
+   "train": 28579
+  },
+  "shapes/count": {
+   "dev": 750,
+   "test": 225,
+   "train": 14250
+  },
+  "shapes/count_type": {
+   "dev": 750,
+   "test": 75,
+   "train": 14250
+  },
+  "shapes/exists": {
+   "dev": 1500,
+   "test": 150,
+   "train": 28500
+  },
+  "shapes/has_type": {
+   "dev": 1436,
+   "test": 145,
+   "train": 27271
+  },
+  "shapes/label_type": {
+   "dev": 1869,
+   "test": 191,
+   "train": 35177
+  }
+ },
+ "conteggi_manifest": {
+  "per_insieme_split_stato": {
+   "coppie/test/ammesso": 600,
+   "test/test/ammesso": 300,
+   "train/dev/ammesso": 2870,
+   "train/test/escluso": 2792,
+   "train/train/ammesso": 54337,
+   "train/train/quarantena": 1
+  },
+  "per_split_famiglia_stato": {
+   "dev/coord/ammesso": 747,
+   "dev/function/ammesso": 623,
+   "dev/polygon/ammesso": 750,
+   "dev/shapes/ammesso": 750,
+   "test/coord/ammesso": 225,
+   "test/function/ammesso": 225,
+   "test/function/escluso": 2792,
+   "test/polygon/ammesso": 225,
+   "test/shapes/ammesso": 225,
+   "train/coord/ammesso": 14253,
+   "train/function/ammesso": 11585,
+   "train/polygon/ammesso": 14249,
+   "train/polygon/quarantena": 1,
+   "train/shapes/ammesso": 14250
+  },
+  "qa_per_split_famiglia_tipo": {
+   "dev/coord/coords": 1630,
+   "dev/coord/count": 747,
+   "dev/coord/exists": 1494,
+   "dev/coord/line_on": 187,
+   "dev/coord/pair_lr": 6038,
+   "dev/coord/pair_ud": 5984,
+   "dev/coord/quadrant": 2605,
+   "dev/coord/side_x": 2605,
+   "dev/coord/side_y": 2605,
+   "dev/function/exists": 1246,
+   "dev/function/intercept": 1000,
+   "dev/function/intersections": 327,
+   "dev/function/opens": 444,
+   "dev/function/slope": 556,
+   "dev/function/vertex_lr": 391,
+   "dev/function/vertex_ud": 444,
+   "dev/polygon/angle_val": 151,
+   "dev/polygon/count": 750,
+   "dev/polygon/exists": 1500,
+   "dev/polygon/highest": 463,
+   "dev/polygon/leftmost": 488,
+   "dev/polygon/lowest": 276,
+   "dev/polygon/m_side": 326,
+   "dev/polygon/right_vertex": 110,
+   "dev/polygon/rightmost": 478,
+   "dev/polygon/shape_type": 645,
+   "dev/polygon/side_len": 1478,
+   "dev/shapes/count": 750,
+   "dev/shapes/count_type": 750,
+   "dev/shapes/exists": 1500,
+   "dev/shapes/has_type": 1436,
+   "dev/shapes/label_type": 1869,
+   "test/coord/coords": 134,
+   "test/coord/count": 75,
+   "test/coord/exists": 150,
+   "test/coord/line_on": 16,
+   "test/coord/pair_lr": 558,
+   "test/coord/pair_ud": 562,
+   "test/coord/quadrant": 253,
+   "test/coord/side_x": 323,
+   "test/coord/side_y": 333,
+   "test/function/exists": 150,
+   "test/function/intercept": 111,
+   "test/function/intersections": 26,
+   "test/function/opens": 84,
+   "test/function/slope": 177,
+   "test/function/vertex_lr": 33,
+   "test/function/vertex_ud": 40,
+   "test/polygon/angle_val": 12,
+   "test/polygon/count": 75,
+   "test/polygon/exists": 150,
+   "test/polygon/highest": 54,
+   "test/polygon/leftmost": 50,
+   "test/polygon/lowest": 32,
+   "test/polygon/m_side": 33,
+   "test/polygon/right_vertex": 9,
+   "test/polygon/rightmost": 49,
+   "test/polygon/shape_type": 64,
+   "test/polygon/side_len": 299,
+   "test/shapes/count": 225,
+   "test/shapes/count_type": 75,
+   "test/shapes/exists": 150,
+   "test/shapes/has_type": 145,
+   "test/shapes/label_type": 191,
+   "train/coord/coords": 29946,
+   "train/coord/count": 14253,
+   "train/coord/exists": 28506,
+   "train/coord/line_on": 3632,
+   "train/coord/pair_lr": 116200,
+   "train/coord/pair_ud": 115640,
+   "train/coord/quadrant": 49880,
+   "train/coord/side_x": 49880,
+   "train/coord/side_y": 49880,
+   "train/function/exists": 23170,
+   "train/function/intercept": 18638,
+   "train/function/intersections": 6086,
+   "train/function/opens": 8254,
+   "train/function/slope": 10384,
+   "train/function/vertex_lr": 6807,
+   "train/function/vertex_ud": 8254,
+   "train/polygon/angle_val": 2862,
+   "train/polygon/count": 14249,
+   "train/polygon/exists": 28498,
+   "train/polygon/highest": 8849,
+   "train/polygon/leftmost": 9380,
+   "train/polygon/lowest": 5593,
+   "train/polygon/m_side": 6226,
+   "train/polygon/right_vertex": 2018,
+   "train/polygon/rightmost": 9360,
+   "train/polygon/shape_type": 12201,
+   "train/polygon/side_len": 28579,
+   "train/shapes/count": 14250,
+   "train/shapes/count_type": 14250,
+   "train/shapes/exists": 28500,
+   "train/shapes/has_type": 27271,
+   "train/shapes/label_type": 35177
+  },
+  "qa_ammesse_per_split_famiglia_tipo": {
+   "dev/coord/coords": 1630,
+   "dev/coord/count": 747,
+   "dev/coord/exists": 1494,
+   "dev/coord/line_on": 187,
+   "dev/coord/pair_lr": 6038,
+   "dev/coord/pair_ud": 5984,
+   "dev/coord/quadrant": 2605,
+   "dev/coord/side_x": 2605,
+   "dev/coord/side_y": 2605,
+   "dev/function/intercept": 1000,
+   "dev/function/intersections": 327,
+   "dev/function/opens": 444,
+   "dev/function/slope": 556,
+   "dev/function/vertex_lr": 391,
+   "dev/function/vertex_ud": 444,
+   "dev/polygon/angle_val": 151,
+   "dev/polygon/count": 750,
+   "dev/polygon/exists": 1500,
+   "dev/polygon/highest": 463,
+   "dev/polygon/leftmost": 488,
+   "dev/polygon/lowest": 276,
+   "dev/polygon/m_side": 326,
+   "dev/polygon/right_vertex": 110,
+   "dev/polygon/rightmost": 478,
+   "dev/polygon/shape_type": 645,
+   "dev/polygon/side_len": 1478,
+   "dev/shapes/count": 750,
+   "dev/shapes/count_type": 750,
+   "dev/shapes/exists": 1500,
+   "dev/shapes/has_type": 1436,
+   "dev/shapes/label_type": 1869,
+   "test/coord/coords": 134,
+   "test/coord/count": 75,
+   "test/coord/exists": 150,
+   "test/coord/line_on": 16,
+   "test/coord/pair_lr": 558,
+   "test/coord/pair_ud": 562,
+   "test/coord/quadrant": 253,
+   "test/coord/side_x": 323,
+   "test/coord/side_y": 333,
+   "test/function/intercept": 111,
+   "test/function/intersections": 26,
+   "test/function/opens": 84,
+   "test/function/slope": 177,
+   "test/function/vertex_lr": 33,
+   "test/function/vertex_ud": 40,
+   "test/polygon/angle_val": 12,
+   "test/polygon/count": 75,
+   "test/polygon/exists": 150,
+   "test/polygon/highest": 54,
+   "test/polygon/leftmost": 50,
+   "test/polygon/lowest": 32,
+   "test/polygon/m_side": 33,
+   "test/polygon/right_vertex": 9,
+   "test/polygon/rightmost": 49,
+   "test/polygon/shape_type": 64,
+   "test/polygon/side_len": 299,
+   "test/shapes/count": 225,
+   "test/shapes/count_type": 75,
+   "test/shapes/exists": 150,
+   "test/shapes/has_type": 145,
+   "test/shapes/label_type": 191,
+   "train/coord/coords": 29946,
+   "train/coord/count": 14253,
+   "train/coord/exists": 28506,
+   "train/coord/line_on": 3632,
+   "train/coord/pair_lr": 116200,
+   "train/coord/pair_ud": 115640,
+   "train/coord/quadrant": 49880,
+   "train/coord/side_x": 49880,
+   "train/coord/side_y": 49880,
+   "train/function/intercept": 18638,
+   "train/function/intersections": 6086,
+   "train/function/opens": 8254,
+   "train/function/slope": 10384,
+   "train/function/vertex_lr": 6807,
+   "train/function/vertex_ud": 8254,
+   "train/polygon/angle_val": 2862,
+   "train/polygon/count": 14249,
+   "train/polygon/exists": 28498,
+   "train/polygon/highest": 8849,
+   "train/polygon/leftmost": 9380,
+   "train/polygon/lowest": 5593,
+   "train/polygon/m_side": 6226,
+   "train/polygon/right_vertex": 2018,
+   "train/polygon/rightmost": 9360,
+   "train/polygon/shape_type": 12201,
+   "train/polygon/side_len": 28579,
+   "train/shapes/count": 14250,
+   "train/shapes/count_type": 14250,
+   "train/shapes/exists": 28500,
+   "train/shapes/has_type": 27271,
+   "train/shapes/label_type": 35177
+  },
+  "compiti_per_split_stato_del_compito": {
+   "dev/ammesso/coord/coords": 1630,
+   "dev/ammesso/coord/count": 747,
+   "dev/ammesso/coord/exists": 1494,
+   "dev/ammesso/coord/line_on": 187,
+   "dev/ammesso/coord/pair_lr": 6038,
+   "dev/ammesso/coord/pair_ud": 5984,
+   "dev/ammesso/coord/quadrant": 2605,
+   "dev/ammesso/coord/side_x": 2605,
+   "dev/ammesso/coord/side_y": 2605,
+   "dev/ammesso/function/intercept": 1000,
+   "dev/ammesso/function/intersections": 327,
+   "dev/ammesso/function/opens": 444,
+   "dev/ammesso/function/slope": 556,
+   "dev/ammesso/function/vertex_lr": 391,
+   "dev/ammesso/function/vertex_ud": 444,
+   "dev/ammesso/polygon/angle_val": 151,
+   "dev/ammesso/polygon/count": 750,
+   "dev/ammesso/polygon/exists": 1500,
+   "dev/ammesso/polygon/highest": 463,
+   "dev/ammesso/polygon/leftmost": 488,
+   "dev/ammesso/polygon/lowest": 276,
+   "dev/ammesso/polygon/m_side": 326,
+   "dev/ammesso/polygon/right_vertex": 110,
+   "dev/ammesso/polygon/rightmost": 478,
+   "dev/ammesso/polygon/shape_type": 645,
+   "dev/ammesso/polygon/side_len": 1478,
+   "dev/ammesso/shapes/count": 750,
+   "dev/ammesso/shapes/count_type": 750,
+   "dev/ammesso/shapes/exists": 1500,
+   "dev/ammesso/shapes/has_type": 1436,
+   "dev/ammesso/shapes/label_type": 1869,
+   "dev/escluso/function/exists": 1246,
+   "test/ammesso/coord/coords": 134,
+   "test/ammesso/coord/count": 75,
+   "test/ammesso/coord/exists": 150,
+   "test/ammesso/coord/line_on": 16,
+   "test/ammesso/coord/pair_lr": 558,
+   "test/ammesso/coord/pair_ud": 562,
+   "test/ammesso/coord/quadrant": 253,
+   "test/ammesso/coord/side_x": 323,
+   "test/ammesso/coord/side_y": 333,
+   "test/ammesso/function/intercept": 111,
+   "test/ammesso/function/intersections": 26,
+   "test/ammesso/function/opens": 84,
+   "test/ammesso/function/slope": 177,
+   "test/ammesso/function/vertex_lr": 33,
+   "test/ammesso/function/vertex_ud": 40,
+   "test/ammesso/polygon/angle_val": 12,
+   "test/ammesso/polygon/count": 75,
+   "test/ammesso/polygon/exists": 150,
+   "test/ammesso/polygon/highest": 54,
+   "test/ammesso/polygon/leftmost": 50,
+   "test/ammesso/polygon/lowest": 32,
+   "test/ammesso/polygon/m_side": 33,
+   "test/ammesso/polygon/right_vertex": 9,
+   "test/ammesso/polygon/rightmost": 49,
+   "test/ammesso/polygon/shape_type": 64,
+   "test/ammesso/polygon/side_len": 299,
+   "test/ammesso/shapes/count": 225,
+   "test/ammesso/shapes/count_type": 75,
+   "test/ammesso/shapes/exists": 150,
+   "test/ammesso/shapes/has_type": 145,
+   "test/ammesso/shapes/label_type": 191,
+   "test/escluso/function/exists": 150,
+   "train/ammesso/coord/coords": 29946,
+   "train/ammesso/coord/count": 14253,
+   "train/ammesso/coord/exists": 28506,
+   "train/ammesso/coord/line_on": 3632,
+   "train/ammesso/coord/pair_lr": 116200,
+   "train/ammesso/coord/pair_ud": 115640,
+   "train/ammesso/coord/quadrant": 49880,
+   "train/ammesso/coord/side_x": 49880,
+   "train/ammesso/coord/side_y": 49880,
+   "train/ammesso/function/intercept": 18638,
+   "train/ammesso/function/intersections": 6086,
+   "train/ammesso/function/opens": 8254,
+   "train/ammesso/function/slope": 10384,
+   "train/ammesso/function/vertex_lr": 6807,
+   "train/ammesso/function/vertex_ud": 8254,
+   "train/ammesso/polygon/angle_val": 2862,
+   "train/ammesso/polygon/count": 14249,
+   "train/ammesso/polygon/exists": 28498,
+   "train/ammesso/polygon/highest": 8849,
+   "train/ammesso/polygon/leftmost": 9380,
+   "train/ammesso/polygon/lowest": 5593,
+   "train/ammesso/polygon/m_side": 6226,
+   "train/ammesso/polygon/right_vertex": 2018,
+   "train/ammesso/polygon/rightmost": 9360,
+   "train/ammesso/polygon/shape_type": 12201,
+   "train/ammesso/polygon/side_len": 28579,
+   "train/ammesso/shapes/count": 14250,
+   "train/ammesso/shapes/count_type": 14250,
+   "train/ammesso/shapes/exists": 28500,
+   "train/ammesso/shapes/has_type": 27271,
+   "train/ammesso/shapes/label_type": 35177,
+   "train/escluso/function/exists": 23170
+  },
+  "gruppi_per_split": {
+   "dev": 2608,
+   "test": 572,
+   "train": 49277
+  }
+ },
+ "seconds": 188.6
+}

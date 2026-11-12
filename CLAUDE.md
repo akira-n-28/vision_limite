@@ -571,25 +571,59 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
     Il JavaScript si esegue nei job con Duktape, libreria di sistema di `lagrange0` usata via ctypes, su un DOM
     simulato: `review_package.py esegui-js`, job 30562-30566. Non usare Node in `~/.nvm` né Firefox snap, che stanno
     fuori dal progetto. Non è una prova in un browser: il collaudo resta `verifica.html` sul portatile.
-  - **Esiti della revisione: consegnati e integrati, proposta da approvare** (S2 §2.13).
+  - **Esiti della revisione: consegnati e integrati** (S2 §2.13).
     - **Consegna e integrazione.** Consegna del 2026-11-11 (commit `201839b`, `777e30c`). Integrazione verificata nel job
       30915 (`scripts/review_results.py`, adattatore su `review_package.py` e `logica.js`; rapporti in
       `docs/revisioni/`): 31 controlli su 31. TSV rigenerati uguali byte per byte, cronologia ricalcolata, 555 primi
       giudizi indipendenti su 555.
     - **Esiti.** Conteggi confermati: 380 + 175 unità, 655 righe, 264 candidati con 755 corrispondenze (249 no, 15
-      incerti, 0 sì). Giudizi finali tutti positivi; 5 errori della prima risposta, autocorretti, non delle golden answer.
+      incerti, 0 sì). Giudizi finali tutti positivi.
+    - **Prime risposte:** 5 differiscono dal target dopo le equivalenze di scrittura, tutte con un'autocorrezione.
+      - Non sono cinque errori semantici dimostrati, né una misura della sensibilità del revisore.
+      - `C-shapes-009` (0 per no, presenza di un cerchio) è una possibile equivalenza semantica.
+      - Le note restano quelle originali.
     - **Riesame tecnico dei 15 incerti**, separato dal giudizio umano: 14 scene y = x + 1 a contenuto diverso;
       `synth-0016025` irrisolto.
-    - **Proposta non applicata:**
-      - 362 riammissioni (201 candidati no, 94 membri dei loro gruppi, 67 quarantene visive);
-      - 4 coppie riservate dopo il riesame tecnico;
-      - 1 irrisolto;
-      - 2.792 esclusi per contaminazione interna che restano.
-
-      Manifest, split, gruppi, target e config invariati. Nessuna stima C8: la corrispondenza verso C8 resta una
-      proposta.
-  - Ancora incompleto per gli esperimenti: approvazione della proposta e versione `synth-v4-candidato-3`, varianti e
-    contratto. La config della famiglia `synth` richiede ancora la lista v3 vuota di `data_lists.REQUIRED`.
+      - Integrazione-3 (job 30917, 37 controlli su 37) ne verifica gli ingressi contro le identità registrate: index.json
+        ed elements.jsonl.gz contro candidato-2, i parquet consultati contro `downloads/manifests`.
+      - Materiale e proposta sono uguali byte per byte a integrazione-2.
+    - **Proposta:** 362 riammissioni (201 candidati no, 94 membri dei loro gruppi, 67 quarantene visive), 4 coppie
+      riservate dopo il riesame tecnico, 1 irrisolto, 2.792 esclusi per contaminazione interna che restano. Applicata in
+      `synth-v4-candidato-3` (sotto). Nessuna stima C8: la corrispondenza verso C8 resta una proposta.
+  - **Scorciatoia testuale di function/exists** (S2 §2.14, job 30916; `docs/inventari/synth-v4-scorciatoia-exists-lotto-1.json`).
+    - **Che cos'è.** In v3 e v4 i grafici presenti si chiamano f e g e quelli chiesti come assenti h, p, q, quindi il nome
+      dà la risposta. Le golden answer sono vere: il problema è nella distribuzione delle domande, che il checker non vede
+      e la revisione visiva non esclude.
+    - **Misura.** La regola testuale (f, g → yes; h, p, q → no) è esatta su 30.150 QA del pool, sulle 11.054 scelte dal
+      loader in candidato-2 e sulle 150 del test storico di `f1c_eval.py`.
+    - **Altre domande di presenza** (coord, polygon, shapes exists; has_type): stesso vocabolario per sì e no, ma due
+      effetti misurati e non corretti:
+      - contesto: un'etichetta nominata da un'altra domanda del prompt è sempre presente;
+      - sbilanciamenti: lettere estreme dei polygon, rectangle in has_type.
+  - **Politica delle domande** (`manifest.TASKED_BY_POLICY`, campo `politica_domande`, `synth-domande/1`). Un manifest dei
+    sintetici che la dichiara rende synth_qa una sorgente per compito famiglia/tipo, su train, test e coppie.
+    - **Sorgente:** manifest_sha256 obbligatorio, niente liste della config, decisione del record allegata.
+    - **Loader:** `data.synth_qa_sample` toglie i compiti esclusi prima di `pick_synth_questions`, col pool legato a
+      `qa_sha256`; senza domande ammesse si ferma con NoAdmittedTask, senza ripiego.
+    - **Senza politica** (candidato-1 e -2) la lettura resta per record: col codice nuovo il candidato-2 passa 45
+      controlli su 45 (job 30922). Una coppia si giudica dalla sua domanda, mai exists.
+  - **Generatore v5** (`synth.py`, solo esplicito; default 4; v3 e v4 riprodotti).
+    - **Function:** nomi f, g, h, p, q per presenti e assenti, estratti dopo la geometria; una sola exists per scena,
+      `da_sola`, messa in un esempio senza altre domande; intersezioni coi nomi disegnati, controllate anche dal checker.
+    - **Diagnostica** fuori dai manifest (`docs/inventari/synth-v5-diagnostica-lotto-1.json`): regola per etichetta 0,518
+      contro 1,000 di v4; 60 scene disegnate verificate dal layout.
+    - **Nessun corpus v5** è stato generato.
+  - **`synth-v4-candidato-3`** (job 30921; manifest.json `95a4ac34…`, records `fb8fca14…`). Derivato da candidato-2, che
+    resta immutato.
+    - **Riammissioni:** le 366 della revisione, con le 4 coppie del riesame accettato dopo la verifica degli ingressi.
+      `synth-0016025` resta in quarantena; restano i 2.792 esclusi.
+    - **Evidenza:** una per ogni record della proposta, nel blocco `revisione_umana` del meta. Nel meta `revisione` è la
+      revisione della sorgente.
+    - **Compiti:** function/exists esclusa anche nei record riammessi.
+    - **Invarianti:** record, gruppi, split, immagini, JSON e QA.
+    - **Verifica:** 70 controlli su 70 col reader reale su tutti gli split (job 30923, `config/runs/f0-c7-reader-synth.json`,
+      collaudo e non ricetta).
+    - **Stato:** l'uso operativo va approvato. Mancano ancora varianti e contratto.
 
   Nessun dato è certificato. Per controllare la compilazione usare `compile()` in un job, non `ast.parse`, che non vede
   gli errori della tabella dei simboli.
@@ -626,8 +660,9 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
     UniMER e MAVIS (job 30651-30652, `data/decontam/pannello-v3/unimer` e `mavis-geometry`), PixMo-Cap (job 30813,
     `data/decontam/pannello-v3/pixmo-cap`).
     Sette record di sviluppo sintetico hanno candidati verso elementi di test: la revisione umana ne giudica sei a
-    contenuto diverso. Resta `synth-pair-00074-b` verso DynaMath 96, contenuto diverso per il riesame tecnico, da
-    approvare: è materiale per `pannello-v4` (`docs/PANNELLO_VALUTAZIONE.md` §8; S2 §2.13).
+    contenuto diverso. Il settimo, `synth-pair-00074-b` verso DynaMath 96, è a contenuto diverso per il riesame tecnico,
+    che `synth-v4-candidato-3` accetta dopo la verifica degli ingressi. Non è più materiale per `pannello-v4`
+    (`docs/PANNELLO_VALUTAZIONE.md` §8; S2 §§2.13-2.14).
   - `pannello-v1` (job 30465) e `pannello-v2` (job 30466) sono superati e mai usati.
   - Gli script sono `scripts/panel_index.py` (anche `--verify`) e `scripts/panel_groups.py`, lanciati da
     `slurm/panel_groups.sbatch`; i test sono in `tests/test_panel.py`. Le uscite si scrivono una volta: una modifica dà
@@ -668,12 +703,13 @@ parametri in `groups.py` sono ipotesi da verificare con `f0_checks.py` (sezione 
   `ISTRUZIONI_MIGRAZIONE_LAGRANGE.md` — incarico della migrazione del 2026-10-28
 - `docs/` — stato del repository, piano F0, pannello di valutazione, campione candidato di F0, inventario degli
   artefatti, indice dei file, rilievi e rapporti delle revisioni; `docs/inventari/`: rapporti degli inventari tecnici per
-  sorgente (PixMo-Cap); `docs/indice_globale/`: riepiloghi dei confronti fra sorgenti (C6); `docs/contratto/`: rapporti
+  sorgente (PixMo-Cap; scorciatoia di function/exists e diagnostica v5 dei sintetici); `docs/indice_globale/`: riepiloghi
+  dei confronti fra sorgenti (C6); `docs/contratto/`: rapporti
   della sonda del contratto di risposta (D3); `docs/revisioni/`: integrazione verificata degli esiti delle revisioni
   umane, riesami tecnici e proposte di ammissione
 - `config/paths.env` — percorsi e variabili offline; `config/runs/` — nessuna ricetta di training finché non ci sono
   ricette collaudate, solo le config di collaudo di C7 (`f0-c7-reader-unimer-mavis.json`, `f0-c7-reader-pixmo.json`,
-  non ricette);
+  `f0-c7-reader-synth.json`, non ricette);
   `config/audit/` — istruzioni e politica degli audit storici (congelate)
 - `downloads/` — `sources.tsv`, `catalog_status.tsv`, `build_manifests.sh`, `manifests/`
 - `scripts/` — ambiente, download, verifica, ispezione e shard dei dati, controlli deterministici, decontaminazione,
@@ -689,14 +725,16 @@ parametri in `groups.py` sono ipotesi da verificare con `f0_checks.py` (sezione 
   - `collator.py`: packing e collate;
   - `data.py`: lettura degli shard tar ed esempi per tipo di sorgente (un'immagine per `Sample`);
   - `stream.py`: flusso misto e riprendibile di micro-batch, esclusioni, rietichettature e filtro del manifest (per
-    UniMER, MAVIS e PixMo-Cap anche per compito, con la decisione del record allegata al campione);
+    UniMER, MAVIS, PixMo-Cap e i sintetici con la politica delle domande anche per compito, con la decisione del record
+    allegata al campione);
   - `manifest.py`: identità sha256, gruppi e split, lettura verificata del manifest delle ammissioni e ammissione per
-    compito di UniMER, MAVIS e PixMo-Cap (`TASKED`, S1 §9);
+    compito di UniMER, MAVIS e PixMo-Cap (`TASKED`, S1 §9) e dei sintetici che dichiarano `politica_domande`
+    (`TASKED_BY_POLICY`, S2 §2.14);
   - `data_lists.py`: liste obbligatorie e loro provenienza;
   - `latex.py`, `latex_render.py`: formule e confronto fra trascrizioni;
   - `mavis_c9.py`: valori esatti e visualizzati e `shape_type` con opzioni di MAVIS (C9), col controllo indipendente;
-  - `synth.py`, `synth_check.py`, `mavis_gen.py`, `f1_schema.py`, `f1_mavis.py`, `mavis.py`: sintetici, la loro verifica
-    indipendente, MAVIS;
+  - `synth.py`, `synth_check.py`, `mavis_gen.py`, `f1_schema.py`, `f1_mavis.py`, `mavis.py`: sintetici (versioni 3, 4 e
+    5 esplicita), la loro verifica indipendente, MAVIS;
   - `decontam.py`, `transcripts.py`, `mmfine.py`, `replay.py`: decontaminazione, PixMo, MMFineReason, replay testuale;
   - `estimate.py`: stime campionarie con limiti esatti (C8);
   - `train_utils.py`: loss a blocchi e checkpointing per layer; `generation.py`: generazione;

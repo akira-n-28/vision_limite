@@ -643,5 +643,6 @@ non contiene i sintetici, quindi v3 non le registra. La somiglianza dei pixel di
   - `synth-0017751` verso DynaMath 44;
   - `synth-0011211` e `synth-pair-00115-b` verso MathVision 1274 e UniMER-Test `sce-0000116`.
 - **Uno incerto.** `synth-pair-00074-b` verso DynaMath 96 variante 8 è la stessa retta y = x + 1, con domanda e
-  risposta diverse. Il riesame tecnico conclude contenuto diverso (`docs/revisioni/synth-v4-campione-2-riesame-incerti.md`),
-  da approvare: finché non lo è, resta materiale per `pannello-v4`.
+  risposta diverse. Il riesame tecnico conclude contenuto diverso (`docs/revisioni/synth-v4-campione-2-riesame-incerti.md`).
+  `synth-v4-candidato-3` lo accetta (S2 §2.14): integrazione-3 (job 30917) ne ha verificato gli ingressi contro le
+  identità registrate. Il legame quindi non è più materiale per `pannello-v4`, e nessun ruolo di `pannello-v3` cambia.

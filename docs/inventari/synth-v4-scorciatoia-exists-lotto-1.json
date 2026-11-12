@@ -1,0 +1,1505 @@
+{
+ "schema": "synth-scorciatoia-exists/1",
+ "job_id": "30916",
+ "codice": {
+  "commit": "5038c6667bec9d66d56c9b5dd62d85fb23655e6b",
+  "dirty": true,
+  "diff_sha256": "dd550873f6f1c637bbc2723987d0282ded834cc8a2402b7bf459f5d4249a7e91",
+  "untracked": [
+   "docs/revisioni/synth-v4-campione-2-integrazione-3.json",
+   "scripts/synth_qa_policy.py",
+   "slurm/synth_qa_policy.sbatch",
+   "tests/test_synth_policy.py"
+  ]
+ },
+ "manifest": {
+  "cartella": "/home/prignano/vision_limite/data/manifests/synth-v4-candidato-2",
+  "manifest_sha256": "9a8104cdea4b56ef333e7d1e9629d7cfd638ccd1a6be18336137c717ae2d824e",
+  "records_sha256": "5863b06a305141ea5f1c90e75138109dedbffe7d4f23c5e6a322572a89a4d3a0"
+ },
+ "controlli": {
+  "json_letti_con_lo_sha256_del_manifest": true,
+  "json_letti": 60900,
+  "json_diversi": 0,
+  "pool_uguale_ai_digest_del_manifest": true,
+  "prompt_storici_di_campione_2_riprodotti": true
+ },
+ "function_exists": {
+  "pool_per_strato_e_risposta": {
+   "dev": {
+    "yes": 623,
+    "no": 623
+   },
+   "test": {
+    "yes": 72,
+    "no": 72
+   },
+   "test/test/quarantena": {
+    "yes": 3,
+    "no": 3
+   },
+   "train": {
+    "yes": 11491,
+    "no": 11491
+   },
+   "train/test/escluso": {
+    "yes": 2792,
+    "no": 2792
+   },
+   "train/train/quarantena": {
+    "yes": 94,
+    "no": 94
+   }
+  },
+  "etichetta_per_risposta_tutti_i_record": {
+   "tabella": {
+    "f": {
+     "yes": 11332
+    },
+    "g": {
+     "yes": 3743
+    },
+    "h": {
+     "no": 5019
+    },
+    "p": {
+     "no": 5006
+    },
+    "q": {
+     "no": 5050
+    }
+   },
+   "totale": 30150,
+   "regola_per_etichetta": {
+    "corrette": 30150,
+    "accuratezza": 1.0
+   },
+   "vocabolario_si": [
+    "f",
+    "g"
+   ],
+   "vocabolario_no": [
+    "h",
+    "p",
+    "q"
+   ],
+   "comuni": [],
+   "solo_si": [
+    "f",
+    "g"
+   ],
+   "solo_no": [
+    "h",
+    "p",
+    "q"
+   ]
+  },
+  "etichetta_per_risposta_record_ammessi": {
+   "tabella": {
+    "f": {
+     "yes": 8463
+    },
+    "g": {
+     "yes": 3723
+    },
+    "h": {
+     "no": 4035
+    },
+    "p": {
+     "no": 4052
+    },
+    "q": {
+     "no": 4099
+    }
+   },
+   "totale": 24372,
+   "regola_per_etichetta": {
+    "corrette": 24372,
+    "accuratezza": 1.0
+   },
+   "vocabolario_si": [
+    "f",
+    "g"
+   ],
+   "vocabolario_no": [
+    "h",
+    "p",
+    "q"
+   ],
+   "comuni": [],
+   "solo_si": [
+    "f",
+    "g"
+   ],
+   "solo_no": [
+    "h",
+    "p",
+    "q"
+   ]
+  },
+  "regola_testuale_sul_pool": {
+   "corrette": 30150,
+   "totale": 30150
+  },
+  "scelte_dal_loader_per_strato_e_risposta": {
+   "dev": {
+    "yes": 292,
+    "no": 280
+   },
+   "test": {
+    "yes": 34,
+    "no": 33
+   },
+   "train": {
+    "yes": 5214,
+    "no": 5201
+   }
+  },
+  "etichetta_per_risposta_scelte": {
+   "tabella": {
+    "f": {
+     "yes": 4147
+    },
+    "g": {
+     "yes": 1393
+    },
+    "h": {
+     "no": 1859
+    },
+    "p": {
+     "no": 1821
+    },
+    "q": {
+     "no": 1834
+    }
+   },
+   "totale": 11054,
+   "regola_per_etichetta": {
+    "corrette": 11054,
+    "accuratezza": 1.0
+   },
+   "vocabolario_si": [
+    "f",
+    "g"
+   ],
+   "vocabolario_no": [
+    "h",
+    "p",
+    "q"
+   ],
+   "comuni": [],
+   "solo_si": [
+    "f",
+    "g"
+   ],
+   "solo_no": [
+    "h",
+    "p",
+    "q"
+   ]
+  },
+  "regola_testuale_sulle_scelte": {
+   "corrette": 11054,
+   "totale": 11054
+  },
+  "record_function_ammessi": {
+   "coppie": {
+    "record": 140,
+    "qa_exists_tolte": 0,
+    "qa_che_restano": 140,
+    "prompt_con_exists_prima": 0,
+    "record_senza_domande_dopo": 0
+   },
+   "dev": {
+    "record": 623,
+    "qa_exists_tolte": 1246,
+    "qa_che_restano": 3162,
+    "prompt_con_exists_prima": 434,
+    "record_senza_domande_dopo": 0
+   },
+   "test": {
+    "record": 72,
+    "qa_exists_tolte": 144,
+    "qa_che_restano": 315,
+    "prompt_con_exists_prima": 48,
+    "record_senza_domande_dopo": 0
+   },
+   "train": {
+    "record": 11491,
+    "qa_exists_tolte": 22982,
+    "qa_che_restano": 58223,
+    "prompt_con_exists_prima": 7814,
+    "record_senza_domande_dopo": 0
+   }
+  },
+  "qa_che_restano_per_record": {
+   "1": 140,
+   "2": 1978,
+   "3": 452,
+   "4": 2762,
+   "5": 2281,
+   "6": 915,
+   "7": 2651,
+   "8": 435,
+   "9": 712
+  },
+  "tipi_scelti_nei_function_prima": {
+   "exists": 11054,
+   "intercept": 8313,
+   "intersections": 2263,
+   "opens": 3435,
+   "slope": 5089,
+   "vertex_lr": 2763,
+   "vertex_ud": 3392
+  },
+  "tipi_scelti_nei_function_dopo": {
+   "intercept": 11059,
+   "intersections": 3073,
+   "opens": 4613,
+   "slope": 6872,
+   "vertex_lr": 3587,
+   "vertex_ud": 4477
+  },
+  "f1c_eval_storico_sul_test": {
+   "qa": 4038,
+   "function_exists/yes": 75,
+   "regola_testuale_corrette": 150,
+   "function_exists/no": 75
+  }
+ },
+ "scelta_del_loader_col_filtro": {
+  "coppie": {
+   "coord/uguale": 150,
+   "polygon/uguale": 148,
+   "shapes/uguale": 146,
+   "function/uguale": 140
+  },
+  "dev": {
+   "function/cambiato": 553,
+   "shapes/uguale": 746,
+   "coord/uguale": 747,
+   "polygon/uguale": 748,
+   "function/uguale": 70
+  },
+  "test": {
+   "coord/uguale": 75,
+   "polygon/uguale": 75,
+   "function/cambiato": 62,
+   "shapes/uguale": 74,
+   "function/uguale": 10
+  },
+  "train": {
+   "coord/uguale": 14186,
+   "polygon/uguale": 14217,
+   "function/cambiato": 10230,
+   "shapes/uguale": 14103,
+   "function/uguale": 1261
+  }
+ },
+ "altre_domande_di_presenza": {
+  "pool": {
+   "coord/exists": {
+    "tabella": {
+     "A": {
+      "no": 771,
+      "yes": 770
+     },
+     "B": {
+      "no": 814,
+      "yes": 756
+     },
+     "C": {
+      "no": 774,
+      "yes": 771
+     },
+     "D": {
+      "no": 738,
+      "yes": 757
+     },
+     "E": {
+      "no": 723,
+      "yes": 741
+     },
+     "F": {
+      "no": 757,
+      "yes": 754
+     },
+     "G": {
+      "no": 721,
+      "yes": 751
+     },
+     "H": {
+      "no": 753,
+      "yes": 762
+     },
+     "K": {
+      "no": 749,
+      "yes": 740
+     },
+     "L": {
+      "no": 777,
+      "yes": 720
+     },
+     "M": {
+      "no": 759,
+      "yes": 723
+     },
+     "N": {
+      "no": 757,
+      "yes": 728
+     },
+     "P": {
+      "no": 730,
+      "yes": 778
+     },
+     "Q": {
+      "no": 772,
+      "yes": 772
+     },
+     "R": {
+      "no": 738,
+      "yes": 762
+     },
+     "S": {
+      "no": 739,
+      "yes": 762
+     },
+     "T": {
+      "no": 777,
+      "yes": 724
+     },
+     "U": {
+      "no": 740,
+      "yes": 765
+     },
+     "V": {
+      "no": 750,
+      "yes": 795
+     },
+     "W": {
+      "no": 736,
+      "yes": 744
+     }
+    },
+    "totale": 30150,
+    "regola_per_etichetta": {
+     "corrette": 15324,
+     "accuratezza": 0.5083
+    },
+    "vocabolario_si": [
+     "A",
+     "B",
+     "C",
+     "D",
+     "E",
+     "F",
+     "G",
+     "H",
+     "K",
+     "L",
+     "M",
+     "N",
+     "P",
+     "Q",
+     "R",
+     "S",
+     "T",
+     "U",
+     "V",
+     "W"
+    ],
+    "vocabolario_no": [
+     "A",
+     "B",
+     "C",
+     "D",
+     "E",
+     "F",
+     "G",
+     "H",
+     "K",
+     "L",
+     "M",
+     "N",
+     "P",
+     "Q",
+     "R",
+     "S",
+     "T",
+     "U",
+     "V",
+     "W"
+    ],
+    "comuni": [
+     "A",
+     "B",
+     "C",
+     "D",
+     "E",
+     "F",
+     "G",
+     "H",
+     "K",
+     "L",
+     "M",
+     "N",
+     "P",
+     "Q",
+     "R",
+     "S",
+     "T",
+     "U",
+     "V",
+     "W"
+    ],
+    "solo_si": [],
+    "solo_no": []
+   },
+   "function/exists": {
+    "tabella": {
+     "f": {
+      "yes": 11332
+     },
+     "g": {
+      "yes": 3743
+     },
+     "h": {
+      "no": 5019
+     },
+     "p": {
+      "no": 5006
+     },
+     "q": {
+      "no": 5050
+     }
+    },
+    "totale": 30150,
+    "regola_per_etichetta": {
+     "corrette": 30150,
+     "accuratezza": 1.0
+    },
+    "vocabolario_si": [
+     "f",
+     "g"
+    ],
+    "vocabolario_no": [
+     "h",
+     "p",
+     "q"
+    ],
+    "comuni": [],
+    "solo_si": [
+     "f",
+     "g"
+    ],
+    "solo_no": [
+     "h",
+     "p",
+     "q"
+    ]
+   },
+   "polygon/exists": {
+    "tabella": {
+     "A": {
+      "no": 853,
+      "yes": 324
+     },
+     "B": {
+      "no": 832,
+      "yes": 522
+     },
+     "C": {
+      "no": 787,
+      "yes": 735
+     },
+     "D": {
+      "no": 725,
+      "yes": 843
+     },
+     "E": {
+      "no": 717,
+      "yes": 866
+     },
+     "F": {
+      "no": 763,
+      "yes": 839
+     },
+     "G": {
+      "no": 730,
+      "yes": 862
+     },
+     "H": {
+      "no": 724,
+      "yes": 835
+     },
+     "K": {
+      "no": 730,
+      "yes": 902
+     },
+     "L": {
+      "no": 727,
+      "yes": 851
+     },
+     "M": {
+      "no": 745,
+      "yes": 895
+     },
+     "N": {
+      "no": 740,
+      "yes": 808
+     },
+     "P": {
+      "no": 674,
+      "yes": 863
+     },
+     "Q": {
+      "no": 749,
+      "yes": 818
+     },
+     "R": {
+      "no": 738,
+      "yes": 812
+     },
+     "S": {
+      "no": 717,
+      "yes": 890
+     },
+     "T": {
+      "no": 769,
+      "yes": 872
+     },
+     "U": {
+      "no": 750,
+      "yes": 731
+     },
+     "V": {
+      "no": 802,
+      "yes": 514
+     },
+     "W": {
+      "no": 803,
+      "yes": 293
+     }
+    },
+    "totale": 30150,
+    "regola_per_etichetta": {
+     "corrette": 16783,
+     "accuratezza": 0.5567
+    },
+    "vocabolario_si": [
+     "A",
+     "B",
+     "C",
+     "D",
+     "E",
+     "F",
+     "G",
+     "H",
+     "K",
+     "L",
+     "M",
+     "N",
+     "P",
+     "Q",
+     "R",
+     "S",
+     "T",
+     "U",
+     "V",
+     "W"
+    ],
+    "vocabolario_no": [
+     "A",
+     "B",
+     "C",
+     "D",
+     "E",
+     "F",
+     "G",
+     "H",
+     "K",
+     "L",
+     "M",
+     "N",
+     "P",
+     "Q",
+     "R",
+     "S",
+     "T",
+     "U",
+     "V",
+     "W"
+    ],
+    "comuni": [
+     "A",
+     "B",
+     "C",
+     "D",
+     "E",
+     "F",
+     "G",
+     "H",
+     "K",
+     "L",
+     "M",
+     "N",
+     "P",
+     "Q",
+     "R",
+     "S",
+     "T",
+     "U",
+     "V",
+     "W"
+    ],
+    "solo_si": [],
+    "solo_no": []
+   },
+   "shapes/exists": {
+    "tabella": {
+     "A": {
+      "no": 784,
+      "yes": 740
+     },
+     "B": {
+      "no": 737,
+      "yes": 773
+     },
+     "C": {
+      "no": 759,
+      "yes": 797
+     },
+     "D": {
+      "no": 709,
+      "yes": 725
+     },
+     "E": {
+      "no": 794,
+      "yes": 790
+     },
+     "F": {
+      "no": 767,
+      "yes": 709
+     },
+     "G": {
+      "no": 788,
+      "yes": 762
+     },
+     "H": {
+      "no": 776,
+      "yes": 777
+     },
+     "K": {
+      "no": 770,
+      "yes": 743
+     },
+     "L": {
+      "no": 773,
+      "yes": 710
+     },
+     "M": {
+      "no": 772,
+      "yes": 748
+     },
+     "N": {
+      "no": 736,
+      "yes": 752
+     },
+     "P": {
+      "no": 727,
+      "yes": 775
+     },
+     "Q": {
+      "no": 705,
+      "yes": 708
+     },
+     "R": {
+      "no": 747,
+      "yes": 783
+     },
+     "S": {
+      "no": 725,
+      "yes": 733
+     },
+     "T": {
+      "no": 730,
+      "yes": 732
+     },
+     "U": {
+      "no": 762,
+      "yes": 769
+     },
+     "V": {
+      "no": 809,
+      "yes": 722
+     },
+     "W": {
+      "no": 705,
+      "yes": 827
+     }
+    },
+    "totale": 30150,
+    "regola_per_etichetta": {
+     "corrette": 15408,
+     "accuratezza": 0.511
+    },
+    "vocabolario_si": [
+     "A",
+     "B",
+     "C",
+     "D",
+     "E",
+     "F",
+     "G",
+     "H",
+     "K",
+     "L",
+     "M",
+     "N",
+     "P",
+     "Q",
+     "R",
+     "S",
+     "T",
+     "U",
+     "V",
+     "W"
+    ],
+    "vocabolario_no": [
+     "A",
+     "B",
+     "C",
+     "D",
+     "E",
+     "F",
+     "G",
+     "H",
+     "K",
+     "L",
+     "M",
+     "N",
+     "P",
+     "Q",
+     "R",
+     "S",
+     "T",
+     "U",
+     "V",
+     "W"
+    ],
+    "comuni": [
+     "A",
+     "B",
+     "C",
+     "D",
+     "E",
+     "F",
+     "G",
+     "H",
+     "K",
+     "L",
+     "M",
+     "N",
+     "P",
+     "Q",
+     "R",
+     "S",
+     "T",
+     "U",
+     "V",
+     "W"
+    ],
+    "solo_si": [],
+    "solo_no": []
+   },
+   "shapes/has_type": {
+    "tabella": {
+     "circle": {
+      "no": 4409,
+      "yes": 3870
+     },
+     "rectangle": {
+      "no": 1428,
+      "yes": 3544
+     },
+     "square": {
+      "no": 3597,
+      "yes": 3821
+     },
+     "triangle": {
+      "no": 4343,
+      "yes": 3840
+     }
+    },
+    "totale": 28852,
+    "regola_per_etichetta": {
+     "corrette": 16117,
+     "accuratezza": 0.5586
+    },
+    "vocabolario_si": [
+     "circle",
+     "rectangle",
+     "square",
+     "triangle"
+    ],
+    "vocabolario_no": [
+     "circle",
+     "rectangle",
+     "square",
+     "triangle"
+    ],
+    "comuni": [
+     "circle",
+     "rectangle",
+     "square",
+     "triangle"
+    ],
+    "solo_si": [],
+    "solo_no": []
+   }
+  },
+  "scelte": {
+   "coord/exists": {
+    "tabella": {
+     "A": {
+      "no": 102,
+      "yes": 104
+     },
+     "B": {
+      "no": 93,
+      "yes": 92
+     },
+     "C": {
+      "no": 94,
+      "yes": 90
+     },
+     "D": {
+      "no": 91,
+      "yes": 86
+     },
+     "E": {
+      "no": 93,
+      "yes": 91
+     },
+     "F": {
+      "no": 83,
+      "yes": 92
+     },
+     "G": {
+      "no": 89,
+      "yes": 82
+     },
+     "H": {
+      "no": 75,
+      "yes": 87
+     },
+     "K": {
+      "no": 94,
+      "yes": 103
+     },
+     "L": {
+      "no": 112,
+      "yes": 83
+     },
+     "M": {
+      "no": 110,
+      "yes": 79
+     },
+     "N": {
+      "no": 82,
+      "yes": 112
+     },
+     "P": {
+      "no": 90,
+      "yes": 108
+     },
+     "Q": {
+      "no": 82,
+      "yes": 82
+     },
+     "R": {
+      "no": 92,
+      "yes": 102
+     },
+     "S": {
+      "no": 90,
+      "yes": 95
+     },
+     "T": {
+      "no": 104,
+      "yes": 83
+     },
+     "U": {
+      "no": 77,
+      "yes": 91
+     },
+     "V": {
+      "no": 90,
+      "yes": 90
+     },
+     "W": {
+      "no": 96,
+      "yes": 113
+     }
+    },
+    "totale": 3704,
+    "regola_per_etichetta": {
+     "corrette": 1965,
+     "accuratezza": 0.5305
+    },
+    "vocabolario_si": [
+     "A",
+     "B",
+     "C",
+     "D",
+     "E",
+     "F",
+     "G",
+     "H",
+     "K",
+     "L",
+     "M",
+     "N",
+     "P",
+     "Q",
+     "R",
+     "S",
+     "T",
+     "U",
+     "V",
+     "W"
+    ],
+    "vocabolario_no": [
+     "A",
+     "B",
+     "C",
+     "D",
+     "E",
+     "F",
+     "G",
+     "H",
+     "K",
+     "L",
+     "M",
+     "N",
+     "P",
+     "Q",
+     "R",
+     "S",
+     "T",
+     "U",
+     "V",
+     "W"
+    ],
+    "comuni": [
+     "A",
+     "B",
+     "C",
+     "D",
+     "E",
+     "F",
+     "G",
+     "H",
+     "K",
+     "L",
+     "M",
+     "N",
+     "P",
+     "Q",
+     "R",
+     "S",
+     "T",
+     "U",
+     "V",
+     "W"
+    ],
+    "solo_si": [],
+    "solo_no": []
+   },
+   "function/exists": {
+    "tabella": {
+     "f": {
+      "yes": 4147
+     },
+     "g": {
+      "yes": 1393
+     },
+     "h": {
+      "no": 1859
+     },
+     "p": {
+      "no": 1821
+     },
+     "q": {
+      "no": 1834
+     }
+    },
+    "totale": 11054,
+    "regola_per_etichetta": {
+     "corrette": 11054,
+     "accuratezza": 1.0
+    },
+    "vocabolario_si": [
+     "f",
+     "g"
+    ],
+    "vocabolario_no": [
+     "h",
+     "p",
+     "q"
+    ],
+    "comuni": [],
+    "solo_si": [
+     "f",
+     "g"
+    ],
+    "solo_no": [
+     "h",
+     "p",
+     "q"
+    ]
+   },
+   "polygon/exists": {
+    "tabella": {
+     "A": {
+      "no": 292,
+      "yes": 113
+     },
+     "B": {
+      "no": 294,
+      "yes": 183
+     },
+     "C": {
+      "no": 273,
+      "yes": 276
+     },
+     "D": {
+      "no": 254,
+      "yes": 296
+     },
+     "E": {
+      "no": 240,
+      "yes": 296
+     },
+     "F": {
+      "no": 261,
+      "yes": 312
+     },
+     "G": {
+      "no": 248,
+      "yes": 291
+     },
+     "H": {
+      "no": 253,
+      "yes": 289
+     },
+     "K": {
+      "no": 259,
+      "yes": 322
+     },
+     "L": {
+      "no": 275,
+      "yes": 307
+     },
+     "M": {
+      "no": 242,
+      "yes": 321
+     },
+     "N": {
+      "no": 245,
+      "yes": 290
+     },
+     "P": {
+      "no": 243,
+      "yes": 302
+     },
+     "Q": {
+      "no": 259,
+      "yes": 283
+     },
+     "R": {
+      "no": 246,
+      "yes": 269
+     },
+     "S": {
+      "no": 255,
+      "yes": 328
+     },
+     "T": {
+      "no": 262,
+      "yes": 328
+     },
+     "U": {
+      "no": 248,
+      "yes": 247
+     },
+     "V": {
+      "no": 300,
+      "yes": 188
+     },
+     "W": {
+      "no": 275,
+      "yes": 109
+     }
+    },
+    "totale": 10574,
+    "regola_per_etichetta": {
+     "corrette": 5919,
+     "accuratezza": 0.5598
+    },
+    "vocabolario_si": [
+     "A",
+     "B",
+     "C",
+     "D",
+     "E",
+     "F",
+     "G",
+     "H",
+     "K",
+     "L",
+     "M",
+     "N",
+     "P",
+     "Q",
+     "R",
+     "S",
+     "T",
+     "U",
+     "V",
+     "W"
+    ],
+    "vocabolario_no": [
+     "A",
+     "B",
+     "C",
+     "D",
+     "E",
+     "F",
+     "G",
+     "H",
+     "K",
+     "L",
+     "M",
+     "N",
+     "P",
+     "Q",
+     "R",
+     "S",
+     "T",
+     "U",
+     "V",
+     "W"
+    ],
+    "comuni": [
+     "A",
+     "B",
+     "C",
+     "D",
+     "E",
+     "F",
+     "G",
+     "H",
+     "K",
+     "L",
+     "M",
+     "N",
+     "P",
+     "Q",
+     "R",
+     "S",
+     "T",
+     "U",
+     "V",
+     "W"
+    ],
+    "solo_si": [],
+    "solo_no": []
+   },
+   "shapes/exists": {
+    "tabella": {
+     "A": {
+      "no": 292,
+      "yes": 300
+     },
+     "B": {
+      "no": 264,
+      "yes": 280
+     },
+     "C": {
+      "no": 253,
+      "yes": 301
+     },
+     "D": {
+      "no": 250,
+      "yes": 245
+     },
+     "E": {
+      "no": 282,
+      "yes": 278
+     },
+     "F": {
+      "no": 287,
+      "yes": 250
+     },
+     "G": {
+      "no": 275,
+      "yes": 282
+     },
+     "H": {
+      "no": 281,
+      "yes": 304
+     },
+     "K": {
+      "no": 294,
+      "yes": 240
+     },
+     "L": {
+      "no": 266,
+      "yes": 242
+     },
+     "M": {
+      "no": 277,
+      "yes": 269
+     },
+     "N": {
+      "no": 253,
+      "yes": 289
+     },
+     "P": {
+      "no": 254,
+      "yes": 302
+     },
+     "Q": {
+      "no": 257,
+      "yes": 255
+     },
+     "R": {
+      "no": 253,
+      "yes": 253
+     },
+     "S": {
+      "no": 278,
+      "yes": 286
+     },
+     "T": {
+      "no": 268,
+      "yes": 283
+     },
+     "U": {
+      "no": 293,
+      "yes": 297
+     },
+     "V": {
+      "no": 289,
+      "yes": 252
+     },
+     "W": {
+      "no": 266,
+      "yes": 289
+     }
+    },
+    "totale": 10929,
+    "regola_per_etichetta": {
+     "corrette": 5668,
+     "accuratezza": 0.5186
+    },
+    "vocabolario_si": [
+     "A",
+     "B",
+     "C",
+     "D",
+     "E",
+     "F",
+     "G",
+     "H",
+     "K",
+     "L",
+     "M",
+     "N",
+     "P",
+     "Q",
+     "R",
+     "S",
+     "T",
+     "U",
+     "V",
+     "W"
+    ],
+    "vocabolario_no": [
+     "A",
+     "B",
+     "C",
+     "D",
+     "E",
+     "F",
+     "G",
+     "H",
+     "K",
+     "L",
+     "M",
+     "N",
+     "P",
+     "Q",
+     "R",
+     "S",
+     "T",
+     "U",
+     "V",
+     "W"
+    ],
+    "comuni": [
+     "A",
+     "B",
+     "C",
+     "D",
+     "E",
+     "F",
+     "G",
+     "H",
+     "K",
+     "L",
+     "M",
+     "N",
+     "P",
+     "Q",
+     "R",
+     "S",
+     "T",
+     "U",
+     "V",
+     "W"
+    ],
+    "solo_si": [],
+    "solo_no": []
+   },
+   "shapes/has_type": {
+    "tabella": {
+     "circle": {
+      "no": 1626,
+      "yes": 1420
+     },
+     "rectangle": {
+      "no": 559,
+      "yes": 1256
+     },
+     "square": {
+      "no": 1263,
+      "yes": 1422
+     },
+     "triangle": {
+      "no": 1508,
+      "yes": 1351
+     }
+    },
+    "totale": 10405,
+    "regola_per_etichetta": {
+     "corrette": 5812,
+     "accuratezza": 0.5586
+    },
+    "vocabolario_si": [
+     "circle",
+     "rectangle",
+     "square",
+     "triangle"
+    ],
+    "vocabolario_no": [
+     "circle",
+     "rectangle",
+     "square",
+     "triangle"
+    ],
+    "comuni": [
+     "circle",
+     "rectangle",
+     "square",
+     "triangle"
+    ],
+    "solo_si": [],
+    "solo_no": []
+   }
+  },
+  "contesto_dei_prompt": {
+   "coord/exists": {
+    "con_altre_domande": 3482,
+    "con_l_altra_exists_nello_stesso_prompt": 490,
+    "da_sole": 222,
+    "etichetta_nominata_da_altre/no": 0,
+    "etichetta_nominata_da_altre/yes": 1385,
+    "regola_contesto_corrette": 3124,
+    "scelte": 3704
+   },
+   "function/exists": {
+    "con_altre_domande": 10459,
+    "con_l_altra_exists_nello_stesso_prompt": 5516,
+    "da_sole": 595,
+    "etichetta_nominata_da_altre/no": 0,
+    "etichetta_nominata_da_altre/yes": 4777,
+    "regola_contesto_corrette": 9989,
+    "scelte": 11054
+   },
+   "polygon/exists": {
+    "con_altre_domande": 10011,
+    "con_l_altra_exists_nello_stesso_prompt": 3726,
+    "da_sole": 563,
+    "etichetta_nominata_da_altre/no": 0,
+    "etichetta_nominata_da_altre/yes": 2929,
+    "regola_contesto_corrette": 7861,
+    "scelte": 10574
+   },
+   "shapes/exists": {
+    "con_altre_domande": 10319,
+    "con_l_altra_exists_nello_stesso_prompt": 3920,
+    "da_sole": 610,
+    "etichetta_nominata_da_altre/no": 0,
+    "etichetta_nominata_da_altre/yes": 2008,
+    "regola_contesto_corrette": 7109,
+    "scelte": 10929
+   },
+   "shapes/has_type": {
+    "con_altre_domande": 9827,
+    "con_l_altra_has_type_nello_stesso_prompt": 3556,
+    "count_type_dello_stesso_tipo/no": 508,
+    "count_type_dello_stesso_tipo/yes": 523,
+    "count_type_dello_stesso_tipo_prima/no": 266,
+    "count_type_dello_stesso_tipo_prima/yes": 258,
+    "da_sole": 578,
+    "scelte": 10405
+   }
+  }
+ },
+ "campione_2": {
+  "per_sezione_famiglia_prompt_esito": {
+   "campione/coord/domanda_singola_test/domanda_singola": 31,
+   "campione/coord/loader/prompt_uguale": 75,
+   "campione/function/domanda_singola_test/domanda_bloccata": 1,
+   "campione/function/domanda_singola_test/domanda_singola": 3,
+   "campione/function/loader/domanda_bloccata": 18,
+   "campione/function/loader/prompt_cambiato": 53,
+   "campione/function/loader/prompt_uguale": 4,
+   "campione/polygon/domanda_singola_test/domanda_singola": 8,
+   "campione/polygon/loader/prompt_uguale": 75,
+   "campione/record_assente": 30,
+   "campione/shapes/domanda_singola_test/domanda_singola": 7,
+   "campione/shapes/loader/prompt_uguale": 75,
+   "mirati/coord/domanda_singola_qa_non_scelta/domanda_singola": 8,
+   "mirati/coord/loader_scena/prompt_uguale": 81,
+   "mirati/function/domanda_singola_qa_non_scelta/domanda_singola": 13,
+   "mirati/function/loader/prompt_cambiato": 12,
+   "mirati/function/loader/prompt_uguale": 1,
+   "mirati/function/loader_scena/prompt_cambiato": 1,
+   "mirati/function/loader_scena/prompt_uguale": 1,
+   "mirati/polygon/domanda_singola_qa_non_scelta/domanda_singola": 4,
+   "mirati/polygon/loader/prompt_uguale": 14,
+   "mirati/record_assente": 30,
+   "mirati/shapes/loader/prompt_uguale": 10
+  },
+  "unita_col_prompt_del_loader": 420,
+  "prompt_storici_riprodotti": 420,
+  "unita_function": 107,
+  "unita_con_domanda_bloccata": 19,
+  "unita_col_prompt_cambiato": 66,
+  "nota": "la revisione umana ha giudicato i prompt storici: col filtro i record function hanno un'altra scelta di domande, che quel giudizio non copre"
+ },
+ "secondi": 21.6
+}

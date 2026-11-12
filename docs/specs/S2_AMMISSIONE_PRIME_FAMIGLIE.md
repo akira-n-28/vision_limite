@@ -1559,8 +1559,8 @@ segnalato" descrive le unità guardate, non il dataset.
     difetto", e i 30 contratti delle coppie sono "sì";
   - leggibilità iniziale "sì" ovunque;
   - prime risposte, scritte prima di vedere il target: delle 350 varianti non di coppia, 345 uguali al target, una
-    equivalente nella scrittura e 4 diverse, tutte autocorrette dal revisore (sotto); le 60 varianti di coppia sono
-    uguali.
+    equivalente nella scrittura e 4 classificate diverse dal confronto, ognuna con un'autocorrezione del revisore
+    (sotto); le 60 varianti di coppia sono uguali.
 - **Casi mirati** (175, per trovare errori, non per stimare un tasso):
   - giudizi finali tutti positivi;
   - nei 67 casi di quarantena per testi sovrapposti: leggibilità "sì", coerenza e rispondibilità "sì", nessun difetto,
@@ -1568,7 +1568,7 @@ segnalato" descrive le unità guardate, non il dataset.
   - nelle 20 coppie per famiglia, varianti e contratti "sì";
   - nei 10 casi di esclusione per contaminazione, coerenza "sì" in tutti e la nota "stesso stato della scena" in uno
     (`M-esclusioni_contaminazione-009`): nessuno smentisce l'esclusione, che resta;
-  - una prima risposta diversa e autocorretta (`M-coordinate_dalle_tacche-001`).
+  - una prima risposta classificata diversa, con un'autocorrezione (`M-coordinate_dalle_tacche-001`).
 - **Coppie e contratti:** 50 coppie (30 casuali, 20 mirate), 100 varianti con giudizi positivi e 50 contratti "sì". La
   coppia è giudicata per intero; le sue righe non sono tre prove.
 - **Decontaminazione:** 264 record e 755 corrispondenze.
@@ -1578,17 +1578,23 @@ segnalato" descrive le unità guardate, non il dataset.
 
 **Prime risposte e autocorrezioni.** Sei prime risposte differiscono come stringa dal target:
 - `C-coord-022` scrive `two` per `2`: è un'equivalenza, ora riconosciuta dal confronto (numeri in lettere);
-- le altre cinque hanno una nota del revisore che dichiara sbagliata la propria risposta e giusto il target, con la
-  risposta corretta nel campo successivo alla soluzione:
+- le altre cinque sono **prime risposte classificate diverse dal confronto**, ognuna con un'autocorrezione: una nota
+  del revisore che dichiara sbagliata la propria risposta e giusto il target, e la risposta corretta nel campo
+  successivo alla soluzione:
   - `C-coord-049`: left contro right;
   - `C-polygon-053`: 2 contro 3;
-  - `C-shapes-009`: 0 contro no;
+  - `C-shapes-009`: 0 contro no, alla domanda "Is there a circle in the figure?";
   - `C-shapes-053`: 2 contro no;
   - `M-coordinate_dalle_tacche-001`: (5, -5) contro (-5, 5).
 
-Sono errori della prima risposta del revisore, non delle golden answer: il giudizio finale conferma il target. Prima
-risposta e giudizio finale restano entrambi, in `esiti_per_unita.tsv` e nel file caricato. Un disaccordo iniziale
-risolto dal revisore stesso non è una verifica indipendente del target.
+Non vanno lette come cinque errori semantici dimostrati.
+- **`C-shapes-009`:** "0" (nessun cerchio) può essere equivalente a "no". Da integrazione-3 (§2.14) il confronto la
+  classifica come possibile equivalenza semantica, distinta da "uguale" e da "diversa".
+- **Note:** restano quelle originali, con le loro parole.
+- **Sensibilità del revisore:** il conteggio non la misura.
+- **Golden answer:** nessuna è smentita, e il giudizio finale conferma il target.
+- **Conservazione:** prima risposta e giudizio finale restano entrambi, in `esiti_per_unita.tsv` e nel file caricato.
+- **Indipendenza:** un disaccordo iniziale risolto dal revisore stesso non è una verifica indipendente del target.
 
 **C8 non si applica in questo lotto.** La corrispondenza fra i valori del pacchetto e gli esiti di C8 era una proposta
 (S4 §9) e non è stata approvata prima della revisione: qui non diventa approvata retroattivamente. I conteggi sono
@@ -1648,8 +1654,10 @@ erano in quarantena solo perché un altro membro del gruppo lo era.
 `sacct`. Nessuna GPU, generazione, download o agente.
 
 **Limiti:**
-- **Revisore:** uno solo, con la sensibilità non misurata. Le prime risposte del revisore hanno 5 errori su 512
-  risposte confrontabili: la revisione non è infallibile, e guarda per lo più casi facili da leggere.
+- **Revisore:** uno solo, con la sensibilità non misurata. Delle 512 prime risposte confrontabili, 5 differiscono dal
+  target anche dopo le equivalenze di scrittura, tutte con un'autocorrezione. Una (0 per no) da integrazione-3 è una
+  possibile equivalenza semantica. Non è una misura degli errori del revisore, e la revisione guarda per lo più casi
+  facili da leggere.
 - **Riesame tecnico:** è un controllo di Claude Code, non una seconda revisione umana.
 - **Decontaminazione:** risolve i candidati pHash, non i quasi-duplicati che il pHash non vede.
 - **Uso degli esiti:** gli esiti descrivono le unità guardate; senza C8 e D5 non danno quote per la popolazione.
@@ -1663,6 +1671,181 @@ erano in quarantena solo perché un altro membro del gruppo lo era.
    revisione nel record, e la sua verifica lungo la catena (`manifest_check.py`). Il reader e la config di collaudo
    passano al manifest nuovo solo dopo la verifica;
 3. se servono stime, approvare la corrispondenza verso C8 e le affermazioni di S4 §9 prima di calcolarle.
+
+### 2.14 Scorciatoia testuale di function/exists, politica delle domande e `synth-v4-candidato-3` (job 30916-30923, 2026-11-12)
+
+**Il problema.** In v3 e v4 `_function_spec` disegna sempre il grafico `f` e, in metà delle scene, `g`. `_function_qa`
+sceglie l'etichetta della exists positiva fra le presenti e quella della negativa fra h, p, q.
+- **Le golden answer sono vere,** ma il nome chiesto dà la risposta senza guardare l'immagine: f, g → yes; h, p, q → no.
+  Anche g è sempre yes, perché si chiede solo quando c'è.
+- **Il checker non lo vede:** `synth_check._exists` verifica la risposta sul disegno, non la distribuzione delle domande.
+- **La revisione visiva non lo esclude:** ha giudicato risposte e leggibilità, non l'assenza di scorciatoie.
+- **Che cosa non è:** non è un errore delle risposte e non invalida gli altri sintetici.
+
+**Impatto misurato senza modelli** (`scripts/synth_qa_policy.py impatto`, job 30916;
+`docs/inventari/synth-v4-scorciatoia-exists-lotto-1.json`). Ingresso: synth-v4-candidato-2, 60.900 JSON letti con lo
+sha256 del manifest e pool di ogni record uguale ai digest registrati.
+
+| function/exists | Pool: yes / no | Scelte dal loader: yes / no |
+| --- | --- | --- |
+| train, ammessi | 11.491 / 11.491 | 5.214 / 5.201 |
+| dev | 623 / 623 | 292 / 280 |
+| test, ammessi | 72 / 72 | 34 / 33 |
+| test in quarantena; train in quarantena; train esclusi | 3 / 3; 94 / 94; 2.792 / 2.792 | non letti |
+| coppie | 0 (la domanda della coppia non è mai exists) | 0 |
+
+- **Etichetta per risposta** sul pool di 30.150 QA: f 11.332 e g 3.743 sempre yes; h 5.019, p 5.006 e q 5.050 sempre no.
+  Nessuna etichetta ha entrambe le risposte.
+- **Regola testuale** f, g → yes; h, p, q → no: 30.150 su 30.150 nel pool, 11.054 su 11.054 fra le domande scelte dal
+  loader (f1c.pick_questions sui record ammessi, come data.synth_qa_sample).
+- **Prompt toccati:** hanno almeno una function/exists 7.814 prompt function di train su 11.491, 434 di dev su 623 e 48
+  di test su 72.
+- **Misura storica:** `scripts/f1c_eval.py` (storico) valuta tutte le QA delle 300 scene di test senza manifest. Su
+  4.038 QA, 150 sono function/exists (75 yes, 75 no), tutte risolte dalla regola testuale. Rapporti e benchmark storici
+  restano come sono.
+- **QA che restano** nei record function ammessi, togliendo le exists:
+  - train 11.491 record: 22.982 tolte, 58.223 restano;
+  - dev 623 record: 1.246 tolte, 3.162 restano;
+  - test 72 record: 144 tolte, 315 restano.
+
+  Nessun record resta senza domande: da 2 a 9 QA per scena. Le 140 coppie function tengono la loro domanda (opens o
+  slope).
+- **Effetto sulla scelta del loader:** il pool più corto cambia numero e scelta delle altre domande in 10.230 record
+  function di train su 11.491, 553 di dev su 623 e 62 di test su 72. Le altre famiglie e le coppie non cambiano. Nei
+  prompt function, contando train, dev e test:
+
+  | | exists | intercept | slope | opens | vertex_ud | vertex_lr | intersections |
+  | --- | --- | --- | --- | --- | --- | --- | --- |
+  | prima | 11.054 | 8.313 | 5.089 | 3.435 | 3.392 | 2.763 | 2.263 |
+  | dopo | 0 | 11.059 | 6.872 | 4.613 | 4.477 | 3.587 | 3.073 |
+- **Campione-2:** i 420 prompt storici del loader (unità `loader` e `loader_scena`) sono riprodotti dal codice corrente.
+  - Delle 107 unità function, 19 hanno come domanda una function/exists: 18 in un prompt del loader, una domanda singola
+    del test.
+  - Col filtro 66 hanno un prompt diverso e 6 lo stesso; le altre sono domande singole.
+  - Le 60 unità con più record (coppie e confronti di contaminazione, scritte `a|b`) non si confrontano: le domande
+    delle coppie non sono exists, e i record esclusi restano esclusi.
+  - Il giudizio umano vale per i prompt storici e non si attribuisce ai prompt nuovi.
+
+**Le altre domande di presenza** (controllo deterministico circoscritto; misurate, non corrette in questo lotto).
+- **Vocabolario:** coord, polygon e shapes exists e shapes has_type usano lo stesso vocabolario per sì e no, e nessuna
+  etichetta determina la risposta. La regola per etichetta (la risposta più frequente di ogni etichetta) dà sul pool
+  0,508 (coord), 0,557 (polygon), 0,511 (shapes), 0,559 (has_type); sulle scelte del loader 0,531, 0,560, 0,519, 0,559.
+- **Sbilanciamenti, dimostrati e parziali:**
+  - polygon/exists: le lettere agli estremi sono più spesso no (A: 853 no e 324 yes; W: 803 e 293), perché i vertici
+    hanno lettere vicine;
+  - has_type: rectangle è più spesso yes (3.544 contro 1.428), perché con un quadrato non si chiede del rettangolo.
+- **Contesto del prompt, dimostrato per costruzione:** un'etichetta assente non è mai nominata da un'altra domanda.
+  Quando un'altra domanda del prompt nomina l'etichetta chiesta, la risposta è sempre yes. Sulle scelte del loader:
+
+  | Famiglia | exists nominate da un'altra domanda (tutte yes, nessun no) | Regola "nominata → yes, altrimenti no" |
+  | --- | --- | --- |
+  | coord | 1.385 su 3.704 | 3.124 (84%) |
+  | polygon | 2.929 su 10.574 | 7.861 (74%) |
+  | shapes | 2.008 su 10.929 | 7.109 (65%) |
+- **Coppie sì/no obbligatorie:** le due exists di una scena sono una yes e una no; stanno nello stesso prompt 490 volte
+  in coord, 3.726 in polygon e 3.920 in shapes. Le due has_type stanno insieme 3.556 volte.
+- **Ipotesi, non scorciatoia senza immagine:** has_type e count_type dello stesso tipo stanno nello stesso prompt 1.031
+  volte, 524 col conteggio prima. Lì la risposta precedente del target dice la presenza.
+- La correzione (domande di presenza da sole, come in v5 per i function) va decisa a parte.
+
+**Correzione dei dati v4: politica delle domande** (S1 §6; `manifest.TASKED_BY_POLICY`, `data.synth_qa_sample`).
+- **Record:** compiti famiglia/tipo (`data.synth_task`) con stato e numero di domande. `function/exists` è escluso,
+  motivo `scorciatoia_testuale`, in entrambe le polarità; tutti gli altri compiti sono ammessi.
+- **Reader:** un manifest dei sintetici con `politica_domande` (`synth-domande/1`) rende il tipo synth_qa una sorgente
+  per compito, su train, test e coppie: manifest_sha256 obbligatorio, liste della config rifiutate, decisione del record
+  allegata al campione.
+- **Loader:**
+  - lega il pool (QA e domanda della coppia) al digest `qa_sha256` del manifest, e la famiglia a quella registrata;
+  - toglie le domande dei compiti non ammessi prima di `pick_synth_questions`;
+  - senza domande ammesse si ferma con NoAdmittedTask, senza ripiegare su quelle bloccate, e il reader salta il record
+    col motivo `nessun_compito_ammesso`.
+- **Senza politica** (candidato-1 e -2) la lettura resta per record, come prima: col codice nuovo il candidato-2 passa
+  45 controlli su 45 (job 30922). Con la politica la lista storica dei sintetici di `data_lists.REQUIRED` non serve.
+- **Valutazione:** la misura nuova passa dal manifest con politica; `scripts/f1c_eval.py` resta storico.
+
+**Generatore v5** (`synth.py`, solo con `version=5`; il default resta 4, e v3 e v4 sono riprodotti da test_synth e
+test_synth_policy). Nessun corpus rigenerato.
+- **Nomi dei grafici:** da `FUNCTION_NAMES` (f, g, h, p, q), lo stesso vocabolario delle domande sui grafici assenti,
+  estratti dopo la geometria con un generatore a parte.
+- **exists:** una sola per scena, sì o no con probabilità 1/2, marcata `da_sola`. Il loader la mette in un esempio
+  senza altre domande: entra solo quando la scelta è di una domanda.
+- **Intersezioni:** la domanda nomina i due grafici disegnati, e ora il checker lo controlla.
+- **Invarianti:** geometria, stile e altre domande uguali a v4 per la stessa chiave; coord, polygon e shapes uguali a
+  v4.
+- **Diagnostica,** fuori dai manifest (job 30916, `docs/inventari/synth-v5-diagnostica-lotto-1.json`):
+  - su 4.000 chiavi non disegnate, la regola per etichetta dà 1,000 in v4 e 0,518 in v5. In v5 ogni etichetta ha sì e
+    no: 1.954 yes e 2.046 no; con un grafico 993 e 1.055, con due 961 e 991;
+  - dopo la scelta del loader, 133 esempi su 4.000 hanno la exists, sempre da sola. La tabella è piccola (yes/no: f
+    10/13, g 9/20, h 15/15, p 14/11, q 9/17) e dà 0,594 per etichetta: uno sbilanciamento del campione piccolo. La quota
+    di esempi con la exists (3,3%) viene dalla regola di scelta e va decisa coi mix;
+  - insieme disegnato di 60 scene, 6 per etichetta e risposta: per ogni etichetta la stessa domanda esatta, con risposte
+    opposte su immagini diverse. Tutte le exists sono verificate dal layout e tutte le altre domande sono ok. Ogni scena
+    è il suo gruppo;
+  - l'assenza della scorciatoia deterministica dell'etichetta non prova l'assenza di ogni bias.
+
+**Tracciabilità del riesame** (`scripts/review_results.py`, integrazione-3, job 30917; 37 controlli su 37).
+- **Ingressi verificati prima dell'uso, contro le identità registrate:**
+  - index.json (`02fb3cbf…`) ed elements.jsonl.gz (`dacbea54…`) contro la sezione decontaminazione del candidato-2;
+  - i parquet consultati, DynaMath `sample8` (`d886452b…`) e Geoperception (`30ac27c3…`), contro i manifest di download
+    (`p6.tsv`, `p8-f1clean.tsv`).
+
+  Una differenza ferma l'esecuzione; gli ingressi sono nel rapporto.
+- **Esito:** materiale del riesame e proposta uguali byte per byte a integrazione-2. Il riesame tecnico già scritto vale
+  per gli ingressi verificati, e la revisione visiva non si ripete.
+- **Prime risposte:** `C-shapes-009` (0 per no) ora è una possibile equivalenza semantica (§2.13).
+
+**`synth-v4-candidato-3`** (job 30921; `data/manifests/synth-v4-candidato-3`, manifest.json `95a4ac34…`, records
+`fb8fca14…`). Derivato da candidato-2, che resta immutato.
+
+| Record | candidato-2 | candidato-3 |
+| --- | --- | --- |
+| train ammessi | 53.997 | 54.337 |
+| dev ammessi | 2.864 | 2.870 |
+| test ammessi | 296 | 300 |
+| coppie ammesse | 584 | 600 |
+| in quarantena | 367 | 1 |
+| esclusi | 2.792 | 2.792 |
+
+- **Riammissioni (366):**
+  - 362 dalla proposta: 340 train, 6 dev, 4 test, 12 coppie;
+  - 4 coppie dopo il riesame tecnico (`synth-pair-00074-a` e `-b`, `synth-pair-00198-a` e `-b`), accettato perché
+    integrazione-3 ne conferma ingressi e materiale.
+- **Restano bloccati:** `synth-0016025` in quarantena; i 2.792 esclusi per contaminazione interna, 380 dei quali perdono
+  i soli motivi risolti dalla revisione (la contaminazione resta).
+- **Evidenza:** una per ognuno dei 747 record della proposta, con categoria, esito umano, riesame, motivi risolti coi
+  dettagli del genitore e sha256 della riga.
+- **Record e domande separati:** function/exists resta esclusa anche nei record riammessi: 23.170 QA in train, 1.246 in
+  dev, 150 nel test; le coppie non perdono domande.
+- **Invarianti:** record, gruppi, split, insiemi, immagini, JSON e QA.
+- **Verifica** (job 30923, `manifest_check.py` con `config/runs/f0-c7-reader-synth.json`, collaudo e non ricetta; 70
+  controlli su 70, `docs/manifests/synth-v4-candidato-3-lotto-1.json`):
+  - catena 3 → 2 → 1, e le riammissioni sono esattamente le 366 previste, tutte con l'evidenza della revisione;
+  - compiti dei record secondo la politica;
+  - reader reale su train 54.337, dev 2.870, test 300 e coppie 600: per ogni campione prompt e target del loader sono
+    quelli della scelta attesa sul pool filtrato, senza function/exists nei prompt e senza yes o no nei target function;
+  - MixedRowStream col processor di Violetto e 13 arresti espliciti.
+- **Pannello:** col riesame accettato il legame `synth-pair-00074-b` → DynaMath 96 non è più materiale per `pannello-v4`.
+  Nessun ruolo di `pannello-v3` cambia.
+
+**Costo.** Job 30916-30925 (30918 e 30924 non sono nostri): 12 min 5 s di job CPU su 20, con al più 4 CPU e 16 GiB per
+job, compreso un test finale di 15 s dopo due ritocchi alle docstring (30925, test_synth_policy 54 su 54).
+Comprende due tentativi falliti in 21 s in tutto (30919, 30920): il blocco della revisione si chiamava `revisione`,
+che nel meta dei manifest è la revisione della sorgente; ora si chiama `revisione_umana`, con un test. RSS non registrata
+da sacct. Nessuna GPU, training, download o agente.
+
+**Limiti.**
+- **Stato:** "ammesso" non è gold né certificazione; C8 non si applica.
+- **Portata del filtro:** toglie domande dalla supervisione e dalla misura, non corregge immagini né risposte; vale per
+  compito (famiglia/tipo), non per singola QA.
+- **Altre domande di presenza:** contesto e sbilanciamenti sono misurati, non corretti.
+- **v5:** è un generatore diagnostico, non un corpus; quota delle exists e mix sono da decidere.
+- **Revisione umana:** copre i prompt storici, non quelli nuovi dei record function.
+
+**Prossimo passo minimo**, su decisione dell'utente:
+1. approvare il candidato-3 come manifest operativo dei sintetici per i collaudi;
+2. decidere se trattare come i function anche le altre domande di presenza (da sole, in un generatore futuro), e con
+   quale quota;
+3. registrare in `pannello-v4` l'esito del legame `synth-pair-00074-b`.
 
 ## 3. MAVIS-Geometry (`f1_mavis.py`, `f1_schema.py`, shard `9c80fff3-caption`)
 

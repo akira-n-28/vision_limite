@@ -1,0 +1,286 @@
+{
+ "schema": "synth-v5-diagnostica/1",
+ "job_id": "30916",
+ "codice": {
+  "commit": "5038c6667bec9d66d56c9b5dd62d85fb23655e6b",
+  "dirty": true,
+  "diff_sha256": "dd550873f6f1c637bbc2723987d0282ded834cc8a2402b7bf459f5d4249a7e91",
+  "untracked": [
+   "docs/inventari/synth-v4-scorciatoia-exists-lotto-1.json",
+   "docs/revisioni/synth-v4-campione-2-integrazione-3.json",
+   "scripts/synth_qa_policy.py",
+   "slurm/synth_qa_policy.sbatch",
+   "tests/test_synth_policy.py"
+  ]
+ },
+ "generatore": {
+  "versioni": [
+   3,
+   4,
+   5
+  ],
+  "default": 4,
+  "nomi_dei_grafici_v5": [
+   "f",
+   "g",
+   "h",
+   "p",
+   "q"
+  ]
+ },
+ "fuori_dai_manifest": "chiavi diagnostiche synth-v5-diag-*: nessun manifest, nessuno split; ogni scena è il suo gruppo",
+ "controlli": {
+  "v5_una_sola_exists_da_sola_per_scena": true,
+  "v5_stessa_geometria_di_v4_a_parte_i_nomi": true,
+  "v5_stesse_altre_domande_di_v4_e_nomi_dei_grafici_disegnati": true,
+  "v5_exists_scelta_sempre_da_sola": true,
+  "v5_altre_famiglie_uguali_a_v4": {
+   "coord": true,
+   "polygon": true,
+   "shapes": true
+  },
+  "insieme_disegnato_celle_complete": true,
+  "insieme_disegnato_stessa_domanda_per_etichetta_con_risposte_opposte": true,
+  "insieme_disegnato_exists_verificata_dal_contenuto_disegnato": true
+ },
+ "scene_non_disegnate": {
+  "chiavi": 4000,
+  "v4_pool": {
+   "tabella": {
+    "f": {
+     "yes": 2996
+    },
+    "g": {
+     "yes": 1004
+    },
+    "h": {
+     "no": 1363
+    },
+    "p": {
+     "no": 1334
+    },
+    "q": {
+     "no": 1303
+    }
+   },
+   "totale": 8000,
+   "regola_per_etichetta": {
+    "corrette": 8000,
+    "accuratezza": 1.0
+   },
+   "vocabolario_si": [
+    "f",
+    "g"
+   ],
+   "vocabolario_no": [
+    "h",
+    "p",
+    "q"
+   ],
+   "comuni": [],
+   "solo_si": [
+    "f",
+    "g"
+   ],
+   "solo_no": [
+    "h",
+    "p",
+    "q"
+   ]
+  },
+  "v4_scelte_dal_loader": {
+   "tabella": {
+    "f": {
+     "yes": 1681
+    },
+    "g": {
+     "yes": 366
+    },
+    "h": {
+     "no": 703
+    },
+    "p": {
+     "no": 663
+    },
+    "q": {
+     "no": 659
+    }
+   },
+   "totale": 4072,
+   "regola_per_etichetta": {
+    "corrette": 4072,
+    "accuratezza": 1.0
+   },
+   "vocabolario_si": [
+    "f",
+    "g"
+   ],
+   "vocabolario_no": [
+    "h",
+    "p",
+    "q"
+   ],
+   "comuni": [],
+   "solo_si": [
+    "f",
+    "g"
+   ],
+   "solo_no": [
+    "h",
+    "p",
+    "q"
+   ]
+  },
+  "v5_pool": {
+   "tabella": {
+    "f": {
+     "no": 388,
+     "yes": 414
+    },
+    "g": {
+     "no": 427,
+     "yes": 376
+    },
+    "h": {
+     "no": 413,
+     "yes": 390
+    },
+    "p": {
+     "no": 413,
+     "yes": 411
+    },
+    "q": {
+     "no": 405,
+     "yes": 363
+    }
+   },
+   "totale": 4000,
+   "regola_per_etichetta": {
+    "corrette": 2072,
+    "accuratezza": 0.518
+   },
+   "vocabolario_si": [
+    "f",
+    "g",
+    "h",
+    "p",
+    "q"
+   ],
+   "vocabolario_no": [
+    "f",
+    "g",
+    "h",
+    "p",
+    "q"
+   ],
+   "comuni": [
+    "f",
+    "g",
+    "h",
+    "p",
+    "q"
+   ],
+   "solo_si": [],
+   "solo_no": []
+  },
+  "v5_scelte_dal_loader": {
+   "tabella": {
+    "f": {
+     "no": 13,
+     "yes": 10
+    },
+    "g": {
+     "no": 20,
+     "yes": 9
+    },
+    "h": {
+     "no": 15,
+     "yes": 15
+    },
+    "p": {
+     "no": 11,
+     "yes": 14
+    },
+    "q": {
+     "no": 17,
+     "yes": 9
+    }
+   },
+   "totale": 133,
+   "regola_per_etichetta": {
+    "corrette": 79,
+    "accuratezza": 0.594
+   },
+   "vocabolario_si": [
+    "f",
+    "g",
+    "h",
+    "p",
+    "q"
+   ],
+   "vocabolario_no": [
+    "f",
+    "g",
+    "h",
+    "p",
+    "q"
+   ],
+   "comuni": [
+    "f",
+    "g",
+    "h",
+    "p",
+    "q"
+   ],
+   "solo_si": [],
+   "solo_no": []
+  },
+  "v5_grafici_per_risposta": {
+   "1/no": 1055,
+   "1/yes": 993,
+   "2/no": 991,
+   "2/yes": 961
+  },
+  "v5_esempi_con_exists": 133,
+  "v5_exists_da_sola": 133,
+  "v5_exists_con_altre_domande": 0,
+  "differenze_di_geometria": [],
+  "differenze_nelle_altre_domande": []
+ },
+ "insieme_disegnato": {
+  "per_cella": 6,
+  "tar": {
+   "path": "/home/prignano/vision_limite/outputs/synth_qa_policy/lotto-1/diagnostica/diagnostica.tar",
+   "bytes": 931840,
+   "sha256": "35a2c067a1a312c122df85c84f3a4a8fca3bf654f08062ac8b6cd17595342efb"
+  },
+  "esiti_delle_domande": {
+   "exists/ok": 60,
+   "intercept/ok": 91,
+   "intersections/ok": 26,
+   "opens/ok": 37,
+   "slope/ok": 54,
+   "vertex_lr/ok": 31,
+   "vertex_ud/ok": 37
+  },
+  "exists_non_verificate": [],
+  "domande_per_etichetta": {
+   "f": [
+    "Is there a graph labeled f?"
+   ],
+   "g": [
+    "Is there a graph labeled g?"
+   ],
+   "h": [
+    "Is there a graph labeled h?"
+   ],
+   "p": [
+    "Is there a graph labeled p?"
+   ],
+   "q": [
+    "Is there a graph labeled q?"
+   ]
+  }
+ },
+ "secondi": 6.5
+}
