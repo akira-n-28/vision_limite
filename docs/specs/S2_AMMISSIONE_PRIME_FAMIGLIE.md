@@ -1471,6 +1471,199 @@ Sono tre livelli distinti:
 contro pacchetto, versione e impronta prima di qualsiasi uso; nessun esito diventa automaticamente un cambio del
 manifest o un gold.
 
+### 2.13 Esiti della revisione umana di `campione-2`: integrazione verificata e proposta (job 30912-30915, 2026-11-12)
+
+**Consegna e integrazione sono due fatti distinti.**
+- **Consegna.** L'utente ha caricato il 2026-11-11 i tre file in `revisioni/synth-v4-campione-2/risultati/` (commit
+  `201839b` per i TSV, `777e30c` per il JSON).
+- **Integrazione verificata.** È il job 30915, sul codice `dd50a4f`, col riesame tecnico di `d9ce960`.
+- **I file caricati** restano byte per byte com'erano: il launcher controlla che siano uguali ai blob di `777e30c` e
+  che il pacchetto non abbia modifiche locali, prima e dopo il job.
+- **Nessun esito cambia** manifest, gruppi, split, target, configurazioni dei reader o ruoli del pannello. La revisione
+  MAVIS (`revisioni/mavis-c9-campione-1`) è un'altra cosa e non è toccata.
+
+**Strumento.** `scripts/review_results.py`, lanciato da `slurm/review_results.sbatch`, col test
+`tests/test_review_results.py`. È un adattatore minimo sugli strumenti esistenti:
+- da `review_package.py` prende la lettura del pacchetto, la verifica statica (ripetuta, col rapporto in `outputs/`), i
+  collegamenti per record e per scena e Duktape;
+- da `logica.js` del pacchetto prende `controllaImport`, `tsvEsiti` e `tsvDecontaminazione`;
+- non ricostruisce il pacchetto e non scrive in `revisioni/`.
+
+**Rapporti.**
+- Per git: `docs/revisioni/synth-v4-campione-2-integrazione-2.json` (controlli, conteggi, materiale del riesame,
+  riepilogo della proposta) e `docs/revisioni/synth-v4-campione-2-integrazione-2-proposta.tsv` (proposta per record dei
+  gruppi toccati).
+- Completi in `outputs/review_results/integrazione-2/`: `report.json`, `esiti_per_unita.tsv` (prima risposta, target e
+  giudizi per unità e variante) e `proposta_ammissioni.tsv` (tutti i 3.159 record non ammessi).
+
+**Ingressi:**
+
+| File | sha256 | Byte |
+| --- | --- | --- |
+| `synth-v4-campione-2_avanzamento_2026-11-11T20-12-26.json` | `4a88d60cb1111ea6a7b4027f58f70865306a4245e4da3398d7c14036d8035b7f` | 1.533.650 |
+| `esiti_2026-11-11T20-12-29.tsv` | `57ec0275bf2931c8021cd50b25a6473c4728d06b800c2e68fe5ff229679f8cb5` | 72.421 |
+| `esiti_decontaminazione_2026-11-11T20-12-30.tsv` | `a694cfad5114f317e38598d3f5f21f71bf00e9d3cb9473620d2fe047e606438b` | 38.045 |
+| riesame tecnico (`docs/revisioni/synth-v4-campione-2-riesame-incerti.tsv`) | `cfb9651faaa883c4cbca149ba2b155da829c4c59080786c7d52c711bb7d83217` | 10.634 |
+
+Pacchetto `synth-v4-campione-2` versione 1, impronta `18a8926f…`. Manifest `synth-v4-candidato-2`, con `manifest.json`
+`9a8104cd…` e record `5863b06a…`.
+
+**Verifiche** (31 controlli su 31; test mirato 37 su 37), ricalcolate dai dati registrati senza fidarsi del riepilogo
+esportato né dei flag del file:
+- **identità:**
+  - sha256 attesi dei tre file;
+  - formato `synth-v4-revisione-avanzamento/2`, con pacchetto, versione e impronta del pacchetto;
+  - verifica statica del pacchetto ripetuta e superata;
+  - `logica.js` uguale a quello eseguito dal job 30571;
+- **collegamento:**
+  - manifest letto e verificato da `manifest.load`, con gli sha256 registrati nel pacchetto;
+  - le 555 unità (380 + 175), con varianti e record del pacchetto, e i loro `record_id` nel manifest;
+  - i 264 candidati con le 755 corrispondenze, nessuno mancante, ripetuto o in più;
+  - i candidati del pacchetto sono esattamente i record con esito `candidato` nel manifest;
+- **JSON e TSV:**
+  - `logica.js`, eseguito con Duktape, importa il file senza errori, migrazioni, riclassificazioni né cambi di stato;
+  - i due TSV che rigenera sono uguali byte per byte a quelli caricati;
+  - in Python ogni riga dei TSV (655 e 264) si ricostruisce dai campi del JSON;
+- **cronologia:**
+  - il registro delle 615 esposizioni coincide coi record esposti dalle soluzioni mostrate;
+  - ogni primo giudizio è salvato prima della propria soluzione, e ogni giudizio finale è registrato dopo;
+  - la prima esposizione pertinente, cioè dello stesso record o di un record con la stessa scena, è ricalcolata per ogni
+    unità: 555 primi giudizi indipendenti su 555. Delle 23 unità collegate, 13 avevano la prima esposizione pertinente
+    tramite un'altra unità, comunque dopo il loro salvataggio;
+  - le annotazioni del file (esposizione senza primo giudizio, provenienza del blocco) coincidono col ricalcolo;
+  - nessuna bozza diversa dal primo giudizio fissato, archivio vuoto;
+- **completezza:**
+  - nessun `non_compilato`;
+  - `non_applicabile` compare solo nella correttezza dei casi sulla scena intera (quarantena, soglie dei testi e dei
+    riquadri, esclusioni) e nella rispondibilità dei 10 casi di esclusione per contaminazione;
+  - esiti della decontaminazione coerenti con le regole: "no" solo con tutte le corrispondenze diverse e il materiale
+    completo.
+
+**Conteggi della revisione statica: confermati, nessuna differenza.**
+
+| Conteggio | Valore |
+| --- | --- |
+| Unità del campione casuale | 380 |
+| Casi mirati | 175 |
+| Righe di `esiti.tsv` (varianti a e b e contratto per le 50 coppie) | 655 |
+| Candidati della decontaminazione / corrispondenze | 264 / 755 |
+| Esito dei candidati: diverso (no) / incerto / stesso contenuto (sì) | 249 / 15 / 0 |
+| Corrispondenze: contenuto diverso / incerte | 727 / 28 |
+
+**Lettura, per sezione.** Le 655 righe non sono 655 osservazioni indipendenti: le coppie hanno tre righe, le 23 unità
+collegate condividono record o scene, e le corrispondenze di un record o di un gruppo sono legate. "Nessun difetto
+segnalato" descrive le unità guardate, non il dataset.
+
+- **Campione casuale** (380 unità; per strato coord, function, polygon, shapes 75 QA ciascuno, test 50 QA, coppie 30):
+  - tutti i giudizi finali sono "sì" (correttezza, coerenza con le annotazioni, rispondibilità), con gravità "nessun
+    difetto", e i 30 contratti delle coppie sono "sì";
+  - leggibilità iniziale "sì" ovunque;
+  - prime risposte, scritte prima di vedere il target: delle 350 varianti non di coppia, 345 uguali al target, una
+    equivalente nella scrittura e 4 diverse, tutte autocorrette dal revisore (sotto); le 60 varianti di coppia sono
+    uguali.
+- **Casi mirati** (175, per trovare errori, non per stimare un tasso):
+  - giudizi finali tutti positivi;
+  - nei 67 casi di quarantena per testi sovrapposti: leggibilità "sì", coerenza e rispondibilità "sì", nessun difetto,
+    correttezza `non_applicabile` (caso sulla scena intera);
+  - nelle 20 coppie per famiglia, varianti e contratti "sì";
+  - nei 10 casi di esclusione per contaminazione, coerenza "sì" in tutti e la nota "stesso stato della scena" in uno
+    (`M-esclusioni_contaminazione-009`): nessuno smentisce l'esclusione, che resta;
+  - una prima risposta diversa e autocorretta (`M-coordinate_dalle_tacche-001`).
+- **Coppie e contratti:** 50 coppie (30 casuali, 20 mirate), 100 varianti con giudizi positivi e 50 contratti "sì". La
+  coppia è giudicata per intero; le sue righe non sono tre prove.
+- **Decontaminazione:** 264 record e 755 corrispondenze.
+  - Il "no" vuol dire che le corrispondenze candidate sono state esaminate come contenuto diverso. Non certifica
+    l'assenza di ogni contaminazione: il pHash non vede la stessa figura in un altro stile.
+  - I 15 incerti hanno un riesame tecnico separato (sotto).
+
+**Prime risposte e autocorrezioni.** Sei prime risposte differiscono come stringa dal target:
+- `C-coord-022` scrive `two` per `2`: è un'equivalenza, ora riconosciuta dal confronto (numeri in lettere);
+- le altre cinque hanno una nota del revisore che dichiara sbagliata la propria risposta e giusto il target, con la
+  risposta corretta nel campo successivo alla soluzione:
+  - `C-coord-049`: left contro right;
+  - `C-polygon-053`: 2 contro 3;
+  - `C-shapes-009`: 0 contro no;
+  - `C-shapes-053`: 2 contro no;
+  - `M-coordinate_dalle_tacche-001`: (5, -5) contro (-5, 5).
+
+Sono errori della prima risposta del revisore, non delle golden answer: il giudizio finale conferma il target. Prima
+risposta e giudizio finale restano entrambi, in `esiti_per_unita.tsv` e nel file caricato. Un disaccordo iniziale
+risolto dal revisore stesso non è una verifica indipendente del target.
+
+**C8 non si applica in questo lotto.** La corrispondenza fra i valori del pacchetto e gli esiti di C8 era una proposta
+(S4 §9) e non è stata approvata prima della revisione: qui non diventa approvata retroattivamente. I conteggi sono
+descrittivi. Per una stima mancano:
+- la corrispondenza approvata dall'utente, sapendo che gli esiti sono già noti;
+- le affermazioni per proprietà e strato;
+- D5;
+- una misura della sensibilità del revisore. Senza, ogni conclusione resta condizionata.
+
+Nessuna soglia nuova, nessuna certificazione, nessun record promosso a gold.
+
+**Riesame tecnico dei 15 incerti** (dettagli in `docs/revisioni/synth-v4-campione-2-riesame-incerti.md`; giudizio umano
+invariato).
+- **Le 14 scene y = x + 1:** 13 record di train e la coppia riservata `synth-pair-00074-b`, nello stesso gruppo della
+  scena. Le corrispondenze sono DynaMath 96 variante 8 e MV-MATH 1008, immagine 2, entrambe di test. Conclusione:
+  contenuto diverso.
+  - In comune c'è la formula elementare, generata in modo indipendente.
+  - Le domande dei benchmark (distanza fra le intercette, 1.4142; quale grafico non è una funzione) non sono quelle dei
+    record, e le risposte dei record non le implicano.
+- **D-188 (`synth-0016025`):** triangolo isoscele con l'angolo annotato di 74° al vertice, orientato come la figura di
+  Geoperception 7600-7604 e 102362 (ruolo sviluppo). La domanda del record sull'angolo ha la stessa risposta della 7600.
+  Conclusione: irrisolto; resta in quarantena.
+
+**Proposta di aggiornamento delle ammissioni: non applicata.** Per record e gruppo, nella `-proposta.tsv`. Un motivo si
+toglie solo con un'evidenza della revisione; split, gruppi e target non cambiano; l'ereditarietà dal gruppo si verifica
+su tutti i membri.
+
+| Motivo del manifest | Esito per i record che lo portano |
+| --- | --- |
+| `decontaminazione_pannello` (680 record in 199 gruppi con candidati) | **risolto dalla revisione** in 197 gruppi (570 record), dove tutti i candidati sono "no". **Irrisolto** in 2 gruppi (110 record): il gruppo y = x + 1, con 14 incerti, e `synth-0016025`. Il primo diventa risolvibile col riesame tecnico, da approvare |
+| `incerto` (quarantena visiva, 67 record; tutti i 77 dettagli sono `testi_sovrapposti`) | **riesaminabile dai giudizi** per tutti i 67. La regola, fissata prima di applicarla, vuole leggibilità iniziale "sì" con primo giudizio indipendente, coerenza "sì", rispondibilità "sì" e nessun difetto. Vale per questi 67 casi, non come allentamento del filtro dei testi sovrapposti per dati nuovi |
+| `contaminazione` (2.792 esclusi: stato della scena uguale a un record di valutazione) | **valido**: blocco indipendente dalla revisione, che resta |
+
+| Categoria proposta | Record | Composizione |
+| --- | --- | --- |
+| Riammissione proposta | 362 | train 340 (273 per la decontaminazione, 67 per la quarantena visiva), dev 6, test 4, coppie 12. Per motivo tolto: 201 candidati "no", 94 membri dei loro gruppi senza candidato proprio, 67 quarantene visive (nel riepilogo `incerto (membro del gruppo)`, cioè non candidati) |
+| Riammissione dopo il riesame tecnico (da approvare) | 4 | `synth-pair-00074-a` e `-b`, `synth-pair-00198-a` e `-b`: coppie riservate del gruppo y = x + 1, il cui unico motivo è la decontaminazione |
+| Irrisolto | 1 | `synth-0016025`, in quarantena |
+| Resta bloccato | 2.792 | esclusi per contaminazione interna, compresi 48 candidati "no" e 13 incerti y = x + 1 |
+
+**I 249 "no" non sono 249 riammissioni.** 201 candidati "no" stanno in gruppi tutti risolti e si possono riammettere. Gli
+altri 48 restano esclusi per contaminazione interna. Fra le riammissioni ci sono anche 94 record che non sono candidati:
+erano in quarantena solo perché un altro membro del gruppo lo era.
+
+**Conseguenze per il pannello.** Nessun ruolo di `pannello-v3` cambia.
+- Dei sette record sintetici di sviluppo o valutazione con candidati verso elementi di test del pannello (§2.10), sei
+  sono "no": nessuna evidenza diretta per `pannello-v4` da quei legami.
+  - `synth-0026407` e `synth-test-00007`: DynaMath 329;
+  - `synth-pair-00050-b`: DynaMath 96;
+  - `synth-0017751`: DynaMath 44;
+  - `synth-0011211` e `synth-pair-00115-b`: MathVision 1274 e UniMER-Test `sce-0000116`.
+- Resta `synth-pair-00074-b` verso DynaMath 96 variante 8, risolto solo se l'utente accetta il riesame tecnico.
+- Gli altri cinque record di sviluppo con candidati toccano solo elementi di sviluppo o di sola decontaminazione, e
+  sono tutti "no".
+
+**Costo:** job 30912-30915, 22-23 s ciascuno, 2 CPU. In tutto 1 min 28 s di job su 20 minuti; RSS non registrata da
+`sacct`. Nessuna GPU, generazione, download o agente.
+
+**Limiti:**
+- **Revisore:** uno solo, con la sensibilità non misurata. Le prime risposte del revisore hanno 5 errori su 512
+  risposte confrontabili: la revisione non è infallibile, e guarda per lo più casi facili da leggere.
+- **Riesame tecnico:** è un controllo di Claude Code, non una seconda revisione umana.
+- **Decontaminazione:** risolve i candidati pHash, non i quasi-duplicati che il pHash non vede.
+- **Uso degli esiti:** gli esiti descrivono le unità guardate; senza C8 e D5 non danno quote per la popolazione.
+
+**Prossimo passo minimo**, su decisione dell'utente:
+1. approvare in tutto o in parte la proposta. Si decidono a parte:
+   - i 362 record con evidenza della revisione;
+   - i 4 che dipendono dal riesame tecnico;
+   - per `synth-0016025`, quarantena o esclusione;
+2. con l'ok, una versione derivata `synth-v4-candidato-3` che toglie solo i motivi approvati, con le evidenze della
+   revisione nel record, e la sua verifica lungo la catena (`manifest_check.py`). Il reader e la config di collaudo
+   passano al manifest nuovo solo dopo la verifica;
+3. se servono stime, approvare la corrispondenza verso C8 e le affermazioni di S4 §9 prima di calcolarle.
+
 ## 3. MAVIS-Geometry (`f1_mavis.py`, `f1_schema.py`, shard `9c80fff3-caption`)
 
 La verità viene da `diagram_generation`, confermata dalla didascalia (`mavis_gen.compare`: 0 segnalazioni su 199.050,

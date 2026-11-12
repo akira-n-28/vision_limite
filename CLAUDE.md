@@ -559,10 +559,10 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
     dall'assegnazione originale, che ritrova risalendo la catena `ereditato_da` con gli sha256 (job 30556, S2 §2.11).
   - I fogli per l'audit delle golden answer sono in `outputs/synth_gold_review/campione-2` (job 30556, S2 §2.11), con la
     stessa selezione di `campione-1` (job 30522, S2 §2.10). Contengono tutte le 755 corrispondenze dei candidati, il
-    prompt del loader nel primo passaggio e le soluzioni per variante delle coppie. L'audit non è eseguito.
-  - La revisione umana la fa l'utente sul portatile, col pacchetto offline `revisioni/synth-v4-campione-2` (tracciato in
-    git, S2 §2.12; job 30557-30559). Gli esiti tornano in `revisioni/synth-v4-campione-2/risultati/`, da verificare
-    contro impronta, identificativi e registro delle esposizioni prima di qualsiasi uso. Le regole del file:
+    prompt del loader nel primo passaggio e le soluzioni per variante delle coppie.
+  - La revisione umana l'ha fatta l'utente sul portatile, col pacchetto offline `revisioni/synth-v4-campione-2`
+    (tracciato in git, S2 §2.12; job 30557-30559). Gli esiti sono in `revisioni/synth-v4-campione-2/risultati/` e restano
+    byte per byte come caricati. Le regole del file:
     - la soluzione di un'unità si mostra solo dopo i primi giudizi delle unità sullo stesso record o sulla stessa
       scena, che restano fissati;
     - le esposizioni non si perdono in importazioni e ripristini;
@@ -571,8 +571,25 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
     Il JavaScript si esegue nei job con Duktape, libreria di sistema di `lagrange0` usata via ctypes, su un DOM
     simulato: `review_package.py esegui-js`, job 30562-30566. Non usare Node in `~/.nvm` né Firefox snap, che stanno
     fuori dal progetto. Non è una prova in un browser: il collaudo resta `verifica.html` sul portatile.
-  - Ancora incompleto per gli esperimenti: mancano audit visivo, verifica dei candidati, varianti e contratto. La
-    config della famiglia `synth` richiede ancora la lista v3 vuota di `data_lists.REQUIRED`.
+  - **Esiti della revisione: consegnati e integrati, proposta da approvare** (S2 §2.13).
+    - **Consegna e integrazione.** Consegna del 2026-11-11 (commit `201839b`, `777e30c`). Integrazione verificata nel job
+      30915 (`scripts/review_results.py`, adattatore su `review_package.py` e `logica.js`; rapporti in
+      `docs/revisioni/`): 31 controlli su 31. TSV rigenerati uguali byte per byte, cronologia ricalcolata, 555 primi
+      giudizi indipendenti su 555.
+    - **Esiti.** Conteggi confermati: 380 + 175 unità, 655 righe, 264 candidati con 755 corrispondenze (249 no, 15
+      incerti, 0 sì). Giudizi finali tutti positivi; 5 errori della prima risposta, autocorretti, non delle golden answer.
+    - **Riesame tecnico dei 15 incerti**, separato dal giudizio umano: 14 scene y = x + 1 a contenuto diverso;
+      `synth-0016025` irrisolto.
+    - **Proposta non applicata:**
+      - 362 riammissioni (201 candidati no, 94 membri dei loro gruppi, 67 quarantene visive);
+      - 4 coppie riservate dopo il riesame tecnico;
+      - 1 irrisolto;
+      - 2.792 esclusi per contaminazione interna che restano.
+
+      Manifest, split, gruppi, target e config invariati. Nessuna stima C8: la corrispondenza verso C8 resta una
+      proposta.
+  - Ancora incompleto per gli esperimenti: approvazione della proposta e versione `synth-v4-candidato-3`, varianti e
+    contratto. La config della famiglia `synth` richiede ancora la lista v3 vuota di `data_lists.REQUIRED`.
 
   Nessun dato è certificato. Per controllare la compilazione usare `compile()` in un job, non `ast.parse`, che non vede
   gli errori della tabella dei simboli.
@@ -608,8 +625,9 @@ Struttura e provenienza, non qualità: nessuna sorgente è ammessa o gold. Stato
   - Sorgenti di training confrontate: i sintetici v4 (job 30518, scansione in `data/decontam/pannello-v3/synth-v4`),
     UniMER e MAVIS (job 30651-30652, `data/decontam/pannello-v3/unimer` e `mavis-geometry`), PixMo-Cap (job 30813,
     `data/decontam/pannello-v3/pixmo-cap`).
-    Sette record di sviluppo sintetico hanno candidati verso sette elementi di test: materiale per `pannello-v4`
-    (`docs/PANNELLO_VALUTAZIONE.md` §8).
+    Sette record di sviluppo sintetico hanno candidati verso elementi di test: la revisione umana ne giudica sei a
+    contenuto diverso. Resta `synth-pair-00074-b` verso DynaMath 96, contenuto diverso per il riesame tecnico, da
+    approvare: è materiale per `pannello-v4` (`docs/PANNELLO_VALUTAZIONE.md` §8; S2 §2.13).
   - `pannello-v1` (job 30465) e `pannello-v2` (job 30466) sono superati e mai usati.
   - Gli script sono `scripts/panel_index.py` (anche `--verify`) e `scripts/panel_groups.py`, lanciati da
     `slurm/panel_groups.sbatch`; i test sono in `tests/test_panel.py`. Le uscite si scrivono una volta: una modifica dà
@@ -651,7 +669,8 @@ parametri in `groups.py` sono ipotesi da verificare con `f0_checks.py` (sezione 
 - `docs/` — stato del repository, piano F0, pannello di valutazione, campione candidato di F0, inventario degli
   artefatti, indice dei file, rilievi e rapporti delle revisioni; `docs/inventari/`: rapporti degli inventari tecnici per
   sorgente (PixMo-Cap); `docs/indice_globale/`: riepiloghi dei confronti fra sorgenti (C6); `docs/contratto/`: rapporti
-  della sonda del contratto di risposta (D3)
+  della sonda del contratto di risposta (D3); `docs/revisioni/`: integrazione verificata degli esiti delle revisioni
+  umane, riesami tecnici e proposte di ammissione
 - `config/paths.env` — percorsi e variabili offline; `config/runs/` — nessuna ricetta di training finché non ci sono
   ricette collaudate, solo le config di collaudo di C7 (`f0-c7-reader-unimer-mavis.json`, `f0-c7-reader-pixmo.json`,
   non ricette);

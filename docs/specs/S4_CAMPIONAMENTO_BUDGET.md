@@ -292,3 +292,7 @@ Niente GPU, download o token.
   - una coppia è approvata solo se le due varianti e il contratto lo sono.
 - Per applicare C8 al campione dei sintetici, `Design` e `Claim` si costruiscono dal suo `report.json`: N, n, unità,
   sha256 del manifest come popolazione, un'affermazione per proprietà e strato.
+- **Nota del 2026-11-12.** Gli esiti della revisione dei sintetici sono consegnati e integrati (S2 §2.13). La
+  corrispondenza qui sopra non era stata approvata prima della revisione e resta una proposta. Nel lotto
+  dell'integrazione ci sono solo conteggi descrittivi. Una stima chiede che l'utente approvi corrispondenza e
+  affermazioni sapendo che gli esiti sono noti, e resta condizionata alla sensibilità del revisore.

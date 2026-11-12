@@ -164,8 +164,10 @@ né agenti.
    - Revisione umana; l'esito va in `pannello-v4`.
 2. **Decontaminazione esterna di v4 contro `pannello-v3`.** Fatta il 2026-11-02 (job 30517-30518, S2 §2.9), con il
    manifest nuovo `synth-v4-candidato-2`. Il campione per l'audit delle golden answer è preparato (job 30522, S2
-   §2.10), e i fogli sono corretti il 2026-11-04 con la stessa selezione (job 30556, `campione-2`, S2 §2.11). Restano la
-   revisione visiva e la verifica dei candidati.
+   §2.10), e i fogli sono corretti il 2026-11-04 con la stessa selezione (job 30556, `campione-2`, S2 §2.11). La
+   revisione umana è consegnata (2026-11-11) e integrata con verifica (job 30915, S2 §2.13): giudizi tutti positivi,
+   candidati 249 no e 15 incerti. La proposta di aggiornamento delle ammissioni è da approvare, e il manifest non è
+   cambiato.
 3. **Manifest delle ammissioni di UniMER-1M e MAVIS-Geometry,** col sottoinsieme di S1 già usato per v4:
    - record, gruppi e stati;
    - esclusioni e quarantena importate da `unimer_check/run4`;

@@ -635,3 +635,13 @@ v3 la regola avrebbe contato uscite false.
 
 Con la regola di §3.1 sarebbero evidenze dirette e renderebbero inammissibili i gruppi di quegli elementi. L'indice di `pannello-v3`
 non contiene i sintetici, quindi v3 non le registra. La somiglianza dei pixel di tutti i candidati è sotto 0,80.
+
+**Esito della revisione umana** (S2 §2.13, job 30915; nessun ruolo di `pannello-v3` cambia):
+- **Sei legami giudicati a contenuto diverso**, quindi non sono evidenze dirette:
+  - `synth-0026407` e `synth-test-00007` verso DynaMath 329;
+  - `synth-pair-00050-b` verso DynaMath 96;
+  - `synth-0017751` verso DynaMath 44;
+  - `synth-0011211` e `synth-pair-00115-b` verso MathVision 1274 e UniMER-Test `sce-0000116`.
+- **Uno incerto.** `synth-pair-00074-b` verso DynaMath 96 variante 8 è la stessa retta y = x + 1, con domanda e
+  risposta diverse. Il riesame tecnico conclude contenuto diverso (`docs/revisioni/synth-v4-campione-2-riesame-incerti.md`),
+  da approvare: finché non lo è, resta materiale per `pannello-v4`.

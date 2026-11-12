@@ -1,0 +1,7409 @@
+{
+ "schema": "synth-v4-revisione-integrazione/1",
+ "job_id": "30915",
+ "codice": {
+  "commit": "dd50a4ff457c6809f928c8293bfb7852b87d9139",
+  "dirty": true,
+  "diff_sha256": "941d17433f04c71b5b68290d62eda934b3058fd4a75af33584156f9e6010c27e",
+  "untracked": []
+ },
+ "ingressi": {
+  "risultati": {
+   "avanzamento": {
+    "path": "revisioni/synth-v4-campione-2/risultati/synth-v4-campione-2_avanzamento_2026-11-11T20-12-26.json",
+    "bytes": 1533650,
+    "sha256": "4a88d60cb1111ea6a7b4027f58f70865306a4245e4da3398d7c14036d8035b7f"
+   },
+   "esiti": {
+    "path": "revisioni/synth-v4-campione-2/risultati/esiti_2026-11-11T20-12-29.tsv",
+    "bytes": 72421,
+    "sha256": "57ec0275bf2931c8021cd50b25a6473c4728d06b800c2e68fe5ff229679f8cb5"
+   },
+   "esiti_decontaminazione": {
+    "path": "revisioni/synth-v4-campione-2/risultati/esiti_decontaminazione_2026-11-11T20-12-30.tsv",
+    "bytes": 38045,
+    "sha256": "a694cfad5114f317e38598d3f5f21f71bf00e9d3cb9473620d2fe047e606438b"
+   }
+  },
+  "pacchetto": {
+   "cartella": "revisioni/synth-v4-campione-2",
+   "id": "synth-v4-campione-2",
+   "versione": "1",
+   "impronta": "18a8926f99c8874bf75d1613e5db1e6cdc8bbd65772a2d0d93b41283b20da48f"
+  },
+  "manifest": {
+   "cartella": "data/manifests/synth-v4-candidato-2",
+   "manifest_sha256": "9a8104cdea4b56ef333e7d1e9629d7cfd638ccd1a6be18336137c717ae2d824e",
+   "records_sha256": "5863b06a305141ea5f1c90e75138109dedbffe7d4f23c5e6a322572a89a4d3a0"
+  },
+  "riesame_tecnico": {
+   "path": "docs/revisioni/synth-v4-campione-2-riesame-incerti.tsv",
+   "bytes": 10634,
+   "sha256": "cfb9651faaa883c4cbca149ba2b155da829c4c59080786c7d52c711bb7d83217"
+  }
+ },
+ "controlli": [
+  {
+   "controllo": "file di risultati con gli sha256 attesi",
+   "esito": true,
+   "dettaglio": {
+    "avanzamento": "4a88d60cb111",
+    "esiti": "57ec0275bf29",
+    "esiti_decontaminazione": "a694cfad5114"
+   }
+  },
+  {
+   "controllo": "file di avanzamento: formato 2, pacchetto, versione e impronta del pacchetto",
+   "esito": true,
+   "dettaglio": {
+    "id": "synth-v4-campione-2",
+    "versione": "1",
+    "impronta": "18a8926f99c8874bf75d1613e5db1e6cdc8bbd65772a2d0d93b41283b20da48f"
+   }
+  },
+  {
+   "controllo": "pacchetto: verifica statica ripetuta superata (review_package verifica)",
+   "esito": true,
+   "dettaglio": "outputs/review_results/integrazione-2/verifica_pacchetto.json"
+  },
+  {
+   "controllo": "logica.js uguale a quella eseguita dall'ultima verifica del JavaScript (verifica_js.json)",
+   "esito": true,
+   "dettaglio": {
+    "job": "30571"
+   }
+  },
+  {
+   "controllo": "manifest synth-v4-candidato-2 letto e verificato, con gli sha256 registrati nel pacchetto",
+   "esito": true,
+   "dettaglio": "9a8104cdea4b"
+  },
+  {
+   "controllo": "unità del file = unità del pacchetto (380 + 175), nessuna mancante o in più",
+   "esito": true,
+   "dettaglio": 555
+  },
+  {
+   "controllo": "varianti e record di ogni unità uguali al pacchetto",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "controllo": "record delle unità nel manifest, con lo stesso record_id",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "controllo": "decontaminazione: 264 candidati e 755 corrispondenze del pacchetto, nessuno mancante o in più",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "controllo": "candidati del pacchetto = record con esito candidato nel manifest, con lo stesso record_id",
+   "esito": true,
+   "dettaglio": {
+    "manifest": 264,
+    "diversi": []
+   }
+  },
+  {
+   "controllo": "ogni unità ha il primo giudizio salvato e la soluzione mostrata",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "controllo": "logica.js (Duktape): importazione senza errori, migrazioni o riclassificazioni, stato invariato",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "logica.js: esiti.tsv rigenerato dal JSON uguale byte per byte a quello caricato",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "logica.js: esiti_decontaminazione.tsv rigenerato uguale byte per byte",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "esiti.tsv: 655 righe nell'ordine del modulo, ogni campo uguale a quello ricostruito in Python dal JSON",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "controllo": "esiti_decontaminazione.tsv: 264 righe, ogni campo uguale a quello ricostruito in Python",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "controllo": "TSV: nessuna riga ripetuta",
+   "esito": true,
+   "dettaglio": null
+  },
+  {
+   "controllo": "registro delle esposizioni = record esposti dalle soluzioni mostrate, senza voci in più o mancanti",
+   "esito": true,
+   "dettaglio": {
+    "registro": 615,
+    "dalle_soluzioni": 615
+   }
+  },
+  {
+   "controllo": "primo giudizio salvato prima della propria soluzione, per ogni unità",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "controllo": "giudizi finali registrati dopo la soluzione",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "controllo": "annotazioni del file (esposizione senza primo giudizio, provenienza del blocco) uguali al ricalcolo",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "controllo": "bozza uguale al primo giudizio fissato (nessuna modifica dopo la fissazione)",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "controllo": "giudizi richiesti tutti compilati (non_compilato = mancante; non_applicabile ammesso)",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "controllo": "esiti della decontaminazione coerenti con le regole (no, si, decisiva, materiale)",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "controllo": "correttezza non_applicabile solo nei casi sulla scena intera",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "controllo": "conteggi della revisione statica confermati dai dati",
+   "esito": true,
+   "dettaglio": {
+    "campione": 380,
+    "mirati": 175,
+    "righe_tsv": 655,
+    "candidati": 264,
+    "corrispondenze": 755,
+    "esito_no": 249,
+    "esito_incerto": 15,
+    "esito_si": 0,
+    "corrispondenze_diverse": 727,
+    "corrispondenze_incerte": 28
+   }
+  },
+  {
+   "controllo": "giudizi finali applicabili sulla qualità tutti positivi (sì o non applicabile, nessun difetto; contratti sì)",
+   "esito": true,
+   "dettaglio": []
+  },
+  {
+   "controllo": "riesame: JSON dei record incerti letto dagli shard, con lo sha256 del manifest",
+   "esito": true,
+   "dettaglio": 15
+  },
+  {
+   "controllo": "riesame: ogni corrispondenza incerta ritrova la sua voce dell'indice",
+   "esito": true,
+   "dettaglio": {
+    "voci": 6,
+    "attese": 6
+   }
+  },
+  {
+   "controllo": "casi mirati di quarantena = record col motivo incerto nel manifest (67), dettagli per tipo",
+   "esito": true,
+   "dettaglio": {
+    "casi": 67,
+    "manifest": 67,
+    "dettagli": {
+     "testi_sovrapposti": 77
+    }
+   }
+  },
+  {
+   "controllo": "proposta: stati più gravi solo per contaminazioni confermate, altrimenti solo motivi tolti; split e gruppi invariati",
+   "esito": true,
+   "dettaglio": []
+  }
+ ],
+ "falliti": [],
+ "indipendenza": {
+  "indipendenti": 555,
+  "non_indipendenti": [],
+  "unita_collegate": {
+   "C-function-010": [
+    "C-function-072"
+   ],
+   "C-function-049": [
+    "C-function-075"
+   ],
+   "C-function-072": [
+    "C-function-010"
+   ],
+   "C-function-075": [
+    "C-function-049"
+   ],
+   "C-test-005": [
+    "C-test-016"
+   ],
+   "C-test-008": [
+    "C-coppie-013",
+    "C-test-012",
+    "C-test-050"
+   ],
+   "C-test-012": [
+    "C-coppie-013",
+    "C-test-008",
+    "C-test-050"
+   ],
+   "C-test-013": [
+    "C-test-048"
+   ],
+   "C-test-016": [
+    "C-test-005"
+   ],
+   "C-test-019": [
+    "C-test-022"
+   ],
+   "C-test-022": [
+    "C-test-019"
+   ],
+   "C-test-027": [
+    "M-esclusioni_contaminazione-006"
+   ],
+   "C-test-028": [
+    "C-test-040",
+    "C-test-046"
+   ],
+   "C-test-040": [
+    "C-test-028",
+    "C-test-046"
+   ],
+   "C-test-046": [
+    "C-test-028",
+    "C-test-040"
+   ],
+   "C-test-048": [
+    "C-test-013"
+   ],
+   "C-test-050": [
+    "C-coppie-013",
+    "C-test-008",
+    "C-test-012"
+   ],
+   "C-coppie-013": [
+    "C-test-008",
+    "C-test-012",
+    "C-test-050"
+   ],
+   "C-coppie-017": [
+    "M-esclusioni_contaminazione-004"
+   ],
+   "M-esclusioni_contaminazione-004": [
+    "C-coppie-017"
+   ],
+   "M-esclusioni_contaminazione-006": [
+    "C-test-027"
+   ],
+   "M-soglia_vertice_estremo-007": [
+    "M-soglia_vertice_estremo-008"
+   ],
+   "M-soglia_vertice_estremo-008": [
+    "M-soglia_vertice_estremo-007"
+   ]
+  },
+  "unita_collegate_con_prima_esposizione_altrui": [
+   "C-coppie-013",
+   "C-coppie-017",
+   "C-function-010",
+   "C-function-075",
+   "C-test-008",
+   "C-test-012",
+   "C-test-013",
+   "C-test-016",
+   "C-test-019",
+   "C-test-027",
+   "C-test-028",
+   "C-test-040",
+   "M-soglia_vertice_estremo-007"
+  ]
+ },
+ "archivio": 0,
+ "cronologia": {
+  "creato_il": "2026-11-04T12:04:55.142Z",
+  "esportato_il": "2026-11-11T20:12:26.897Z",
+  "primo_giudizio": "2026-11-05T23:58:28.070Z",
+  "ultimo_giudizio": "2026-11-11T19:58:14.285Z",
+  "esposizioni": 615,
+  "migrazioni": [
+   {
+    "da": "synth-v4-revisione-avanzamento/1",
+    "a": "synth-v4-revisione-avanzamento/2",
+    "quando": "2026-11-04T14:52:14.746Z",
+    "note": "soluzioni già mostrate trasformate in esposizioni dei loro record; unità collegate fissate o segnate come non indipendenti, anche se la loro soluzione era già stata mostrata",
+    "esposizioni": 0,
+    "fissate": [],
+    "non_indipendenti": [],
+    "bozze_archiviate": 0
+   }
+  ]
+ },
+ "riepilogo_esportato": {
+  "campione": {
+   "totale": 380,
+   "gruppi": {
+    "coord": {
+     "totale": 75,
+     "completo": 75
+    },
+    "function": {
+     "totale": 75,
+     "completo": 75
+    },
+    "polygon": {
+     "totale": 75,
+     "completo": 75
+    },
+    "shapes": {
+     "totale": 75,
+     "completo": 75
+    },
+    "test": {
+     "totale": 50,
+     "completo": 50
+    },
+    "coppie": {
+     "totale": 30,
+     "completo": 30
+    }
+   },
+   "completo": 380
+  },
+  "mirati": {
+   "totale": 175,
+   "gruppi": {
+    "quarantena": {
+     "totale": 67,
+     "completo": 67
+    },
+    "coppie_per_famiglia": {
+     "totale": 20,
+     "completo": 20
+    },
+    "esclusioni_contaminazione": {
+     "totale": 10,
+     "completo": 10
+    },
+    "regole_nuove_v4": {
+     "totale": 30,
+     "completo": 30
+    },
+    "soglia_testo_basso": {
+     "totale": 8,
+     "completo": 8
+    },
+    "soglia_riquadri_vicini": {
+     "totale": 8,
+     "completo": 8
+    },
+    "soglia_intersezione_bordo": {
+     "totale": 8,
+     "completo": 8
+    },
+    "soglia_grafici_vicini": {
+     "totale": 8,
+     "completo": 8
+    },
+    "soglia_vertice_estremo": {
+     "totale": 8,
+     "completo": 8
+    },
+    "coordinate_dalle_tacche": {
+     "totale": 8,
+     "completo": 8
+    }
+   },
+   "completo": 175
+  },
+  "decontaminazione": {
+   "totale": 264,
+   "completo": 264,
+   "corrispondenze_esaminate": 755,
+   "corrispondenze": 755,
+   "incerto": 15
+  },
+  "esposizioni": {
+   "eventi": 615,
+   "record": 607,
+   "archivio": 0
+  }
+ },
+ "riepilogo_ricalcolato_da_logica": {
+  "campione": {
+   "totale": 380,
+   "gruppi": {
+    "coord": {
+     "totale": 75,
+     "completo": 75
+    },
+    "function": {
+     "totale": 75,
+     "completo": 75
+    },
+    "polygon": {
+     "totale": 75,
+     "completo": 75
+    },
+    "shapes": {
+     "totale": 75,
+     "completo": 75
+    },
+    "test": {
+     "totale": 50,
+     "completo": 50
+    },
+    "coppie": {
+     "totale": 30,
+     "completo": 30
+    }
+   },
+   "completo": 380
+  },
+  "mirati": {
+   "totale": 175,
+   "gruppi": {
+    "quarantena": {
+     "totale": 67,
+     "completo": 67
+    },
+    "coppie_per_famiglia": {
+     "totale": 20,
+     "completo": 20
+    },
+    "esclusioni_contaminazione": {
+     "totale": 10,
+     "completo": 10
+    },
+    "regole_nuove_v4": {
+     "totale": 30,
+     "completo": 30
+    },
+    "soglia_testo_basso": {
+     "totale": 8,
+     "completo": 8
+    },
+    "soglia_riquadri_vicini": {
+     "totale": 8,
+     "completo": 8
+    },
+    "soglia_intersezione_bordo": {
+     "totale": 8,
+     "completo": 8
+    },
+    "soglia_grafici_vicini": {
+     "totale": 8,
+     "completo": 8
+    },
+    "soglia_vertice_estremo": {
+     "totale": 8,
+     "completo": 8
+    },
+    "coordinate_dalle_tacche": {
+     "totale": 8,
+     "completo": 8
+    }
+   },
+   "completo": 175
+  },
+  "decontaminazione": {
+   "totale": 264,
+   "completo": 264,
+   "corrispondenze_esaminate": 755,
+   "corrispondenze": 755,
+   "incerto": 15
+  },
+  "esposizioni": {
+   "eventi": 615,
+   "record": 607,
+   "archivio": 0
+  }
+ },
+ "conteggi": {
+  "osservati": {
+   "campione": 380,
+   "mirati": 175,
+   "righe_tsv": 655,
+   "candidati": 264,
+   "corrispondenze": 755,
+   "esito_no": 249,
+   "esito_incerto": 15,
+   "esito_si": 0,
+   "corrispondenze_diverse": 727,
+   "corrispondenze_incerte": 28
+  },
+  "dichiarati": {
+   "campione": 380,
+   "mirati": 175,
+   "righe_tsv": 655,
+   "candidati": 264,
+   "corrispondenze": 755,
+   "esito_no": 249,
+   "esito_incerto": 15,
+   "esito_si": 0,
+   "corrispondenze_diverse": 727,
+   "corrispondenze_incerte": 28
+  },
+  "valori": {
+   "leggibilita/qa": {
+    "si": 512
+   },
+   "corretta/qa": {
+    "si": 512
+   },
+   "coerente_con_annotazioni/qa": {
+    "si": 512
+   },
+   "rispondibile_da_immagine/qa": {
+    "si": 512
+   },
+   "gravita/qa": {
+    "nessun_difetto": 512
+   },
+   "contratto_coppia": {
+    "si": 50
+   },
+   "gravita_coppia": {
+    "nessun_difetto": 50
+   },
+   "leggibilita/scena": {
+    "si": 93
+   },
+   "corretta/scena": {
+    "non_applicabile": 93
+   },
+   "coerente_con_annotazioni/scena": {
+    "si": 93
+   },
+   "rispondibile_da_immagine/scena": {
+    "si": 83,
+    "non_applicabile": 10
+   },
+   "gravita/scena": {
+    "nessun_difetto": 93
+   },
+   "esito_decontaminazione": {
+    "no": 249,
+    "incerto": 15
+   },
+   "esame_corrispondenza": {
+    "contenuto_diverso": 727,
+    "incerto": 28
+   }
+  },
+  "per_sezione": {
+   "campione": {
+    "coord": {
+     "varianti": {
+      "n": 75
+     },
+     "prima_risposta": {
+      "uguale": 73,
+      "equivalente_nella_scrittura": 1,
+      "diversa": 1
+     },
+     "leggibilita": {
+      "si": 75
+     },
+     "corretta": {
+      "si": 75
+     },
+     "coerente_con_annotazioni": {
+      "si": 75
+     },
+     "rispondibile_da_immagine": {
+      "si": 75
+     },
+     "gravita": {
+      "nessun_difetto": 75
+     }
+    },
+    "function": {
+     "varianti": {
+      "n": 75
+     },
+     "prima_risposta": {
+      "uguale": 75
+     },
+     "leggibilita": {
+      "si": 75
+     },
+     "corretta": {
+      "si": 75
+     },
+     "coerente_con_annotazioni": {
+      "si": 75
+     },
+     "rispondibile_da_immagine": {
+      "si": 75
+     },
+     "gravita": {
+      "nessun_difetto": 75
+     }
+    },
+    "polygon": {
+     "varianti": {
+      "n": 75
+     },
+     "prima_risposta": {
+      "uguale": 74,
+      "diversa": 1
+     },
+     "leggibilita": {
+      "si": 75
+     },
+     "corretta": {
+      "si": 75
+     },
+     "coerente_con_annotazioni": {
+      "si": 75
+     },
+     "rispondibile_da_immagine": {
+      "si": 75
+     },
+     "gravita": {
+      "nessun_difetto": 75
+     }
+    },
+    "shapes": {
+     "varianti": {
+      "n": 75
+     },
+     "prima_risposta": {
+      "uguale": 73,
+      "diversa": 2
+     },
+     "leggibilita": {
+      "si": 75
+     },
+     "corretta": {
+      "si": 75
+     },
+     "coerente_con_annotazioni": {
+      "si": 75
+     },
+     "rispondibile_da_immagine": {
+      "si": 75
+     },
+     "gravita": {
+      "nessun_difetto": 75
+     }
+    },
+    "test": {
+     "varianti": {
+      "n": 50
+     },
+     "prima_risposta": {
+      "uguale": 50
+     },
+     "leggibilita": {
+      "si": 50
+     },
+     "corretta": {
+      "si": 50
+     },
+     "coerente_con_annotazioni": {
+      "si": 50
+     },
+     "rispondibile_da_immagine": {
+      "si": 50
+     },
+     "gravita": {
+      "nessun_difetto": 50
+     }
+    },
+    "coppie": {
+     "varianti": {
+      "n": 60
+     },
+     "prima_risposta": {
+      "uguale": 60
+     },
+     "leggibilita": {
+      "si": 60
+     },
+     "corretta": {
+      "si": 60
+     },
+     "coerente_con_annotazioni": {
+      "si": 60
+     },
+     "rispondibile_da_immagine": {
+      "si": 60
+     },
+     "gravita": {
+      "nessun_difetto": 60
+     },
+     "contratto_coppia": {
+      "si": 30
+     },
+     "gravita_coppia": {
+      "nessun_difetto": 30
+     }
+    }
+   },
+   "mirati": {
+    "quarantena": {
+     "varianti": {
+      "n": 67
+     },
+     "prima_risposta": {
+      "caso_sulla_scena": 67
+     },
+     "leggibilita": {
+      "si": 67
+     },
+     "corretta": {
+      "non_applicabile": 67
+     },
+     "coerente_con_annotazioni": {
+      "si": 67
+     },
+     "rispondibile_da_immagine": {
+      "si": 67
+     },
+     "gravita": {
+      "nessun_difetto": 67
+     }
+    },
+    "coppie_per_famiglia": {
+     "varianti": {
+      "n": 40
+     },
+     "prima_risposta": {
+      "uguale": 40
+     },
+     "leggibilita": {
+      "si": 40
+     },
+     "corretta": {
+      "si": 40
+     },
+     "coerente_con_annotazioni": {
+      "si": 40
+     },
+     "rispondibile_da_immagine": {
+      "si": 40
+     },
+     "gravita": {
+      "nessun_difetto": 40
+     },
+     "contratto_coppia": {
+      "si": 20
+     },
+     "gravita_coppia": {
+      "nessun_difetto": 20
+     }
+    },
+    "esclusioni_contaminazione": {
+     "varianti": {
+      "n": 10
+     },
+     "prima_risposta": {
+      "caso_sulla_scena": 10
+     },
+     "leggibilita": {
+      "si": 10
+     },
+     "corretta": {
+      "non_applicabile": 10
+     },
+     "coerente_con_annotazioni": {
+      "si": 10
+     },
+     "rispondibile_da_immagine": {
+      "non_applicabile": 10
+     },
+     "gravita": {
+      "nessun_difetto": 10
+     }
+    },
+    "regole_nuove_v4": {
+     "varianti": {
+      "n": 30
+     },
+     "prima_risposta": {
+      "uguale": 30
+     },
+     "leggibilita": {
+      "si": 30
+     },
+     "corretta": {
+      "si": 30
+     },
+     "coerente_con_annotazioni": {
+      "si": 30
+     },
+     "rispondibile_da_immagine": {
+      "si": 30
+     },
+     "gravita": {
+      "nessun_difetto": 30
+     }
+    },
+    "soglia_testo_basso": {
+     "varianti": {
+      "n": 8
+     },
+     "prima_risposta": {
+      "caso_sulla_scena": 8
+     },
+     "leggibilita": {
+      "si": 8
+     },
+     "corretta": {
+      "non_applicabile": 8
+     },
+     "coerente_con_annotazioni": {
+      "si": 8
+     },
+     "rispondibile_da_immagine": {
+      "si": 8
+     },
+     "gravita": {
+      "nessun_difetto": 8
+     }
+    },
+    "soglia_riquadri_vicini": {
+     "varianti": {
+      "n": 8
+     },
+     "prima_risposta": {
+      "caso_sulla_scena": 8
+     },
+     "leggibilita": {
+      "si": 8
+     },
+     "corretta": {
+      "non_applicabile": 8
+     },
+     "coerente_con_annotazioni": {
+      "si": 8
+     },
+     "rispondibile_da_immagine": {
+      "si": 8
+     },
+     "gravita": {
+      "nessun_difetto": 8
+     }
+    },
+    "soglia_intersezione_bordo": {
+     "varianti": {
+      "n": 8
+     },
+     "prima_risposta": {
+      "uguale": 8
+     },
+     "leggibilita": {
+      "si": 8
+     },
+     "corretta": {
+      "si": 8
+     },
+     "coerente_con_annotazioni": {
+      "si": 8
+     },
+     "rispondibile_da_immagine": {
+      "si": 8
+     },
+     "gravita": {
+      "nessun_difetto": 8
+     }
+    },
+    "soglia_grafici_vicini": {
+     "varianti": {
+      "n": 8
+     },
+     "prima_risposta": {
+      "uguale": 8
+     },
+     "leggibilita": {
+      "si": 8
+     },
+     "corretta": {
+      "si": 8
+     },
+     "coerente_con_annotazioni": {
+      "si": 8
+     },
+     "rispondibile_da_immagine": {
+      "si": 8
+     },
+     "gravita": {
+      "nessun_difetto": 8
+     }
+    },
+    "soglia_vertice_estremo": {
+     "varianti": {
+      "n": 8
+     },
+     "prima_risposta": {
+      "uguale": 8
+     },
+     "leggibilita": {
+      "si": 8
+     },
+     "corretta": {
+      "si": 8
+     },
+     "coerente_con_annotazioni": {
+      "si": 8
+     },
+     "rispondibile_da_immagine": {
+      "si": 8
+     },
+     "gravita": {
+      "nessun_difetto": 8
+     }
+    },
+    "coordinate_dalle_tacche": {
+     "varianti": {
+      "n": 8
+     },
+     "prima_risposta": {
+      "diversa": 1,
+      "uguale": 7
+     },
+     "leggibilita": {
+      "si": 8
+     },
+     "corretta": {
+      "si": 8
+     },
+     "coerente_con_annotazioni": {
+      "si": 8
+     },
+     "rispondibile_da_immagine": {
+      "si": 8
+     },
+     "gravita": {
+      "nessun_difetto": 8
+     }
+    }
+   }
+  }
+ },
+ "prime_risposte_diverse": [
+  {
+   "sezione": "campione",
+   "gruppo": "coord",
+   "unita": "C-coord-049",
+   "variante": "",
+   "record": "synth-0049432",
+   "livello": "qa",
+   "tipo": "side_y",
+   "prima_risposta": "left",
+   "target": "right",
+   "confronto": "diversa",
+   "leggibilita": "si",
+   "corretta": "si",
+   "coerente_con_annotazioni": "si",
+   "rispondibile_da_immagine": "si",
+   "gravita": "nessun_difetto",
+   "tipo_difetto": "",
+   "note": "la gold è giusta ho sbagliato io ",
+   "risposta_dopo_soluzione": "right",
+   "indipendente": true
+  },
+  {
+   "sezione": "campione",
+   "gruppo": "polygon",
+   "unita": "C-polygon-053",
+   "variante": "",
+   "record": "synth-0027277",
+   "livello": "qa",
+   "tipo": "count",
+   "prima_risposta": "2",
+   "target": "3",
+   "confronto": "diversa",
+   "leggibilita": "si",
+   "corretta": "si",
+   "coerente_con_annotazioni": "si",
+   "rispondibile_da_immagine": "si",
+   "gravita": "nessun_difetto",
+   "tipo_difetto": "",
+   "note": "ho sbagliato io la risposta, la golden è esatta",
+   "risposta_dopo_soluzione": "3",
+   "indipendente": true
+  },
+  {
+   "sezione": "campione",
+   "gruppo": "shapes",
+   "unita": "C-shapes-009",
+   "variante": "",
+   "record": "synth-0055331",
+   "livello": "qa",
+   "tipo": "has_type",
+   "prima_risposta": "0",
+   "target": "no",
+   "confronto": "diversa",
+   "leggibilita": "si",
+   "corretta": "si",
+   "coerente_con_annotazioni": "si",
+   "rispondibile_da_immagine": "si",
+   "gravita": "nessun_difetto",
+   "tipo_difetto": "",
+   "note": "la mia risposta è sbagliata, la gold è giusta",
+   "risposta_dopo_soluzione": "no",
+   "indipendente": true
+  },
+  {
+   "sezione": "campione",
+   "gruppo": "shapes",
+   "unita": "C-shapes-053",
+   "variante": "",
+   "record": "synth-0021647",
+   "livello": "qa",
+   "tipo": "exists",
+   "prima_risposta": "2",
+   "target": "no",
+   "confronto": "diversa",
+   "leggibilita": "si",
+   "corretta": "si",
+   "coerente_con_annotazioni": "si",
+   "rispondibile_da_immagine": "si",
+   "gravita": "nessun_difetto",
+   "tipo_difetto": "",
+   "note": "ho sbagliato a rispondere con 2, la gold è esatta",
+   "risposta_dopo_soluzione": "no",
+   "indipendente": true
+  },
+  {
+   "sezione": "mirati",
+   "gruppo": "coordinate_dalle_tacche",
+   "unita": "M-coordinate_dalle_tacche-001",
+   "variante": "",
+   "record": "synth-0047656",
+   "livello": "qa",
+   "tipo": "coords",
+   "prima_risposta": "(5, -5)",
+   "target": "(-5, 5)",
+   "confronto": "diversa",
+   "leggibilita": "si",
+   "corretta": "si",
+   "coerente_con_annotazioni": "si",
+   "rispondibile_da_immagine": "si",
+   "gravita": "nessun_difetto",
+   "tipo_difetto": "",
+   "note": "il target è giusto, ho sbagliato io a rispondere ",
+   "risposta_dopo_soluzione": "(-5, 5) ",
+   "indipendente": true
+  }
+ ],
+ "note_del_revisore": [
+  {
+   "sezione": "campione",
+   "gruppo": "coord",
+   "unita": "C-coord-049",
+   "variante": "",
+   "record": "synth-0049432",
+   "livello": "qa",
+   "tipo": "side_y",
+   "prima_risposta": "left",
+   "target": "right",
+   "confronto": "diversa",
+   "leggibilita": "si",
+   "corretta": "si",
+   "coerente_con_annotazioni": "si",
+   "rispondibile_da_immagine": "si",
+   "gravita": "nessun_difetto",
+   "tipo_difetto": "",
+   "note": "la gold è giusta ho sbagliato io ",
+   "risposta_dopo_soluzione": "right",
+   "indipendente": true
+  },
+  {
+   "sezione": "campione",
+   "gruppo": "polygon",
+   "unita": "C-polygon-053",
+   "variante": "",
+   "record": "synth-0027277",
+   "livello": "qa",
+   "tipo": "count",
+   "prima_risposta": "2",
+   "target": "3",
+   "confronto": "diversa",
+   "leggibilita": "si",
+   "corretta": "si",
+   "coerente_con_annotazioni": "si",
+   "rispondibile_da_immagine": "si",
+   "gravita": "nessun_difetto",
+   "tipo_difetto": "",
+   "note": "ho sbagliato io la risposta, la golden è esatta",
+   "risposta_dopo_soluzione": "3",
+   "indipendente": true
+  },
+  {
+   "sezione": "campione",
+   "gruppo": "shapes",
+   "unita": "C-shapes-009",
+   "variante": "",
+   "record": "synth-0055331",
+   "livello": "qa",
+   "tipo": "has_type",
+   "prima_risposta": "0",
+   "target": "no",
+   "confronto": "diversa",
+   "leggibilita": "si",
+   "corretta": "si",
+   "coerente_con_annotazioni": "si",
+   "rispondibile_da_immagine": "si",
+   "gravita": "nessun_difetto",
+   "tipo_difetto": "",
+   "note": "la mia risposta è sbagliata, la gold è giusta",
+   "risposta_dopo_soluzione": "no",
+   "indipendente": true
+  },
+  {
+   "sezione": "campione",
+   "gruppo": "shapes",
+   "unita": "C-shapes-053",
+   "variante": "",
+   "record": "synth-0021647",
+   "livello": "qa",
+   "tipo": "exists",
+   "prima_risposta": "2",
+   "target": "no",
+   "confronto": "diversa",
+   "leggibilita": "si",
+   "corretta": "si",
+   "coerente_con_annotazioni": "si",
+   "rispondibile_da_immagine": "si",
+   "gravita": "nessun_difetto",
+   "tipo_difetto": "",
+   "note": "ho sbagliato a rispondere con 2, la gold è esatta",
+   "risposta_dopo_soluzione": "no",
+   "indipendente": true
+  },
+  {
+   "sezione": "mirati",
+   "gruppo": "esclusioni_contaminazione",
+   "unita": "M-esclusioni_contaminazione-009",
+   "variante": "",
+   "record": "synth-0045138|synth-pair-00066-a",
+   "livello": "scena",
+   "tipo": "scena",
+   "prima_risposta": "",
+   "target": null,
+   "confronto": "caso_sulla_scena",
+   "leggibilita": "si",
+   "corretta": "non_applicabile",
+   "coerente_con_annotazioni": "si",
+   "rispondibile_da_immagine": "non_applicabile",
+   "gravita": "nessun_difetto",
+   "tipo_difetto": "",
+   "note": "stesso stato della scena",
+   "risposta_dopo_soluzione": "",
+   "indipendente": true
+  },
+  {
+   "sezione": "mirati",
+   "gruppo": "coordinate_dalle_tacche",
+   "unita": "M-coordinate_dalle_tacche-001",
+   "variante": "",
+   "record": "synth-0047656",
+   "livello": "qa",
+   "tipo": "coords",
+   "prima_risposta": "(5, -5)",
+   "target": "(-5, 5)",
+   "confronto": "diversa",
+   "leggibilita": "si",
+   "corretta": "si",
+   "coerente_con_annotazioni": "si",
+   "rispondibile_da_immagine": "si",
+   "gravita": "nessun_difetto",
+   "tipo_difetto": "",
+   "note": "il target è giusto, ho sbagliato io a rispondere ",
+   "risposta_dopo_soluzione": "(-5, 5) ",
+   "indipendente": true
+  }
+ ],
+ "riesame_incerti": [
+  {
+   "unita": "D-022",
+   "record": "synth-0036534",
+   "record_id": "e34caddd47da3b2dd77cc13922e8aa486554e8f22d70e8353ac20bba038a29f2",
+   "insieme": "train",
+   "split": "test",
+   "stato": "escluso",
+   "gruppo": "626ef180f315ea996fd6f6fd4833289169f3cc218a9676b45f642d954e9f3348",
+   "motivo": {
+    "contaminazione": [
+     "gruppo con 4 record di valutazione (synth-pair-00074-a, synth-pair-00074-b, synth-pair-00198-a, …); legame: stato"
+    ],
+    "decontaminazione_pannello": [
+     "candidato da verificare (pHash o n-gram delle domande): synth-0001142, synth-0005122, synth-0015650, synth-0028262, synth-0029486 e altri 9"
+    ]
+   },
+   "famiglia": "function",
+   "immagine": "immagini/synth-0036534.png",
+   "somiglianza_pixel": 0.5712,
+   "esito_umano": "incerto",
+   "nota_umana": "",
+   "spec": {
+    "family": "function",
+    "R": 6,
+    "ticks": true,
+    "curves": [
+     {
+      "kind": "line",
+      "name": "f",
+      "a": 1,
+      "b": 1,
+      "label_at": [
+       4.3,
+       5.3
+      ]
+     }
+    ],
+    "lw": 1.58,
+    "font": 14,
+    "font_family": "DejaVu Sans",
+    "width": 448,
+    "height": 448,
+    "key": "synth-0036534",
+    "generator_version": 4
+   },
+   "qa": [
+    {
+     "type": "slope",
+     "q": "Is the graph of f increasing or decreasing?",
+     "options": [
+      "increasing",
+      "decreasing"
+     ],
+     "answer": "increasing"
+    },
+    {
+     "type": "intercept",
+     "q": "Does the graph of f cross the y-axis above or below the origin?",
+     "options": [
+      "above",
+      "below"
+     ],
+     "answer": "above"
+    },
+    {
+     "type": "exists",
+     "q": "Is there a graph labeled f?",
+     "options": [
+      "yes",
+      "no"
+     ],
+     "answer": "yes"
+    },
+    {
+     "type": "exists",
+     "q": "Is there a graph labeled h?",
+     "options": [
+      "yes",
+      "no"
+     ],
+     "answer": "no"
+    }
+   ],
+   "domanda_della_coppia": null,
+   "membri_del_gruppo": {
+    "n": 109,
+    "valutazione": [
+     "synth-pair-00074-a",
+     "synth-pair-00074-b",
+     "synth-pair-00198-a",
+     "synth-pair-00198-b"
+    ],
+    "per_insieme_split_stato_esito": {
+     "train/test/escluso/candidato": 13,
+     "train/test/escluso/nessuna_corrispondenza": 92,
+     "coppie/test/quarantena/nessuna_corrispondenza": 3,
+     "coppie/test/quarantena/candidato": 1
+    }
+   },
+   "corrispondenze": [
+    {
+     "id": "D-022-001",
+     "benchmark": "mvmath",
+     "elemento": "mvmath/MV-MATH:1008",
+     "voce_indice": "MV-MATH:1008#2",
+     "posizione_immagine": 2,
+     "distanza": 4,
+     "ruolo": "test",
+     "metrica_primaria": true,
+     "gruppo_pannello": "28f6539667ab5c8055e15ae38d148dc8c096915800fe026b4c9109aae91c04a9",
+     "immagine": "immagini/pannello/fd0fe7d0b295012ea02fa85420301b1d914d1227858a873085fdc471eeb46d1b.jpg",
+     "esame": "incerto",
+     "nota": "Le due immagini rappresentano la stessa funzione elementare y=x+1, ma con rendering differente. La coincidenza della funzione non dimostra che il problema sintetico derivi dal benchmark. Verificare domanda e provenienza prima di classificare la corrispondenza come contaminazione.",
+     "testo_indice": "Among the graphs in the Cartesian coordinate system below, which one does not represent $y$ as a function of $x$?\nA.\n\n<image_1>\nB.\n\n<image_2>\nC.\n\n<image_3>\nD.\n\n<image_4>\n\n##",
+     "indizi_indice": {
+      "answer_type": "choice",
+      "subject": "Analytic Geometry",
+      "image_relavance": "0",
+      "is_multi_img": true,
+      "difficulty": "Medium"
+     },
+     "riga_benchmark": null,
+     "gruppo_del_pannello": [
+      {
+       "elemento": "mvmath/MV-MATH:1008",
+       "ruolo": "test",
+       "metrica_primaria": true
+      }
+     ]
+    },
+    {
+     "id": "D-022-002",
+     "benchmark": "dynamath",
+     "elemento": "dynamath/sample8-00000-of-00008:96",
+     "voce_indice": "sample8-00000-of-00008:96",
+     "posizione_immagine": 0,
+     "distanza": 4,
+     "ruolo": "test",
+     "metrica_primaria": true,
+     "gruppo_pannello": "78a0c55f66780ab2844c638fc658adb7b024f7106d5c0c4b17788dc86ec1d82b",
+     "immagine": "immagini/pannello/8f1843679274b32dd131cbe1a8a8ff26bcd0d6abc0028ed3bca3e4862e2c1eb2.png",
+     "esame": "incerto",
+     "nota": "Le due immagini rappresentano la stessa funzione elementare y=x+1, ma con rendering differente. La coincidenza della funzione non dimostra che il problema sintetico derivi dal benchmark. Verificare domanda e provenienza prima di classificare la corrispondenza come contaminazione.",
+     "testo_indice": "What is the distance between the x-intercept and y-intercept of blue line?",
+     "indizi_indice": {
+      "id": "96",
+      "seed": 96
+     },
+     "riga_benchmark": {
+      "id": 96,
+      "question": "What is the distance between the x-intercept and y-intercept of blue line?",
+      "image": "image/image96.png",
+      "ground_truth": "1.4142",
+      "answer_type": "float",
+      "subject": "analytic geometry",
+      "knowledge_level": "high school"
+     },
+     "gruppo_del_pannello": [
+      {
+       "elemento": "dynamath/sample1-00000-of-00001:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample10-00000-of-00010:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample2-00000-of-00002:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample3-00000-of-00003:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample4-00000-of-00004:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample5-00000-of-00005:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample6-00000-of-00006:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample7-00000-of-00007:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample8-00000-of-00008:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample9-00000-of-00009:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "unita": "D-041",
+   "record": "synth-0005122",
+   "record_id": "d4eb54217076027fd7a6eac98e79b023f68b20a2456ab1422bc091e07be7244e",
+   "insieme": "train",
+   "split": "test",
+   "stato": "escluso",
+   "gruppo": "626ef180f315ea996fd6f6fd4833289169f3cc218a9676b45f642d954e9f3348",
+   "motivo": {
+    "contaminazione": [
+     "gruppo con 4 record di valutazione (synth-pair-00074-a, synth-pair-00074-b, synth-pair-00198-a, …); legame: stato"
+    ],
+    "decontaminazione_pannello": [
+     "candidato da verificare (pHash o n-gram delle domande): synth-0001142, synth-0005122, synth-0015650, synth-0028262, synth-0029486 e altri 9"
+    ]
+   },
+   "famiglia": "function",
+   "immagine": "immagini/synth-0005122.png",
+   "somiglianza_pixel": 0.5403,
+   "esito_umano": "incerto",
+   "nota_umana": "",
+   "spec": {
+    "family": "function",
+    "R": 6,
+    "ticks": true,
+    "curves": [
+     {
+      "kind": "line",
+      "name": "f",
+      "a": 1,
+      "b": 1,
+      "label_at": [
+       4.3,
+       5.3
+      ]
+     }
+    ],
+    "lw": 1.01,
+    "font": 16,
+    "font_family": "DejaVu Sans",
+    "width": 512,
+    "height": 512,
+    "key": "synth-0005122",
+    "generator_version": 4
+   },
+   "qa": [
+    {
+     "type": "slope",
+     "q": "Is the graph of f increasing or decreasing?",
+     "options": [
+      "increasing",
+      "decreasing"
+     ],
+     "answer": "increasing"
+    },
+    {
+     "type": "intercept",
+     "q": "Does the graph of f cross the y-axis above or below the origin?",
+     "options": [
+      "above",
+      "below"
+     ],
+     "answer": "above"
+    },
+    {
+     "type": "exists",
+     "q": "Is there a graph labeled f?",
+     "options": [
+      "yes",
+      "no"
+     ],
+     "answer": "yes"
+    },
+    {
+     "type": "exists",
+     "q": "Is there a graph labeled h?",
+     "options": [
+      "yes",
+      "no"
+     ],
+     "answer": "no"
+    }
+   ],
+   "domanda_della_coppia": null,
+   "membri_del_gruppo": {
+    "n": 109,
+    "valutazione": [
+     "synth-pair-00074-a",
+     "synth-pair-00074-b",
+     "synth-pair-00198-a",
+     "synth-pair-00198-b"
+    ],
+    "per_insieme_split_stato_esito": {
+     "train/test/escluso/candidato": 13,
+     "train/test/escluso/nessuna_corrispondenza": 92,
+     "coppie/test/quarantena/nessuna_corrispondenza": 3,
+     "coppie/test/quarantena/candidato": 1
+    }
+   },
+   "corrispondenze": [
+    {
+     "id": "D-041-001",
+     "benchmark": "dynamath",
+     "elemento": "dynamath/sample8-00000-of-00008:96",
+     "voce_indice": "sample8-00000-of-00008:96",
+     "posizione_immagine": 0,
+     "distanza": 4,
+     "ruolo": "test",
+     "metrica_primaria": true,
+     "gruppo_pannello": "78a0c55f66780ab2844c638fc658adb7b024f7106d5c0c4b17788dc86ec1d82b",
+     "immagine": "immagini/pannello/8f1843679274b32dd131cbe1a8a8ff26bcd0d6abc0028ed3bca3e4862e2c1eb2.png",
+     "esame": "incerto",
+     "nota": "Le due immagini rappresentano la stessa funzione elementare y=x+1, ma con rendering differente. La coincidenza della funzione non dimostra che il problema sintetico derivi dal benchmark. Verificare domanda e provenienza prima di classificare la corrispondenza come contaminazione.",
+     "testo_indice": "What is the distance between the x-intercept and y-intercept of blue line?",
+     "indizi_indice": {
+      "id": "96",
+      "seed": 96
+     },
+     "riga_benchmark": {
+      "id": 96,
+      "question": "What is the distance between the x-intercept and y-intercept of blue line?",
+      "image": "image/image96.png",
+      "ground_truth": "1.4142",
+      "answer_type": "float",
+      "subject": "analytic geometry",
+      "knowledge_level": "high school"
+     },
+     "gruppo_del_pannello": [
+      {
+       "elemento": "dynamath/sample1-00000-of-00001:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample10-00000-of-00010:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample2-00000-of-00002:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample3-00000-of-00003:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample4-00000-of-00004:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample5-00000-of-00005:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample6-00000-of-00006:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample7-00000-of-00007:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample8-00000-of-00008:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample9-00000-of-00009:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "unita": "D-048",
+   "record": "synth-0045894",
+   "record_id": "4ede204e2355414af4476f989e10d8964d8cdf2bf5e4161cb3fac9ae581a7e07",
+   "insieme": "train",
+   "split": "test",
+   "stato": "escluso",
+   "gruppo": "626ef180f315ea996fd6f6fd4833289169f3cc218a9676b45f642d954e9f3348",
+   "motivo": {
+    "contaminazione": [
+     "gruppo con 4 record di valutazione (synth-pair-00074-a, synth-pair-00074-b, synth-pair-00198-a, …); legame: stato"
+    ],
+    "decontaminazione_pannello": [
+     "candidato da verificare (pHash o n-gram delle domande): synth-0001142, synth-0005122, synth-0015650, synth-0028262, synth-0029486 e altri 9"
+    ]
+   },
+   "famiglia": "function",
+   "immagine": "immagini/synth-0045894.png",
+   "somiglianza_pixel": 0.5581,
+   "esito_umano": "incerto",
+   "nota_umana": "",
+   "spec": {
+    "family": "function",
+    "R": 6,
+    "ticks": true,
+    "curves": [
+     {
+      "kind": "line",
+      "name": "f",
+      "a": 1,
+      "b": 1,
+      "label_at": [
+       4.3,
+       5.3
+      ]
+     }
+    ],
+    "lw": 2.19,
+    "font": 13,
+    "font_family": "DejaVu Serif",
+    "width": 512,
+    "height": 544,
+    "key": "synth-0045894",
+    "generator_version": 4
+   },
+   "qa": [
+    {
+     "type": "slope",
+     "q": "Is the graph of f increasing or decreasing?",
+     "options": [
+      "increasing",
+      "decreasing"
+     ],
+     "answer": "increasing"
+    },
+    {
+     "type": "intercept",
+     "q": "Does the graph of f cross the y-axis above or below the origin?",
+     "options": [
+      "above",
+      "below"
+     ],
+     "answer": "above"
+    },
+    {
+     "type": "exists",
+     "q": "Is there a graph labeled f?",
+     "options": [
+      "yes",
+      "no"
+     ],
+     "answer": "yes"
+    },
+    {
+     "type": "exists",
+     "q": "Is there a graph labeled h?",
+     "options": [
+      "yes",
+      "no"
+     ],
+     "answer": "no"
+    }
+   ],
+   "domanda_della_coppia": null,
+   "membri_del_gruppo": {
+    "n": 109,
+    "valutazione": [
+     "synth-pair-00074-a",
+     "synth-pair-00074-b",
+     "synth-pair-00198-a",
+     "synth-pair-00198-b"
+    ],
+    "per_insieme_split_stato_esito": {
+     "train/test/escluso/candidato": 13,
+     "train/test/escluso/nessuna_corrispondenza": 92,
+     "coppie/test/quarantena/nessuna_corrispondenza": 3,
+     "coppie/test/quarantena/candidato": 1
+    }
+   },
+   "corrispondenze": [
+    {
+     "id": "D-048-001",
+     "benchmark": "dynamath",
+     "elemento": "dynamath/sample8-00000-of-00008:96",
+     "voce_indice": "sample8-00000-of-00008:96",
+     "posizione_immagine": 0,
+     "distanza": 4,
+     "ruolo": "test",
+     "metrica_primaria": true,
+     "gruppo_pannello": "78a0c55f66780ab2844c638fc658adb7b024f7106d5c0c4b17788dc86ec1d82b",
+     "immagine": "immagini/pannello/8f1843679274b32dd131cbe1a8a8ff26bcd0d6abc0028ed3bca3e4862e2c1eb2.png",
+     "esame": "incerto",
+     "nota": "Le due immagini rappresentano la stessa funzione elementare y=x+1, ma con rendering differente. La coincidenza della funzione non dimostra che il problema sintetico derivi dal benchmark. Verificare domanda e provenienza prima di classificare la corrispondenza come contaminazione.",
+     "testo_indice": "What is the distance between the x-intercept and y-intercept of blue line?",
+     "indizi_indice": {
+      "id": "96",
+      "seed": 96
+     },
+     "riga_benchmark": {
+      "id": 96,
+      "question": "What is the distance between the x-intercept and y-intercept of blue line?",
+      "image": "image/image96.png",
+      "ground_truth": "1.4142",
+      "answer_type": "float",
+      "subject": "analytic geometry",
+      "knowledge_level": "high school"
+     },
+     "gruppo_del_pannello": [
+      {
+       "elemento": "dynamath/sample1-00000-of-00001:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample10-00000-of-00010:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample2-00000-of-00002:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample3-00000-of-00003:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample4-00000-of-00004:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample5-00000-of-00005:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample6-00000-of-00006:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample7-00000-of-00007:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample8-00000-of-00008:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample9-00000-of-00009:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "unita": "D-069",
+   "record": "synth-0001142",
+   "record_id": "375a60d338d70258f3dc8e184c6ebea2755f7973ad514045843760b48f791bb7",
+   "insieme": "train",
+   "split": "test",
+   "stato": "escluso",
+   "gruppo": "626ef180f315ea996fd6f6fd4833289169f3cc218a9676b45f642d954e9f3348",
+   "motivo": {
+    "contaminazione": [
+     "gruppo con 4 record di valutazione (synth-pair-00074-a, synth-pair-00074-b, synth-pair-00198-a, …); legame: stato"
+    ],
+    "decontaminazione_pannello": [
+     "candidato da verificare (pHash o n-gram delle domande): synth-0001142, synth-0005122, synth-0015650, synth-0028262, synth-0029486 e altri 9"
+    ]
+   },
+   "famiglia": "function",
+   "immagine": "immagini/synth-0001142.png",
+   "somiglianza_pixel": 0.5656,
+   "esito_umano": "incerto",
+   "nota_umana": "",
+   "spec": {
+    "family": "function",
+    "R": 6,
+    "ticks": true,
+    "curves": [
+     {
+      "kind": "line",
+      "name": "f",
+      "a": 1,
+      "b": 1,
+      "label_at": [
+       4.3,
+       5.3
+      ]
+     }
+    ],
+    "lw": 1.06,
+    "font": 12,
+    "font_family": "DejaVu Sans",
+    "width": 576,
+    "height": 576,
+    "key": "synth-0001142",
+    "generator_version": 4
+   },
+   "qa": [
+    {
+     "type": "slope",
+     "q": "Is the graph of f increasing or decreasing?",
+     "options": [
+      "increasing",
+      "decreasing"
+     ],
+     "answer": "increasing"
+    },
+    {
+     "type": "intercept",
+     "q": "Does the graph of f cross the y-axis above or below the origin?",
+     "options": [
+      "above",
+      "below"
+     ],
+     "answer": "above"
+    },
+    {
+     "type": "exists",
+     "q": "Is there a graph labeled f?",
+     "options": [
+      "yes",
+      "no"
+     ],
+     "answer": "yes"
+    },
+    {
+     "type": "exists",
+     "q": "Is there a graph labeled q?",
+     "options": [
+      "yes",
+      "no"
+     ],
+     "answer": "no"
+    }
+   ],
+   "domanda_della_coppia": null,
+   "membri_del_gruppo": {
+    "n": 109,
+    "valutazione": [
+     "synth-pair-00074-a",
+     "synth-pair-00074-b",
+     "synth-pair-00198-a",
+     "synth-pair-00198-b"
+    ],
+    "per_insieme_split_stato_esito": {
+     "train/test/escluso/candidato": 13,
+     "train/test/escluso/nessuna_corrispondenza": 92,
+     "coppie/test/quarantena/nessuna_corrispondenza": 3,
+     "coppie/test/quarantena/candidato": 1
+    }
+   },
+   "corrispondenze": [
+    {
+     "id": "D-069-001",
+     "benchmark": "mvmath",
+     "elemento": "mvmath/MV-MATH:1008",
+     "voce_indice": "MV-MATH:1008#2",
+     "posizione_immagine": 2,
+     "distanza": 4,
+     "ruolo": "test",
+     "metrica_primaria": true,
+     "gruppo_pannello": "28f6539667ab5c8055e15ae38d148dc8c096915800fe026b4c9109aae91c04a9",
+     "immagine": "immagini/pannello/fd0fe7d0b295012ea02fa85420301b1d914d1227858a873085fdc471eeb46d1b.jpg",
+     "esame": "incerto",
+     "nota": "Le due immagini rappresentano la stessa funzione elementare y=x+1, ma con rendering differente. La coincidenza della funzione non dimostra che il problema sintetico derivi dal benchmark. Verificare domanda e provenienza prima di classificare la corrispondenza come contaminazione.",
+     "testo_indice": "Among the graphs in the Cartesian coordinate system below, which one does not represent $y$ as a function of $x$?\nA.\n\n<image_1>\nB.\n\n<image_2>\nC.\n\n<image_3>\nD.\n\n<image_4>\n\n##",
+     "indizi_indice": {
+      "answer_type": "choice",
+      "subject": "Analytic Geometry",
+      "image_relavance": "0",
+      "is_multi_img": true,
+      "difficulty": "Medium"
+     },
+     "riga_benchmark": null,
+     "gruppo_del_pannello": [
+      {
+       "elemento": "mvmath/MV-MATH:1008",
+       "ruolo": "test",
+       "metrica_primaria": true
+      }
+     ]
+    },
+    {
+     "id": "D-069-002",
+     "benchmark": "dynamath",
+     "elemento": "dynamath/sample8-00000-of-00008:96",
+     "voce_indice": "sample8-00000-of-00008:96",
+     "posizione_immagine": 0,
+     "distanza": 4,
+     "ruolo": "test",
+     "metrica_primaria": true,
+     "gruppo_pannello": "78a0c55f66780ab2844c638fc658adb7b024f7106d5c0c4b17788dc86ec1d82b",
+     "immagine": "immagini/pannello/8f1843679274b32dd131cbe1a8a8ff26bcd0d6abc0028ed3bca3e4862e2c1eb2.png",
+     "esame": "incerto",
+     "nota": "Le due immagini rappresentano la stessa funzione elementare y=x+1, ma con rendering differente. La coincidenza della funzione non dimostra che il problema sintetico derivi dal benchmark. Verificare domanda e provenienza prima di classificare la corrispondenza come contaminazione.",
+     "testo_indice": "What is the distance between the x-intercept and y-intercept of blue line?",
+     "indizi_indice": {
+      "id": "96",
+      "seed": 96
+     },
+     "riga_benchmark": {
+      "id": 96,
+      "question": "What is the distance between the x-intercept and y-intercept of blue line?",
+      "image": "image/image96.png",
+      "ground_truth": "1.4142",
+      "answer_type": "float",
+      "subject": "analytic geometry",
+      "knowledge_level": "high school"
+     },
+     "gruppo_del_pannello": [
+      {
+       "elemento": "dynamath/sample1-00000-of-00001:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample10-00000-of-00010:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample2-00000-of-00002:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample3-00000-of-00003:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample4-00000-of-00004:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample5-00000-of-00005:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample6-00000-of-00006:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample7-00000-of-00007:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample8-00000-of-00008:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample9-00000-of-00009:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "unita": "D-071",
+   "record": "synth-0030226",
+   "record_id": "e13b64220dbe1f241cbbd7edf2bca65af8bc7d6e43879684b9e0a2ec9cb68820",
+   "insieme": "train",
+   "split": "test",
+   "stato": "escluso",
+   "gruppo": "626ef180f315ea996fd6f6fd4833289169f3cc218a9676b45f642d954e9f3348",
+   "motivo": {
+    "contaminazione": [
+     "gruppo con 4 record di valutazione (synth-pair-00074-a, synth-pair-00074-b, synth-pair-00198-a, …); legame: stato"
+    ],
+    "decontaminazione_pannello": [
+     "candidato da verificare (pHash o n-gram delle domande): synth-0001142, synth-0005122, synth-0015650, synth-0028262, synth-0029486 e altri 9"
+    ]
+   },
+   "famiglia": "function",
+   "immagine": "immagini/synth-0030226.png",
+   "somiglianza_pixel": 0.5734,
+   "esito_umano": "incerto",
+   "nota_umana": "",
+   "spec": {
+    "family": "function",
+    "R": 6,
+    "ticks": true,
+    "curves": [
+     {
+      "kind": "line",
+      "name": "f",
+      "a": 1,
+      "b": 1,
+      "label_at": [
+       4.3,
+       5.3
+      ]
+     }
+    ],
+    "lw": 2.17,
+    "font": 16,
+    "font_family": "DejaVu Sans",
+    "width": 640,
+    "height": 640,
+    "key": "synth-0030226",
+    "generator_version": 4
+   },
+   "qa": [
+    {
+     "type": "slope",
+     "q": "Is the graph of f increasing or decreasing?",
+     "options": [
+      "increasing",
+      "decreasing"
+     ],
+     "answer": "increasing"
+    },
+    {
+     "type": "intercept",
+     "q": "Does the graph of f cross the y-axis above or below the origin?",
+     "options": [
+      "above",
+      "below"
+     ],
+     "answer": "above"
+    },
+    {
+     "type": "exists",
+     "q": "Is there a graph labeled f?",
+     "options": [
+      "yes",
+      "no"
+     ],
+     "answer": "yes"
+    },
+    {
+     "type": "exists",
+     "q": "Is there a graph labeled p?",
+     "options": [
+      "yes",
+      "no"
+     ],
+     "answer": "no"
+    }
+   ],
+   "domanda_della_coppia": null,
+   "membri_del_gruppo": {
+    "n": 109,
+    "valutazione": [
+     "synth-pair-00074-a",
+     "synth-pair-00074-b",
+     "synth-pair-00198-a",
+     "synth-pair-00198-b"
+    ],
+    "per_insieme_split_stato_esito": {
+     "train/test/escluso/candidato": 13,
+     "train/test/escluso/nessuna_corrispondenza": 92,
+     "coppie/test/quarantena/nessuna_corrispondenza": 3,
+     "coppie/test/quarantena/candidato": 1
+    }
+   },
+   "corrispondenze": [
+    {
+     "id": "D-071-001",
+     "benchmark": "mvmath",
+     "elemento": "mvmath/MV-MATH:1008",
+     "voce_indice": "MV-MATH:1008#2",
+     "posizione_immagine": 2,
+     "distanza": 4,
+     "ruolo": "test",
+     "metrica_primaria": true,
+     "gruppo_pannello": "28f6539667ab5c8055e15ae38d148dc8c096915800fe026b4c9109aae91c04a9",
+     "immagine": "immagini/pannello/fd0fe7d0b295012ea02fa85420301b1d914d1227858a873085fdc471eeb46d1b.jpg",
+     "esame": "incerto",
+     "nota": "Le due immagini rappresentano la stessa funzione elementare y=x+1, ma con rendering differente. La coincidenza della funzione non dimostra che il problema sintetico derivi dal benchmark. Verificare domanda e provenienza prima di classificare la corrispondenza come contaminazione.",
+     "testo_indice": "Among the graphs in the Cartesian coordinate system below, which one does not represent $y$ as a function of $x$?\nA.\n\n<image_1>\nB.\n\n<image_2>\nC.\n\n<image_3>\nD.\n\n<image_4>\n\n##",
+     "indizi_indice": {
+      "answer_type": "choice",
+      "subject": "Analytic Geometry",
+      "image_relavance": "0",
+      "is_multi_img": true,
+      "difficulty": "Medium"
+     },
+     "riga_benchmark": null,
+     "gruppo_del_pannello": [
+      {
+       "elemento": "mvmath/MV-MATH:1008",
+       "ruolo": "test",
+       "metrica_primaria": true
+      }
+     ]
+    },
+    {
+     "id": "D-071-002",
+     "benchmark": "dynamath",
+     "elemento": "dynamath/sample8-00000-of-00008:96",
+     "voce_indice": "sample8-00000-of-00008:96",
+     "posizione_immagine": 0,
+     "distanza": 4,
+     "ruolo": "test",
+     "metrica_primaria": true,
+     "gruppo_pannello": "78a0c55f66780ab2844c638fc658adb7b024f7106d5c0c4b17788dc86ec1d82b",
+     "immagine": "immagini/pannello/8f1843679274b32dd131cbe1a8a8ff26bcd0d6abc0028ed3bca3e4862e2c1eb2.png",
+     "esame": "incerto",
+     "nota": "Le due immagini rappresentano la stessa funzione elementare y=x+1, ma con rendering differente. La coincidenza della funzione non dimostra che il problema sintetico derivi dal benchmark. Verificare domanda e provenienza prima di classificare la corrispondenza come contaminazione.",
+     "testo_indice": "What is the distance between the x-intercept and y-intercept of blue line?",
+     "indizi_indice": {
+      "id": "96",
+      "seed": 96
+     },
+     "riga_benchmark": {
+      "id": 96,
+      "question": "What is the distance between the x-intercept and y-intercept of blue line?",
+      "image": "image/image96.png",
+      "ground_truth": "1.4142",
+      "answer_type": "float",
+      "subject": "analytic geometry",
+      "knowledge_level": "high school"
+     },
+     "gruppo_del_pannello": [
+      {
+       "elemento": "dynamath/sample1-00000-of-00001:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample10-00000-of-00010:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample2-00000-of-00002:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample3-00000-of-00003:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample4-00000-of-00004:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample5-00000-of-00005:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample6-00000-of-00006:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample7-00000-of-00007:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample8-00000-of-00008:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample9-00000-of-00009:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "unita": "D-082",
+   "record": "synth-pair-00074-b",
+   "record_id": "1d85768cc711014f520e2151abe4810569166e545d87b991cf94f12676a205aa",
+   "insieme": "coppie",
+   "split": "test",
+   "stato": "quarantena",
+   "gruppo": "626ef180f315ea996fd6f6fd4833289169f3cc218a9676b45f642d954e9f3348",
+   "motivo": {
+    "decontaminazione_pannello": [
+     "candidato da verificare (pHash o n-gram delle domande): synth-0001142, synth-0005122, synth-0015650, synth-0028262, synth-0029486 e altri 9"
+    ]
+   },
+   "famiglia": "function",
+   "immagine": "immagini/synth-pair-00074-b.png",
+   "somiglianza_pixel": 0.5599,
+   "esito_umano": "incerto",
+   "nota_umana": "",
+   "spec": {
+    "family": "function",
+    "R": 6,
+    "ticks": true,
+    "curves": [
+     {
+      "kind": "line",
+      "name": "f",
+      "a": 1,
+      "b": 1,
+      "label_at": [
+       4.3,
+       5.3
+      ]
+     }
+    ],
+    "lw": 1.25,
+    "font": 16,
+    "font_family": "DejaVu Sans",
+    "width": 544,
+    "height": 544,
+    "key": "synth-pair-00074/1",
+    "generator_version": 4
+   },
+   "qa": [],
+   "domanda_della_coppia": {
+    "id": "synth-pair-00074",
+    "variant": "b",
+    "q": "Is the graph of f increasing or decreasing?",
+    "type": "slope",
+    "options": [
+     "increasing",
+     "decreasing"
+    ],
+    "answer": "increasing"
+   },
+   "membri_del_gruppo": {
+    "n": 109,
+    "valutazione": [
+     "synth-pair-00074-a",
+     "synth-pair-00074-b",
+     "synth-pair-00198-a",
+     "synth-pair-00198-b"
+    ],
+    "per_insieme_split_stato_esito": {
+     "train/test/escluso/candidato": 13,
+     "train/test/escluso/nessuna_corrispondenza": 92,
+     "coppie/test/quarantena/nessuna_corrispondenza": 3,
+     "coppie/test/quarantena/candidato": 1
+    }
+   },
+   "corrispondenze": [
+    {
+     "id": "D-082-001",
+     "benchmark": "dynamath",
+     "elemento": "dynamath/sample8-00000-of-00008:96",
+     "voce_indice": "sample8-00000-of-00008:96",
+     "posizione_immagine": 0,
+     "distanza": 4,
+     "ruolo": "test",
+     "metrica_primaria": true,
+     "gruppo_pannello": "78a0c55f66780ab2844c638fc658adb7b024f7106d5c0c4b17788dc86ec1d82b",
+     "immagine": "immagini/pannello/8f1843679274b32dd131cbe1a8a8ff26bcd0d6abc0028ed3bca3e4862e2c1eb2.png",
+     "esame": "incerto",
+     "nota": "Le due immagini rappresentano la stessa funzione elementare y=x+1, ma con rendering differente. La coincidenza della funzione non dimostra che il problema sintetico derivi dal benchmark. Verificare domanda e provenienza prima di classificare la corrispondenza come contaminazione.",
+     "testo_indice": "What is the distance between the x-intercept and y-intercept of blue line?",
+     "indizi_indice": {
+      "id": "96",
+      "seed": 96
+     },
+     "riga_benchmark": {
+      "id": 96,
+      "question": "What is the distance between the x-intercept and y-intercept of blue line?",
+      "image": "image/image96.png",
+      "ground_truth": "1.4142",
+      "answer_type": "float",
+      "subject": "analytic geometry",
+      "knowledge_level": "high school"
+     },
+     "gruppo_del_pannello": [
+      {
+       "elemento": "dynamath/sample1-00000-of-00001:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample10-00000-of-00010:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample2-00000-of-00002:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample3-00000-of-00003:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample4-00000-of-00004:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample5-00000-of-00005:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample6-00000-of-00006:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample7-00000-of-00007:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample8-00000-of-00008:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample9-00000-of-00009:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "unita": "D-094",
+   "record": "synth-0039818",
+   "record_id": "a1f3d695b1e7cd934d13d0d935bf009f1c19183ab521bb983e549ff7cf5a6dcb",
+   "insieme": "train",
+   "split": "test",
+   "stato": "escluso",
+   "gruppo": "626ef180f315ea996fd6f6fd4833289169f3cc218a9676b45f642d954e9f3348",
+   "motivo": {
+    "contaminazione": [
+     "gruppo con 4 record di valutazione (synth-pair-00074-a, synth-pair-00074-b, synth-pair-00198-a, …); legame: stato"
+    ],
+    "decontaminazione_pannello": [
+     "candidato da verificare (pHash o n-gram delle domande): synth-0001142, synth-0005122, synth-0015650, synth-0028262, synth-0029486 e altri 9"
+    ]
+   },
+   "famiglia": "function",
+   "immagine": "immagini/synth-0039818.png",
+   "somiglianza_pixel": 0.5728,
+   "esito_umano": "incerto",
+   "nota_umana": "",
+   "spec": {
+    "family": "function",
+    "R": 6,
+    "ticks": true,
+    "curves": [
+     {
+      "kind": "line",
+      "name": "f",
+      "a": 1,
+      "b": 1,
+      "label_at": [
+       4.3,
+       5.3
+      ]
+     }
+    ],
+    "lw": 2.1,
+    "font": 14,
+    "font_family": "DejaVu Sans",
+    "width": 480,
+    "height": 480,
+    "key": "synth-0039818",
+    "generator_version": 4
+   },
+   "qa": [
+    {
+     "type": "slope",
+     "q": "Is the graph of f increasing or decreasing?",
+     "options": [
+      "increasing",
+      "decreasing"
+     ],
+     "answer": "increasing"
+    },
+    {
+     "type": "intercept",
+     "q": "Does the graph of f cross the y-axis above or below the origin?",
+     "options": [
+      "above",
+      "below"
+     ],
+     "answer": "above"
+    },
+    {
+     "type": "exists",
+     "q": "Is there a graph labeled f?",
+     "options": [
+      "yes",
+      "no"
+     ],
+     "answer": "yes"
+    },
+    {
+     "type": "exists",
+     "q": "Is there a graph labeled q?",
+     "options": [
+      "yes",
+      "no"
+     ],
+     "answer": "no"
+    }
+   ],
+   "domanda_della_coppia": null,
+   "membri_del_gruppo": {
+    "n": 109,
+    "valutazione": [
+     "synth-pair-00074-a",
+     "synth-pair-00074-b",
+     "synth-pair-00198-a",
+     "synth-pair-00198-b"
+    ],
+    "per_insieme_split_stato_esito": {
+     "train/test/escluso/candidato": 13,
+     "train/test/escluso/nessuna_corrispondenza": 92,
+     "coppie/test/quarantena/nessuna_corrispondenza": 3,
+     "coppie/test/quarantena/candidato": 1
+    }
+   },
+   "corrispondenze": [
+    {
+     "id": "D-094-001",
+     "benchmark": "mvmath",
+     "elemento": "mvmath/MV-MATH:1008",
+     "voce_indice": "MV-MATH:1008#2",
+     "posizione_immagine": 2,
+     "distanza": 4,
+     "ruolo": "test",
+     "metrica_primaria": true,
+     "gruppo_pannello": "28f6539667ab5c8055e15ae38d148dc8c096915800fe026b4c9109aae91c04a9",
+     "immagine": "immagini/pannello/fd0fe7d0b295012ea02fa85420301b1d914d1227858a873085fdc471eeb46d1b.jpg",
+     "esame": "incerto",
+     "nota": "Le due immagini rappresentano la stessa funzione elementare y=x+1, ma con rendering differente. La coincidenza della funzione non dimostra che il problema sintetico derivi dal benchmark. Verificare domanda e provenienza prima di classificare la corrispondenza come contaminazione.",
+     "testo_indice": "Among the graphs in the Cartesian coordinate system below, which one does not represent $y$ as a function of $x$?\nA.\n\n<image_1>\nB.\n\n<image_2>\nC.\n\n<image_3>\nD.\n\n<image_4>\n\n##",
+     "indizi_indice": {
+      "answer_type": "choice",
+      "subject": "Analytic Geometry",
+      "image_relavance": "0",
+      "is_multi_img": true,
+      "difficulty": "Medium"
+     },
+     "riga_benchmark": null,
+     "gruppo_del_pannello": [
+      {
+       "elemento": "mvmath/MV-MATH:1008",
+       "ruolo": "test",
+       "metrica_primaria": true
+      }
+     ]
+    },
+    {
+     "id": "D-094-002",
+     "benchmark": "dynamath",
+     "elemento": "dynamath/sample8-00000-of-00008:96",
+     "voce_indice": "sample8-00000-of-00008:96",
+     "posizione_immagine": 0,
+     "distanza": 4,
+     "ruolo": "test",
+     "metrica_primaria": true,
+     "gruppo_pannello": "78a0c55f66780ab2844c638fc658adb7b024f7106d5c0c4b17788dc86ec1d82b",
+     "immagine": "immagini/pannello/8f1843679274b32dd131cbe1a8a8ff26bcd0d6abc0028ed3bca3e4862e2c1eb2.png",
+     "esame": "incerto",
+     "nota": "Le due immagini rappresentano la stessa funzione elementare y=x+1, ma con rendering differente. La coincidenza della funzione non dimostra che il problema sintetico derivi dal benchmark. Verificare domanda e provenienza prima di classificare la corrispondenza come contaminazione.",
+     "testo_indice": "What is the distance between the x-intercept and y-intercept of blue line?",
+     "indizi_indice": {
+      "id": "96",
+      "seed": 96
+     },
+     "riga_benchmark": {
+      "id": 96,
+      "question": "What is the distance between the x-intercept and y-intercept of blue line?",
+      "image": "image/image96.png",
+      "ground_truth": "1.4142",
+      "answer_type": "float",
+      "subject": "analytic geometry",
+      "knowledge_level": "high school"
+     },
+     "gruppo_del_pannello": [
+      {
+       "elemento": "dynamath/sample1-00000-of-00001:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample10-00000-of-00010:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample2-00000-of-00002:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample3-00000-of-00003:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample4-00000-of-00004:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample5-00000-of-00005:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample6-00000-of-00006:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample7-00000-of-00007:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample8-00000-of-00008:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample9-00000-of-00009:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "unita": "D-134",
+   "record": "synth-0015650",
+   "record_id": "8d0580e74258041dd4813ff951ba5df4eda606d8a96f46df6a6d444e88cd1437",
+   "insieme": "train",
+   "split": "test",
+   "stato": "escluso",
+   "gruppo": "626ef180f315ea996fd6f6fd4833289169f3cc218a9676b45f642d954e9f3348",
+   "motivo": {
+    "contaminazione": [
+     "gruppo con 4 record di valutazione (synth-pair-00074-a, synth-pair-00074-b, synth-pair-00198-a, …); legame: stato"
+    ],
+    "decontaminazione_pannello": [
+     "candidato da verificare (pHash o n-gram delle domande): synth-0001142, synth-0005122, synth-0015650, synth-0028262, synth-0029486 e altri 9"
+    ]
+   },
+   "famiglia": "function",
+   "immagine": "immagini/synth-0015650.png",
+   "somiglianza_pixel": 0.5687,
+   "esito_umano": "incerto",
+   "nota_umana": "",
+   "spec": {
+    "family": "function",
+    "R": 6,
+    "ticks": true,
+    "curves": [
+     {
+      "kind": "line",
+      "name": "f",
+      "a": 1,
+      "b": 1,
+      "label_at": [
+       4.3,
+       5.3
+      ]
+     }
+    ],
+    "lw": 1.29,
+    "font": 12,
+    "font_family": "DejaVu Serif",
+    "width": 544,
+    "height": 544,
+    "key": "synth-0015650",
+    "generator_version": 4
+   },
+   "qa": [
+    {
+     "type": "slope",
+     "q": "Is the graph of f increasing or decreasing?",
+     "options": [
+      "increasing",
+      "decreasing"
+     ],
+     "answer": "increasing"
+    },
+    {
+     "type": "intercept",
+     "q": "Does the graph of f cross the y-axis above or below the origin?",
+     "options": [
+      "above",
+      "below"
+     ],
+     "answer": "above"
+    },
+    {
+     "type": "exists",
+     "q": "Is there a graph labeled f?",
+     "options": [
+      "yes",
+      "no"
+     ],
+     "answer": "yes"
+    },
+    {
+     "type": "exists",
+     "q": "Is there a graph labeled p?",
+     "options": [
+      "yes",
+      "no"
+     ],
+     "answer": "no"
+    }
+   ],
+   "domanda_della_coppia": null,
+   "membri_del_gruppo": {
+    "n": 109,
+    "valutazione": [
+     "synth-pair-00074-a",
+     "synth-pair-00074-b",
+     "synth-pair-00198-a",
+     "synth-pair-00198-b"
+    ],
+    "per_insieme_split_stato_esito": {
+     "train/test/escluso/candidato": 13,
+     "train/test/escluso/nessuna_corrispondenza": 92,
+     "coppie/test/quarantena/nessuna_corrispondenza": 3,
+     "coppie/test/quarantena/candidato": 1
+    }
+   },
+   "corrispondenze": [
+    {
+     "id": "D-134-001",
+     "benchmark": "mvmath",
+     "elemento": "mvmath/MV-MATH:1008",
+     "voce_indice": "MV-MATH:1008#2",
+     "posizione_immagine": 2,
+     "distanza": 4,
+     "ruolo": "test",
+     "metrica_primaria": true,
+     "gruppo_pannello": "28f6539667ab5c8055e15ae38d148dc8c096915800fe026b4c9109aae91c04a9",
+     "immagine": "immagini/pannello/fd0fe7d0b295012ea02fa85420301b1d914d1227858a873085fdc471eeb46d1b.jpg",
+     "esame": "incerto",
+     "nota": "Le due immagini rappresentano la stessa funzione elementare y=x+1, ma con rendering differente. La coincidenza della funzione non dimostra che il problema sintetico derivi dal benchmark. Verificare domanda e provenienza prima di classificare la corrispondenza come contaminazione.",
+     "testo_indice": "Among the graphs in the Cartesian coordinate system below, which one does not represent $y$ as a function of $x$?\nA.\n\n<image_1>\nB.\n\n<image_2>\nC.\n\n<image_3>\nD.\n\n<image_4>\n\n##",
+     "indizi_indice": {
+      "answer_type": "choice",
+      "subject": "Analytic Geometry",
+      "image_relavance": "0",
+      "is_multi_img": true,
+      "difficulty": "Medium"
+     },
+     "riga_benchmark": null,
+     "gruppo_del_pannello": [
+      {
+       "elemento": "mvmath/MV-MATH:1008",
+       "ruolo": "test",
+       "metrica_primaria": true
+      }
+     ]
+    },
+    {
+     "id": "D-134-002",
+     "benchmark": "dynamath",
+     "elemento": "dynamath/sample8-00000-of-00008:96",
+     "voce_indice": "sample8-00000-of-00008:96",
+     "posizione_immagine": 0,
+     "distanza": 4,
+     "ruolo": "test",
+     "metrica_primaria": true,
+     "gruppo_pannello": "78a0c55f66780ab2844c638fc658adb7b024f7106d5c0c4b17788dc86ec1d82b",
+     "immagine": "immagini/pannello/8f1843679274b32dd131cbe1a8a8ff26bcd0d6abc0028ed3bca3e4862e2c1eb2.png",
+     "esame": "incerto",
+     "nota": "Le due immagini rappresentano la stessa funzione elementare y=x+1, ma con rendering differente. La coincidenza della funzione non dimostra che il problema sintetico derivi dal benchmark. Verificare domanda e provenienza prima di classificare la corrispondenza come contaminazione.",
+     "testo_indice": "What is the distance between the x-intercept and y-intercept of blue line?",
+     "indizi_indice": {
+      "id": "96",
+      "seed": 96
+     },
+     "riga_benchmark": {
+      "id": 96,
+      "question": "What is the distance between the x-intercept and y-intercept of blue line?",
+      "image": "image/image96.png",
+      "ground_truth": "1.4142",
+      "answer_type": "float",
+      "subject": "analytic geometry",
+      "knowledge_level": "high school"
+     },
+     "gruppo_del_pannello": [
+      {
+       "elemento": "dynamath/sample1-00000-of-00001:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample10-00000-of-00010:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample2-00000-of-00002:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample3-00000-of-00003:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample4-00000-of-00004:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample5-00000-of-00005:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample6-00000-of-00006:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample7-00000-of-00007:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample8-00000-of-00008:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample9-00000-of-00009:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "unita": "D-144",
+   "record": "synth-0028262",
+   "record_id": "7d06ae5655dfbc6173a084f69054fa9438e8975dea570973a642cea65b055368",
+   "insieme": "train",
+   "split": "test",
+   "stato": "escluso",
+   "gruppo": "626ef180f315ea996fd6f6fd4833289169f3cc218a9676b45f642d954e9f3348",
+   "motivo": {
+    "contaminazione": [
+     "gruppo con 4 record di valutazione (synth-pair-00074-a, synth-pair-00074-b, synth-pair-00198-a, …); legame: stato"
+    ],
+    "decontaminazione_pannello": [
+     "candidato da verificare (pHash o n-gram delle domande): synth-0001142, synth-0005122, synth-0015650, synth-0028262, synth-0029486 e altri 9"
+    ]
+   },
+   "famiglia": "function",
+   "immagine": "immagini/synth-0028262.png",
+   "somiglianza_pixel": 0.5628,
+   "esito_umano": "incerto",
+   "nota_umana": "",
+   "spec": {
+    "family": "function",
+    "R": 6,
+    "ticks": true,
+    "curves": [
+     {
+      "kind": "line",
+      "name": "f",
+      "a": 1,
+      "b": 1,
+      "label_at": [
+       4.3,
+       5.3
+      ]
+     }
+    ],
+    "lw": 2.08,
+    "font": 14,
+    "font_family": "DejaVu Serif",
+    "width": 544,
+    "height": 576,
+    "key": "synth-0028262",
+    "generator_version": 4
+   },
+   "qa": [
+    {
+     "type": "slope",
+     "q": "Is the graph of f increasing or decreasing?",
+     "options": [
+      "increasing",
+      "decreasing"
+     ],
+     "answer": "increasing"
+    },
+    {
+     "type": "intercept",
+     "q": "Does the graph of f cross the y-axis above or below the origin?",
+     "options": [
+      "above",
+      "below"
+     ],
+     "answer": "above"
+    },
+    {
+     "type": "exists",
+     "q": "Is there a graph labeled f?",
+     "options": [
+      "yes",
+      "no"
+     ],
+     "answer": "yes"
+    },
+    {
+     "type": "exists",
+     "q": "Is there a graph labeled q?",
+     "options": [
+      "yes",
+      "no"
+     ],
+     "answer": "no"
+    }
+   ],
+   "domanda_della_coppia": null,
+   "membri_del_gruppo": {
+    "n": 109,
+    "valutazione": [
+     "synth-pair-00074-a",
+     "synth-pair-00074-b",
+     "synth-pair-00198-a",
+     "synth-pair-00198-b"
+    ],
+    "per_insieme_split_stato_esito": {
+     "train/test/escluso/candidato": 13,
+     "train/test/escluso/nessuna_corrispondenza": 92,
+     "coppie/test/quarantena/nessuna_corrispondenza": 3,
+     "coppie/test/quarantena/candidato": 1
+    }
+   },
+   "corrispondenze": [
+    {
+     "id": "D-144-001",
+     "benchmark": "dynamath",
+     "elemento": "dynamath/sample8-00000-of-00008:96",
+     "voce_indice": "sample8-00000-of-00008:96",
+     "posizione_immagine": 0,
+     "distanza": 4,
+     "ruolo": "test",
+     "metrica_primaria": true,
+     "gruppo_pannello": "78a0c55f66780ab2844c638fc658adb7b024f7106d5c0c4b17788dc86ec1d82b",
+     "immagine": "immagini/pannello/8f1843679274b32dd131cbe1a8a8ff26bcd0d6abc0028ed3bca3e4862e2c1eb2.png",
+     "esame": "incerto",
+     "nota": "Le due immagini rappresentano la stessa funzione elementare y=x+1, ma con rendering differente. La coincidenza della funzione non dimostra che il problema sintetico derivi dal benchmark. Verificare domanda e provenienza prima di classificare la corrispondenza come contaminazione.",
+     "testo_indice": "What is the distance between the x-intercept and y-intercept of blue line?",
+     "indizi_indice": {
+      "id": "96",
+      "seed": 96
+     },
+     "riga_benchmark": {
+      "id": 96,
+      "question": "What is the distance between the x-intercept and y-intercept of blue line?",
+      "image": "image/image96.png",
+      "ground_truth": "1.4142",
+      "answer_type": "float",
+      "subject": "analytic geometry",
+      "knowledge_level": "high school"
+     },
+     "gruppo_del_pannello": [
+      {
+       "elemento": "dynamath/sample1-00000-of-00001:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample10-00000-of-00010:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample2-00000-of-00002:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample3-00000-of-00003:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample4-00000-of-00004:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample5-00000-of-00005:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample6-00000-of-00006:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample7-00000-of-00007:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample8-00000-of-00008:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample9-00000-of-00009:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "unita": "D-163",
+   "record": "synth-0033994",
+   "record_id": "e495a52a846b10a2d31f04523a243f497946351dfdd8464d54113263d91f14ba",
+   "insieme": "train",
+   "split": "test",
+   "stato": "escluso",
+   "gruppo": "626ef180f315ea996fd6f6fd4833289169f3cc218a9676b45f642d954e9f3348",
+   "motivo": {
+    "contaminazione": [
+     "gruppo con 4 record di valutazione (synth-pair-00074-a, synth-pair-00074-b, synth-pair-00198-a, …); legame: stato"
+    ],
+    "decontaminazione_pannello": [
+     "candidato da verificare (pHash o n-gram delle domande): synth-0001142, synth-0005122, synth-0015650, synth-0028262, synth-0029486 e altri 9"
+    ]
+   },
+   "famiglia": "function",
+   "immagine": "immagini/synth-0033994.png",
+   "somiglianza_pixel": 0.5713,
+   "esito_umano": "incerto",
+   "nota_umana": "",
+   "spec": {
+    "family": "function",
+    "R": 6,
+    "ticks": true,
+    "curves": [
+     {
+      "kind": "line",
+      "name": "f",
+      "a": 1,
+      "b": 1,
+      "label_at": [
+       4.3,
+       5.3
+      ]
+     }
+    ],
+    "lw": 1.68,
+    "font": 14,
+    "font_family": "DejaVu Serif",
+    "width": 608,
+    "height": 608,
+    "key": "synth-0033994",
+    "generator_version": 4
+   },
+   "qa": [
+    {
+     "type": "slope",
+     "q": "Is the graph of f increasing or decreasing?",
+     "options": [
+      "increasing",
+      "decreasing"
+     ],
+     "answer": "increasing"
+    },
+    {
+     "type": "intercept",
+     "q": "Does the graph of f cross the y-axis above or below the origin?",
+     "options": [
+      "above",
+      "below"
+     ],
+     "answer": "above"
+    },
+    {
+     "type": "exists",
+     "q": "Is there a graph labeled f?",
+     "options": [
+      "yes",
+      "no"
+     ],
+     "answer": "yes"
+    },
+    {
+     "type": "exists",
+     "q": "Is there a graph labeled h?",
+     "options": [
+      "yes",
+      "no"
+     ],
+     "answer": "no"
+    }
+   ],
+   "domanda_della_coppia": null,
+   "membri_del_gruppo": {
+    "n": 109,
+    "valutazione": [
+     "synth-pair-00074-a",
+     "synth-pair-00074-b",
+     "synth-pair-00198-a",
+     "synth-pair-00198-b"
+    ],
+    "per_insieme_split_stato_esito": {
+     "train/test/escluso/candidato": 13,
+     "train/test/escluso/nessuna_corrispondenza": 92,
+     "coppie/test/quarantena/nessuna_corrispondenza": 3,
+     "coppie/test/quarantena/candidato": 1
+    }
+   },
+   "corrispondenze": [
+    {
+     "id": "D-163-001",
+     "benchmark": "mvmath",
+     "elemento": "mvmath/MV-MATH:1008",
+     "voce_indice": "MV-MATH:1008#2",
+     "posizione_immagine": 2,
+     "distanza": 4,
+     "ruolo": "test",
+     "metrica_primaria": true,
+     "gruppo_pannello": "28f6539667ab5c8055e15ae38d148dc8c096915800fe026b4c9109aae91c04a9",
+     "immagine": "immagini/pannello/fd0fe7d0b295012ea02fa85420301b1d914d1227858a873085fdc471eeb46d1b.jpg",
+     "esame": "incerto",
+     "nota": "Le due immagini rappresentano la stessa funzione elementare y=x+1, ma con rendering differente. La coincidenza della funzione non dimostra che il problema sintetico derivi dal benchmark. Verificare domanda e provenienza prima di classificare la corrispondenza come contaminazione.",
+     "testo_indice": "Among the graphs in the Cartesian coordinate system below, which one does not represent $y$ as a function of $x$?\nA.\n\n<image_1>\nB.\n\n<image_2>\nC.\n\n<image_3>\nD.\n\n<image_4>\n\n##",
+     "indizi_indice": {
+      "answer_type": "choice",
+      "subject": "Analytic Geometry",
+      "image_relavance": "0",
+      "is_multi_img": true,
+      "difficulty": "Medium"
+     },
+     "riga_benchmark": null,
+     "gruppo_del_pannello": [
+      {
+       "elemento": "mvmath/MV-MATH:1008",
+       "ruolo": "test",
+       "metrica_primaria": true
+      }
+     ]
+    },
+    {
+     "id": "D-163-002",
+     "benchmark": "dynamath",
+     "elemento": "dynamath/sample8-00000-of-00008:96",
+     "voce_indice": "sample8-00000-of-00008:96",
+     "posizione_immagine": 0,
+     "distanza": 4,
+     "ruolo": "test",
+     "metrica_primaria": true,
+     "gruppo_pannello": "78a0c55f66780ab2844c638fc658adb7b024f7106d5c0c4b17788dc86ec1d82b",
+     "immagine": "immagini/pannello/8f1843679274b32dd131cbe1a8a8ff26bcd0d6abc0028ed3bca3e4862e2c1eb2.png",
+     "esame": "incerto",
+     "nota": "Le due immagini rappresentano la stessa funzione elementare y=x+1, ma con rendering differente. La coincidenza della funzione non dimostra che il problema sintetico derivi dal benchmark. Verificare domanda e provenienza prima di classificare la corrispondenza come contaminazione.",
+     "testo_indice": "What is the distance between the x-intercept and y-intercept of blue line?",
+     "indizi_indice": {
+      "id": "96",
+      "seed": 96
+     },
+     "riga_benchmark": {
+      "id": 96,
+      "question": "What is the distance between the x-intercept and y-intercept of blue line?",
+      "image": "image/image96.png",
+      "ground_truth": "1.4142",
+      "answer_type": "float",
+      "subject": "analytic geometry",
+      "knowledge_level": "high school"
+     },
+     "gruppo_del_pannello": [
+      {
+       "elemento": "dynamath/sample1-00000-of-00001:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample10-00000-of-00010:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample2-00000-of-00002:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample3-00000-of-00003:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample4-00000-of-00004:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample5-00000-of-00005:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample6-00000-of-00006:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample7-00000-of-00007:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample8-00000-of-00008:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample9-00000-of-00009:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "unita": "D-184",
+   "record": "synth-0029486",
+   "record_id": "dab62024a94c1aab223c53ac65040fd60d0581401001c97dca0c5e7f2df22559",
+   "insieme": "train",
+   "split": "test",
+   "stato": "escluso",
+   "gruppo": "626ef180f315ea996fd6f6fd4833289169f3cc218a9676b45f642d954e9f3348",
+   "motivo": {
+    "contaminazione": [
+     "gruppo con 4 record di valutazione (synth-pair-00074-a, synth-pair-00074-b, synth-pair-00198-a, …); legame: stato"
+    ],
+    "decontaminazione_pannello": [
+     "candidato da verificare (pHash o n-gram delle domande): synth-0001142, synth-0005122, synth-0015650, synth-0028262, synth-0029486 e altri 9"
+    ]
+   },
+   "famiglia": "function",
+   "immagine": "immagini/synth-0029486.png",
+   "somiglianza_pixel": 0.5715,
+   "esito_umano": "incerto",
+   "nota_umana": "",
+   "spec": {
+    "family": "function",
+    "R": 6,
+    "ticks": true,
+    "curves": [
+     {
+      "kind": "line",
+      "name": "f",
+      "a": 1,
+      "b": 1,
+      "label_at": [
+       4.3,
+       5.3
+      ]
+     }
+    ],
+    "lw": 1.62,
+    "font": 16,
+    "font_family": "DejaVu Sans",
+    "width": 576,
+    "height": 576,
+    "key": "synth-0029486",
+    "generator_version": 4
+   },
+   "qa": [
+    {
+     "type": "slope",
+     "q": "Is the graph of f increasing or decreasing?",
+     "options": [
+      "increasing",
+      "decreasing"
+     ],
+     "answer": "increasing"
+    },
+    {
+     "type": "intercept",
+     "q": "Does the graph of f cross the y-axis above or below the origin?",
+     "options": [
+      "above",
+      "below"
+     ],
+     "answer": "above"
+    },
+    {
+     "type": "exists",
+     "q": "Is there a graph labeled f?",
+     "options": [
+      "yes",
+      "no"
+     ],
+     "answer": "yes"
+    },
+    {
+     "type": "exists",
+     "q": "Is there a graph labeled q?",
+     "options": [
+      "yes",
+      "no"
+     ],
+     "answer": "no"
+    }
+   ],
+   "domanda_della_coppia": null,
+   "membri_del_gruppo": {
+    "n": 109,
+    "valutazione": [
+     "synth-pair-00074-a",
+     "synth-pair-00074-b",
+     "synth-pair-00198-a",
+     "synth-pair-00198-b"
+    ],
+    "per_insieme_split_stato_esito": {
+     "train/test/escluso/candidato": 13,
+     "train/test/escluso/nessuna_corrispondenza": 92,
+     "coppie/test/quarantena/nessuna_corrispondenza": 3,
+     "coppie/test/quarantena/candidato": 1
+    }
+   },
+   "corrispondenze": [
+    {
+     "id": "D-184-001",
+     "benchmark": "mvmath",
+     "elemento": "mvmath/MV-MATH:1008",
+     "voce_indice": "MV-MATH:1008#2",
+     "posizione_immagine": 2,
+     "distanza": 4,
+     "ruolo": "test",
+     "metrica_primaria": true,
+     "gruppo_pannello": "28f6539667ab5c8055e15ae38d148dc8c096915800fe026b4c9109aae91c04a9",
+     "immagine": "immagini/pannello/fd0fe7d0b295012ea02fa85420301b1d914d1227858a873085fdc471eeb46d1b.jpg",
+     "esame": "incerto",
+     "nota": "Le due immagini rappresentano la stessa funzione elementare y=x+1, ma con rendering differente. La coincidenza della funzione non dimostra che il problema sintetico derivi dal benchmark. Verificare domanda e provenienza prima di classificare la corrispondenza come contaminazione.",
+     "testo_indice": "Among the graphs in the Cartesian coordinate system below, which one does not represent $y$ as a function of $x$?\nA.\n\n<image_1>\nB.\n\n<image_2>\nC.\n\n<image_3>\nD.\n\n<image_4>\n\n##",
+     "indizi_indice": {
+      "answer_type": "choice",
+      "subject": "Analytic Geometry",
+      "image_relavance": "0",
+      "is_multi_img": true,
+      "difficulty": "Medium"
+     },
+     "riga_benchmark": null,
+     "gruppo_del_pannello": [
+      {
+       "elemento": "mvmath/MV-MATH:1008",
+       "ruolo": "test",
+       "metrica_primaria": true
+      }
+     ]
+    },
+    {
+     "id": "D-184-002",
+     "benchmark": "dynamath",
+     "elemento": "dynamath/sample8-00000-of-00008:96",
+     "voce_indice": "sample8-00000-of-00008:96",
+     "posizione_immagine": 0,
+     "distanza": 4,
+     "ruolo": "test",
+     "metrica_primaria": true,
+     "gruppo_pannello": "78a0c55f66780ab2844c638fc658adb7b024f7106d5c0c4b17788dc86ec1d82b",
+     "immagine": "immagini/pannello/8f1843679274b32dd131cbe1a8a8ff26bcd0d6abc0028ed3bca3e4862e2c1eb2.png",
+     "esame": "incerto",
+     "nota": "Le due immagini rappresentano la stessa funzione elementare y=x+1, ma con rendering differente. La coincidenza della funzione non dimostra che il problema sintetico derivi dal benchmark. Verificare domanda e provenienza prima di classificare la corrispondenza come contaminazione.",
+     "testo_indice": "What is the distance between the x-intercept and y-intercept of blue line?",
+     "indizi_indice": {
+      "id": "96",
+      "seed": 96
+     },
+     "riga_benchmark": {
+      "id": 96,
+      "question": "What is the distance between the x-intercept and y-intercept of blue line?",
+      "image": "image/image96.png",
+      "ground_truth": "1.4142",
+      "answer_type": "float",
+      "subject": "analytic geometry",
+      "knowledge_level": "high school"
+     },
+     "gruppo_del_pannello": [
+      {
+       "elemento": "dynamath/sample1-00000-of-00001:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample10-00000-of-00010:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample2-00000-of-00002:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample3-00000-of-00003:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample4-00000-of-00004:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample5-00000-of-00005:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample6-00000-of-00006:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample7-00000-of-00007:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample8-00000-of-00008:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample9-00000-of-00009:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "unita": "D-188",
+   "record": "synth-0016025",
+   "record_id": "af86a9e2e5017157a20fc7321956343c4525187e5c9773145aa7b2fe6eb4f1a9",
+   "insieme": "train",
+   "split": "train",
+   "stato": "quarantena",
+   "gruppo": "80acbabaad1985d8b37372ced58076e68fdd6ba9c0db2ce1b86b92186a30cccf",
+   "motivo": {
+    "decontaminazione_pannello": [
+     "candidato da verificare (pHash o n-gram delle domande): synth-0016025"
+    ]
+   },
+   "famiglia": "polygon",
+   "immagine": "immagini/synth-0016025.png",
+   "somiglianza_pixel": 0.4316,
+   "esito_umano": "incerto",
+   "nota_umana": "",
+   "spec": {
+    "family": "polygon",
+    "kind": "isosceles triangle",
+    "points": [
+     [
+      -5.820064662617465,
+      1.458371462608702
+     ],
+     [
+      5.820064662617465,
+      -1.458371462608702
+     ],
+     [
+      1.9444952834782694,
+      7.760086216823288
+     ]
+    ],
+    "labels": [
+     "P",
+     "Q",
+     "R"
+    ],
+    "sides": [
+     "PQ",
+     "QR",
+     "RP"
+    ],
+    "lengths": [
+     "12",
+     "10",
+     "10"
+    ],
+    "shown": [
+     0,
+     1,
+     2
+    ],
+    "right": null,
+    "angle": {
+     "vertex": 2,
+     "value": 74
+    },
+    "m": null,
+    "lw": 1.33,
+    "font": 14,
+    "font_family": "DejaVu Sans",
+    "width": 576,
+    "height": 448,
+    "key": "synth-0016025",
+    "generator_version": 4
+   },
+   "qa": [
+    {
+     "type": "side_len",
+     "q": "What is the length of side PQ?",
+     "options": [
+      "12",
+      "13",
+      "10",
+      "24"
+     ],
+     "answer": "12"
+    },
+    {
+     "type": "side_len",
+     "q": "What is the length of side QR?",
+     "options": [
+      "11",
+      "12",
+      "10",
+      "20"
+     ],
+     "answer": "10"
+    },
+    {
+     "type": "side_len",
+     "q": "What is the length of side RP?",
+     "options": [
+      "20",
+      "11",
+      "12",
+      "10"
+     ],
+     "answer": "10"
+    },
+    {
+     "type": "angle_val",
+     "q": "What is the measure of the marked angle at vertex R?",
+     "options": [
+      "106°",
+      "64°",
+      "84°",
+      "74°"
+     ],
+     "answer": "74°"
+    },
+    {
+     "type": "highest",
+     "q": "Which vertex is the highest?",
+     "options": [
+      "P",
+      "Q",
+      "R"
+     ],
+     "answer": "R"
+    },
+    {
+     "type": "lowest",
+     "q": "Which vertex is the lowest?",
+     "options": [
+      "P",
+      "Q",
+      "R"
+     ],
+     "answer": "Q"
+    },
+    {
+     "type": "leftmost",
+     "q": "Which vertex is farthest to the left?",
+     "options": [
+      "P",
+      "Q",
+      "R"
+     ],
+     "answer": "P"
+    },
+    {
+     "type": "rightmost",
+     "q": "Which vertex is farthest to the right?",
+     "options": [
+      "P",
+      "Q",
+      "R"
+     ],
+     "answer": "Q"
+    },
+    {
+     "type": "shape_type",
+     "q": "Which of these describes triangle PQR: right triangle, isosceles triangle or equilateral triangle?",
+     "options": [
+      "right triangle",
+      "isosceles triangle",
+      "equilateral triangle"
+     ],
+     "answer": "isosceles triangle"
+    },
+    {
+     "type": "count",
+     "q": "How many sides have their length written in the figure?",
+     "options": [
+      "1",
+      "2",
+      "3"
+     ],
+     "answer": "3"
+    },
+    {
+     "type": "exists",
+     "q": "Is there a point labeled P?",
+     "options": [
+      "yes",
+      "no"
+     ],
+     "answer": "yes"
+    },
+    {
+     "type": "exists",
+     "q": "Is there a point labeled L?",
+     "options": [
+      "yes",
+      "no"
+     ],
+     "answer": "no"
+    }
+   ],
+   "domanda_della_coppia": null,
+   "membri_del_gruppo": {
+    "n": 1,
+    "valutazione": [],
+    "per_insieme_split_stato_esito": {
+     "train/train/quarantena/candidato": 1
+    }
+   },
+   "corrispondenze": [
+    {
+     "id": "D-188-001",
+     "benchmark": "geoperception",
+     "elemento": "geoperception/train-00000-of-00001:0000007600",
+     "voce_indice": "train-00000-of-00001:0000007600",
+     "posizione_immagine": 0,
+     "distanza": 4,
+     "ruolo": "sviluppo",
+     "metrica_primaria": null,
+     "gruppo_pannello": "114dfaf66e0fa54344595a73a04cd8acdf36e30e98760ed2005af474d98a0724",
+     "immagine": "immagini/pannello/0b3b56b97fb30d0bbfcb033bf34f743ec32317966f6dc08736b166502f13a10d.png",
+     "esame": "incerto",
+     "nota": "Entrambe le immagini rappresentano un triangolo isoscele con angolo al vertice di 74°, quindi condividono la stessa configurazione angolare. Il sintetico aggiunge le lunghezze 10, 10 e 12, assenti nel benchmark, e utilizza etichette differenti. La coincidenza matematica è significativa, ma non basta a dimostrare derivazione dal benchmark. Verificare le domande e la provenienza.",
+     "testo_indice": "What is the measure of angle VTU as annotated?",
+     "indizi_indice": {
+      "id": "0000007600",
+      "predicate": "Equals"
+     },
+     "riga_benchmark": {
+      "id": "0000007600",
+      "question": "What is the measure of angle VTU as annotated?",
+      "answer": "74",
+      "predicate": "Equals"
+     },
+     "gruppo_del_pannello": [
+      {
+       "elemento": "geoperception/train-00000-of-00001:0000007600",
+       "ruolo": "sviluppo",
+       "metrica_primaria": null
+      },
+      {
+       "elemento": "geoperception/train-00000-of-00001:0000007602",
+       "ruolo": "sviluppo",
+       "metrica_primaria": null
+      },
+      {
+       "elemento": "geoperception/train-00000-of-00001:0000007604",
+       "ruolo": "sviluppo",
+       "metrica_primaria": null
+      },
+      {
+       "elemento": "geoperception/train-00000-of-00001:0000102362",
+       "ruolo": "sviluppo",
+       "metrica_primaria": null
+      }
+     ]
+    },
+    {
+     "id": "D-188-002",
+     "benchmark": "geoperception",
+     "elemento": "geoperception/train-00000-of-00001:0000007602",
+     "voce_indice": "train-00000-of-00001:0000007602",
+     "posizione_immagine": 0,
+     "distanza": 4,
+     "ruolo": "sviluppo",
+     "metrica_primaria": null,
+     "gruppo_pannello": "114dfaf66e0fa54344595a73a04cd8acdf36e30e98760ed2005af474d98a0724",
+     "immagine": "immagini/pannello/0b3b56b97fb30d0bbfcb033bf34f743ec32317966f6dc08736b166502f13a10d.png",
+     "esame": "incerto",
+     "nota": "Entrambe le immagini rappresentano un triangolo isoscele con angolo al vertice di 74°, quindi condividono la stessa configurazione angolare. Il sintetico aggiunge le lunghezze 10, 10 e 12, assenti nel benchmark, e utilizza etichette differenti. La coincidenza matematica è significativa, ma non basta a dimostrare derivazione dal benchmark. Verificare le domande e la provenienza.",
+     "testo_indice": "What is the line in the diagram that is equal to line TV?",
+     "indizi_indice": {
+      "id": "0000007602",
+      "predicate": "Equals"
+     },
+     "riga_benchmark": {
+      "id": "0000007602",
+      "question": "What is the line in the diagram that is equal to line TV?",
+      "answer": "TU, UT",
+      "predicate": "Equals"
+     },
+     "gruppo_del_pannello": [
+      {
+       "elemento": "geoperception/train-00000-of-00001:0000007600",
+       "ruolo": "sviluppo",
+       "metrica_primaria": null
+      },
+      {
+       "elemento": "geoperception/train-00000-of-00001:0000007602",
+       "ruolo": "sviluppo",
+       "metrica_primaria": null
+      },
+      {
+       "elemento": "geoperception/train-00000-of-00001:0000007604",
+       "ruolo": "sviluppo",
+       "metrica_primaria": null
+      },
+      {
+       "elemento": "geoperception/train-00000-of-00001:0000102362",
+       "ruolo": "sviluppo",
+       "metrica_primaria": null
+      }
+     ]
+    },
+    {
+     "id": "D-188-003",
+     "benchmark": "geoperception",
+     "elemento": "geoperception/train-00000-of-00001:0000007604",
+     "voce_indice": "train-00000-of-00001:0000007604",
+     "posizione_immagine": 0,
+     "distanza": 4,
+     "ruolo": "sviluppo",
+     "metrica_primaria": null,
+     "gruppo_pannello": "114dfaf66e0fa54344595a73a04cd8acdf36e30e98760ed2005af474d98a0724",
+     "immagine": "immagini/pannello/0b3b56b97fb30d0bbfcb033bf34f743ec32317966f6dc08736b166502f13a10d.png",
+     "esame": "incerto",
+     "nota": "Entrambe le immagini rappresentano un triangolo isoscele con angolo al vertice di 74°, quindi condividono la stessa configurazione angolare. Il sintetico aggiunge le lunghezze 10, 10 e 12, assenti nel benchmark, e utilizza etichette differenti. La coincidenza matematica è significativa, ma non basta a dimostrare derivazione dal benchmark. Verificare le domande e la provenienza.",
+     "testo_indice": "What is the line in the diagram that is equal to line TU?",
+     "indizi_indice": {
+      "id": "0000007604",
+      "predicate": "Equals"
+     },
+     "riga_benchmark": {
+      "id": "0000007604",
+      "question": "What is the line in the diagram that is equal to line TU?",
+      "answer": "TV, VT",
+      "predicate": "Equals"
+     },
+     "gruppo_del_pannello": [
+      {
+       "elemento": "geoperception/train-00000-of-00001:0000007600",
+       "ruolo": "sviluppo",
+       "metrica_primaria": null
+      },
+      {
+       "elemento": "geoperception/train-00000-of-00001:0000007602",
+       "ruolo": "sviluppo",
+       "metrica_primaria": null
+      },
+      {
+       "elemento": "geoperception/train-00000-of-00001:0000007604",
+       "ruolo": "sviluppo",
+       "metrica_primaria": null
+      },
+      {
+       "elemento": "geoperception/train-00000-of-00001:0000102362",
+       "ruolo": "sviluppo",
+       "metrica_primaria": null
+      }
+     ]
+    },
+    {
+     "id": "D-188-004",
+     "benchmark": "geoperception",
+     "elemento": "geoperception/train-00000-of-00001:0000102362",
+     "voce_indice": "train-00000-of-00001:0000102362",
+     "posizione_immagine": 0,
+     "distanza": 4,
+     "ruolo": "sviluppo",
+     "metrica_primaria": null,
+     "gruppo_pannello": "114dfaf66e0fa54344595a73a04cd8acdf36e30e98760ed2005af474d98a0724",
+     "immagine": "immagini/pannello/0b3b56b97fb30d0bbfcb033bf34f743ec32317966f6dc08736b166502f13a10d.png",
+     "esame": "incerto",
+     "nota": "Entrambe le immagini rappresentano un triangolo isoscele con angolo al vertice di 74°, quindi condividono la stessa configurazione angolare. Il sintetico aggiunge le lunghezze 10, 10 e 12, assenti nel benchmark, e utilizza etichette differenti. La coincidenza matematica è significativa, ma non basta a dimostrare derivazione dal benchmark. Verificare le domande e la provenienza.",
+     "testo_indice": "Is angle TVU acute or obtuse?",
+     "indizi_indice": {
+      "id": "0000102362",
+      "predicate": "AngleClassification"
+     },
+     "riga_benchmark": {
+      "id": "0000102362",
+      "question": "Is angle TVU acute or obtuse?",
+      "answer": "acute",
+      "predicate": "AngleClassification"
+     },
+     "gruppo_del_pannello": [
+      {
+       "elemento": "geoperception/train-00000-of-00001:0000007600",
+       "ruolo": "sviluppo",
+       "metrica_primaria": null
+      },
+      {
+       "elemento": "geoperception/train-00000-of-00001:0000007602",
+       "ruolo": "sviluppo",
+       "metrica_primaria": null
+      },
+      {
+       "elemento": "geoperception/train-00000-of-00001:0000007604",
+       "ruolo": "sviluppo",
+       "metrica_primaria": null
+      },
+      {
+       "elemento": "geoperception/train-00000-of-00001:0000102362",
+       "ruolo": "sviluppo",
+       "metrica_primaria": null
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "unita": "D-196",
+   "record": "synth-0036994",
+   "record_id": "a8f609fdc49acd764a024bb09896d4b5c6599f491a2442baddade1ad8d03502d",
+   "insieme": "train",
+   "split": "test",
+   "stato": "escluso",
+   "gruppo": "626ef180f315ea996fd6f6fd4833289169f3cc218a9676b45f642d954e9f3348",
+   "motivo": {
+    "contaminazione": [
+     "gruppo con 4 record di valutazione (synth-pair-00074-a, synth-pair-00074-b, synth-pair-00198-a, …); legame: stato"
+    ],
+    "decontaminazione_pannello": [
+     "candidato da verificare (pHash o n-gram delle domande): synth-0001142, synth-0005122, synth-0015650, synth-0028262, synth-0029486 e altri 9"
+    ]
+   },
+   "famiglia": "function",
+   "immagine": "immagini/synth-0036994.png",
+   "somiglianza_pixel": 0.5739,
+   "esito_umano": "incerto",
+   "nota_umana": "",
+   "spec": {
+    "family": "function",
+    "R": 6,
+    "ticks": true,
+    "curves": [
+     {
+      "kind": "line",
+      "name": "f",
+      "a": 1,
+      "b": 1,
+      "label_at": [
+       4.3,
+       5.3
+      ]
+     }
+    ],
+    "lw": 1.49,
+    "font": 14,
+    "font_family": "DejaVu Serif",
+    "width": 576,
+    "height": 576,
+    "key": "synth-0036994",
+    "generator_version": 4
+   },
+   "qa": [
+    {
+     "type": "slope",
+     "q": "Is the graph of f increasing or decreasing?",
+     "options": [
+      "increasing",
+      "decreasing"
+     ],
+     "answer": "increasing"
+    },
+    {
+     "type": "intercept",
+     "q": "Does the graph of f cross the y-axis above or below the origin?",
+     "options": [
+      "above",
+      "below"
+     ],
+     "answer": "above"
+    },
+    {
+     "type": "exists",
+     "q": "Is there a graph labeled f?",
+     "options": [
+      "yes",
+      "no"
+     ],
+     "answer": "yes"
+    },
+    {
+     "type": "exists",
+     "q": "Is there a graph labeled h?",
+     "options": [
+      "yes",
+      "no"
+     ],
+     "answer": "no"
+    }
+   ],
+   "domanda_della_coppia": null,
+   "membri_del_gruppo": {
+    "n": 109,
+    "valutazione": [
+     "synth-pair-00074-a",
+     "synth-pair-00074-b",
+     "synth-pair-00198-a",
+     "synth-pair-00198-b"
+    ],
+    "per_insieme_split_stato_esito": {
+     "train/test/escluso/candidato": 13,
+     "train/test/escluso/nessuna_corrispondenza": 92,
+     "coppie/test/quarantena/nessuna_corrispondenza": 3,
+     "coppie/test/quarantena/candidato": 1
+    }
+   },
+   "corrispondenze": [
+    {
+     "id": "D-196-001",
+     "benchmark": "mvmath",
+     "elemento": "mvmath/MV-MATH:1008",
+     "voce_indice": "MV-MATH:1008#2",
+     "posizione_immagine": 2,
+     "distanza": 4,
+     "ruolo": "test",
+     "metrica_primaria": true,
+     "gruppo_pannello": "28f6539667ab5c8055e15ae38d148dc8c096915800fe026b4c9109aae91c04a9",
+     "immagine": "immagini/pannello/fd0fe7d0b295012ea02fa85420301b1d914d1227858a873085fdc471eeb46d1b.jpg",
+     "esame": "incerto",
+     "nota": "Le due immagini rappresentano la stessa funzione elementare y=x+1, ma con rendering differente. La coincidenza della funzione non dimostra che il problema sintetico derivi dal benchmark. Verificare domanda e provenienza prima di classificare la corrispondenza come contaminazione.",
+     "testo_indice": "Among the graphs in the Cartesian coordinate system below, which one does not represent $y$ as a function of $x$?\nA.\n\n<image_1>\nB.\n\n<image_2>\nC.\n\n<image_3>\nD.\n\n<image_4>\n\n##",
+     "indizi_indice": {
+      "answer_type": "choice",
+      "subject": "Analytic Geometry",
+      "image_relavance": "0",
+      "is_multi_img": true,
+      "difficulty": "Medium"
+     },
+     "riga_benchmark": null,
+     "gruppo_del_pannello": [
+      {
+       "elemento": "mvmath/MV-MATH:1008",
+       "ruolo": "test",
+       "metrica_primaria": true
+      }
+     ]
+    },
+    {
+     "id": "D-196-002",
+     "benchmark": "dynamath",
+     "elemento": "dynamath/sample8-00000-of-00008:96",
+     "voce_indice": "sample8-00000-of-00008:96",
+     "posizione_immagine": 0,
+     "distanza": 4,
+     "ruolo": "test",
+     "metrica_primaria": true,
+     "gruppo_pannello": "78a0c55f66780ab2844c638fc658adb7b024f7106d5c0c4b17788dc86ec1d82b",
+     "immagine": "immagini/pannello/8f1843679274b32dd131cbe1a8a8ff26bcd0d6abc0028ed3bca3e4862e2c1eb2.png",
+     "esame": "incerto",
+     "nota": "Le due immagini rappresentano la stessa funzione elementare y=x+1, ma con rendering differente. La coincidenza della funzione non dimostra che il problema sintetico derivi dal benchmark. Verificare domanda e provenienza prima di classificare la corrispondenza come contaminazione.",
+     "testo_indice": "What is the distance between the x-intercept and y-intercept of blue line?",
+     "indizi_indice": {
+      "id": "96",
+      "seed": 96
+     },
+     "riga_benchmark": {
+      "id": 96,
+      "question": "What is the distance between the x-intercept and y-intercept of blue line?",
+      "image": "image/image96.png",
+      "ground_truth": "1.4142",
+      "answer_type": "float",
+      "subject": "analytic geometry",
+      "knowledge_level": "high school"
+     },
+     "gruppo_del_pannello": [
+      {
+       "elemento": "dynamath/sample1-00000-of-00001:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample10-00000-of-00010:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample2-00000-of-00002:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample3-00000-of-00003:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample4-00000-of-00004:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample5-00000-of-00005:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample6-00000-of-00006:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample7-00000-of-00007:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample8-00000-of-00008:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample9-00000-of-00009:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "unita": "D-200",
+   "record": "synth-0038254",
+   "record_id": "cec4501edbfc52503315077671cd34d9a025c1a8cfbf198e3affb9d8bf7d631d",
+   "insieme": "train",
+   "split": "test",
+   "stato": "escluso",
+   "gruppo": "626ef180f315ea996fd6f6fd4833289169f3cc218a9676b45f642d954e9f3348",
+   "motivo": {
+    "contaminazione": [
+     "gruppo con 4 record di valutazione (synth-pair-00074-a, synth-pair-00074-b, synth-pair-00198-a, …); legame: stato"
+    ],
+    "decontaminazione_pannello": [
+     "candidato da verificare (pHash o n-gram delle domande): synth-0001142, synth-0005122, synth-0015650, synth-0028262, synth-0029486 e altri 9"
+    ]
+   },
+   "famiglia": "function",
+   "immagine": "immagini/synth-0038254.png",
+   "somiglianza_pixel": 0.5701,
+   "esito_umano": "incerto",
+   "nota_umana": "",
+   "spec": {
+    "family": "function",
+    "R": 6,
+    "ticks": true,
+    "curves": [
+     {
+      "kind": "line",
+      "name": "f",
+      "a": 1,
+      "b": 1,
+      "label_at": [
+       4.3,
+       5.3
+      ]
+     }
+    ],
+    "lw": 1.56,
+    "font": 15,
+    "font_family": "DejaVu Sans",
+    "width": 576,
+    "height": 576,
+    "key": "synth-0038254",
+    "generator_version": 4
+   },
+   "qa": [
+    {
+     "type": "slope",
+     "q": "Is the graph of f increasing or decreasing?",
+     "options": [
+      "increasing",
+      "decreasing"
+     ],
+     "answer": "increasing"
+    },
+    {
+     "type": "intercept",
+     "q": "Does the graph of f cross the y-axis above or below the origin?",
+     "options": [
+      "above",
+      "below"
+     ],
+     "answer": "above"
+    },
+    {
+     "type": "exists",
+     "q": "Is there a graph labeled f?",
+     "options": [
+      "yes",
+      "no"
+     ],
+     "answer": "yes"
+    },
+    {
+     "type": "exists",
+     "q": "Is there a graph labeled q?",
+     "options": [
+      "yes",
+      "no"
+     ],
+     "answer": "no"
+    }
+   ],
+   "domanda_della_coppia": null,
+   "membri_del_gruppo": {
+    "n": 109,
+    "valutazione": [
+     "synth-pair-00074-a",
+     "synth-pair-00074-b",
+     "synth-pair-00198-a",
+     "synth-pair-00198-b"
+    ],
+    "per_insieme_split_stato_esito": {
+     "train/test/escluso/candidato": 13,
+     "train/test/escluso/nessuna_corrispondenza": 92,
+     "coppie/test/quarantena/nessuna_corrispondenza": 3,
+     "coppie/test/quarantena/candidato": 1
+    }
+   },
+   "corrispondenze": [
+    {
+     "id": "D-200-001",
+     "benchmark": "mvmath",
+     "elemento": "mvmath/MV-MATH:1008",
+     "voce_indice": "MV-MATH:1008#2",
+     "posizione_immagine": 2,
+     "distanza": 4,
+     "ruolo": "test",
+     "metrica_primaria": true,
+     "gruppo_pannello": "28f6539667ab5c8055e15ae38d148dc8c096915800fe026b4c9109aae91c04a9",
+     "immagine": "immagini/pannello/fd0fe7d0b295012ea02fa85420301b1d914d1227858a873085fdc471eeb46d1b.jpg",
+     "esame": "incerto",
+     "nota": "Le due immagini rappresentano la stessa funzione elementare y=x+1, ma con rendering differente. La coincidenza della funzione non dimostra che il problema sintetico derivi dal benchmark. Verificare domanda e provenienza prima di classificare la corrispondenza come contaminazione.",
+     "testo_indice": "Among the graphs in the Cartesian coordinate system below, which one does not represent $y$ as a function of $x$?\nA.\n\n<image_1>\nB.\n\n<image_2>\nC.\n\n<image_3>\nD.\n\n<image_4>\n\n##",
+     "indizi_indice": {
+      "answer_type": "choice",
+      "subject": "Analytic Geometry",
+      "image_relavance": "0",
+      "is_multi_img": true,
+      "difficulty": "Medium"
+     },
+     "riga_benchmark": null,
+     "gruppo_del_pannello": [
+      {
+       "elemento": "mvmath/MV-MATH:1008",
+       "ruolo": "test",
+       "metrica_primaria": true
+      }
+     ]
+    },
+    {
+     "id": "D-200-002",
+     "benchmark": "dynamath",
+     "elemento": "dynamath/sample8-00000-of-00008:96",
+     "voce_indice": "sample8-00000-of-00008:96",
+     "posizione_immagine": 0,
+     "distanza": 4,
+     "ruolo": "test",
+     "metrica_primaria": true,
+     "gruppo_pannello": "78a0c55f66780ab2844c638fc658adb7b024f7106d5c0c4b17788dc86ec1d82b",
+     "immagine": "immagini/pannello/8f1843679274b32dd131cbe1a8a8ff26bcd0d6abc0028ed3bca3e4862e2c1eb2.png",
+     "esame": "incerto",
+     "nota": "Le due immagini rappresentano la stessa funzione elementare y=x+1, ma con rendering differente. La coincidenza della funzione non dimostra che il problema sintetico derivi dal benchmark. Verificare domanda e provenienza prima di classificare la corrispondenza come contaminazione.",
+     "testo_indice": "What is the distance between the x-intercept and y-intercept of blue line?",
+     "indizi_indice": {
+      "id": "96",
+      "seed": 96
+     },
+     "riga_benchmark": {
+      "id": 96,
+      "question": "What is the distance between the x-intercept and y-intercept of blue line?",
+      "image": "image/image96.png",
+      "ground_truth": "1.4142",
+      "answer_type": "float",
+      "subject": "analytic geometry",
+      "knowledge_level": "high school"
+     },
+     "gruppo_del_pannello": [
+      {
+       "elemento": "dynamath/sample1-00000-of-00001:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample10-00000-of-00010:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample2-00000-of-00002:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample3-00000-of-00003:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample4-00000-of-00004:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample5-00000-of-00005:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample6-00000-of-00006:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample7-00000-of-00007:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample8-00000-of-00008:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample9-00000-of-00009:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "unita": "D-227",
+   "record": "synth-0034434",
+   "record_id": "799730bc268549139f5270456977ddd853f60fa094b34fe390cc575d4c264692",
+   "insieme": "train",
+   "split": "test",
+   "stato": "escluso",
+   "gruppo": "626ef180f315ea996fd6f6fd4833289169f3cc218a9676b45f642d954e9f3348",
+   "motivo": {
+    "contaminazione": [
+     "gruppo con 4 record di valutazione (synth-pair-00074-a, synth-pair-00074-b, synth-pair-00198-a, …); legame: stato"
+    ],
+    "decontaminazione_pannello": [
+     "candidato da verificare (pHash o n-gram delle domande): synth-0001142, synth-0005122, synth-0015650, synth-0028262, synth-0029486 e altri 9"
+    ]
+   },
+   "famiglia": "function",
+   "immagine": "immagini/synth-0034434.png",
+   "somiglianza_pixel": 0.5662,
+   "esito_umano": "incerto",
+   "nota_umana": "",
+   "spec": {
+    "family": "function",
+    "R": 6,
+    "ticks": true,
+    "curves": [
+     {
+      "kind": "line",
+      "name": "f",
+      "a": 1,
+      "b": 1,
+      "label_at": [
+       4.3,
+       5.3
+      ]
+     }
+    ],
+    "lw": 1.25,
+    "font": 13,
+    "font_family": "DejaVu Sans",
+    "width": 608,
+    "height": 608,
+    "key": "synth-0034434",
+    "generator_version": 4
+   },
+   "qa": [
+    {
+     "type": "slope",
+     "q": "Is the graph of f increasing or decreasing?",
+     "options": [
+      "increasing",
+      "decreasing"
+     ],
+     "answer": "increasing"
+    },
+    {
+     "type": "intercept",
+     "q": "Does the graph of f cross the y-axis above or below the origin?",
+     "options": [
+      "above",
+      "below"
+     ],
+     "answer": "above"
+    },
+    {
+     "type": "exists",
+     "q": "Is there a graph labeled f?",
+     "options": [
+      "yes",
+      "no"
+     ],
+     "answer": "yes"
+    },
+    {
+     "type": "exists",
+     "q": "Is there a graph labeled p?",
+     "options": [
+      "yes",
+      "no"
+     ],
+     "answer": "no"
+    }
+   ],
+   "domanda_della_coppia": null,
+   "membri_del_gruppo": {
+    "n": 109,
+    "valutazione": [
+     "synth-pair-00074-a",
+     "synth-pair-00074-b",
+     "synth-pair-00198-a",
+     "synth-pair-00198-b"
+    ],
+    "per_insieme_split_stato_esito": {
+     "train/test/escluso/candidato": 13,
+     "train/test/escluso/nessuna_corrispondenza": 92,
+     "coppie/test/quarantena/nessuna_corrispondenza": 3,
+     "coppie/test/quarantena/candidato": 1
+    }
+   },
+   "corrispondenze": [
+    {
+     "id": "D-227-001",
+     "benchmark": "mvmath",
+     "elemento": "mvmath/MV-MATH:1008",
+     "voce_indice": "MV-MATH:1008#2",
+     "posizione_immagine": 2,
+     "distanza": 4,
+     "ruolo": "test",
+     "metrica_primaria": true,
+     "gruppo_pannello": "28f6539667ab5c8055e15ae38d148dc8c096915800fe026b4c9109aae91c04a9",
+     "immagine": "immagini/pannello/fd0fe7d0b295012ea02fa85420301b1d914d1227858a873085fdc471eeb46d1b.jpg",
+     "esame": "incerto",
+     "nota": "Le due immagini rappresentano la stessa funzione elementare y=x+1, ma con rendering differente. La coincidenza della funzione non dimostra che il problema sintetico derivi dal benchmark. Verificare domanda e provenienza prima di classificare la corrispondenza come contaminazione.",
+     "testo_indice": "Among the graphs in the Cartesian coordinate system below, which one does not represent $y$ as a function of $x$?\nA.\n\n<image_1>\nB.\n\n<image_2>\nC.\n\n<image_3>\nD.\n\n<image_4>\n\n##",
+     "indizi_indice": {
+      "answer_type": "choice",
+      "subject": "Analytic Geometry",
+      "image_relavance": "0",
+      "is_multi_img": true,
+      "difficulty": "Medium"
+     },
+     "riga_benchmark": null,
+     "gruppo_del_pannello": [
+      {
+       "elemento": "mvmath/MV-MATH:1008",
+       "ruolo": "test",
+       "metrica_primaria": true
+      }
+     ]
+    },
+    {
+     "id": "D-227-002",
+     "benchmark": "dynamath",
+     "elemento": "dynamath/sample8-00000-of-00008:96",
+     "voce_indice": "sample8-00000-of-00008:96",
+     "posizione_immagine": 0,
+     "distanza": 4,
+     "ruolo": "test",
+     "metrica_primaria": true,
+     "gruppo_pannello": "78a0c55f66780ab2844c638fc658adb7b024f7106d5c0c4b17788dc86ec1d82b",
+     "immagine": "immagini/pannello/8f1843679274b32dd131cbe1a8a8ff26bcd0d6abc0028ed3bca3e4862e2c1eb2.png",
+     "esame": "incerto",
+     "nota": "Le due immagini rappresentano la stessa funzione elementare y=x+1, ma con rendering differente. La coincidenza della funzione non dimostra che il problema sintetico derivi dal benchmark. Verificare domanda e provenienza prima di classificare la corrispondenza come contaminazione.",
+     "testo_indice": "What is the distance between the x-intercept and y-intercept of blue line?",
+     "indizi_indice": {
+      "id": "96",
+      "seed": 96
+     },
+     "riga_benchmark": {
+      "id": 96,
+      "question": "What is the distance between the x-intercept and y-intercept of blue line?",
+      "image": "image/image96.png",
+      "ground_truth": "1.4142",
+      "answer_type": "float",
+      "subject": "analytic geometry",
+      "knowledge_level": "high school"
+     },
+     "gruppo_del_pannello": [
+      {
+       "elemento": "dynamath/sample1-00000-of-00001:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample10-00000-of-00010:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample2-00000-of-00002:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample3-00000-of-00003:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample4-00000-of-00004:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample5-00000-of-00005:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample6-00000-of-00006:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample7-00000-of-00007:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample8-00000-of-00008:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      },
+      {
+       "elemento": "dynamath/sample9-00000-of-00009:96",
+       "ruolo": "test",
+       "metrica_primaria": true
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "riesame_tecnico": {
+  "synth-0036534": "contenuto_diverso",
+  "synth-0001142": "contenuto_diverso",
+  "synth-0030226": "contenuto_diverso",
+  "synth-0039818": "contenuto_diverso",
+  "synth-0015650": "contenuto_diverso",
+  "synth-0033994": "contenuto_diverso",
+  "synth-0029486": "contenuto_diverso",
+  "synth-0036994": "contenuto_diverso",
+  "synth-0038254": "contenuto_diverso",
+  "synth-0034434": "contenuto_diverso",
+  "synth-0005122": "contenuto_diverso",
+  "synth-0045894": "contenuto_diverso",
+  "synth-0028262": "contenuto_diverso",
+  "synth-pair-00074-b": "contenuto_diverso",
+  "synth-0016025": "irrisolto"
+ },
+ "proposta": {
+  "riepilogo": {
+   "categorie": {
+    "resta_bloccato": 2792,
+    "riammissione_proposta": 362,
+    "irrisolto": 1,
+    "riammissione_dopo_riesame_tecnico": 4
+   },
+   "per_insieme_split": {
+    "coppie/test": {
+     "quarantena -> ammesso": 12,
+     "quarantena -> quarantena": 4
+    },
+    "test/test": {
+     "quarantena -> ammesso": 4
+    },
+    "train/dev": {
+     "quarantena -> ammesso": 6
+    },
+    "train/test": {
+     "escluso -> escluso": 2792
+    },
+    "train/train": {
+     "quarantena -> ammesso": 340,
+     "quarantena -> quarantena": 1
+    }
+   },
+   "motivi": {
+    "contaminazione": {
+     "valido": 2792
+    },
+    "decontaminazione_pannello": {
+     "risolto_dalla_revisione": 570,
+     "risolvibile_col_riesame_tecnico": 109,
+     "irrisolto": 1
+    },
+    "incerto": {
+     "riesaminabile_dai_giudizi": 67
+    }
+   },
+   "gruppi_con_candidati": {
+    "risolto_dalla_revisione": 197,
+    "risolvibile_col_riesame_tecnico": 1,
+    "irrisolto": 1
+   },
+   "regola_quarantena_visiva": {
+    "leggibilita": "si",
+    "coerente_con_annotazioni": "si",
+    "rispondibile_da_immagine": "si",
+    "gravita": "nessun_difetto",
+    "primo_giudizio": "indipendente"
+   },
+   "quarantene_visive": {
+    "positiva": 67
+   },
+   "candidati_per_esito_umano_e_categoria": {
+    "incerto/irrisolto": 1,
+    "incerto/resta_bloccato": 13,
+    "incerto/riammissione_dopo_riesame_tecnico": 1,
+    "no/resta_bloccato": 48,
+    "no/riammissione_proposta": 201
+   },
+   "riammissioni_per_motivo_tolto": {
+    "decontaminazione_pannello (candidato)": 201,
+    "decontaminazione_pannello (membro del gruppo)": 94,
+    "incerto (membro del gruppo)": 67
+   },
+   "record_di_sviluppo_e_valutazione_con_candidati": [
+    {
+     "record": "synth-pair-00050-b",
+     "unita": "D-024",
+     "insieme": "coppie",
+     "split": "test",
+     "esito_umano": "no",
+     "riesame_tecnico": null,
+     "stato_decontaminazione_gruppo": "risolto_dalla_revisione",
+     "categoria": "riammissione_proposta",
+     "elementi_test": [
+      "dynamath/sample2-00000-of-00002:96"
+     ],
+     "altri_elementi": []
+    },
+    {
+     "record": "synth-test-00007",
+     "unita": "D-029",
+     "insieme": "test",
+     "split": "test",
+     "esito_umano": "no",
+     "riesame_tecnico": null,
+     "stato_decontaminazione_gruppo": "risolto_dalla_revisione",
+     "categoria": "riammissione_proposta",
+     "elementi_test": [
+      "dynamath/sample4-00000-of-00004:329"
+     ],
+     "altri_elementi": []
+    },
+    {
+     "record": "synth-0026407",
+     "unita": "D-043",
+     "insieme": "train",
+     "split": "dev",
+     "esito_umano": "no",
+     "riesame_tecnico": null,
+     "stato_decontaminazione_gruppo": "risolto_dalla_revisione",
+     "categoria": "riammissione_proposta",
+     "elementi_test": [
+      "dynamath/sample4-00000-of-00004:329"
+     ],
+     "altri_elementi": []
+    },
+    {
+     "record": "synth-pair-00117-b",
+     "unita": "D-064",
+     "insieme": "coppie",
+     "split": "test",
+     "esito_umano": "no",
+     "riesame_tecnico": null,
+     "stato_decontaminazione_gruppo": "risolto_dalla_revisione",
+     "categoria": "riammissione_proposta",
+     "elementi_test": [],
+     "altri_elementi": [
+      "chartqa/val-00000-of-00001:1062 (sviluppo)",
+      "chartqa/val-00000-of-00001:696 (sviluppo)",
+      "chartqa/val-00000-of-00001:697 (sviluppo)"
+     ]
+    },
+    {
+     "record": "synth-0039457",
+     "unita": "D-072",
+     "insieme": "train",
+     "split": "dev",
+     "esito_umano": "no",
+     "riesame_tecnico": null,
+     "stato_decontaminazione_gruppo": "risolto_dalla_revisione",
+     "categoria": "riammissione_proposta",
+     "elementi_test": [],
+     "altri_elementi": [
+      "chartqa/val-00000-of-00001:1062 (sviluppo)",
+      "chartqa/val-00000-of-00001:696 (sviluppo)",
+      "chartqa/val-00000-of-00001:697 (sviluppo)"
+     ]
+    },
+    {
+     "record": "synth-pair-00074-b",
+     "unita": "D-082",
+     "insieme": "coppie",
+     "split": "test",
+     "esito_umano": "incerto",
+     "riesame_tecnico": "contenuto_diverso",
+     "stato_decontaminazione_gruppo": "risolvibile_col_riesame_tecnico",
+     "categoria": "riammissione_dopo_riesame_tecnico",
+     "elementi_test": [
+      "dynamath/sample8-00000-of-00008:96"
+     ],
+     "altri_elementi": []
+    },
+    {
+     "record": "synth-0024299",
+     "unita": "D-087",
+     "insieme": "train",
+     "split": "dev",
+     "esito_umano": "no",
+     "riesame_tecnico": null,
+     "stato_decontaminazione_gruppo": "risolto_dalla_revisione",
+     "categoria": "riammissione_proposta",
+     "elementi_test": [],
+     "altri_elementi": [
+      "mathvista/test-00001-of-00002-6a611c71596db30f:5055 (solo_decontaminazione)"
+     ]
+    },
+    {
+     "record": "synth-pair-00123-a",
+     "unita": "D-110",
+     "insieme": "coppie",
+     "split": "test",
+     "esito_umano": "no",
+     "riesame_tecnico": null,
+     "stato_decontaminazione_gruppo": "risolto_dalla_revisione",
+     "categoria": "riammissione_proposta",
+     "elementi_test": [],
+     "altri_elementi": [
+      "mathvista/test-00001-of-00002-6a611c71596db30f:4508 (solo_decontaminazione)",
+      "mathvista/testmini-00000-of-00001-725687bf7a18d64b:852 (sviluppo)"
+     ]
+    },
+    {
+     "record": "synth-0007157",
+     "unita": "D-142",
+     "insieme": "train",
+     "split": "dev",
+     "esito_umano": "no",
+     "riesame_tecnico": null,
+     "stato_decontaminazione_gruppo": "risolto_dalla_revisione",
+     "categoria": "riammissione_proposta",
+     "elementi_test": [],
+     "altri_elementi": [
+      "chartqa/val-00000-of-00001:1127 (sviluppo)"
+     ]
+    },
+    {
+     "record": "synth-pair-00115-b",
+     "unita": "D-181",
+     "insieme": "coppie",
+     "split": "test",
+     "esito_umano": "no",
+     "riesame_tecnico": null,
+     "stato_decontaminazione_gruppo": "risolto_dalla_revisione",
+     "categoria": "riammissione_proposta",
+     "elementi_test": [
+      "mathvision/test-00000-of-00001-3532b8d3f1b4047a:1274",
+      "unimer_test/sce-0000116"
+     ],
+     "altri_elementi": []
+    },
+    {
+     "record": "synth-0017751",
+     "unita": "D-238",
+     "insieme": "train",
+     "split": "dev",
+     "esito_umano": "no",
+     "riesame_tecnico": null,
+     "stato_decontaminazione_gruppo": "risolto_dalla_revisione",
+     "categoria": "riammissione_proposta",
+     "elementi_test": [
+      "dynamath/sample2-00000-of-00002:44",
+      "dynamath/sample8-00000-of-00008:44"
+     ],
+     "altri_elementi": []
+    },
+    {
+     "record": "synth-0011211",
+     "unita": "D-254",
+     "insieme": "train",
+     "split": "dev",
+     "esito_umano": "no",
+     "riesame_tecnico": null,
+     "stato_decontaminazione_gruppo": "risolto_dalla_revisione",
+     "categoria": "riammissione_proposta",
+     "elementi_test": [
+      "mathvision/test-00000-of-00001-3532b8d3f1b4047a:1274",
+      "unimer_test/sce-0000116"
+     ],
+     "altri_elementi": []
+    }
+   ]
+  },
+  "gruppi": [
+   {
+    "gruppo": "0f684db64bbd1e35f7fa93eeabb0ff42d7070b8038255e8eaeac47ae8c1f7970",
+    "membri": 1,
+    "cause": {
+     "synth-0000045": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "f261d5eb2f7d257c5cb579c4f5e1957d9f08a21169b47a57eeb0ac2f902ffedf",
+    "membri": 94,
+    "cause": {
+     "synth-0021898": "no",
+     "synth-pair-00050-b": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "test",
+    "stati": {
+     "escluso": 92,
+     "quarantena": 2
+    }
+   },
+   {
+    "gruppo": "0bd02cec479e7f889a185bd4e9f51a12a4dfe262abda1bfff02baa8d7baa50bb",
+    "membri": 39,
+    "cause": {
+     "synth-0000214": "no",
+     "synth-0001478": "no",
+     "synth-0006246": "no",
+     "synth-0012166": "no",
+     "synth-0012590": "no",
+     "synth-0015550": "no",
+     "synth-0017078": "no",
+     "synth-0020302": "no",
+     "synth-0020402": "no",
+     "synth-0022106": "no",
+     "synth-0022162": "no",
+     "synth-0024286": "no",
+     "synth-0024490": "no",
+     "synth-0024574": "no",
+     "synth-0025550": "no",
+     "synth-0026198": "no",
+     "synth-0026534": "no",
+     "synth-0026590": "no",
+     "synth-0034294": "no",
+     "synth-0035006": "no",
+     "synth-0045650": "no",
+     "synth-0055282": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "test",
+    "stati": {
+     "escluso": 38,
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "cd5899a529d8672eb4df9b44bab0a036119718ec6db66f35b836bb30afc8352f",
+    "membri": 45,
+    "cause": {
+     "synth-0049346": "no",
+     "synth-0052898": "no",
+     "synth-0057186": "no",
+     "synth-0058306": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 45
+    }
+   },
+   {
+    "gruppo": "b3796da61b2e7ccd9501b01d996ab385c4532bca4923a9c25ebdc8895c0e2c71",
+    "membri": 98,
+    "cause": {
+     "synth-0001894": "no",
+     "synth-0002130": "no",
+     "synth-0005294": "no",
+     "synth-0006622": "no",
+     "synth-0010810": "no",
+     "synth-0012886": "no",
+     "synth-0012986": "no",
+     "synth-0016410": "no",
+     "synth-0016478": "no",
+     "synth-0020030": "no",
+     "synth-0022910": "no",
+     "synth-0026046": "no",
+     "synth-0026102": "no",
+     "synth-0027294": "no",
+     "synth-0030418": "no",
+     "synth-0035038": "no",
+     "synth-0035910": "no",
+     "synth-0038074": "no",
+     "synth-0040926": "no",
+     "synth-0041858": "no",
+     "synth-0042142": "no",
+     "synth-0055494": "no",
+     "synth-0056298": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "test",
+    "stati": {
+     "escluso": 94,
+     "quarantena": 4
+    }
+   },
+   {
+    "gruppo": "626ef180f315ea996fd6f6fd4833289169f3cc218a9676b45f642d954e9f3348",
+    "membri": 109,
+    "cause": {
+     "synth-0001142": "incerto",
+     "synth-0005122": "incerto",
+     "synth-0015650": "incerto",
+     "synth-0028262": "incerto",
+     "synth-0029486": "incerto",
+     "synth-0030226": "incerto",
+     "synth-0033994": "incerto",
+     "synth-0034434": "incerto",
+     "synth-0036534": "incerto",
+     "synth-0036994": "incerto",
+     "synth-0038254": "incerto",
+     "synth-0039818": "incerto",
+     "synth-0045894": "incerto",
+     "synth-pair-00074-b": "incerto"
+    },
+    "riesame_tecnico": {
+     "synth-0001142": "contenuto_diverso",
+     "synth-0005122": "contenuto_diverso",
+     "synth-0015650": "contenuto_diverso",
+     "synth-0028262": "contenuto_diverso",
+     "synth-0029486": "contenuto_diverso",
+     "synth-0030226": "contenuto_diverso",
+     "synth-0033994": "contenuto_diverso",
+     "synth-0034434": "contenuto_diverso",
+     "synth-0036534": "contenuto_diverso",
+     "synth-0036994": "contenuto_diverso",
+     "synth-0038254": "contenuto_diverso",
+     "synth-0039818": "contenuto_diverso",
+     "synth-0045894": "contenuto_diverso",
+     "synth-pair-00074-b": "contenuto_diverso"
+    },
+    "stato_decontaminazione": "risolvibile_col_riesame_tecnico",
+    "split": "test",
+    "stati": {
+     "escluso": 105,
+     "quarantena": 4
+    }
+   },
+   {
+    "gruppo": "d5b502d9e67104273b346d2485328cb0695d79ec318863f05655b08a5c3ebb0d",
+    "membri": 1,
+    "cause": {
+     "synth-0001215": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "ab069e30e889499b66ad644503fcb2269d7c57d5df2d5016fc2df8cf05ab5b31",
+    "membri": 1,
+    "cause": {
+     "synth-0001239": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "12be0f451eddf6eef458cfe750df8f34e8dd8150bd108f496546239fc7d441ff",
+    "membri": 1,
+    "cause": {
+     "synth-0001399": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "b28be680d805fbd319ad18e0f67690a92682c7555742b4675fab56de4650fb35",
+    "membri": 1,
+    "cause": {
+     "synth-0001409": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "8c747d6a2e13385c2b537152f9a9d30c4b4f4999dabda3af6f179913a3b12611",
+    "membri": 46,
+    "cause": {
+     "synth-0009142": "no",
+     "synth-0018074": "no",
+     "synth-0046638": "no",
+     "synth-0046830": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 46
+    }
+   },
+   {
+    "gruppo": "91e1b8085fc0720f27cabc897f216246a386178eac1054f8f13b0a568d8aa308",
+    "membri": 53,
+    "cause": {
+     "synth-0043682": "no",
+     "synth-0048166": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "test",
+    "stati": {
+     "escluso": 51,
+     "quarantena": 2
+    }
+   },
+   {
+    "gruppo": "45fd6f985b2896b097908ae57263cb91db76bcb23441ce5b27c2c8512277192c",
+    "membri": 1,
+    "cause": {
+     "synth-0002295": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "ec145db4685d4a1f177a0a85a848e938553f6a73f3c82ec4b77900b34c8dfedf",
+    "membri": 1,
+    "cause": {
+     "synth-0002379": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "056835a4fb0e0ff80b3e4cedb8da2d889c98485eb8d77224a975ff5e7c04550a",
+    "membri": 1,
+    "cause": {
+     "synth-0002705": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "d267228716c417543c107dae0426890d39c550707a41f46554ab24cfef783a91",
+    "membri": 1,
+    "cause": {
+     "synth-0003109": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "4de655a31bde0a5089c5d603aaac5a80b169f581d8bb8f10a4909e9ae96521ca",
+    "membri": 1,
+    "cause": {
+     "synth-0003199": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "c3813b5432ab004f8fc231929e848f3d14c244ab62e2b971b81902f44c7de0d7",
+    "membri": 1,
+    "cause": {
+     "synth-0003503": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "0a14467458ed0fc963feab2f105c3b8e2a410f0abbf5ad5133741bb041f8ec85",
+    "membri": 1,
+    "cause": {
+     "synth-0003511": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "00666601bbb4d58acdb6cb547debb521423b7644b5dad4b431792e464d981c05",
+    "membri": 1,
+    "cause": {
+     "synth-0003949": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "248e2d5ad236000318b00da0e681432ec9b90a6b9571903ae3c302e2ed9a07c2",
+    "membri": 1,
+    "cause": {
+     "synth-0004507": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "db76f9ead7520b6e7d87acec518bbcd0ce7aa53ffdb8d2541021c1f6643ceb4f",
+    "membri": 1,
+    "cause": {
+     "synth-0005147": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "af44e7672a08f2793e68dca5b720f2101bd1334240f788e5f945d808eb3a5f18",
+    "membri": 1,
+    "cause": {
+     "synth-0005291": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "8005a2969590cc17a1f535b65c83d91d08048e1002c32d44e70040b22ddcb2ec",
+    "membri": 1,
+    "cause": {
+     "synth-0005383": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "3ee05fe584d164470182b262a3b6b5eafe7c0826046269b55f02c5a323c047ee",
+    "membri": 1,
+    "cause": {
+     "synth-0005515": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "6a3d77d299dae39528ce099c3fef49bb6a031eaa498b7860e6e959e57ead450b",
+    "membri": 1,
+    "cause": {
+     "synth-0005543": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "b090bb3a0ce46e7e8a9be64cf03f55aff80faf1508d1a5c415834981b1aab55c",
+    "membri": 1,
+    "cause": {
+     "synth-0005751": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "203cbbf9d9d8f3a5a05b4f19b8db486e8262b41b14374f8af11628ce72b8cbff",
+    "membri": 2,
+    "cause": {
+     "synth-0005781": "no",
+     "synth-0019545": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 2
+    }
+   },
+   {
+    "gruppo": "4a0e35f8e1630b65abd9ce2b44947a8ec6310a5ca157f19627924537230a4de7",
+    "membri": 1,
+    "cause": {
+     "synth-0005839": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "9e8cf5d3a3d89b9b52e15597aa82e83ea5ff2e119820afacb7a4e00b1bdc9651",
+    "membri": 1,
+    "cause": {
+     "synth-0006043": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "851b237e61bce122d9f9e49be5ff93d53f27dda5a1c71af6af638d876b44cd63",
+    "membri": 1,
+    "cause": {
+     "synth-0006155": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "d25b5174992057de32274b79b3024aeb1c76f7434e1a82514afb17f3f4ec3d70",
+    "membri": 1,
+    "cause": {
+     "synth-0006443": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "c6f9df685bc984c371e7db178bdb0cb843e357a7d9c99b883b70eae224e7a685",
+    "membri": 1,
+    "cause": {
+     "synth-0006495": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "30896c9b32077b370df57b44dc7d27d693eb318aab03d4f86c4ac62e72de67a1",
+    "membri": 1,
+    "cause": {
+     "synth-0006535": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "e6cd37e14d370a7c3ce681a1348dfaaa9a5d8762818350a188df76188271b78e",
+    "membri": 1,
+    "cause": {
+     "synth-0006628": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "8bde4035af7ca9b68287e9e4d1e4d3e39dec870c2b1e3de343c3011e9117325c",
+    "membri": 1,
+    "cause": {
+     "synth-0006675": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "d6ccc75c5533ac33ed1137a47ee58d92cc52a2de2c3b87bb700cc492d7855073",
+    "membri": 1,
+    "cause": {
+     "synth-0006843": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "2009d243255cc22d2ee1d630b5620d65443485dc9ce4621b70d64a2cdac3e564",
+    "membri": 1,
+    "cause": {
+     "synth-0007157": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "dev",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "cf9e98b33474a64892645c512a3092316fb2b9237a758dc55d41c74feb8c2709",
+    "membri": 1,
+    "cause": {
+     "synth-0007483": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "1d306050a3fd90940042f644f8a9c436ea881161054b3a479083006609be6e50",
+    "membri": 1,
+    "cause": {
+     "synth-0008009": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "d555782089de39e0bd8954c7843a5437387b6aa8f7f7e490deb0ea24f5ff5c4b",
+    "membri": 1,
+    "cause": {
+     "synth-0008059": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "99c450affdd9a08cc5d1f2daafc735f265cb8c922a40f6194c0334e95e8dd928",
+    "membri": 1,
+    "cause": {
+     "synth-0008179": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "d6b60097478ffb5d049a2a0dfcf14bbd52de11d0fe3c90e8468636d3f491f4d8",
+    "membri": 1,
+    "cause": {
+     "synth-0008331": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "e5ab28c9ee406da708986c1a1a9202f23da5c2c3846e674d56980eefe9c54c45",
+    "membri": 1,
+    "cause": {
+     "synth-0008943": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "3da167b6117acaba48645020252548598389f787612888aaa69c971282a5f9b2",
+    "membri": 1,
+    "cause": {
+     "synth-0009203": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "6e9be430b8b064225d9ae78d351a8969a38910662107fd69d01db039edc7d47e",
+    "membri": 1,
+    "cause": {
+     "synth-0009459": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "80957e99f42b2d2f824d73ee8659bfd06d56fb401382e6c5fb58740a870cf03f",
+    "membri": 1,
+    "cause": {
+     "synth-0009643": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "3f59b7da7d62ae23502680206562dda7b4f6f57adcb9b57f7f678d62d3ebd58c",
+    "membri": 1,
+    "cause": {
+     "synth-0009731": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "1337447b390e4778b99670de7720c408e1b315ea489be19831e5917d4f96e5fa",
+    "membri": 1,
+    "cause": {
+     "synth-0010013": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "4d9b68218dfbd34c01dd5f36198607286be3410553f6cd28db2c600537565768",
+    "membri": 1,
+    "cause": {
+     "synth-0010289": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "d205f3cd5c08616e7e740eb01c3517ca7de39523306ef2774b9eae95e56847a8",
+    "membri": 1,
+    "cause": {
+     "synth-0010293": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "94cde5f5c5a4dee295a823a4c8cc43b5a5dda8bc443d7a80f328693fdfbe8ae1",
+    "membri": 1,
+    "cause": {
+     "synth-0010339": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "91a6da02a085187a197d1700b800f49f5c589e4a977430d478336320c9410427",
+    "membri": 1,
+    "cause": {
+     "synth-0010407": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "0eaa1ea57ffb3a637107b36f3f903ba3cd65092678f53c740d17939f36681159",
+    "membri": 1,
+    "cause": {
+     "synth-0010931": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "d36506065a3d1c6dbfb143c31c6c52fb12ed55fd619340d405adab5bdc86087a",
+    "membri": 1,
+    "cause": {
+     "synth-0010975": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "fd00f587d1072adfcc1865b5a076fc3e0feb47320b59f33224576c32e91a53f0",
+    "membri": 1,
+    "cause": {
+     "synth-0011107": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "5602407852436ad4a5370c66e58068f443ac701a97444de05957a57c883df4db",
+    "membri": 1,
+    "cause": {
+     "synth-0011211": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "dev",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "1a13887282b5504917542f192d52bee281e22714e74dbbf79ba7e70628787da4",
+    "membri": 1,
+    "cause": {
+     "synth-0011421": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "4079a96592ea66aee989bf28c960375007aa6d8dbdf0b144286f42e0c2457a5a",
+    "membri": 1,
+    "cause": {
+     "synth-0011639": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "eeaf2bd67d964ba07d5054a6edb06bc2924e813e37c4e3abaebd43d0ad68edd9",
+    "membri": 1,
+    "cause": {
+     "synth-0012835": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "9092c49f794f75ff9ad482a220282ae652e2c42dbc64d1c0c226bd7ac0521954",
+    "membri": 1,
+    "cause": {
+     "synth-0013615": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "aeed37642eb5456dfc7a4bbe49c3b4f06a021b585120a34bf353a9ae0943e19e",
+    "membri": 1,
+    "cause": {
+     "synth-0013651": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "7ce53f276124e0def517750e36ece3462dc712033eb6af10ad571f9af3b58371",
+    "membri": 1,
+    "cause": {
+     "synth-0013983": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "cee0244cbba12238c9e7d2148ae3373eb27304645fbf6fe782ebb3626801756a",
+    "membri": 1,
+    "cause": {
+     "synth-0014319": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "538263de6477f9a8ad2b89135d376cbc880218368878099e9c07a7c97a6e6037",
+    "membri": 1,
+    "cause": {
+     "synth-0015475": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "80acbabaad1985d8b37372ced58076e68fdd6ba9c0db2ce1b86b92186a30cccf",
+    "membri": 1,
+    "cause": {
+     "synth-0016025": "incerto"
+    },
+    "riesame_tecnico": {
+     "synth-0016025": "irrisolto"
+    },
+    "stato_decontaminazione": "irrisolto",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "573319dc0d7dd54776cc55f129781bc0af83648520a162a16848dbb01f776e89",
+    "membri": 1,
+    "cause": {
+     "synth-0016333": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "15fcd87b5f15dfa62cb53a92fb4984eea3f50d5960afed76fdaf78f8b8a21b21",
+    "membri": 1,
+    "cause": {
+     "synth-0016787": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "f9bb235efea1dd842473dd048f85faae429891043cf7217a277bfdd27f3be103",
+    "membri": 1,
+    "cause": {
+     "synth-0016983": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "56a2e54c04501a7aec4a0cc4cb97b29033a17912b29926b066488afe724dac8e",
+    "membri": 1,
+    "cause": {
+     "synth-0017751": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "dev",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "84550935c64f2458cb47f6157c2749de6690fa47a1969d9b3d7a4c0aa71fd44c",
+    "membri": 1,
+    "cause": {
+     "synth-0018055": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "20eeec27e3d7875478e342f376d76f90b3fa192fda218e56fd9f6c567c71ba34",
+    "membri": 1,
+    "cause": {
+     "synth-0018575": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "e5471438f63bd2b09a0c28787acb82e2247a57114ad01f984619717e08aecdc7",
+    "membri": 1,
+    "cause": {
+     "synth-0018655": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "de1f67116f9a6f1155117c687bbfdd6e6b74382d8ad1645017e7534f473b5303",
+    "membri": 1,
+    "cause": {
+     "synth-0019052": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "f74afdcb3d09c7b5663d265027062df2ad3d16c68da38a0c57a9a56dd643aa05",
+    "membri": 1,
+    "cause": {
+     "synth-0019071": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "625d08f24861395d88521fbbe771ec4cdecbb0dc6e914228e5cfc46c2595fd47",
+    "membri": 1,
+    "cause": {
+     "synth-0019859": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "df6bbdb2d9b03b3147b7e921aba5610847ce3286590b0beda14affa42d34cad1",
+    "membri": 1,
+    "cause": {
+     "synth-0020647": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "485b028014dbb489e998244d2cd995a71a8afcd22c4f4bf8ab5b027499ab05c5",
+    "membri": 1,
+    "cause": {
+     "synth-0020943": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "83790deb391f3a9de64eb40d6a45f2f012cb88e19c0c33be64b3d41a38ce6522",
+    "membri": 1,
+    "cause": {
+     "synth-0021283": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "071a4e0e0ed9719a921914190c06db3788de73db0f9e95da487d322b8a5da07d",
+    "membri": 1,
+    "cause": {
+     "synth-0021731": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "7eeaf7526dd32cf0e50850e4db6b88610331c8489c2757a4d789d14be0882a60",
+    "membri": 1,
+    "cause": {
+     "synth-0021919": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "55c1c5c4c6f6cdb28839a656e34f8d7f6f4cae363a6327d9d445be6899d53592",
+    "membri": 1,
+    "cause": {
+     "synth-0022639": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "452e1262bb1d641bacc21dda61cf0b922b0dc29c1891c9599dddd314c04f0be4",
+    "membri": 1,
+    "cause": {
+     "synth-0022827": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "e39e7c1b09697a66a3883c2dba17dfafc53f39e49ff20e4ad84e5d80098ed67f",
+    "membri": 1,
+    "cause": {
+     "synth-0023191": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "94e9fc662cc0ffc58c0a1c79a37cb35a8049b7ed4fffe4b718993d408d3f85e5",
+    "membri": 1,
+    "cause": {
+     "synth-0024299": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "dev",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "60ee43bc06dc70b9869022fb869344fa9f676e6b7a527ef05e20fe0708eb69cd",
+    "membri": 1,
+    "cause": {
+     "synth-0024667": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "1faae39162c333e5418d359689a9f33820a1c7238f095b2c8cb51a89df8ae6c9",
+    "membri": 1,
+    "cause": {
+     "synth-0024887": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "db7b7c631777741e79cc754d0a1cb79f87e905c2e87cdbb98af7aacd9ba20ce6",
+    "membri": 1,
+    "cause": {
+     "synth-0024893": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "f995eb66b1f0a52b99da39b631cf0de74f2810a7ef6403c0c4cd7e5f4cfa3e6b",
+    "membri": 1,
+    "cause": {
+     "synth-0024899": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "8d81ec87d609d48f195cc89f5bcecfc69bd46ed33be804c7dd747531cf95bd3a",
+    "membri": 1,
+    "cause": {
+     "synth-0025253": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "78dce5c47b0b61275c4daec3a2b4d99aad056d9a22b03a43977883a4122ea2bf",
+    "membri": 1,
+    "cause": {
+     "synth-0025479": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "a0b9dc9e53b84e90a64f0720d4c3a872683c9c56e4b89222fa2cf07e26c1a5e4",
+    "membri": 1,
+    "cause": {
+     "synth-0026407": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "dev",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "334cb00710f0452d91b24d15e093e16227304453c5a82f741adc33c89dbc5e8b",
+    "membri": 1,
+    "cause": {
+     "synth-0026987": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "060a195129dc03569da59d61e5872e8ec13a77d650a4615e6bccb46b4562d5c7",
+    "membri": 1,
+    "cause": {
+     "synth-0027051": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "b773bd4732988824d1be7a9ee2fe8cd5c9d66e456456df880757ed508ef49d88",
+    "membri": 1,
+    "cause": {
+     "synth-0027849": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "aee67ebbfa923b090f6cd5ed44095089f5bbbc20aaeb7cd75096c47778f98018",
+    "membri": 1,
+    "cause": {
+     "synth-0028053": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "625202aeeefb325fbc19963453a4397910927d407171ab622be98be1214bb3cb",
+    "membri": 1,
+    "cause": {
+     "synth-0028555": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "f9fb8d12e62098a2be00aab63e658d66cdf450cf008764d35eab7aa4c1b294ba",
+    "membri": 1,
+    "cause": {
+     "synth-0028559": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "91592b95b7233427c25624dfd677ea90be6736594b2864958c5e9d5b318a301c",
+    "membri": 1,
+    "cause": {
+     "synth-0029109": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "e6e528c2433973151cce21c58f78d207c6cafedf1b05656e87677924cc1194ff",
+    "membri": 1,
+    "cause": {
+     "synth-0029347": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "d49daea465cb74c0eb1ce621fd800e039f1b51d37bea8500ed98462d45c6c0a2",
+    "membri": 1,
+    "cause": {
+     "synth-0029435": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "1e51d93d565e1d3444a2b87caec8bcc2ae889f1987290e314b3fa12e59f1b7ef",
+    "membri": 1,
+    "cause": {
+     "synth-0029887": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "6d9c7b899824be38a2a36c339faffa71c72e4667f9aa9f514c975a14bea752db",
+    "membri": 1,
+    "cause": {
+     "synth-0030319": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "8487849e261e3ee5f17a75244ced86547d71288fcbb7bf9cacfc8e6c33bd378b",
+    "membri": 1,
+    "cause": {
+     "synth-0030875": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "eba4074aee39204c3c5f4e81ddb2163a1e65f4853e439ccb19840aeb162f296f",
+    "membri": 1,
+    "cause": {
+     "synth-0031579": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "c6fadce0812cf7af9e125a95a2cdbb47d26ed8016588ea1cd95ac5efb6ae9c09",
+    "membri": 1,
+    "cause": {
+     "synth-0031651": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "7ab32f79224179885bb6e39d4da39d2ff843c25f29a691f021bb0a07f543940c",
+    "membri": 1,
+    "cause": {
+     "synth-0031907": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "aa4d9e2c264b51108f99ff085c5f4ca80a0336738db96f40d43bd372e244c2fa",
+    "membri": 1,
+    "cause": {
+     "synth-0032217": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "9b3984227105ceb9d62fd7c17ca33e5ffdda49b44ec71b291bf0950d72f35ac3",
+    "membri": 1,
+    "cause": {
+     "synth-0032447": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "772312014498d35bb34196ba7bcc8294ad130b610e1fe3ffb3d0083b05a0bc9c",
+    "membri": 1,
+    "cause": {
+     "synth-0032627": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "27fde2d63b22dd834f0574d407a82562c19b09eb0561d97a1d1f6bf7a2af8565",
+    "membri": 1,
+    "cause": {
+     "synth-0032737": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "14337f84563f7bc34b678de110b91fff02e09cc7220eed36deeeadc3f474b7ee",
+    "membri": 1,
+    "cause": {
+     "synth-0032815": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "ab40b83d26693f1f18eb47384ed4034fed3a4c064a8d41717d51f9d3cfde72f3",
+    "membri": 1,
+    "cause": {
+     "synth-0032895": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "064cad50efc435b1c34174d60845c0c6e76e5cea8dcc1dac0d951c03ed1fc5c3",
+    "membri": 1,
+    "cause": {
+     "synth-0033039": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "96db3e4f668f9e26ea9525233b6a6541b7be6a4017e8fe9573dc1c99af38cbb1",
+    "membri": 1,
+    "cause": {
+     "synth-0033503": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "02541194080c15eaa4198d31ae69c38fbff469cb021c00713267479c09fd7643",
+    "membri": 1,
+    "cause": {
+     "synth-0033543": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "6981463050a6e75e2c781784c16f076e6db0093091ecd1115201516e54387133",
+    "membri": 1,
+    "cause": {
+     "synth-0033819": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "60dda9e9d61429fea5920193f0938236529c2d4c414f314db8c892f721fd8d40",
+    "membri": 1,
+    "cause": {
+     "synth-0034767": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "1ef5306eef170f5cc9901c76d4ece58159514b06dd7bddc5b132d7a229e8bd9e",
+    "membri": 1,
+    "cause": {
+     "synth-0034799": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "de610dd35f12aebde24bd099c5397e2f471ecde7420cf145cbff28de3582bc0e",
+    "membri": 1,
+    "cause": {
+     "synth-0034899": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "a967561209b35089eab87e11f35168fddeab828fe481c8e777e409f3942e216c",
+    "membri": 1,
+    "cause": {
+     "synth-0035003": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "7be67c1c0c03ea75891f77369233289b1a518132d7883d5efc401afb37e87fad",
+    "membri": 1,
+    "cause": {
+     "synth-0035219": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "c785d315ca012531cff05149a2cf9557d6e68d20d56a224ff43a2b572a4450fc",
+    "membri": 1,
+    "cause": {
+     "synth-0035515": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "5db37b2817d620e259341c3b36ea98a1878720c60efd8f751e159b4a704d4433",
+    "membri": 1,
+    "cause": {
+     "synth-0035647": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "1d950541a267046b6e1505743dee43ba7da3fcb5c00e195881746445f7c85e88",
+    "membri": 1,
+    "cause": {
+     "synth-0036287": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "45725ed8d1f0806c18d35ca8dd601ba37d077bf5c4a04d76f95443ef493fd89b",
+    "membri": 1,
+    "cause": {
+     "synth-0036695": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "3184d4859050404c84a9d7696b47376c13ff1f052356d56a21ee49172874bdf1",
+    "membri": 1,
+    "cause": {
+     "synth-0037203": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "6407ea359298cff0aab35391c01336ee939a1e0f3f24102fec150d5dba3be938",
+    "membri": 1,
+    "cause": {
+     "synth-0037463": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "6b9eb86f85b64a7124d823cbf8f7a5dd900228cdbc60367945cb796817bc1d78",
+    "membri": 1,
+    "cause": {
+     "synth-0037647": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "0f386a9d0b8cd710037068c03d89277973284febdf2b082d80fe6cdac630e792",
+    "membri": 1,
+    "cause": {
+     "synth-0037695": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "868ded86ed5af0b9a5216ad54e6206a9a67ba214a687a50ce34ccdeaffcf83de",
+    "membri": 1,
+    "cause": {
+     "synth-0037963": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "1e121324893f41283993fcef4b94503c2fef39a82c143318deae81871143c909",
+    "membri": 1,
+    "cause": {
+     "synth-0038727": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "e239fcce672585a061f84e23d66e3038f0552b8c7e25a612a6137ba4dd2733f5",
+    "membri": 1,
+    "cause": {
+     "synth-0039097": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "95de4eaa31e2db3af5f7ec8d8a445f7ffbb589e84adb9d56499c2ca71c2a30a8",
+    "membri": 1,
+    "cause": {
+     "synth-0039457": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "dev",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "53987980805486375869f75a56a33af3666e45977d35e4fd2be8c2faf433cb05",
+    "membri": 1,
+    "cause": {
+     "synth-0039571": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "747f36a744b51a7acff7f98ef05f47ddde718941ac3ff98c7af843ff1c18825b",
+    "membri": 1,
+    "cause": {
+     "synth-0039847": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "f47a44013e39bc0424df68e3debff5e8ac56bf5c99dc3e104dcf947a1e892ec3",
+    "membri": 1,
+    "cause": {
+     "synth-0040147": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "1f25f64b9dc36added0788d51788572dc5d253ce9eb54e704a1adcbbb6137587",
+    "membri": 1,
+    "cause": {
+     "synth-0040301": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "64c5e6c2e25cd28aa6deb1bdec7950036e4337f52426b4931e57e8d76c27d31c",
+    "membri": 1,
+    "cause": {
+     "synth-0041835": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "24c7c733a70f87d5fc5cfdb8c035bf5de3ad1eed2126b2b9468abb2f74fe69ee",
+    "membri": 1,
+    "cause": {
+     "synth-0041851": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "5f510b12dd5e8d0419df8bb7f93b54f37be03af32c9c6f13dc6c04f8aea7ebc7",
+    "membri": 1,
+    "cause": {
+     "synth-0041959": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "7bf9ea009154882f8854db0e4ecabe3448b9d9485df5011a6bbdc2b619015d82",
+    "membri": 1,
+    "cause": {
+     "synth-0042295": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "e98720ce632bfd3774f49c0f9201f9208efe8f0bf4593a66bc2f812764271517",
+    "membri": 1,
+    "cause": {
+     "synth-0042439": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "314557cb2e49d0c20084b8972910b7fd2e477dcc0a7c472d9990b3c07f611edb",
+    "membri": 1,
+    "cause": {
+     "synth-0042459": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "930f0392bbdb026e88c98e77da46707884f876ac88bd3a269fbf3e626ba44b4d",
+    "membri": 1,
+    "cause": {
+     "synth-0042543": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "3d7228fe6f6370827610b1d7ee7dc3b1d1b2a9587f18f8631d8a8f9107864e23",
+    "membri": 1,
+    "cause": {
+     "synth-0043325": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "119fc341900bfe04a4b83e1a711f71a64aee9e5043c8f2c8c361b74121d90c72",
+    "membri": 1,
+    "cause": {
+     "synth-0043437": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "edc107f25d4f3897b133d5e6621aeab54ddb3037bc42ad123a2369c925aac6ad",
+    "membri": 1,
+    "cause": {
+     "synth-0044047": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "c6c30e310513fc110474fd6b9bb2afbeb0241634f9cc27bccc2f482b8c2a8eaf",
+    "membri": 1,
+    "cause": {
+     "synth-0044307": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "42fafa8ebd1ccf942079ef31bae3d51578be5c2b3b3454c16f4ce73da93e8c2b",
+    "membri": 1,
+    "cause": {
+     "synth-0045835": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "8637ea5fe347ce1efdf5b94ce581b56a2b9349a91ffb275b4a668ad5e38792ca",
+    "membri": 1,
+    "cause": {
+     "synth-0045867": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "590cc89ecdc4fa6b9bd71581934301b23a709386ea09f30f9b21518a7441d97e",
+    "membri": 1,
+    "cause": {
+     "synth-0046291": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "419174d44f654f174c69f7ed1f4ed1bf915c95aecf7a5d2a3645e18acfea9418",
+    "membri": 1,
+    "cause": {
+     "synth-0046575": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "ba7c15f36091157453fdc25100df7a9a26c3b482ea3c15f871f7205354b97fb9",
+    "membri": 1,
+    "cause": {
+     "synth-0046905": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "dba3d29a91eaf085c2b081d98d92d02849ad3d058e4d63ce9475bef692979bde",
+    "membri": 1,
+    "cause": {
+     "synth-0047015": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "cc1e78c5e604669dccd277d5c26034af2db6156431f527ed5d5e1c7f2e270f01",
+    "membri": 1,
+    "cause": {
+     "synth-0047111": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "8402280c9a72ff5581733a4021e5e26226cfdd9561f7b7d2872180a27dd77037",
+    "membri": 1,
+    "cause": {
+     "synth-0047139": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "bf9b15d10744ff5a7f24a9b175629e8ada9d2695eb11d5354019218939248ded",
+    "membri": 1,
+    "cause": {
+     "synth-0047203": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "f50b9626fa0d7b6ef939a0f41ada385104521edc65906a75a98c26556855b598",
+    "membri": 1,
+    "cause": {
+     "synth-0047457": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "58798bbf590bf4c4ced2a3b8c3dc298c0e010ed457e4dd3eefb9934c0d1c285b",
+    "membri": 1,
+    "cause": {
+     "synth-0047667": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "492cd02d509a1ec96ddff6ea492b706f6a0fabc8b5235c1297375ec201ebd3dc",
+    "membri": 1,
+    "cause": {
+     "synth-0048229": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "76cca28787fb115a66e47ff79b26f8858bc2a878cd82695a0527c87b17f014e3",
+    "membri": 1,
+    "cause": {
+     "synth-0048263": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "72178dbf7d83504ac932269bf4cb89f4a495d3b33271cbfa30a1e13ba4ca3d03",
+    "membri": 1,
+    "cause": {
+     "synth-0048867": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "fc27c63d0866a207c0d0a9fa2a896d9d07bc4a4d6838769ee69e4a95b945df73",
+    "membri": 1,
+    "cause": {
+     "synth-0049155": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "abe2272cc783844062763c96af1d5e9117db053b27442309b1d12e226519d770",
+    "membri": 1,
+    "cause": {
+     "synth-0049249": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "778c4a37611a45072bab6d47c648125b878cf58b26c974124568e1c6fcb6511c",
+    "membri": 1,
+    "cause": {
+     "synth-0050279": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "1d9f82cbccefaa9205b232fb3c9d78e3a654fd37a6bd9b682316735e8bdd5cd0",
+    "membri": 1,
+    "cause": {
+     "synth-0050363": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "c65a74033b87f45b5c966a949129bde5d9b9f349e36a95c2b2d7576ddc600370",
+    "membri": 1,
+    "cause": {
+     "synth-0050387": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "728c466ecf1769eca4a7c70760a7860ee2fa1552f986c6a8afbd1d9623f34a29",
+    "membri": 1,
+    "cause": {
+     "synth-0050855": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "7663a056c0e8917cd7ed799870c76d1628fe4e2ac8972df9daa8184c24441a42",
+    "membri": 1,
+    "cause": {
+     "synth-0051309": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "b3dc7706a1df4e70e1c25637fb2d02cd08e7eaf87f25725e4379c1f0cdcb7d09",
+    "membri": 1,
+    "cause": {
+     "synth-0051311": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "e07e8e3351d39f83ab81b057bb419ff2353b60b7bcc026b9af626281544c3e1b",
+    "membri": 1,
+    "cause": {
+     "synth-0051699": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "72f18a4a2aed907eaf2401954479dd8be3063a3968a0bb05767e0d04f90dc282",
+    "membri": 1,
+    "cause": {
+     "synth-0051795": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "66a15b4b76d53cd2346e4d8ab051eb870ccde9693e0a22f0c226334d57129437",
+    "membri": 1,
+    "cause": {
+     "synth-0051909": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "15b9f67a11253d3d388038cbb43f843d881ca4d027845c0060c2b60c0cf18f42",
+    "membri": 1,
+    "cause": {
+     "synth-0052367": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "114ab29bc860556f3dd690ae9f656dc535825fec60f043dcff44c3f00f2b64a8",
+    "membri": 1,
+    "cause": {
+     "synth-0052938": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "2d7f62d8901b202a0ff968c50ba7c310f1c62f919528dd6a4bf63599794297b3",
+    "membri": 1,
+    "cause": {
+     "synth-0053115": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "aec805c212cf499bb4ab99215651f2fef364475ad550e0db777cd5797c484a26",
+    "membri": 1,
+    "cause": {
+     "synth-0053443": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "d5a6a4c461f9ac0c4dd29d1467f3f6a7914cc932a4856e14d8bc6cc8fe99786f",
+    "membri": 1,
+    "cause": {
+     "synth-0053567": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "adc40d43529a46bc4e1463572bd3f1f5a5cd93d0d2423c74bfc780b2935168b0",
+    "membri": 1,
+    "cause": {
+     "synth-0054111": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "1d8ad28a6910a6e186c46927c405dc00c503151bcdd4a46efa935871471d1155",
+    "membri": 1,
+    "cause": {
+     "synth-0054147": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "332840d45fa8937186909e72a4ec5b484cae1da63cd48d91b92da888439c9177",
+    "membri": 1,
+    "cause": {
+     "synth-0054195": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "a4883290918decaec03649a8357381b69b8e6a20ce2d706826e843a0a209fbdb",
+    "membri": 1,
+    "cause": {
+     "synth-0054323": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "ff7f3694bbf50a65590e1c561730572fd4e9e9836ee3502bca70cc5ca2f8613b",
+    "membri": 1,
+    "cause": {
+     "synth-0054603": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "1b54aaed1de0ff742ecf7fd5aa9179aeefbcb563edb0bd202891826ac84df2be",
+    "membri": 1,
+    "cause": {
+     "synth-0054825": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "b2745c1eac6148b36f085d698374cd5790bd0f743ef9060b017d34c853faf3f0",
+    "membri": 1,
+    "cause": {
+     "synth-0056067": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "29a847e4e3dba424436f888dccdba949df393a1e6e05bdd9ff5839ca0806e0c9",
+    "membri": 1,
+    "cause": {
+     "synth-0056243": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "dbead69100706e0d71a4be8e55ea327c13f6a1482c613b0bf6f4bd43033b8afd",
+    "membri": 1,
+    "cause": {
+     "synth-0056311": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "65850ba0986d6d0e05d8b14241391c636819be9e9dc453e9d366367a8621c691",
+    "membri": 1,
+    "cause": {
+     "synth-0056451": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "43daa2450b84aca44937993131e48cb74b40e16380d375b3cede0fe3617be549",
+    "membri": 1,
+    "cause": {
+     "synth-0057211": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "a1abcc71d74a3d10705d6baf5aecc8410a8bdac9e646a88c065c87f5a64502cc",
+    "membri": 1,
+    "cause": {
+     "synth-0057333": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "4babf6318501e369e4622c46da3b423ef78ca4aaf410480c47ebf2d2523dd30a",
+    "membri": 1,
+    "cause": {
+     "synth-0057711": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "4dfaefd14d4e6340dd478060398893f7838e572cefc9779dc7f6a7d8da91c35c",
+    "membri": 1,
+    "cause": {
+     "synth-0058579": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "1a13c24eb4b4990a2f0820ce8b1a2f3ae715c813d4e71bfb595a1dd47f6fe67d",
+    "membri": 1,
+    "cause": {
+     "synth-0059743": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "1832dbf7a36fc5dcb643aef2bbed878798425cc53c5a322ff8345b18161394d7",
+    "membri": 1,
+    "cause": {
+     "synth-0059963": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "train",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "f61b75a0f5499b02d733af8bd07fc7e675c547eb8aaa84792ec23aa8cf60f4a5",
+    "membri": 1,
+    "cause": {
+     "synth-test-00007": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "test",
+    "stati": {
+     "quarantena": 1
+    }
+   },
+   {
+    "gruppo": "38a0156554308e270b12004213717ffba2c6985693f8b46a3283927958cbb9ce",
+    "membri": 2,
+    "cause": {
+     "synth-pair-00115-b": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "test",
+    "stati": {
+     "quarantena": 2
+    }
+   },
+   {
+    "gruppo": "0d96b2836684aa045f0875c1a7f7da635a9d63076105672fcc700f86496b19ab",
+    "membri": 2,
+    "cause": {
+     "synth-pair-00117-b": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "test",
+    "stati": {
+     "quarantena": 2
+    }
+   },
+   {
+    "gruppo": "790826958f9276b538a0e9eabc40d31434e2d2596e3a5d8eee9ce61ef74a0e08",
+    "membri": 2,
+    "cause": {
+     "synth-pair-00123-a": "no"
+    },
+    "riesame_tecnico": {},
+    "stato_decontaminazione": "risolto_dalla_revisione",
+    "split": "test",
+    "stati": {
+     "quarantena": 2
+    }
+   }
+  ]
+ },
+ "c8": {
+  "stato": "non applicato: la corrispondenza fra esiti del pacchetto ed esiti di C8 è una proposta (S4 §9) non approvata prima della revisione",
+  "prerequisiti_mancanti": [
+   "corrispondenza fra valori del pacchetto ed esiti di C8 approvata",
+   "affermazioni per proprietà e strato fissate (S4 §9)",
+   "D5: numerosità e budget degli audit",
+   "sensibilità del revisore non misurata: conclusioni condizionate"
+  ],
+  "certificazione": "nessuna"
+ },
+ "costi": {
+  "secondi": 17.4
+ },
+ "file_completi": {
+  "report.json": "outputs/review_results/integrazione-2/report.json",
+  "esiti_per_unita.tsv": "outputs/review_results/integrazione-2/esiti_per_unita.tsv",
+  "proposta_ammissioni.tsv": "outputs/review_results/integrazione-2/proposta_ammissioni.tsv"
+ }
+}
