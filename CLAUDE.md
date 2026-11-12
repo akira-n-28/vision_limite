@@ -140,6 +140,22 @@ trasferimenti solo su richiesta esplicita dell'utente.
 5. Gli archivi (es. `images.zip` di LLaVA-Pretrain) si estraggono e si convertono in shard
    da circa 1 GB in un job CPU. Mai milioni di file piccoli su GlusterFS.
 
+## Backup e ripristino (incarico del 2026-11-12)
+
+Procedura, contenuto, verifiche e ripartenza su un altro server: [`docs/BACKUP_RIPRISTINO.md`](docs/BACKUP_RIPRISTINO.md);
+elenchi generati in `docs/backup/`.
+- **Destinazione.** Generazione `g1-20261112`, backup completo nel Drive istituzionale, cartella privata
+  `LimiteVL-backup/`.
+- **Client.** rclone v1.76.0 in `tools/rclone/`, verificato col job 30939. Remote `lvl-ist`, ambito `drive.file`,
+  client OAuth proprio dell'utente: quello condiviso di rclone dava 403 ed è in ritiro.
+- **Deroga sul frontend.** Rclone solo tramite `scripts/backup_rclone.sh` (sotto `guarded_run.sh`) e solo per
+  configurare il client, caricare volumi già pronti e fare piccole prove di recupero. Inventari, archivi, hash ed
+  estrazioni vanno nei job `slurm/backup_*.sbatch`.
+- **Stop per memoria.** Regola A dell'utente: dopo uno stop per MemAvailable si riparte solo con 10 minuti di fila
+  sopra 1 GiB, al più 5 stop in tutto. Lo stop per RSS è definitivo. Le soglie non cambiano.
+- **`trasferimento/`.** Staging, stato, inventari, piani e log: escluso da git e dal backup. In `trasferimento/rclone/`
+  stanno token e segreto del client (permessi 600): non mostrarli e mai rclone con `--log-level DEBUG`, che li stampa.
+
 ## Ambiente (venv in vision_limite/venvs, senza carico sul frontend)
 
 Ambiente adottato: `venvs/current` → `build-29382` (Python 3.12, torch 2.11.0+cu129, transformers 5.6.2, vLLM

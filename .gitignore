@@ -14,3 +14,5 @@
 __pycache__/
 *.pyc
 *.part
+# Materiale del trasferimento del backup (staging, stato, credenziali del client): mai in git né nel backup
+/trasferimento/

@@ -154,6 +154,7 @@ venvs/build-29382 (venvs/current)	ambiente	env_install job 29382; env/uv.lock	in
 venvs/evals-build-29390 (venvs/evals-current)	ambiente	job 29390; env-evals/uv.lock	in uso	eval_text_*	470	-	-	conservare	nessuna
 wheels	wheel	uvlock_manifest + fetch	riutilizzabile	env_install	5584	288	sha256 dal lock	conservare	nessuna
 tools	binario di uv	extract_tools job 29349	in uso	setup_env.sh	152	4	sha256 verificato	conservare	nessuna
+tools/rclone	binario di rclone	v1.76.0 da downloads.rclone.org con fetch.sh; job 30939	in uso	scripts/backup_rclone.sh (backup e ripristino)	247	12	impronta della chiave FBF737EC…54FA uguale alla pagina release_signing, firma PGP di SHA256SUMS e sha256 dello zip verificati (tools/rclone/v1.76.0/VERIFICA-30939.txt)	conservare	nessuna
 cache/uv	cache	job	rigenerabile	job con lo stesso ambiente	1613	-	-	conservare; eliminabile solo su proposta	nessuna
 cache/vllm	cache	job	rigenerabile	job con lo stesso ambiente	5098	-	-	conservare; eliminabile solo su proposta	nessuna
 cache/triton	cache	job	rigenerabile	job con lo stesso ambiente	163	-	-	conservare; eliminabile solo su proposta	nessuna
@@ -163,6 +164,8 @@ cache/xdg	cache	job	rigenerabile	job con lo stesso ambiente	1	-	-	conservare; el
 third_party/limite-violetto	repository	7ddad34f5e3d25ddea68c6745fc00373b82bca21	in uso	plugin vLLM, valutatore	4	-	albero pulito	conservare	nessuna
 third_party/verifiers	repository	d30a3f48e5f14b06b3081b2102ec32cc3149b849	in uso	env-evals	7	-	albero pulito	conservare	nessuna
 third_party/limite-modeling	copia del codice	SOURCE.json (b1f3d572)	in uso	limite_code.load (sha256)	1	5	sha256 verificati al caricamento	conservare	nessuna
-secrets/	segreti	-	in uso	fetch.sh	-	-	cartella 700; contenuto non letto	lasciare	nessuna
+secrets/	segreti	-	in uso	fetch.sh	-	0	cartella 700, vuota all'inventario del backup del 2026-11-12 (job 30943); nessun token salvato	lasciare; un segreto futuro va in un archivio cifrato separato (docs/BACKUP_RIPRISTINO.md §2)	nessuna
 downloads/manifests/*.tsv	manifest generati	build_manifests.sh	rigenerabile	verify_hashes	-	14	esclusi da git	conservare	nessuna
 **/__pycache__	bytecode	-	rigenerabile	-	-	-	-	lasciare	nessuna
+trasferimento/	materiale del backup	incarico del 2026-11-12 (scripts/backup*.sh, slurm/backup_*.sbatch)	in uso	backup g1-20261112	-	-	staging dei volumi (al più 30 GiB, cancellato solo dopo la verifica su Drive), stato e registri del caricamento, inventari, piani, catalogo, log dei job del backup, configurazione e token di rclone e client OAuth (rclone/, permessi 600)	escluso dal backup e da git; conservare fino alla fine dell'incarico e ai successivi aggiornamenti	nessuna
+Drive istituzionale: LimiteVL-backup/g1-20261112	backup esterno	generazione g1-20261112 (inventari 30943 e finale del codice)	in uso	docs/BACKUP_RIPRISTINO.md; docs/backup/	555411	-	volumi tar con sha256 per file e per parte; md5 e sha256 di Drive confrontati con il job (docs/backup/g1-20261112-completezza.json)	conservare; aggiornare prima del cambio di account (BACKUP_RIPRISTINO §9)	completezza finale; ambiente da riprovare su un nuovo server
