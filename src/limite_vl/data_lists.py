@@ -7,10 +7,12 @@ dimentica una. Le altre liste (qualità, incerti, duplicati della validazione, c
 rietichettature) sono scelte della config: non obbligatorie, ma registrate nel manifest con hash e righe, così un run
 dice esattamente quali chiavi ha saltato o cambiato. Per UniMER, MAVIS e PixMo-Cap con un manifest delle ammissioni
 (MANIFEST_FAMILIES) le liste non servono: le evidenze storiche e la decontaminazione sono nel manifest, e make_sources
-rifiuta liste in più. Solo libreria standard.
+rifiuta liste in più. Lo stesso per i sintetici con un manifest che dichiara la politica delle domande (POLICY_FAMILIES,
+synth-v4-candidato-3). Solo libreria standard.
 """
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from .provenance import file_entry
@@ -27,6 +29,19 @@ REQUIRED = {
 }
 # famiglie lette con un manifest delle ammissioni per compito (manifest.TASKED): niente liste obbligatorie
 MANIFEST_FAMILIES = ("unimer", "mavis-geometry", "pixmo-cap")
+# famiglie per compito solo con un manifest che dichiara la politica delle domande (manifest.TASKED_BY_POLICY): i
+# sintetici con synth-v4-candidato-3; con candidato-1 o -2 la lista storica resta obbligatoria
+POLICY_FAMILIES = {"synth": "politica_domande"}
+
+
+def _declares_policy(spec: dict, fam: str | None) -> bool:
+    if fam not in POLICY_FAMILIES or not spec.get("manifest"):
+        return False
+    try:
+        meta = json.loads((Path(spec["manifest"]) / "manifest.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return False  # make_sources si fermerà sul manifest illeggibile; qui resta la regola della lista
+    return bool(meta.get(POLICY_FAMILIES[fam]))
 
 
 def family(shards: str) -> str | None:
@@ -40,7 +55,7 @@ def missing_required(specs: list[dict], root: Path = ROOT) -> list[str]:
     errors = []
     for spec in specs:
         fam = family(spec["shards"])
-        if fam in MANIFEST_FAMILIES and spec.get("manifest"):
+        if (fam in MANIFEST_FAMILIES and spec.get("manifest")) or _declares_policy(spec, fam):
             continue
         have = {Path(p).resolve() for p in spec.get("exclude", [])}
         for req in REQUIRED.get(fam, ()):

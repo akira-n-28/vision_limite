@@ -11,7 +11,8 @@ Con un manifest delle ammissioni (limite_vl.manifest, S1; campi `manifest` e `sp
 solo i record `ammesso` dello split richiesto, e la validazione è lo split dev del manifest. Gli shard di
 manifest.MANIFEST_REQUIRED si leggono solo così. Ogni record consegnato deve avere gli sha256 di JSON e PNG del
 manifest, controllati sui byte dello shard prima di ogni trasformazione: uno diverso è un errore contato dal reader
-(`errori_manifest`), mai un passaggio silenzioso. Per UniMER, MAVIS e PixMo-Cap (manifest.TASKED) il manifest va anche
+(`errori_manifest`), mai un passaggio silenzioso. Per UniMER, MAVIS e PixMo-Cap (manifest.TASKED), e per i sintetici
+con un manifest che dichiara la politica delle domande (manifest.TASKED_BY_POLICY, S2 §2.14), il manifest va anche
 identificato (`manifest_sha256`), l'ammissione vale per record e compito, esclusioni e rietichettature vengono solo dal
 manifest e il reader allega al campione la decisione del record (manifest.ADMISSION_FILE), che stream, validazione e
 prompt di generazione usano allo stesso modo. I contatori dei reader (letti, saltati per il manifest con il motivo o

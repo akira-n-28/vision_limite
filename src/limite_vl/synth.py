@@ -19,6 +19,13 @@ Versioni del generatore (`version`; campo `generator_version` della specifica, a
 - 4 (docs/specs/S2_AMMISSIONE_PRIME_FAMIGLIE.md §2): le intersezioni si contano nel dominio disegnato
   (`visible_bound`), le domande di classificazione mostrano le opzioni o chiedono la classe più specifica, le shapes
   non hanno figure sovrapposte. Le scene e le domande degli altri tipi restano quelle di v3.
+- 5 (S2 §2.14), solo esplicita: GENERATOR_VERSION resta 4 e v3 e v4 non cambiano. Nei function i nomi dei grafici si
+  estraggono dopo la geometria, con un generatore a parte, da FUNCTION_NAMES, lo stesso vocabolario delle domande sui
+  grafici assenti: in v3 e v4 i presenti erano sempre f e g e gli assenti h, p, q, e il nome dava la risposta di
+  exists. Una sola domanda exists per scena (sì o no con probabilità 1/2), marcata `da_sola`: il loader la mette in un
+  esempio senza altre domande (data.pick_synth_questions), perché un'altra domanda che nomina un grafico ne rivelerebbe
+  la presenza; la domanda sulle intersezioni nomina i due grafici disegnati. Geometria, stile e altre domande sono
+  quelle di v4 per la stessa chiave; le altre famiglie sono quelle di v4.
 `render(spec, layout=True)` restituisce anche gli oggetti disegnati, per le verifiche di limite_vl.synth_check.
 """
 from __future__ import annotations
@@ -32,8 +39,10 @@ from copy import deepcopy
 FAMILIES = ("coord", "polygon", "function", "shapes")
 LETTERS = "ABCDEFGHKLMNPQRSTUVW"  # senza I, J, O (origine), X, Y, Z
 YES_NO = ["yes", "no"]
-VERSIONS = (3, 4)
-GENERATOR_VERSION = 4
+VERSIONS = (3, 4, 5)
+GENERATOR_VERSION = 4  # v5 si chiede in modo esplicito (make_spec(..., version=5)): il default non cambia
+FUNCTION_NAMES = ("f", "g", "h", "p", "q")  # da v5: nomi dei grafici presenti e di quelli chiesti come assenti
+SOLO_FIELD = "da_sola"  # da v5: campo di una QA da mettere in un esempio senza altre domande
 SHAPE_GAP = 0.2  # da v4: distanza minima fra i riquadri di due figure delle shapes, in unità del disegno
 SHAPES_EXTENT = 9.0  # lato del quadrato di assi delle shapes, in unità del disegno (come in v3)
 
@@ -530,11 +539,22 @@ def _function_qa(spec: dict, rng: random.Random, version: int) -> list[dict]:
             if n is not None and _near_miss(*spec["curves"], V):
                 n = None
         if n is not None:
-            out.append(_qa("intersections", "How many times do the graphs of f and g intersect in the figure?",
+            a, b = ("f", "g") if version < 5 else sorted(c["name"] for c in spec["curves"])  # v3, v4: sempre f e g
+            out.append(_qa("intersections", f"How many times do the graphs of {a} and {b} intersect in the figure?",
                            ["0", "1", "2"], str(n)))
     used = {c["name"] for c in spec["curves"]}
-    out.append(_qa("exists", f"Is there a graph labeled {rng.choice(sorted(used))}?", YES_NO, "yes"))
-    out.append(_qa("exists", f"Is there a graph labeled {rng.choice([n for n in 'hpq' if n not in used])}?", YES_NO, "no"))
+    if version < 5:  # v3, v4: sì per f o g, no per h, p o q (scorciatoia testuale, S2 §2.14)
+        out.append(_qa("exists", f"Is there a graph labeled {rng.choice(sorted(used))}?", YES_NO, "yes"))
+        out.append(_qa("exists", f"Is there a graph labeled {rng.choice([n for n in 'hpq' if n not in used])}?",
+                       YES_NO, "no"))
+        return out
+    # v5: una sola domanda, sì o no con probabilità 1/2; l'etichetta viene dallo stesso vocabolario in entrambi i casi
+    if rng.random() < 0.5:
+        q = _qa("exists", f"Is there a graph labeled {rng.choice(sorted(used))}?", YES_NO, "yes")
+    else:
+        q = _qa("exists", f"Is there a graph labeled {rng.choice([n for n in FUNCTION_NAMES if n not in used])}?",
+                YES_NO, "no")
+    out.append({**q, SOLO_FIELD: True})
     return out
 
 
@@ -664,10 +684,18 @@ def _place_mark(spec: dict, rng: random.Random) -> None:
         spec["m"] = None
 
 
+def _name_curves(spec: dict, rng: random.Random) -> None:
+    """Da v5: i nomi dei grafici, estratti senza ripetizioni da FUNCTION_NAMES con un generatore a parte, dopo la
+    geometria (che li usava solo come segnaposto f e g): le posizioni delle etichette non dipendono dal nome."""
+    for c, name in zip(spec["curves"], rng.sample(FUNCTION_NAMES, len(spec["curves"]))):
+        c["name"] = name
+
+
 def make_spec(key: str, family: str | None = None, version: int = GENERATOR_VERSION) -> dict:
     """Specifica della scena. Con version=3 è quella degli shard v3. Da v4 le shapes con due figure troppo vicine o con
     una figura che esce dagli assi si estraggono di nuovo dallo stesso generatore, e nei polygon il punto segnato
-    lascia i lati con la misura scritta (_place_mark): le altre scene, e il resto di queste, restano quelle di v3."""
+    lascia i lati con la misura scritta (_place_mark): le altre scene, e il resto di queste, restano quelle di v3. Da v5
+    i grafici dei function hanno i nomi di _name_curves; il resto della scena è quello di v4."""
     if version not in VERSIONS:
         raise ValueError(f"versione del generatore {version!r}: attesa una di {VERSIONS}")
     rng = rng_for(key)
@@ -678,6 +706,8 @@ def make_spec(key: str, family: str | None = None, version: int = GENERATOR_VERS
             spec = SPECS[family](rng)
     if version >= 4 and family == "polygon":
         _place_mark(spec, rng_for(key + "/m"))
+    if version >= 5 and family == "function":
+        _name_curves(spec, rng_for(key + "/names"))
     spec["key"] = key
     if version >= 4:
         spec["generator_version"] = version

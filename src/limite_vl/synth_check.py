@@ -501,6 +501,11 @@ def _function(q: dict, layout: dict, spec: dict) -> tuple[str, str | None, str]:
     if t == "intersections":
         if len(curves) != 2:
             return "non_verificabile", None, "servono due grafici"
+        # la domanda deve nominare i due grafici disegnati (da v5 i nomi non sono più sempre f e g)
+        m = re.search(r"graphs of (\w+) and (\w+) intersect", text)
+        drawn = {it["text"] for it in _by_prefix(layout, "curve_label:")}
+        if not m or {m.group(1), m.group(2)} != set(curves) or drawn != set(curves):
+            return "non_verificabile", None, "la domanda non nomina i due grafici disegnati"
         count, why = visible_intersections(*curves.values(), items)
         if why:
             return "non_ammissibile", None if count is None else str(count), "; ".join(why)

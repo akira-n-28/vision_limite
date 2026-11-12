@@ -17,6 +17,10 @@ il candidato dei sintetici v4 (S1 §9). Solo libreria standard.
   allega al campione la decisione del record (`ADMISSION_FILE`), che il loader applica prima di scegliere il compito. Le
   rietichettature vengono dalla lista registrata nel manifest (`Manifest.relabels`). "Ammesso" è la decisione operativa
   del candidato: non è gold e non certifica le risposte (per PixMo nemmeno la fedeltà delle didascalie ai pixel).
+- Ammissione per compito dichiarata (`TASKED_BY_POLICY`, S2 §2.14): un manifest dei sintetici con `politica_domande`
+  registra per ogni record i compiti famiglia/tipo con il loro stato (function/exists escluso da synth-v4-candidato-3);
+  il tipo synth_qa legge allora train, test e coppie come una sorgente TASKED. Senza politica (candidato-1 e -2) resta
+  l'ammissione per record.
 
 Fuori da questo sottoinsieme (S1 §9): `variant_id` e `uid`, che dipendono dal contratto di risposta (S3, D3); hash dei
 token di input e di target; indice globale fra sorgenti (S1 §4) e import delle esclusioni storiche (S1 §5).
@@ -51,6 +55,13 @@ TASKED = {
     "mavis-geometry": {"mavis_f1": ("train", None)},
     "pixmo-cap": {"pixmo_caption": ("train", "pixmo_caption")},
 }
+# Ammissione per compito dichiarata dal manifest (campo POLICY_FIELD, S2 §2.14): come TASKED, ma vale solo per i
+# manifest della sorgente che la dichiarano; l'insieme può essere una tupla. I sintetici v4 hanno un compito per famiglia
+# e tipo di domanda (data.synth_task, es. function/exists) e il tipo synth_qa legge train, test e coppie. Un manifest dei
+# sintetici senza politica (synth-v4-candidato-1 e -2) si legge per record, come prima.
+TASKED_BY_POLICY = {"synth": {"synth_qa": (("train", "test", "coppie"), None)}}
+POLICY_FIELD = "politica_domande"
+POLICY_VERSIONS = {"synth": ("synth-domande/1",)}
 # File aggiunto dal reader ai file di un campione di una sorgente TASKED: la decisione del manifest per il record (JSON
 # canonico). Non è un file dello shard.
 ADMISSION_FILE = "ammissione"
@@ -274,8 +285,19 @@ class Admission:
                 "decisione": "ammesso = decisione operativa del manifest candidato, non gold: non certifica le risposte"}
 
 
-def _family(kind: str) -> str | None:
-    return next((src for src, kinds in TASKED.items() if kind in kinds), None)
+def tasked_table(meta: dict) -> dict:
+    """Le sorgenti con ammissione per compito per un manifest: TASKED, più la sua sorgente se il manifest dichiara la
+    politica delle domande (TASKED_BY_POLICY). Una politica di una sorgente o di una versione sconosciuta è un errore."""
+    policy, source = meta.get(POLICY_FIELD), meta.get("sorgente")
+    if not policy:
+        return TASKED
+    if source not in TASKED_BY_POLICY or policy.get("versione") not in POLICY_VERSIONS.get(source, ()):
+        raise ManifestError(f"politica delle domande {policy.get('versione')!r} non prevista per la sorgente {source!r}")
+    return {**TASKED, source: TASKED_BY_POLICY[source]}
+
+
+def _family(kind: str, table: dict = TASKED) -> str | None:
+    return next((src for src, kinds in table.items() if kind in kinds), None)
 
 
 @dataclass
@@ -290,12 +312,14 @@ class Manifest:
     def tasked_source(self, kind: str) -> str | None:
         """Sorgente TASKED del tipo di loader, se c'è. Errore se tipo e sorgente del manifest non vanno insieme: un tipo
         di UniMER o di MAVIS vuole il manifest della sua sorgente, e un manifest di UniMER o di MAVIS si legge solo coi
-        tipi i cui compiti registra."""
-        by_kind, mine = _family(kind), self.meta.get("sorgente")
-        by_meta = mine if mine in TASKED else None
+        tipi i cui compiti registra. Un manifest dei sintetici è per compito solo se dichiara la politica delle domande
+        (tasked_table)."""
+        table = tasked_table(self.meta)
+        by_kind, mine = _family(kind, table), self.meta.get("sorgente")
+        by_meta = mine if mine in table else None
         if by_kind != by_meta:
             raise ManifestError(f"{self.folder}: il tipo di loader {kind!r} non legge il manifest della sorgente "
-                                f"{mine!r} (tipi ammessi: {sorted(TASKED.get(mine, {}))})")
+                                f"{mine!r} (tipi ammessi: {sorted(table.get(mine, {}))})")
         return by_kind
 
     def _verify_shards(self, items: list[tuple[Path, dict]]) -> None:
@@ -337,21 +361,24 @@ class Manifest:
         bloccati per record."""
         if split not in SPLITS:
             raise ManifestError(f"split {split!r}: atteso uno di {SPLITS}")
-        if kind is None and self.meta.get("sorgente") in TASKED:
+        table = tasked_table(self.meta)
+        if kind is None and self.meta.get("sorgente") in table:
             raise ManifestError(f"{self.folder}: manifest con ammissione per compito, serve il tipo di loader")
         source = self.tasked_source(kind) if kind is not None else None
-        insieme, task = TASKED[source][kind] if source else (None, None)
+        insieme, task = table[source][kind] if source else (None, None)
+        insiemi = insieme if isinstance(insieme, tuple) else (insieme,)
         known = {str(shard_path(s["percorso"])): s for s in self.meta["shards"]}
         unknown = [p for p in shards if str(Path(p).resolve()) not in known]
         if unknown:
             raise ManifestError(f"{self.folder}: shard non registrati nel manifest: {unknown[:3]}")
         items = [(Path(p).resolve(), known[str(Path(p).resolve())]) for p in shards]
         if source:
-            wrong = [s["nome"] for _, s in items if s.get("insieme") != insieme]
+            wrong = [s["nome"] for _, s in items if s.get("insieme") not in insiemi]
             if wrong:
                 raise ManifestError(f"{self.folder}: il tipo {kind} legge l'insieme {insieme!r}, gli shard {wrong[:3]} "
                                     "sono di un altro insieme")
-            self._check_revision([p for p, _ in items])
+            if source in TASKED:  # i sintetici si generano qui: la loro identità è lo sha256 degli shard registrati
+                self._check_revision([p for p, _ in items])
         self._verify_shards(items)
         entries: dict[str, tuple] = {}
         expected: Counter = Counter()
@@ -365,10 +392,12 @@ class Manifest:
                 split_r, state = sys.intern(r["split"]), sys.intern(r["stato"])
                 admitted, blocked, extra = (), (), None
                 if source:
-                    if r.get("insieme") != insieme:
+                    if r.get("insieme") not in insiemi:
                         raise ManifestError(f"{key}: record dell'insieme {r.get('insieme')!r}, il tipo {kind} legge "
                                             f"{insieme!r}")
                     admitted, blocked, extra = _record_tasks(key, r, task, expected_tasks)
+                    if source in TASKED_BY_POLICY:  # il loader lega i compiti alla famiglia del JSON
+                        extra = {**(extra or {}), "famiglia": r["famiglia"]}
                     admitted = shared.setdefault(admitted, admitted)
                     blocked = shared.setdefault(blocked, blocked)
                 entries[key] = (split_r, state, r["json_sha256"], images[0].get("sha256"), admitted, blocked, extra)

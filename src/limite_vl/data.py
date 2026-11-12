@@ -11,7 +11,9 @@ fra i compiti ammessi e, per una formula rietichettata, l'etichetta nuova regist
 domande solo fra quelli ammessi (shape_type no), dopo aver legato il pool delle domande e la descrizione ai digest del
 manifest; pixmo_caption vuole il compito ammesso e la didascalia col digest del record, senza cambiarla. Il Sample dice
 i compiti svolti e le domande bloccate. Senza la decisione il loader fa come prima: gli shard di UniMER, MAVIS e PixMo
-però si leggono solo col manifest (manifest.MANIFEST_REQUIRED).
+però si leggono solo col manifest (manifest.MANIFEST_REQUIRED). synth_qa, con un manifest dei sintetici che dichiara la
+politica delle domande (manifest.TASKED_BY_POLICY, S2 §2.14), toglie dal pool le domande dei compiti esclusi
+(function/exists) prima della scelta; con synth-v4-candidato-1 e -2 sceglie fra tutte, come prima.
 """
 from __future__ import annotations
 
@@ -362,10 +364,63 @@ def unimer_line_select_sample(key: str, files: dict[str, bytes]) -> Sample:
     return Sample(messages, open_image(files["png"]), meta["max_patches"], tasks=("transcribe_line_select",))
 
 
+SYNTH_QA_FIELDS = ("type", "q", "options", "answer")  # campi del digest di una QA dei sintetici (manifest.qa_digest)
+
+
+def synth_task(family: str, qtype: str) -> str:
+    """Compito di una QA dei sintetici per l'ammissione per compito: famiglia e tipo (es. function/exists)."""
+    return f"{family}/{qtype}"
+
+
+def pick_synth_questions(key: str, items: list[dict]) -> list[dict]:
+    """f1c.pick_questions con le domande da sole (campo synth.SOLO_FIELD, v5): stessa estrazione dalla chiave; una
+    domanda da sola entra solo quando la scelta è di una domanda, altrimenti si scelgono le altre. Senza domande da sole
+    (v3, v4) il risultato è quello di pick_questions."""
+    from .f1c import key_rng, pick_questions
+    from .synth import SOLO_FIELD
+
+    if not any(q.get(SOLO_FIELD) for q in items):
+        return pick_questions(key, items)
+    rng = key_rng(key + "/pick")  # le stesse estrazioni di pick_questions
+    k = min(len(items), rng.choice([1, 2, 3, 3, 4, 5]))
+    rest = [q for q in items if not q.get(SOLO_FIELD)]
+    if k == 1 or not rest:
+        return rng.sample(items if k == 1 else [q for q in items if q.get(SOLO_FIELD)], 1)
+    return rng.sample(rest, min(k, len(rest)))
+
+
 def synth_qa_sample(key: str, files: dict[str, bytes]) -> Sample:
-    """Diagramma sintetico (scripts/synth_render.py): da 1 a 5 domande con risposta esatta per costruzione."""
+    """Diagramma sintetico (scripts/synth_render.py): da 1 a 5 domande con risposta esatta per costruzione.
+
+    Senza la decisione del manifest (synth-v4-candidato-1 e -2, che ammettono per record) le domande si scelgono fra
+    tutte quelle del record, come prima. Con la decisione (manifest con politica_domande, S2 §2.14): il pool del record
+    (le QA e, per una coppia, la sua domanda) deve avere i digest registrati; le domande dei compiti non ammessi
+    (synth_task, es. function/exists) si tolgono prima della scelta, che resta deterministica per chiave sul pool
+    filtrato; senza domande ammesse, NoAdmittedTask, senza ripiegare su quelle bloccate."""
+    from .f1c import qa_messages
+
     meta = json.loads(files["json"])
-    return _qa_sample(key, meta["qa"], open_image(files["png"]), meta["max_patches"])
+    adm = admission_of(files)
+    if adm is None:
+        picked, tasks, blocked = pick_synth_questions(key, meta["qa"]), (), None
+    else:
+        pool = list(meta["qa"]) + ([meta["pair"]] if "pair" in meta else [])
+        if qa_list_sha256((q["type"], qa_item_sha256(q, SYNTH_QA_FIELDS)) for q in pool) != adm.get("qa_sha256"):
+            raise ManifestError(f"{key}: domande diverse da quelle registrate nel manifest")
+        if adm.get("famiglia") != meta.get("family"):
+            raise ManifestError(f"{key}: famiglia {meta.get('family')!r}, il manifest registra {adm.get('famiglia')!r}")
+        allowed = set(adm["compiti_ammessi"])
+        names = [synth_task(meta["family"], q["type"]) for q in pool]
+        usable = [q for q, t in zip(pool, names) if t in allowed]
+        if not usable:
+            raise NoAdmittedTask(f"{key}: nessuna domanda di un compito ammesso (ammessi {sorted(allowed)})")
+        picked = pick_synth_questions(key, usable)
+        tasks = tuple(synth_task(meta["family"], q["type"]) for q in picked)
+        blocked = dict(Counter(t for t in names if t not in allowed))
+    prompt, answer = qa_messages(picked)
+    messages = [{"role": "user", "content": [{"type": "image"}, {"type": "text", "text": prompt}]},
+                {"role": "assistant", "content": answer, "prefill": F1_PREFILL}]
+    return Sample(messages, open_image(files["png"]), meta["max_patches"], tasks=tasks, blocked=blocked)
 
 
 def f2_solution_sample(key: str, files: dict[str, bytes]) -> Sample:

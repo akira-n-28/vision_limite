@@ -25,6 +25,12 @@ Solo in un job SLURM CPU; manifest e shard in sola lettura, scrive solo nella ca
    devono comparire in altri split. Le domande costruite (f1c.pick_questions, come data.synth_qa_sample) hanno gli
    stessi digest e gli stessi conteggi per famiglia e compito attesi dal manifest. validation_samples restituisce lo
    split dev. Un breve MixedRowStream col processor di Violetto consegna solo chiavi di train e conta gli esempi.
+   Con la politica delle domande (politica_domande, synth-v4-candidato-3; S2 §2.14) la sorgente è per compito: la
+   scelta attesa è sul pool dei soli compiti ammessi, e ogni campione si costruisce col loader reale
+   (data.synth_qa_sample sulla decisione allegata dal reader): prompt e target uguali alla scelta attesa, nessuna domanda
+   di un compito escluso nel prompt, nessun yes/no nei target dei function, domande tolte e compiti bloccati uguali a
+   quelli del manifest. Una versione dalla revisione (`revisione_umana`) riammette solo i record della proposta, con la sua
+   evidenza (synth_qa_policy.review_checks); i compiti dei record seguono la politica (synth_qa_policy.policy_checks).
 4. Arresti espliciti: manifest mancante, records.jsonl.gz alterato, sha256 di uno shard diverso, gruppo spostato in un
    altro split, record_id alterato, shard v3 col manifest v4, shard v4 senza manifest, split senza record ammessi,
    split sconosciuto, manifest senza split. Ognuno deve dare ManifestError; le copie alterate stanno in una cartella
@@ -37,6 +43,7 @@ Uscite: --out/report.json con esiti e conteggi; il job esce con errore se un con
 from __future__ import annotations
 
 import argparse
+import glob
 import gzip
 import hashlib
 import json
@@ -113,14 +120,36 @@ def _same_identity(records: list[dict], other: list[dict]) -> bool:
         r["record"] in old and all(r[f] == old[r["record"]][f] for f in IDENTITY) for r in records)
 
 
+REVIEW_FIELD = "revisione_umana"  # synth_qa_policy.REVIEW_FIELD; "revisione" del meta è la revisione della sorgente
+
+
+def justified(meta: dict, r: dict) -> bool:
+    """Un record che passa a uno stato meno grave in una versione derivata dalla revisione (meta[REVIEW_FIELD]): la sua
+    ultima evidenza è quella della revisione dichiarata, con lo stato nuovo (S2 §2.14)."""
+    rev = meta.get(REVIEW_FIELD)
+    last = (r.get("evidenze") or [{}])[-1]
+    return isinstance(rev, dict) and last.get("controllo") == rev.get("controllo") and last.get("stato") == r["stato"]
+
+
 def parent_checks(meta: dict, records: list[dict], parent_records: list[dict], check=check) -> None:
-    """Verifiche rispetto al genitore immediato di una versione derivata."""
+    """Verifiche rispetto al genitore immediato di una versione derivata. Una versione dalla revisione (meta[REVIEW_FIELD],
+    synth-v4-candidato-3) può riammettere solo i record della proposta, con la sua evidenza (synth_qa_policy.review_checks);
+    le altre non migliorano nessuno stato."""
     old = {r["record"]: r for r in parent_records}
     check("genitore immediato: stessi record, gruppi, insiemi, split e posizioni", _same_identity(records, parent_records))
     better = [r["record"] for r in records if r["record"] in old
               and SEVERITY[r["stato"]] < SEVERITY[old[r["record"]]["stato"]]]
-    check("genitore immediato: nessun record torna ammesso o passa a uno stato meno grave", not better,
-          {"casi": len(better), "esempi": better[:3]})
+    if isinstance(meta.get(REVIEW_FIELD), dict):
+        import synth_qa_policy as sqp
+
+        sqp.review_checks(meta, records, parent_records, check)
+    else:
+        check("genitore immediato: nessun record torna ammesso o passa a uno stato meno grave", not better,
+              {"casi": len(better), "esempi": better[:3]})
+    if meta.get(mf.POLICY_FIELD):
+        import synth_qa_policy as sqp
+
+        sqp.policy_checks(meta, records, check)
     if not meta.get("decontaminazione"):
         return
     import synth_decontam as sd
@@ -193,12 +222,21 @@ def verify_splits(m: mf.Manifest, records: list[dict], check=check) -> dict:
               all(x == rules[-1] for x in rules))
         check("assegnazione originale: stessi record, gruppi, insiemi, split e posizioni in ogni versione della catena",
               all(_same_identity(records, all_records(c)) for c in chain[1:]))
-        worse = 0
+        worse, allowed = 0, 0
         for child, parent in zip(chain, chain[1:]):
             old = {r["record"]: r["stato"] for r in all_records(parent)}
-            worse += sum(SEVERITY[r["stato"]] < SEVERITY[old[r["record"]]] for r in all_records(child)
-                         if r["record"] in old)
-        check("catena: nessuna versione migliora lo stato di un record della precedente", worse == 0, worse)
+            for r in all_records(child):
+                if r["record"] in old and SEVERITY[r["stato"]] < SEVERITY[old[r["record"]]]:
+                    if justified(child.meta, r):
+                        allowed += 1
+                    else:
+                        worse += 1
+        if any(isinstance(c.meta.get(REVIEW_FIELD), dict) for c in chain):
+            check("catena: nessuna versione migliora lo stato di un record della precedente, salvo le riammissioni con "
+                  "l'evidenza della revisione dichiarata dalla versione", worse == 0,
+                  {"non_giustificati": worse, "riammissioni_della_revisione": allowed})
+        else:
+            check("catena: nessuna versione migliora lo stato di un record della precedente", worse == 0, worse)
     base_group: dict[str, list[dict]] = defaultdict(list)
     for r in base:
         base_group[r["gruppo"]].append(r)
@@ -225,26 +263,51 @@ def verify_splits(m: mf.Manifest, records: list[dict], check=check) -> dict:
     return {**lineage, "dev": dev_info}
 
 
-def specs(manifest: Path, shards: Path) -> dict[str, dict]:
+def specs(manifest: Path, shards: Path, sha: str | None = None) -> dict[str, dict]:
     train = str(shards / "train" / "*.tar")
-    return {"train": {"name": "synth-train", "kind": "synth_qa", "shards": train, "weight": 1.0,
-                      "manifest": str(manifest), "split": "train"},
-            "dev": {"name": "synth-dev", "kind": "synth_qa", "shards": train, "weight": 1.0,
-                    "manifest": str(manifest), "split": "dev"},
+    ident = {"manifest": str(manifest), **({"manifest_sha256": sha} if sha else {})}
+    return {"train": {"name": "synth-train", "kind": "synth_qa", "shards": train, "weight": 1.0, **ident,
+                      "split": "train"},
+            "dev": {"name": "synth-dev", "kind": "synth_qa", "shards": train, "weight": 1.0, **ident, "split": "dev"},
             "test": {"name": "synth-test", "kind": "synth_qa", "shards": str(shards / "test" / "*.tar"), "weight": 1.0,
-                     "manifest": str(manifest), "split": "test"},
+                     **ident, "split": "test"},
             "coppie": {"name": "synth-coppie", "kind": "synth_qa", "shards": str(shards / "pairs" / "*.tar"),
-                       "weight": 1.0, "manifest": str(manifest), "split": "test"}}
+                       "weight": 1.0, **ident, "split": "test"}}
+
+
+REC: dict[str, dict] = {}  # chiave -> record del manifest, ereditato dai processi del pool (manifest con politica)
+
+
+def expected_items(r: dict, items: list) -> list:
+    """Le voci (QA del JSON o {tipo, sha256} del manifest) che il loader può scegliere: tutte per un manifest senza
+    politica, solo quelle dei compiti ammessi per un manifest con politica_domande (S2 §2.14)."""
+    if "compiti" not in r:
+        return list(items)
+    states = {c["compito"]: c["stato"] for c in r["compiti"]}
+    return [q for q in items if states.get(f"{r['famiglia']}/{q.get('type', q.get('tipo'))}") == "ammesso"]
 
 
 def read_epoch(task: tuple[str, int, int]) -> dict:
-    """Un'epoca di un worker di SourceReader: chiavi consegnate, contatori del reader, QA costruite."""
+    """Un'epoca di un worker di SourceReader: chiavi consegnate, contatori del reader, QA costruite. Con un manifest con
+    politica delle domande il campione si costruisce col loader reale (data.synth_qa_sample, decisione allegata dal
+    reader) e si confronta con la scelta attesa, calcolata qui dal pool del JSON filtrato coi compiti del manifest:
+    prompt e target uguali, nessuna domanda di un compito escluso nel prompt."""
+    import io
+
+    from PIL import Image
+
+    import limite_vl.data as data_mod
+    from limite_vl.data import synth_qa_sample
+    from limite_vl.f1c import qa_messages
     from limite_vl.stream import SourceReader
 
+    # nel worker l'immagine si apre senza decodificare i pixel: qui si verificano le domande; prompt e target sono
+    # quelli del loader, e il MixedRowStream finale costruisce esempi veri con le immagini
+    data_mod.open_image = lambda raw: Image.open(io.BytesIO(raw))
     name, worker, n_workers = task
     source = SOURCES[name]
     reader = SourceReader(source, seed=0, worker=worker, n_workers=n_workers, val_count=0)
-    keys, picked = [], {}
+    keys, picked, built = [], {}, Counter()
     digests = mf.Digests()
     while True:
         key, files = reader.next()
@@ -253,11 +316,30 @@ def read_epoch(task: tuple[str, int, int]) -> dict:
         keys.append(key)
         meta = json.loads(files["json"])
         items = list(meta["qa"]) if meta["qa"] else [meta["pair"]]
-        picked[key] = [[q["type"], mf.qa_digest(digests, q)] for q in pick_questions(key, items)]
+        if source.admission.tasked:
+            r = REC[key]
+            usable = expected_items(r, items)
+            exp = pick_questions(key, usable) if usable else []
+            sample = synth_qa_sample(key, files)
+            prompt, answer = sample.messages[0]["content"][1]["text"], sample.messages[1]["content"]
+            built["campioni"] += 1
+            built["prompt_e_target_uguali_alla_scelta_attesa"] += (prompt, answer) == qa_messages(exp)
+            leaked = [q for q in items if q not in usable and q["q"] in prompt]
+            built["domande_escluse_nel_prompt"] += len(leaked)
+            if meta["family"] == "function":  # nei function solo exists ha le risposte yes e no
+                built["risposte_yes_no_nei_target_function"] += sum(
+                    line.split(". ", 1)[-1] in ("yes", "no") for line in answer.split("\n"))
+            built["domande_tolte_prima_della_scelta"] += len(items) - len(usable)
+            built.update(f"compito_costruito/{t}" for t in sample.tasks)
+            built.update({f"compito_bloccato/{t}": n for t, n in (sample.blocked or {}).items()})
+            picked[key] = [[q["type"], mf.qa_digest(digests, q)] for q in exp]
+        else:
+            picked[key] = [[q["type"], mf.qa_digest(digests, q)] for q in pick_questions(key, items)]
         problem = source.admission.check(key, files)
         if problem:
             picked[key].append(["problema", problem])
-    return {"name": name, "worker": worker, "keys": keys, "picked": picked, "counts": dict(reader.counts)}
+    return {"name": name, "worker": worker, "keys": keys, "picked": picked, "counts": dict(reader.counts),
+            "costruiti": dict(built)}
 
 
 def expect_error(name: str, fn) -> None:
@@ -294,6 +376,7 @@ def main() -> None:
     ap.add_argument("--out", required=True, type=Path)
     ap.add_argument("--workers", type=int, default=2, help="worker di SourceReader per ogni sorgente")
     ap.add_argument("--stream-batches", type=int, default=30)
+    ap.add_argument("--config", type=Path, help="config di collaudo con le sorgenti (config/runs/f0-c7-reader-synth.json)")
     args = ap.parse_args()
     if not os.environ.get("SLURM_JOB_ID"):
         sys.exit("manifest_check.py va eseguito in un job SLURM")
@@ -306,6 +389,7 @@ def main() -> None:
     m = mf.load(args.manifest)
     meta = m.meta
     records = [r for shard in m.by_shard.values() for r in shard.values()]
+    policy = bool(meta.get(mf.POLICY_FIELD))
     check("manifest letto e verificato (sha256 dei record, record_id, un solo split per gruppo, conteggi per shard)",
           len(records) == meta["records"]["righe"], len(records))
     disk = [(s["nome"], sha256_file(mf.shard_path(s["percorso"])) == s["sha256"]) for s in meta["shards"]]
@@ -316,6 +400,11 @@ def main() -> None:
         "test": sorted(r["record"] for r in records if r["insieme"] == "test" and r["stato"] == "ammesso"),
         "coppie": sorted(r["record"] for r in records if r["insieme"] == "coppie" and r["stato"] == "ammesso"),
         "non_ammessi": sorted(r["record"] for r in records if r["stato"] != "ammesso")}
+    rec_by_key = {r["record"]: r for r in records}
+    # con la politica il reader salta anche i record ammessi senza domande di compiti ammessi (nessun_compito_ammesso)
+    without_tasks = sorted(k for k in expected_keys["train"] + expected_keys["dev"] + expected_keys["test"]
+                           + expected_keys["coppie"] if policy and not expected_items(rec_by_key[k], rec_by_key[k]["qa"]))
+    readable = {name: [k for k in ks if k not in set(without_tasks)] for name, ks in expected_keys.items()}
     derived_ok = []
     for name, ks in expected_keys.items():
         entry = meta["derivati"][f"keys/{name}.txt"]
@@ -367,38 +456,64 @@ def main() -> None:
     # ---- 3. loader
     from limite_vl.stream import MixedRowStream, make_sources, validation_samples  # importa torch: solo qui
 
-    sp = specs(args.manifest, args.shards)
+    sp = specs(args.manifest, args.shards, m.manifest_sha256)
+    if args.config:  # le sorgenti della config di collaudo: stesse di specs(), col manifest identificato
+        cfg = json.loads(args.config.read_text(encoding="utf-8"))
+        by_name = {s["name"]: s for s in cfg["sources"]}
+        same = sorted(by_name) == sorted(s["name"] for s in sp.values()) and all(
+            Path(by_name[s["name"]]["manifest"]).resolve() == Path(s["manifest"]).resolve()
+            and by_name[s["name"]].get("manifest_sha256") == m.manifest_sha256
+            and by_name[s["name"]]["split"] == s["split"] and by_name[s["name"]]["kind"] == s["kind"]
+            and sorted(glob.glob(str(ROOT / by_name[s["name"]]["shards"]))) == sorted(glob.glob(s["shards"]))
+            for s in sp.values())
+        check(f"config di collaudo {args.config.name}: le quattro sorgenti del manifest, identificato dal suo sha256",
+              same, sorted(by_name))
+        if same:
+            sp = {k: {**by_name[s["name"]], "shards": str(ROOT / by_name[s["name"]]["shards"]),
+                      "manifest": str(ROOT / by_name[s["name"]]["manifest"])} for k, s in sp.items()}
     sources = make_sources(list(sp.values()))
     for key_name, source in zip(sp, sources):
         SOURCES[key_name] = source
+    if policy:
+        REC.update(rec_by_key)
+    check("tipo synth_qa letto per compito se e solo se il manifest dichiara la politica delle domande",
+          all(s.admission.tasked == policy for s in sources), {"politica": policy})
     with Pool(min(len(SOURCES) * args.workers, int(os.environ.get("SLURM_CPUS_PER_TASK", "1")))) as pool:
         epochs = pool.map(read_epoch, [(n, w, args.workers) for n in SOURCES for w in range(args.workers)])
     loaded: dict[str, list[str]] = defaultdict(list)
     counts: dict[str, Counter] = defaultdict(Counter)
     picked: dict[str, dict] = defaultdict(dict)
+    built: dict[str, Counter] = defaultdict(Counter)
     for e in epochs:
         loaded[e["name"]].extend(e["keys"])
         counts[e["name"]].update(e["counts"])
         picked[e["name"]].update(e["picked"])
-    rec_by_key = {r["record"]: r for r in records}
+        built[e["name"]].update(e["costruiti"])
     group_split = {g: rs[0]["split"] for g, rs in by_group.items()}
     load_report = {}
+    if policy:
+        check("politica delle domande: record ammessi senza domande di compiti ammessi, saltati dal reader",
+              all(counts[n].get("saltati_manifest/nessun_compito_ammesso", 0) == sum(
+                  k in set(expected_keys[n]) for k in without_tasks) for n in SOURCES), len(without_tasks))
     for name in SOURCES:
         ks = loaded[name]
         ok_once = len(ks) == len(set(ks))
-        ok_set = sorted(ks) == expected_keys[name]
+        ok_set = sorted(ks) == readable[name]
         not_admitted = [k for k in ks if rec_by_key[k]["stato"] != "ammesso"]
         wrong_split = [k for k in ks if group_split[rec_by_key[k]["gruppo"]] != sp[name]["split"]]
         problems = [k for k, p in picked[name].items() if p and p[-1][0] == "problema"]
         check(f"{name}: un'epoca con {args.workers} worker consegna esattamente le chiavi ammesse dello split, una volta",
               ok_once and ok_set and not not_admitted and not wrong_split and not problems,
-              {"consegnati": len(ks), "attesi": len(expected_keys[name]), "doppi": len(ks) - len(set(ks)),
+              {"consegnati": len(ks), "attesi": len(readable[name]), "doppi": len(ks) - len(set(ks)),
                "non_ammessi": len(not_admitted), "altro_split": len(wrong_split), "problemi": len(problems)})
         fam_loaded, task_loaded, task_expected, digest_bad = Counter(), Counter(), Counter(), 0
+        removed = 0
         for k in ks:
             r = rec_by_key[k]
             fam_loaded[r["famiglia"]] += 1
-            exp = pick_questions(k, r["qa"])  # la stessa scelta del loader: dipende solo da chiave e numero di QA
+            usable = expected_items(r, r["qa"])  # con la politica, solo i compiti ammessi, prima della scelta
+            removed += len(r["qa"]) - len(usable)
+            exp = pick_questions(k, usable)  # la stessa scelta del loader: dipende solo da chiave e numero di QA
             got = [p for p in picked[name][k] if p[0] != "problema"]
             digest_bad += [[q["tipo"], q["sha256"]] for q in exp] != got
             for q in exp:
@@ -407,7 +522,25 @@ def main() -> None:
                 task_loaded[f"{r['famiglia']}/{t}"] += 1
         check(f"{name}: domande costruite con gli stessi digest delle QA ammesse e gli stessi conteggi per compito",
               not digest_bad and task_loaded == task_expected, digest_bad)
+        if policy:
+            b = built[name]
+            blocked_exp = {f"compito_bloccato/{t}": n for t, n in sorted(Counter(
+                f"{rec_by_key[k]['famiglia']}/{q['tipo']}" for k in ks for q in rec_by_key[k]["qa"]
+                if q not in expected_items(rec_by_key[k], rec_by_key[k]["qa"])).items())}
+            check(f"{name}: col loader reale (data.synth_qa_sample) prompt e target uguali alla scelta attesa sul pool "
+                  "filtrato, per ogni campione", b["campioni"] == len(ks)
+                  and b["prompt_e_target_uguali_alla_scelta_attesa"] == len(ks),
+                  {"campioni": b["campioni"], "uguali": b["prompt_e_target_uguali_alla_scelta_attesa"]})
+            check(f"{name}: nessuna domanda di un compito escluso nei prompt, nessuna risposta yes o no nei target dei "
+                  "function", not b["domande_escluse_nel_prompt"] and not b["risposte_yes_no_nei_target_function"],
+                  {"escluse_nei_prompt": b["domande_escluse_nel_prompt"],
+                   "yes_no_nei_function": b["risposte_yes_no_nei_target_function"]})
+            check(f"{name}: domande tolte prima della scelta e compiti bloccati del loader uguali a quelli attesi dal "
+                  "manifest", b["domande_tolte_prima_della_scelta"] == removed
+                  and {t: n for t, n in b.items() if t.startswith("compito_bloccato/")} == blocked_exp,
+                  {"tolte": b["domande_tolte_prima_della_scelta"], "attese": removed, "bloccati": blocked_exp})
         load_report[name] = {"split": sp[name]["split"], "consegnati": len(ks), "contatori_reader": dict(counts[name]),
+                             "costruiti_col_loader": dict(sorted(built[name].items())),
                              "per_famiglia": dict(sorted(fam_loaded.items())),
                              "domande_costruite_per_famiglia_e_compito": dict(sorted(task_loaded.items())),
                              "atteso_dal_manifest": SOURCES[name].admission.describe()}
@@ -444,20 +577,27 @@ def main() -> None:
             shutil.copytree(args.manifest, dst)
             return dst
 
-        base = dict(sp["train"])
+        base = {k: v for k, v in sp["train"].items() if k != "manifest_sha256"}
+
+        def at(folder: Path, **kw) -> list[dict]:
+            """Sorgente sulla cartella, identificata dallo sha256 del suo manifest.json: l'unico errore è quello voluto."""
+            mj = folder / "manifest.json"
+            return [{**base, "manifest": str(folder), **({"manifest_sha256": sha256_file(mj)} if mj.is_file() else {}),
+                     **kw}]
+
         same = copy("uguale")
-        check("controllo dei casi: la copia non alterata si carica", bool(make_sources([{**base, "manifest": str(same)}])))
-        expect_error("manifest mancante", lambda: make_sources([{**base, "manifest": str(tmp / "inesistente")}]))
+        check("controllo dei casi: la copia non alterata si carica", bool(make_sources(at(same))))
+        expect_error("manifest mancante", lambda: make_sources(at(tmp / "inesistente")))
         broken = copy("records-alterati")
         data = bytearray((broken / "records.jsonl.gz").read_bytes())
         data[len(data) // 2] ^= 0xFF
         (broken / "records.jsonl.gz").write_bytes(bytes(data))
-        expect_error("records.jsonl.gz alterato", lambda: make_sources([{**base, "manifest": str(broken)}]))
+        expect_error("records.jsonl.gz alterato", lambda: make_sources(at(broken)))
         other_sha = copy("sha-shard")
         meta2 = json.loads((other_sha / "manifest.json").read_text())
         meta2["shards"][0]["sha256"] = "0" * 64
         (other_sha / "manifest.json").write_text(json.dumps(meta2, indent=1, ensure_ascii=False))
-        expect_error("sha256 di uno shard diverso", lambda: make_sources([{**base, "manifest": str(other_sha)}]))
+        expect_error("sha256 di uno shard diverso", lambda: make_sources(at(other_sha)))
         moved_dir = copy("gruppo-spostato")
         multi = next(g for g, rs in by_group.items() if len(rs) > 1 and rs[0]["split"] == "train")
 
@@ -466,22 +606,35 @@ def main() -> None:
             target["split"] = "dev"
 
         rewrite_records(moved_dir, move)
-        expect_error("gruppo in due split", lambda: make_sources([{**base, "manifest": str(moved_dir)}]))
+        expect_error("gruppo in due split", lambda: make_sources(at(moved_dir)))
         renamed = copy("record-id")
 
         def rename(rows):
             rows[0]["record"] = rows[0]["record"] + "x"
 
         rewrite_records(renamed, rename)
-        expect_error("record_id non ricalcolabile", lambda: make_sources([{**base, "manifest": str(renamed)}]))
+        expect_error("record_id non ricalcolabile", lambda: make_sources(at(renamed)))
         expect_error("shard v3 col manifest v4", lambda: make_sources(
-            [{**base, "shards": str(args.v3_shards / "train" / "*.tar")}]))
+            at(args.manifest, shards=str(args.v3_shards / "train" / "*.tar"))))
         expect_error("shard v4 senza manifest", lambda: make_sources(
             [{k: v for k, v in base.items() if k not in ("manifest", "split")}]))
         expect_error("split senza record ammessi (test sugli shard di train)", lambda: make_sources(
-            [{**base, "split": "test"}]))
-        expect_error("split sconosciuto", lambda: make_sources([{**base, "split": "val"}]))
-        expect_error("manifest senza split", lambda: make_sources([{k: v for k, v in base.items() if k != "split"}]))
+            at(args.manifest, split="test")))
+        expect_error("split sconosciuto", lambda: make_sources(at(args.manifest, split="val")))
+        expect_error("manifest senza split", lambda: make_sources(
+            [{k: v for k, v in at(args.manifest)[0].items() if k != "split"}]))
+        if policy:  # la politica delle domande rende la sorgente per compito: identificazione e niente liste
+            expect_error("politica delle domande: manifest non identificato (manca manifest_sha256)",
+                         lambda: make_sources([{**base, "manifest": str(args.manifest)}]))
+            listed = tmp / "lista.txt"
+            listed.write_text(expected_keys["train"][0] + "\n")
+            expect_error("politica delle domande: lista exclude nella config",
+                         lambda: make_sources(at(args.manifest, exclude=[str(listed)])))
+            unknown = copy("politica-sconosciuta")
+            meta3 = json.loads((unknown / "manifest.json").read_text())
+            meta3[mf.POLICY_FIELD]["versione"] = "synth-domande/0"
+            (unknown / "manifest.json").write_text(json.dumps(meta3, indent=1, ensure_ascii=False))
+            expect_error("politica delle domande: versione sconosciuta", lambda: make_sources(at(unknown)))
 
     failed = [r["controllo"] for r in RESULTS if not r["esito"]]
     coverage = {}
