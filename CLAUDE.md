@@ -146,8 +146,12 @@ Procedura, contenuto, verifiche e ripartenza su un altro server: [`docs/BACKUP_R
 elenchi generati in `docs/backup/`.
 - **Destinazione.** Generazione `g1-20261112`, backup **selezionato** nel Drive istituzionale, cartella privata
   `LimiteVL-backup/`. È il nucleo: 43 volumi, 138 GiB, più il codice salvato per ultimo (decisione dell'utente del
-  2026-11-13). Il resto è documentato per il recupero in `docs/backup/`; si aggiunge creando e caricando senza
-  `--solo-nucleo` / `nucleo`.
+  2026-11-13). Il resto è documentato per il recupero in `docs/backup/`.
+- **Supplemento.** `s1-20261113` (stessa cartella privata, prefisso `s1-`, dipende da g1): codice e storia Git al
+  commit fissato, esiti MAVIS-C9, `UniMER-Test.zip`. Il percorso incrementale (`piano --precedente`) è rifiutato: un
+  aggiornamento è un supplemento autonomo con `--dipende-da`, ripristinato dopo la base (procedura §§9-10).
+- **Completezza.** Esito e codice d'uscita; un file atteso non archiviato, un inventario con errori, un marcatore di
+  un altro piano o un file non volatile cambiato dopo l'inventario la bloccano (riesame di g1 superato, job 31107).
 - **Caricamento in background.** `GUARD_CGROUP=off`: l'account non ha il "linger" e alla disconnessione systemd
   chiude il suo ambito.
 - **Client.** rclone v1.76.0 in `tools/rclone/`, verificato col job 30939. Remote `lvl-ist`, ambito `drive.file`,

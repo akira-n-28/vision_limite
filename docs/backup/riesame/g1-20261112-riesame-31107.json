@@ -1,0 +1,29 @@
+{
+ "esito": "completo",
+ "problemi": [],
+ "n_problemi": 0,
+ "avvisi_motivati": [
+  "codice-001: runs/ledger.tsv: cambiato dopo l'inventario (file volatile, avviso motivato)"
+ ],
+ "n_avvisi_motivati": 1,
+ "totali": {
+  "esclusioni_dichiarate": 0,
+  "volumi": 44,
+  "volumi_verificati": 44,
+  "parti": 45,
+  "byte_caricati": 130796650042,
+  "byte_dati": 148419106840,
+  "voci_attese": 18383,
+  "voci_archiviate": 18383,
+  "voci_mancanti": 0,
+  "voci_in_piu": 0
+ },
+ "piani": [
+  "/home/prignano/vision_limite/trasferimento/piani/g1-20261112",
+  "/home/prignano/vision_limite/trasferimento/piani/g1-20261112-codice"
+ ],
+ "solo_nucleo": true,
+ "voci_mancanti_elenco": [],
+ "job": "31107",
+ "data": "2026-11-13T16:14:16+0100"
+}

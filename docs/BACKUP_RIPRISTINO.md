@@ -1,10 +1,23 @@
 # Backup e ripristino di Limite-VL
 
 Incarico del 2026-11-12: mettere al sicuro il progetto per un cambio di utente su Lagrange o un trasferimento su un
-altro server, senza toccare la pipeline scientifica. Generazione: **`g1-20261112`**, backup **selezionato**.
+altro server, senza toccare la pipeline scientifica.
+
+Ci sono due generazioni, da ripristinare in quest'ordine:
+- **`g1-20261112`**, il backup **selezionato** (il nucleo);
+- **`s1-20261113`**, un **supplemento autonomo** che dipende da g1. Aggiunge o sostituisce il codice e la storia Git,
+  compresi i risultati della revisione MAVIS-C9, più `UniMER-Test.zip` (§10).
 
 I numeri definitivi stanno negli elenchi generati in [`docs/backup/`](backup/): volumi, byte, hash ed esito delle
 verifiche.
+
+**Correzioni del 2026-11-13**, dopo la revisione dei push fino a `f1aa291`:
+- un file atteso ma non archiviato, un inventario con errori di visita, un marcatore di un altro piano o un file non
+  volatile cambiato dopo l'inventario impediscono di dichiarare un volume pronto o un backup completo;
+- la copertura si calcola dalle voci davvero archiviate;
+- il percorso incrementale (`--precedente`) è rifiutato.
+
+Con queste regole g1 è stato riesaminato (§5): risulta completo.
 
 ## 1. Sintesi
 
@@ -17,7 +30,8 @@ verifiche.
 | Posizione | cartella privata `LimiteVL-backup/g1-20261112/`; unico permesso il proprietario, nessun link |
 | Dimensione | 44 volumi (43 del nucleo più il codice) in 45 file; 138,2 GiB di dati (18.383 voci), 121,8 GiB caricati perché i testi sono compressi; esclusi 404,2 GiB, documentati per il recupero (§7) |
 | Esito | completezza senza problemi (job 31104, 2026-11-13): 18.383 voci attese, 18.383 nei volumi; ogni parte e ogni indice con dimensione, md5 e sha256 di Drive uguali a quelli del job; ripristini di prova superati (job 30947, 31101, 31102) |
-| Stato del progetto | dati all'inventario 30943 (commit `f10413d`), invariati all'inventario 30972 del 2026-11-13; volume del codice dall'inventario 31097 (commit `674e3cd` e ledger); i commit successivi (rapporti del backup e risultati della revisione MAVIS-C9 arrivati dal portatile, `d24560a`) sono solo su GitHub, da includere col prossimo aggiornamento (§10) |
+| Stato del progetto in g1 | dati all'inventario 30943 (commit `f10413d`), invariati all'inventario 30972 del 2026-11-13; volume del codice dall'inventario 31097 (commit `674e3cd` e ledger) |
+| Supplemento | `s1-20261113` nella cartella privata `LimiteVL-backup/s1-20261113/`: codice e storia Git al commit dichiarato in [`backup/s1-20261113-stato.json`](backup/s1-20261113-stato.json), risultati MAVIS-C9 compresi, e `UniMER-Test.zip` (§10) |
 
 ## 2. Contenuto
 
@@ -83,8 +97,9 @@ Non ci sono hard link verso l'esterno, worktree, alternates o submodule. L'elenc
   - `LEGGIMI/`, con questo documento e `docs/backup/`.
 
   Fuori da quella cartella restano le prove: `LimiteVL-prova-client-condiviso/` e `LimiteVL-backup/prove/`.
-- **Aggiunte future.** Il piano contiene anche le categorie escluse, con le stesse firme. Per aggiungerle più tardi
-  basta creare e caricare senza `--solo-nucleo` / `nucleo`.
+- **Aggiunte future.** Il piano di g1 contiene anche le categorie escluse. Si possono aggiungere nella stessa
+  generazione creando e caricando senza `--solo-nucleo` / `nucleo`, ma solo finché i loro file sono uguali
+  all'inventario 30943: la creazione si ferma su ogni file mancante o cambiato. Altrimenti serve una generazione nuova.
 
 ## 4. Procedura eseguita
 
@@ -116,8 +131,14 @@ caricamento. RSS osservata di rclone: 65-81 MB.
    - dopo la verifica libera lo staging;
    - non sincronizza e non cancella nulla su Drive.
 6. **Codice per ultimo:** inventario finale, piano della sola categoria `codice`, volume nella stessa generazione.
-7. **Completezza** (`backup.py completezza --solo-nucleo`): controlla volumi, parti e indici verificati, e i membri
-   dei piani contro gli inventari.
+7. **Completezza** (`backup.py completezza`, `slurm/backup_completezza.sbatch GEN "PIANI" [--solo-nucleo]`). Esito
+   ed exit code dicono se il backup è completo. Si controlla che:
+   - ogni piano sia integro e il suo inventario sia quello registrato, senza errori di visita o lettura;
+   - ogni volume abbia il marcatore di questa generazione, di questo piano e di questo volume;
+   - parti e indici siano verificati su Drive e ogni indice contenga tutti e soli i membri del volume;
+   - nessun avviso sia bloccante;
+   - le voci attese (inventario, categorie del piano, meno le esclusioni dichiarate) coincidano con quelle davvero
+     archiviate nei volumi verificati.
 
 ```bash
 sbatch --parsable slurm/backup_crea.sbatch trasferimento/piani/g1-20261112 --attendi --limite-staging-gib 30 --solo-nucleo
@@ -134,6 +155,7 @@ touch trasferimento/stato/STOP           # arresto gentile della creazione
 | Integrità dei file trasferiti | md5 e sha256 di Drive uguali a quelli calcolati dal job, su ogni parte (45) e ogni indice (88) | superata: [`backup/g1-20261112-completezza.json`](backup/g1-20261112-completezza.json) (job 31104) |
 | Completezza rispetto all'inventario | membri dei piani contro gli inventari 30943 (nucleo, tranne codice) e 31097 (codice); indici contro membri | superata: 18.383 voci su 18.383, nessuna mancante; un avviso atteso, il ledger cambiato dopo l'inventario finale |
 | Ripristino di archivi, struttura e link | ogni volume riletto per intero ed elencato da GNU tar prima del caricamento; volumi riscaricati da Drive ed estratti con `cat \| tar -xp`, confronto con l'indice e `sha256sum -c`: prova del codice (job 30947: 5.273 file e 513 cartelle), `outputs-f2-abl-adamw-002` (job 31101: 2 parti, `optimizer.pt` da 7,8 GiB), `outputs-f2_select-001` (job 31102, gzip: 48 file e 14 cartelle); prova dal Mac del 2026-11-12 | superata: [`backup/prove-ripristino/`](backup/prove-ripristino/) |
+| Riesame del 2026-11-13 con le regole corrette | inventari 30943 e 31097 senza errori; marcatori legati ai rispettivi piani; avvisi tutti motivati (il ledger); copertura dalle voci archiviate | completo: 44 volumi su 44, 18.383 voci attese e archiviate, 0 mancanti, 0 in più ([`backup/riesame/`](backup/riesame/), job 31107) |
 | Ambiente | **da fare** su un nuovo server: i venv non sono nel backup selezionato e vanno ricostruiti (§8) | aperto |
 
 Un caricamento finito non basta per dire che il backup è verificato. Lo stato di ogni volume è in
@@ -193,8 +215,9 @@ Un caricamento finito non basta per dire che il backup è verificato. Lo stato d
      sono citati altrove;
    - i reader risolvono gli shard rispetto alla radice del repository (`manifest.shard_path`); un percorso di
      provenienza si legge sostituendo la radice, senza toccare il file.
-3. **Estrazione.** Prima `codice`, poi gli altri volumi nell'ordine del piano. Su un cluster si fa in un job, con
-   `scripts/ripristina_volumi.sh … nucleo` oppure con `backup.py ripristino --esistente` volume per volume.
+3. **Estrazione.** Prima g1 (il codice e poi gli altri volumi, nell'ordine dell'elenco), poi il supplemento con
+   l'elenco dei rimossi (§9). Su un cluster si fa in un job, con `scripts/ripristina_volumi.sh` presa da una copia
+   esterna alla radice, oppure con `backup.py ripristino --esistente` volume per volume.
 4. **Ambiente.** Si ricostruisce offline da `wheels/`, dai lock e da uv in `tools/` con `scripts/setup_env.sh install`.
    Servono Linux x86_64, Python 3.12, wheel compatibili con glibc e driver NVIDIA ≥ 570 per torch cu129. Poi si lancia
    `slurm/f0_checks.sbatch`. L'identità dei build originali è in [`backup/ambienti.tsv`](backup/ambienti.tsv).
@@ -203,39 +226,87 @@ Un caricamento finito non basta per dire che il backup è verificato. Lo stato d
 6. **Istruzioni.** Su un altro cluster vanno riscritte le parti di `LAGRANGE.md` e `CLAUDE.md` che riguardano
    Lagrange.
 
-## 9. Scaricare il backup sul Mac
+## 9. Ripristinare base e supplemento (sul Mac o su un altro computer)
 
-Il backup selezionato occupa 121,8 GiB di archivi in 45 file (i testi sono compressi) e si estrae in 138,2 GiB. Con
+Il ripristino si fa in due passaggi, ognuno con i propri elenchi e le proprie cartelle: prima g1, poi il supplemento.
+I volumi del supplemento hanno il prefisso `s1-`. I marcatori di ripristino registrano nome e sha256 del flusso,
+quindi nessun volume viene saltato o confuso con uno della base.
+
+**Spazio.** g1 sono 121,8 GiB di archivi in 45 file e si estrae in 138,2 GiB; il supplemento è di circa 0,2 GiB. Con
 406 GiB liberi si possono tenere archivi ed estratto; con `--elimina-parti` serve meno spazio.
 
-1. **Scaricare:**
-   - `LEGGIMI/backup/` (gli elenchi);
-   - `indice/volumi/*.sha256`;
-   - le cartelle `volumi/<categoria>/`.
+1. **Scaricare**, in cartelle separate per generazione:
+   - `g1-20261112/LEGGIMI/backup/` e `s1-20261113/LEGGIMI/` (elenchi e script aggiornati);
+   - `<generazione>/indice/volumi/*.sha256`;
+   - `<generazione>/volumi/<categoria>/`.
 
    Va bene il browser, un file alla volta (se Drive li unisce in uno zip, aprirlo prima), oppure l'app Google Drive
    per desktop, copiando da `~/Library/CloudStorage/GoogleDrive-…`. Con rclone si usa lo stesso client OAuth:
    `drive.file` vede i file creati da quel client.
-2. **Ripristinare:**
-   `sh ripristina_volumi.sh g1-20261112-volumi.tsv g1-20261112-parti.tsv ~/Downloads/volumi ~/Downloads/indici ~/limite-vl nucleo`.
-   Per ogni volume controlla lo sha256 delle parti, estrae con `cat | tar -xp` e verifica i file con
-   `shasum -a 256 -c`. Per riprendere basta rilanciarlo.
-3. **Ambiente:** quello Linux/CUDA non si esegue sul Mac.
+2. **Usare lo script aggiornato,** `s1-20261113/LEGGIMI/script/ripristina_volumi.sh`. Va tenuto fuori dalla cartella
+   che si estrae, perché il volume del codice la sovrascrive. Si lancia con `bash`.
+3. **Primo passaggio, g1:**
+   ```sh
+   bash ~/Downloads/s1/LEGGIMI/script/ripristina_volumi.sh \
+     ~/Downloads/g1/LEGGIMI/backup/g1-20261112-volumi.tsv ~/Downloads/g1/LEGGIMI/backup/g1-20261112-parti.tsv \
+     ~/Downloads/g1/volumi ~/Downloads/g1/indici ~/limite-vl nucleo
+   ```
+4. **Secondo passaggio, il supplemento**, con l'elenco dei file del codice rimossi o rinominati rispetto a g1:
+   ```sh
+   bash ~/Downloads/s1/LEGGIMI/script/ripristina_volumi.sh \
+     ~/Downloads/s1/LEGGIMI/backup/s1-20261113-volumi.tsv ~/Downloads/s1/LEGGIMI/backup/s1-20261113-parti.tsv \
+     ~/Downloads/s1/volumi ~/Downloads/s1/indici ~/limite-vl tutti \
+     --rimuovi-elenco ~/Downloads/s1/LEGGIMI/backup/s1-20261113-rimossi.txt
+   ```
 
-## 10. Aggiornare il backup prima del cambio di account
+Per ogni volume lo script fa queste operazioni:
+- controlla che nell'elenco risulti "verificato";
+- controlla lo sha256 di ogni parte;
+- estrae con `cat | tar -xp`;
+- verifica i file con `shasum -a 256 -c`.
 
-1. **Rinnovare l'autorizzazione** se il token è scaduto: l'app è in prova, quindi dura 7 giorni (fino al 19 novembre
-   2026), a meno di pubblicarla.
+Un errore ferma tutto: niente marcatore, e nessuna parte cancellata. Per riprendere basta rilanciare. Funzionano anche i
+percorsi relativi.
+
+L'ambiente Linux/CUDA non si esegue sul Mac.
+
+## 10. Aggiornare il backup: supplemento autonomo
+
+Il percorso incrementale (`piano --precedente`) è **rifiutato**: la completezza non risolve le categorie riusate da
+un'altra generazione. Un aggiornamento è una generazione nuova e autonoma, con la dipendenza dalla base dichiarata.
+
+1. **Rinnovare l'autorizzazione** se il token è scaduto: l'app è in prova, quindi dura 7 giorni a partire dal login,
+   a meno di pubblicarla.
    - togliere il vecchio token: `scripts/backup_rclone.sh config -- config delete lvl-ist`;
    - avviare `scripts/backup_auth.sh avvia lvl-ist`;
    - rifare il login con `ssh -N -L 53682:127.0.0.1:53682 …`.
-2. **Nuovo inventario e piano** con `--precedente trasferimento/piani/g1-20261112/piano.json`. Le categorie con la
-   stessa firma si riusano; solo quelle cambiate hanno volumi nuovi (`riusata_da` in `categorie.tsv`). Il codice cambia
-   sempre.
-3. **Creazione, caricamento e completezza** come in §4, con le stesse opzioni del nucleo. Per ripristinare, ogni
-   categoria si prende dalla generazione indicata in `riusata_da`.
-4. **Prima che l'account istituzionale venga disattivato**, cioè alla fine degli studi, copiare il backup su un'altra
-   destinazione.
+2. **Fissare lo stato:** fare il commit di tutto ciò che va conservato e non cambiare nulla durante la raccolta.
+   Fanno eccezione i file volatili (ledger, log dei download, indice di git): un loro cambiamento resta un avviso
+   motivato.
+3. **Nuovo inventario** (`slurm/backup_inventario.sbatch`). Poi `backup.py firme --piano-base <piano di g1>` dice quali
+   categorie sono cambiate. Nel supplemento vanno tutte quelle cambiate del nucleo, più eventuali aggiunte con un
+   sottoinsieme dichiarato.
+4. **Piano del supplemento**, in una cartella e una generazione nuove:
+   ```bash
+   sbatch slurm/backup_piano.sbatch <inventario> <generazione> <generazione> --solo-categorie codice,<altre> \
+     --sottoinsieme <categoria>=<elenco> --prefisso-volumi s<N>- --dipende-da g1-20261112
+   ```
+5. **Creazione, caricamento e completezza** come in §4, con lo stato della generazione nuova. Poi
+   `backup.py rimossi --base <indici del codice della base> --nuovo <indici del codice del supplemento>` per l'elenco
+   dei file da togliere dopo il secondo passaggio.
+6. **Ripristino:** prima la base, poi il supplemento (§9).
+7. **Prima che l'account istituzionale venga disattivato**, cioè alla fine degli studi, copiare base e supplementi su
+   un'altra destinazione.
+
+### Supplemento s1-20261113
+
+| Voce | Contenuto |
+| --- | --- |
+| Dipende da | `g1-20261112`, da ripristinare prima |
+| Sostituisce | la categoria `codice`: repository con `.git` intero, configurazioni, documenti, revisioni umane (compresi gli esiti MAVIS-C9 in `revisioni/mavis-c9-campione-1/risultati/`, TSV e JSON di avanzamento), script, rapporti e istruzioni del backup, `third_party/`, `runs/ledger.tsv`, `data/download-log.tsv`; i file assenti rispetto a g1 sono in `s1-20261113-rimossi.txt` |
+| Aggiunge | `UniMER-Test.zip` originale (revisione `2343ddd9`, 146.727.503 byte, sha256 `9bf370b8…`, come nel catalogo) con la scheda README e i collegamenti dello snapshot ([`backup/supplemento/sottoinsieme-unimer.txt`](backup/supplemento/sottoinsieme-unimer.txt)); `UniMER-1M.zip` resta escluso, dichiarato nel piano |
+| Restano in g1 | tutte le altre categorie del nucleo, invariate (confronto delle firme in [`backup/s1-20261113-stato.json`](backup/s1-20261113-stato.json)) |
+| Stato conservato | il commit indicato in `backup/s1-20261113-stato.json`. Il rapporto conclusivo, che contiene gli elenchi del supplemento, è un commit successivo distribuito a parte su GitHub e in `s1-20261113/LEGGIMI/` |
 
 ## 11. Limiti residui
 
@@ -250,6 +321,10 @@ Il backup selezionato occupa 121,8 GiB di archivi in 45 file (i testi sono compr
 - **Ricerca dei segreti.** È fatta con regole sui file di testo fino a 16 MiB, fuori da dati, pesi e ambienti di
   terzi.
 - **Ambiente.** Non è stato ancora ricostruito su un altro server.
+- **Supplemento.** Contiene solo ciò che è cambiato dopo g1, cioè il codice, più `UniMER-Test.zip`. Le categorie dei
+  dati sono uguali a g1 secondo il confronto delle firme. Un cambiamento futuro dei dati richiede un nuovo supplemento.
+- **Verifiche precedenti alle correzioni.** I rapporti di completezza del 2026-11-12/13 (job 31104) usavano le regole
+  vecchie. Il riesame (job 31107) le sostituisce, senza cambiare volumi né indici.
 
 ## 12. Stato del progetto e lavoro da riprendere
 
@@ -257,5 +332,8 @@ Il progetto è in **F0 preparatorio** (pipeline v1.5): non c'è nessun pilota, t
 - **Stato e prossimi interventi:** [`F0_IMPLEMENTATION_PLAN.md`](F0_IMPLEMENTATION_PLAN.md) e i fatti in `CLAUDE.md`.
 - **Ultimo lavoro prima del backup:** `synth-v4-candidato-3` verificato (job 30923), con la config di collaudo dei
   sintetici e il rapporto della scorciatoia di function/exists (commit `f10413d`).
+- **Dopo il backup:** consegnati dal portatile gli esiti della revisione visiva MAVIS-C9
+  (`revisioni/mavis-c9-campione-1/risultati/`, commit `d24560a`), conservati nel supplemento. Non sono ancora integrati
+  nei manifest: è il prossimo lavoro scientifico.
 - **Decisioni aperte:** D1-D6 del piano F0.
 - **Registro dei job:** `runs/ledger.tsv`.

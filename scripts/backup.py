@@ -7,12 +7,21 @@ Gli archivi sono tar POSIX (PAX) standard, con gzip dove conviene: il ripristino
     inventario --root R --out DIR     visita tutta la cartella senza seguire i link (file nascosti, ignorati e non
                                       tracciati compresi), con git, link, hard link, nomi problematici e segreti
     piano --inventario DIR --out P    categorie (partizione dell'albero, ripristinabili da sole), volumi da circa
-                                      5 GiB nell'ordine di priorità, nucleo, compressione, firme per gli aggiornamenti
+                                      5 GiB nell'ordine di priorità, nucleo, compressione, firme; esclusioni solo
+                                      dichiarate (sottoinsiemi, tipi non archiviabili); rifiuta inventari con errori
+                                      e il percorso incrementale (--precedente): un aggiornamento è un supplemento
+                                      autonomo (--dipende-da, --prefisso-volumi)
     crea --piano P --staging S --stato T
                                       scrive i volumi leggendo ogni file una volta (sha256 per file, per parte e per
-                                      flusso), li rilegge per intero e li fa elencare a GNU tar; staging limitato
+                                      flusso), li rilegge per intero e li fa elencare a GNU tar; staging limitato;
+                                      un membro mancante o un file non volatile cambiato blocca il volume; un
+                                      marcatore pronto di un altro piano ferma tutto
     ripristino --pronto ...           prova con gli strumenti standard: cat | tar -xp, confronto con l'indice,
-                                      sha256sum -c; rimuove la copia di prova
+                                      sha256sum -c; rimuove la copia di prova (--esistente: ripristino vero)
+    catalogo, completezza, firme, rimossi
+                                      catalogo di recupero; verifica finale con esito e copertura dalle voci
+                                      archiviate; confronto di un inventario con un piano di base; elenco dei
+                                      percorsi da togliere dopo il ripristino di un supplemento
 
 La visita non entra in `trasferimento/` (materiale creato per il trasferimento: staging, stato, credenziali del
 client), non attraversa altri filesystem e non legge file fuori dalla radice: per i link registra solo la
@@ -405,6 +414,12 @@ ENTRY_OVERHEAD = 2048       # al più per voce: intestazione ustar, intestazione
 CODE_TOPS = frozenset({".git", "archive", "config", "docs", "downloads", "env", "env-evals", "revisioni", "runs",
                        "scripts", "slurm", "src", "tests", "third_party", "secrets"})
 STATE_FILES = frozenset({"data/download-log.tsv", "data/.fetch.lock"})  # cambiano durante il trasferimento
+# File che cambiano per costruzione mentre il backup lavora (registri dei job e del trasferimento, indice di git
+# riscritto da `git status`): un loro cambiamento dopo l'inventario è un avviso motivato. Per ogni altro file è un
+# errore bloccante, perché lo stato raccolto non sarebbe più coerente con l'inventario.
+VOLATILE_FILES = STATE_FILES | frozenset({"runs/ledger.tsv", ".git/index"})
+ARCHIVABLE = frozenset({"f", "d", "l", "fifo", "chr", "blk"})  # i socket e i tipi ignoti si escludono nel piano
+PLAN_SCHEMA = "limite-vl-backup-piano/2"
 NUCLEO_FIXED = frozenset({"codice", "data-metadati", "strumenti", "wheels", "hf-piccoli"})
 NUCLEO_SHARDS = frozenset({"data-shards-unimer-2343ddd9-dense", "data-shards-mavis-geometry-9c80fff3-caption",
                            "data-shards-pixmo-cap-3e42775e", "data-shards-synth-v2", "data-shards-synth-v3",
@@ -486,6 +501,44 @@ def signature(recs: list[dict]) -> str:
     return h.hexdigest()
 
 
+def assign_categories(records: list[dict], big_hf: frozenset, big_out: frozenset) -> list[dict]:
+    """Categoria di ogni voce (campo `c`), con i nomi di un gruppo di hard link nella categoria del primo nome.
+    La usano sia il piano sia la completezza, perché le voci attese siano calcolate nello stesso modo."""
+    for r in records:
+        r["c"] = category(r["p"], r["t"], big_hf, big_out)
+    inode_cat: dict[int, str] = {}
+    moved = []
+    for r in records:
+        if r["t"] == "f" and r["n"] > 1:
+            first = inode_cat.setdefault(r["i"], r["c"])
+            if first != r["c"]:
+                moved.append({"p": r["p"], "da": r["c"], "a": first})
+                r["c"] = first
+    return moved
+
+
+def inventory_problems(summary: dict) -> list[str]:
+    """Errori di visita o di lettura dell'inventario: finché ci sono, l'inventario non descrive tutta la cartella."""
+    out = []
+    if summary.get("n_errori", 0):
+        out.append(f"{summary['n_errori']} errori di visita o di stat (primi: {summary.get('errori', [])[:3]})")
+    if summary.get("n_illeggibili", 0):
+        out.append(f"{summary['n_illeggibili']} file illeggibili (primi: {summary.get('illeggibili', [])[:3]})")
+    return out
+
+
+def plan_exclusions(pdir: Path, plan: dict) -> dict[str, str]:
+    """Esclusioni dichiarate nel piano (percorso -> motivo), verificate con lo sha256 registrato. I piani dello
+    schema 1 non ne hanno."""
+    meta = plan.get("esclusioni")
+    if not meta:
+        return {}
+    path = pdir / meta["file"]
+    if file_sha256(path) != meta["sha256"]:
+        raise SystemExit(f"{path}: sha256 diverso da quello registrato nel piano")
+    return {e["p"]: e["motivo"] for e in read_jsonl_gz(path)}
+
+
 def compressible_share(recs: list[dict]) -> float:
     tot = inc = 0
     seen = set()
@@ -562,13 +615,18 @@ def checkpoint_report(records: list[dict]) -> list[str]:
 
 def cmd_piano(args) -> None:
     need_slurm()
+    if args.precedente:
+        sys.exit("aggiornamento incrementale (--precedente) non supportato: la completezza non risolve le categorie "
+                 "riusate da un'altra generazione. Creare una generazione autonoma (per esempio un supplemento con "
+                 "--dipende-da) e ripristinarla dopo la base (docs/BACKUP_RIPRISTINO.md)")
     inv = Path(args.inventario)
     out = Path(args.out)
-    out.mkdir(parents=True, exist_ok=False)
     summary = json.loads((inv / "riepilogo.json").read_text(encoding="utf-8"))
     secrets = json.loads((inv / "segreti.json").read_text(encoding="utf-8"))
+    bad = inventory_problems(summary)
+    if bad:
+        sys.exit(f"inventario {inv} non accettabile come completo: {'; '.join(bad)}. Risolvere e rifare l'inventario")
     records = list(read_jsonl_gz(inv / "inventario.jsonl.gz"))
-    prev = json.loads(Path(args.precedente).read_text(encoding="utf-8")) if args.precedente else None
 
     present = [r["p"] for r in records if r["p"].startswith("secrets/")]
     if present:
@@ -578,24 +636,12 @@ def cmd_piano(args) -> None:
     if strong:
         sys.exit(f"possibili segreti ad alta affidabilità in {strong[:5]}: separarli prima del piano")
 
-    if prev:
-        big_hf, big_out = frozenset(prev["hf_grandi"]), frozenset(prev["outputs_grandi"])
-    else:
-        big_hf = frozenset(a.split("/")[2] for a, c in summary["aree"].items()
-                           if a.startswith("hf/hub/") and a.count("/") == 2 and c.get("byte", 0) >= args.soglia_grandi)
-        big_out = frozenset(a.split("/")[1] for a, c in summary["aree"].items()
-                            if a.startswith("outputs/") and a.count("/") == 1 and c.get("byte", 0) >= args.soglia_grandi)
+    big_hf = frozenset(a.split("/")[2] for a, c in summary["aree"].items()
+                       if a.startswith("hf/hub/") and a.count("/") == 2 and c.get("byte", 0) >= args.soglia_grandi)
+    big_out = frozenset(a.split("/")[1] for a, c in summary["aree"].items()
+                        if a.startswith("outputs/") and a.count("/") == 1 and c.get("byte", 0) >= args.soglia_grandi)
+    moved = assign_categories(records, big_hf, big_out)
     by_cat: dict[str, list[dict]] = defaultdict(list)
-    for r in records:
-        r["c"] = category(r["p"], r["t"], big_hf, big_out)
-    inode_cat: dict[int, str] = {}
-    moved = []
-    for r in records:  # un gruppo di hard link resta nella categoria del primo nome
-        if r["t"] == "f" and r["n"] > 1:
-            first = inode_cat.setdefault(r["i"], r["c"])
-            if first != r["c"]:
-                moved.append(f"{r['p']}: {r['c']} -> {first}")
-                r["c"] = first
     for r in records:
         by_cat[r["c"]].append(r)
     cats = sorted(by_cat, key=cat_rank)
@@ -604,8 +650,39 @@ def cmd_piano(args) -> None:
     if args.escludi_categorie:
         cats = [c for c in cats if c not in set(args.escludi_categorie.split(","))]
 
+    # Esclusioni dichiarate: tipi non archiviabili (socket) e voci fuori da un sottoinsieme dichiarato di una
+    # categoria (con le cartelle che contengono i percorsi scelti). Nient'altro resta fuori da una categoria del piano.
+    subsets: dict[str, set[str]] = {}
+    for spec in args.sottoinsieme:
+        cat, _, listfile = spec.partition("=")
+        if cat not in cats or not listfile:
+            sys.exit(f"--sottoinsieme {spec}: la categoria deve essere nel piano (CATEGORIA=FILE)")
+        wanted = {x.strip() for x in Path(listfile).read_text(encoding="utf-8").splitlines() if x.strip()}
+        known = {r["p"] for r in by_cat[cat]}
+        if not wanted or not wanted <= known:
+            sys.exit(f"--sottoinsieme {cat}: percorsi assenti dalla categoria: {sorted(wanted - known)[:5]}")
+        keep = set(wanted)
+        for p in wanted:  # le cartelle antenate dentro la categoria
+            parts = p.split("/")
+            keep.update("/".join(parts[:k]) for k in range(1, len(parts)))
+        subsets[cat] = keep
+    exclusions = []
+    for c in cats:
+        kept = []
+        for r in by_cat[c]:
+            if r["t"] not in ARCHIVABLE:
+                exclusions.append({"p": r["p"], "categoria": c, "motivo": f"tipo {r['t']} non archiviabile"})
+            elif c in subsets and r["p"] not in subsets[c]:
+                exclusions.append({"p": r["p"], "categoria": c, "motivo": "fuori dal sottoinsieme dichiarato"})
+            else:
+                kept.append(r)
+        by_cat[c] = kept
+    out.mkdir(parents=True, exist_ok=False)
+    with gzip.open(out / "esclusioni.jsonl.gz", "wt", encoding="ascii") as fh:
+        for e in exclusions:
+            fh.write(dump(e) + "\n")
+
     vol_rows, cat_info, members_out, order = [], {}, [], 0
-    prev_cats = (prev or {}).get("categorie", {})
     for c in cats:
         recs = by_cat[c]
         sig = signature(recs)
@@ -617,19 +694,15 @@ def cmd_piano(args) -> None:
                 seen_ino.add(r["i"])
                 nbytes += r["s"]
         info = {"nucleo": is_nucleo(c), "voci": len(recs), "firma": sig, "quota_comprimibile": round(share, 3),
-                "compressione": "gzip" if share >= 0.5 else "nessuna", "byte": nbytes, "volumi": []}
-        if c in prev_cats and prev_cats[c]["firma"] == sig:
-            info["riusata_da"] = prev_cats[c].get("riusata_da") or prev["generazione"]
-            info["volumi"] = prev_cats[c]["volumi"]
-            cat_info[c] = info
-            continue
+                "compressione": "gzip" if share >= 0.5 else "nessuna", "byte": nbytes, "volumi": [],
+                "sottoinsieme": c in subsets}
         groups: dict[int, list[int]] = defaultdict(list)
         for k, r in enumerate(recs):
             if r["t"] == "f" and r["n"] > 1:
                 groups[r["i"]].append(k)
         for j, v in enumerate(pack(c, recs, groups, args.byte_volume), start=1):
             order += 1
-            vid = f"{c}-{j:03d}"
+            vid = f"{args.prefisso_volumi}{c}-{j:03d}"
             info["volumi"].append(vid)
             vol_rows.append({"ordine": order, "id": vid, "categoria": c, "nucleo": info["nucleo"],
                              "compressione": info["compressione"], "voci": len(v["membri"]), "byte": v["dati"],
@@ -638,11 +711,15 @@ def cmd_piano(args) -> None:
                 members_out.append({**recs[k], "v": vid})
         cat_info[c] = info
 
-    plan = {"schema": "limite-vl-backup-piano/1", "generazione": args.gen, "radice": summary["radice"],
-            "inventario": {"cartella": str(inv), "job": summary["job"], "inizio": summary["inizio"],
+    plan = {"schema": PLAN_SCHEMA, "generazione": args.gen, "radice": summary["radice"],
+            "dipende_da": args.dipende_da or None, "prefisso_volumi": args.prefisso_volumi,
+            "inventario": {"cartella": str(inv.resolve()), "job": summary["job"], "inizio": summary["inizio"],
                            "sha256": file_sha256(inv / "inventario.jsonl.gz"), "git_head": summary["git_head"]},
-            "precedente": args.precedente, "byte_volume": args.byte_volume, "dimensione_parte": args.dimensione_parte,
+            "byte_volume": args.byte_volume, "dimensione_parte": args.dimensione_parte,
             "hf_grandi": sorted(big_hf), "outputs_grandi": sorted(big_out), "esclusi": list(EXCLUDED_TOP),
+            "esclusioni": {"file": "esclusioni.jsonl.gz", "sha256": file_sha256(out / "esclusioni.jsonl.gz"),
+                           "voci": len(exclusions), "motivi": dict(Counter(e["motivo"] for e in exclusions))},
+            "volatili": sorted(VOLATILE_FILES),
             "hardlink_spostati": moved, "categorie": cat_info, "volumi": vol_rows, "job": os.environ["SLURM_JOB_ID"],
             "creato": time.strftime("%Y-%m-%dT%H:%M:%S%z")}
     write_new(out / "piano.json", json.dumps(plan, indent=1, ensure_ascii=False) + "\n")
@@ -653,22 +730,25 @@ def cmd_piano(args) -> None:
     tsv += [f"{v['ordine']}\t{v['id']}\t{v['categoria']}\t{int(v['nucleo'])}\t{v['compressione']}\t{v['voci']}\t"
             f"{v['byte']}\t{int(v['grande'])}" for v in vol_rows]
     write_new(out / "volumi.tsv", "\n".join(tsv) + "\n")
-    ctsv = ["categoria\tnucleo\tcompressione\tquota_comprimibile\tvoci\tbyte\tvolumi\triusata_da\tfirma"]
+    ctsv = ["categoria\tnucleo\tcompressione\tquota_comprimibile\tvoci\tbyte\tvolumi\tsottoinsieme\tfirma"]
     ctsv += [f"{c}\t{int(i['nucleo'])}\t{i['compressione']}\t{i['quota_comprimibile']}\t{i['voci']}\t{i['byte']}\t"
-             f"{len(i['volumi'])}\t{i.get('riusata_da', '-')}\t{i['firma']}" for c, i in cat_info.items()]
+             f"{len(i['volumi'])}\t{int(i['sottoinsieme'])}\t{i['firma']}" for c, i in cat_info.items()]
     write_new(out / "categorie.tsv", "\n".join(ctsv) + "\n")
     write_new(out / "checkpoint.tsv", "\n".join(checkpoint_report(records)) + "\n")
 
     nuc = sum(i["byte"] for i in cat_info.values() if i["nucleo"])
     tot = sum(i["byte"] for i in cat_info.values())
-    rep = [f"piano {args.gen}: {len(cat_info)} categorie, {len(vol_rows)} volumi nuovi; dati {tot / GIB:.2f} GiB "
-           f"(nucleo {nuc / GIB:.2f} GiB, resto {(tot - nuc) / GIB:.2f} GiB)",
+    rep = [f"piano {args.gen}: {len(cat_info)} categorie, {len(vol_rows)} volumi; dati {tot / GIB:.2f} GiB "
+           f"(nucleo {nuc / GIB:.2f} GiB, resto {(tot - nuc) / GIB:.2f} GiB); esclusioni dichiarate "
+           f"{len(exclusions)}" + (f"; dipende da {args.dipende_da}" if args.dipende_da else ""),
            f"inventario {inv} (job {summary['job']}, git {summary['git_head'][:12]})", "",
            f"{'categoria':58} {'nucl':4} {'compr':7} {'quota':5} {'GiB':>8} {'vol':>4}"]
     rep += [f"{c[:58]:58} {('sì' if i['nucleo'] else 'no'):4} {i['compressione']:7} {i['quota_comprimibile']:5} "
-            f"{i['byte'] / GIB:8.2f} {len(i['volumi']):4}" + (f"  riusata da {i['riusata_da']}" if 'riusata_da' in i
-                                                               else "") for c, i in cat_info.items()]
-    rep += ["", f"hard link spostati di categoria: {len(moved)}", *moved[:20], "",
+            f"{i['byte'] / GIB:8.2f} {len(i['volumi']):4}" + ("  sottoinsieme dichiarato" if i["sottoinsieme"] else "")
+            for c, i in cat_info.items()]
+    rep += ["", "esclusioni dichiarate:", *[f"  {e['p']}  [{e['motivo']}]" for e in exclusions[:40]], "",
+            f"hard link spostati di categoria: {len(moved)}", *[f"  {m['p']}: {m['da']} -> {m['a']}" for m in moved[:20]],
+            "",
             "collegamenti assoluti, fuori dalla radice, interrotti o verso materiale escluso:", *link_report(inv), "",
             "segnalazioni della ricerca dei segreti (nessuna ad alta affidabilità; da riesaminare):"]
     rep += [f"  {h['p']}: {', '.join(f'{k} ({secrets['regole'][k]['affidabilita']}) righe {v}' for k, v in h['regole'].items())}"
@@ -804,7 +884,10 @@ def sha256sum_line(sha: str, path: str) -> str:
 
 
 def build_volume(root: Path, vid: str, members: list[dict], compress: bool, dest: Path, part_size: int):
-    """Scrive il volume (tar PAX, gzip facoltativo) leggendo ogni file una volta: sha256 per file e per parte."""
+    """Scrive il volume (tar PAX, gzip facoltativo) leggendo ogni file una volta: sha256 per file e per parte.
+    Ogni avviso ha `bloccante`: un membro mancante, non archiviabile o di tipo cambiato, o un file non volatile
+    cambiato dopo l'inventario, impedisce di dichiarare il volume pronto; il cambiamento di un file volatile
+    (VOLATILE_FILES, per esempio il ledger) resta un avviso motivato."""
     ext = ".tar.gz" if compress else ".tar"
     dest.mkdir(parents=True, exist_ok=True)
     for stale in dest.glob(f"{vid}{ext}*"):  # resti di un tentativo interrotto di questo stesso volume
@@ -816,18 +899,22 @@ def build_volume(root: Path, vid: str, members: list[dict], compress: bool, dest
     try:
         for r in members:
             rel, ap = r["p"], root / r["p"]
+            volatile = rel in VOLATILE_FILES
             try:
                 st = os.lstat(ap)
             except FileNotFoundError:
-                warnings.append({"p": rel, "avviso": "mancante al momento dell'archiviazione"})
+                warnings.append({"p": rel, "avviso": "mancante al momento dell'archiviazione", "bloccante": True})
                 continue
             t = kind(st.st_mode)
-            if t != r["t"] or (t == "f" and (st.st_size != r["s"] or st.st_mtime_ns != r["mt"])) or (
+            if t != r["t"]:
+                warnings.append({"p": rel, "avviso": f"tipo {t} invece di {r['t']}", "bloccante": True})
+                continue
+            if (t == "f" and (st.st_size != r["s"] or st.st_mtime_ns != r["mt"])) or (
                     t == "l" and os.readlink(ap) != r.get("l")):
-                warnings.append({"p": rel, "avviso": "cambiato dopo l'inventario"})
+                warnings.append({"p": rel, "avviso": "cambiato dopo l'inventario", "bloccante": not volatile})
             ti = tf.gettarinfo(str(ap), arcname=rel)
             if ti is None:
-                warnings.append({"p": rel, "avviso": f"tipo {t} non archiviabile"})
+                warnings.append({"p": rel, "avviso": f"tipo {t} non archiviabile", "bloccante": True})
                 continue
             ti.mtime = st.st_mtime_ns // 1_000_000_000  # secondi interi: nessuna intestazione PAX per la data
             ti.mode = stat.S_IMODE(ti.mode)  # gettarinfo dà st_mode intero; il tar conserva solo i permessi
@@ -838,7 +925,7 @@ def build_volume(root: Path, vid: str, members: list[dict], compress: bool, dest
                     tf.addfile(ti, hr)
                 st2 = os.lstat(ap)
                 if st2.st_size != ti.size or st2.st_mtime_ns != st.st_mtime_ns:
-                    warnings.append({"p": rel, "avviso": "modificato durante la lettura"})
+                    warnings.append({"p": rel, "avviso": "modificato durante la lettura", "bloccante": not volatile})
                 e.update(t="f", s=ti.size, sha256=hr.sha.hexdigest())
                 hashes[rel] = e["sha256"]
             elif ti.islnk():
@@ -927,6 +1014,7 @@ def cmd_crea(args) -> None:
         members[m["v"]].append(m)
     wanted = set(args.volumi.split(",")) if args.volumi else None
     limit = int(args.limite_staging_gib * GIB)
+    plan_sha = file_sha256(pdir / "piano.json")
     done = 0
     for v in plan["volumi"]:
         vid, cat = v["id"], v["categoria"]
@@ -935,7 +1023,14 @@ def cmd_crea(args) -> None:
         if args.solo_nucleo and not v["nucleo"]:  # backup selezionato: solo le categorie del nucleo
             continue
         marker = state / "vol" / f"{vid}.pronto.json"
-        if marker.exists():
+        if marker.exists():  # si riusa solo un volume di questa generazione, di questo piano e di questo volume
+            old = json.loads(marker.read_text(encoding="utf-8"))
+            mismatch = [k for k, want in (("generazione", gen), ("volume", vid), ("categoria", cat),
+                                          ("piano_sha256", plan_sha)) if old.get(k) != want]
+            if mismatch:
+                sys.exit(f"{marker}: marcatore di un altro piano o volume (campi diversi: {mismatch}; piano del "
+                         f"marcatore {str(old.get('piano_sha256'))[:12]}, piano corrente {plan_sha[:12]}). Non lo "
+                         "sovrascrivo: usare una generazione nuova o una cartella di stato separata")
             continue
         if args.massimo is not None and done >= args.massimo:
             break
@@ -962,17 +1057,18 @@ def cmd_crea(args) -> None:
         names = gnu_tar_names(paths, compress)
         if names != [e["p"] for e in index]:
             problems.append(f"GNU tar elenca {len(names)} nomi diversi dall'indice ({len(index)})")
-        planned = [m["p"] for m in members[vid]]
-        missing = [w["p"] for w in warnings if w["avviso"].startswith(("mancante", "tipo"))]
-        if [e["p"] for e in index] != [p for p in planned if p not in set(missing)]:
-            problems.append("le voci archiviate non sono quelle del piano")
+        blocking = [w for w in warnings if w["bloccante"]]
+        problems += [f"{w['p']}: {w['avviso']}" for w in blocking]
+        if [e["p"] for e in index] != [m["p"] for m in members[vid]]:
+            problems.append("le voci archiviate non sono tutte e sole quelle del piano")
         if problems:
             for p in paths:
                 p.unlink(missing_ok=True)
             (state / "vol" / f"{vid}.errore.json").write_text(json.dumps(
-                {"volume": vid, "problemi": problems[:50]}, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
-            sys.exit(f"{vid}: verifica fallita ({len(problems)} problemi, primi: {problems[:5]}), volume rimosso "
-                     "dallo staging")
+                {"volume": vid, "piano_sha256": plan_sha, "problemi": problems[:200], "n_problemi": len(problems)},
+                indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+            sys.exit(f"{vid}: volume non dichiarato pronto ({len(problems)} problemi, primi: {problems[:5]}); parti "
+                     "rimosse dallo staging. Se l'albero è cambiato, rifare inventario e piano")
         idx_gz = state / "indici" / f"{vid}.jsonl.gz"
         tmp_gz = idx_gz.with_name(idx_gz.name + ".tmp")
         with open(tmp_gz, "wb") as raw, gzip.GzipFile(filename="", mode="wb", fileobj=raw, mtime=0) as g:
@@ -992,12 +1088,12 @@ def cmd_crea(args) -> None:
         rows += [f"indice\t{x['nome']}\t{x['byte']}\t{x['sha256']}\t{x['md5']}\t{state / 'indici' / x['nome']}\t"
                  f"indice/volumi/{x['nome']}" for x in extra]
         write_new(state / "vol" / f"{vid}.parti.tsv", "\n".join(rows) + "\n")
-        info = {"schema": "limite-vl-backup-volume/1", "volume": vid, "categoria": cat, "generazione": gen,
+        info = {"schema": "limite-vl-backup-volume/2", "volume": vid, "categoria": cat, "generazione": gen,
                 "ordine": v["ordine"], "nucleo": v["nucleo"], "compressione": "gzip" if compress else "nessuna",
                 "voci": len(index), "file": sum(1 for e in index if e["t"] == "f"),
                 "byte_dati": sum(e["s"] for e in index if e["t"] == "f"), "flusso": stream, "parti": parts,
                 "indice": extra, "avvisi": warnings, "job": os.environ.get("SLURM_JOB_ID"),
-                "piano_sha256": file_sha256(pdir / "piano.json"),
+                "piano_sha256": plan_sha,
                 "creato": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "secondi_scrittura": round(t1 - t0, 1),
                 "secondi_verifica": round(time.time() - t1, 1),
                 "verifica": "rilettura completa (nomi, tipi, permessi, date, link, sha256 per file e per parte) e "
@@ -1210,88 +1306,186 @@ def cmd_catalogo(args) -> None:
           f"-> {out}")
 
 
+def cmd_firme(args) -> None:
+    """Confronto in sola lettura fra un inventario nuovo e un piano di base: per ogni categoria del piano o
+    dell'inventario dice se la firma (percorsi, tipi, dimensioni, date, permessi, link) è uguale, cambiata, nuova o
+    scomparsa. Serve a decidere cosa mettere in un supplemento autonomo; non riusa volumi."""
+    need_slurm()
+    base = json.loads(Path(args.piano_base).read_text(encoding="utf-8"))
+    inv = Path(args.inventario)
+    summary = json.loads((inv / "riepilogo.json").read_text(encoding="utf-8"))
+    records = list(read_jsonl_gz(inv / "inventario.jsonl.gz"))
+    assign_categories(records, frozenset(base["hf_grandi"]), frozenset(base["outputs_grandi"]))
+    by_cat: dict[str, list[dict]] = defaultdict(list)
+    for r in records:
+        by_cat[r["c"]].append(r)
+    out = {}
+    for c in sorted(set(by_cat) | set(base["categorie"]), key=cat_rank):
+        if c not in base["categorie"]:
+            out[c] = "nuova"
+        elif c not in by_cat:
+            out[c] = "scomparsa"
+        else:
+            out[c] = "uguale" if signature(by_cat[c]) == base["categorie"][c]["firma"] else "cambiata"
+    rep = {"piano_base": args.piano_base, "generazione_base": base["generazione"], "inventario": str(inv),
+           "errori_inventario": inventory_problems(summary), "categorie": out,
+           "conteggi": dict(Counter(out.values())), "job": os.environ.get("SLURM_JOB_ID")}
+    Path(args.out).write_text(json.dumps(rep, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+    print(json.dumps({k: rep[k] for k in ("conteggi", "errori_inventario")}, ensure_ascii=False),
+          [c for c, s in out.items() if s != "uguale"])
+
+
+def cmd_rimossi(args) -> None:
+    """Percorsi presenti negli indici della base e assenti in quelli nuovi (per esempio file cancellati o rinominati
+    fra il codice di g1 e quello del supplemento): elenco per `ripristina_volumi.sh --rimuovi-elenco`, prima i file e
+    poi le cartelle dalla più profonda."""
+    need_slurm()
+    old = {e["p"]: e["t"] for f in args.base for e in read_jsonl_gz(Path(f))}
+    new = {e["p"] for f in args.nuovo for e in read_jsonl_gz(Path(f))}
+    gone = [p for p in old if p not in new]
+    files = sorted(p for p in gone if old[p] != "d")
+    dirs = sorted((p for p in gone if old[p] == "d"), key=lambda p: (-p.count("/"), p))
+    Path(args.out).write_text("".join(f"{p}\n" for p in files + dirs), encoding="utf-8")
+    print(f"rimossi: {len(files)} file e link, {len(dirs)} cartelle -> {args.out}")
+
+
+def warning_blocking(w: dict) -> bool:
+    """Un avviso blocca la completezza, salvo il cambiamento di un file volatile. I volumi dello schema 1 non hanno
+    il campo `bloccante`: lo si ricava con la stessa regola."""
+    if "bloccante" in w:
+        return bool(w["bloccante"])
+    if w["avviso"].startswith(("mancante", "tipo")):
+        return True
+    return w["p"] not in VOLATILE_FILES
+
+
 def cmd_completezza(args) -> None:
-    """Verifica finale di una generazione: ogni volume pianificato è pronto (rilettura e GNU tar superate) e
-    verificato su Drive parte per parte; gli indici dei volumi sono su Drive con gli stessi hash; i membri dei piani
-    coprono l'inventario (categorie escluse dichiarate) e gli indici dei volumi contengono i membri."""
+    """Verifica finale di una o più generazioni, con esito e codice d'uscita:
+    - ogni piano è integro (SHA256SUMS) e il suo inventario è quello registrato, senza errori di visita o lettura;
+    - ogni volume selezionato ha il marcatore pronto di questa generazione, di questo piano e di questo volume, indici
+      con gli hash registrati, parti e indici verificati su Drive, e il suo indice contiene tutti e soli i membri;
+    - gli avvisi bloccanti (membri mancanti, file non volatili cambiati) rendono il volume non verificato;
+    - la copertura si calcola dalle voci davvero archiviate nei volumi verificati: ogni voce attesa (inventario, categorie
+      del piano, meno le esclusioni dichiarate) deve esserci, e nessuna voce in più."""
     need_slurm()
     state = Path(args.stato)
-    problems, rows, parts_rows = [], [], []
-    covered: set[str] = set()
+    problems, notes, rows, parts_rows = [], [], [], []
+    archived: dict[str, str] = {}
+    expected: set[str] = set()
     idx_ok = {r["remoto"]: r for r in read_tsv(state / "indici-verificati.tsv")} \
         if (state / "indici-verificati.tsv").is_file() else {}
     total = Counter()
     for pdir in map(Path, args.piani):
         plan = json.loads((pdir / "piano.json").read_text(encoding="utf-8"))
-        selected = {v["id"] for v in plan["volumi"] if v["nucleo"] or not args.solo_nucleo}
+        plan_sha, gen = file_sha256(pdir / "piano.json"), plan["generazione"]
+        for line in (pdir / "SHA256SUMS").read_text(encoding="ascii").splitlines():
+            want, name = line.split("  ", 1)
+            if file_sha256(pdir / name) != want:
+                problems.append(f"piano {pdir.name}: {name} diverso da SHA256SUMS")
+        inv = Path(plan["inventario"]["cartella"])
+        if not (inv / "inventario.jsonl.gz").is_file() or \
+                file_sha256(inv / "inventario.jsonl.gz") != plan["inventario"]["sha256"]:
+            problems.append(f"piano {pdir.name}: inventario {inv} assente o diverso da quello registrato")
+            continue
+        summary = json.loads((inv / "riepilogo.json").read_text(encoding="utf-8"))
+        problems += [f"inventario {inv.name}: {x}" for x in inventory_problems(summary)]
+        excluded = plan_exclusions(pdir, plan)
+        records = list(read_jsonl_gz(inv / "inventario.jsonl.gz"))
+        assign_categories(records, frozenset(plan["hf_grandi"]), frozenset(plan["outputs_grandi"]))
+        cats = {c for c, i in plan["categorie"].items() if i["nucleo"] or not args.solo_nucleo}
+        exp_plan = {r["p"] for r in records if r["c"] in cats} - set(excluded)
+        if expected & exp_plan:
+            problems.append(f"piano {pdir.name}: {len(expected & exp_plan)} voci attese anche da un altro piano")
+        expected |= exp_plan
+        total["esclusioni_dichiarate"] += len(excluded)
         members: dict[str, list[str]] = defaultdict(list)
         for m in read_jsonl_gz(pdir / "membri.jsonl.gz"):
             members[m["v"]].append(m["p"])
-            if m["v"] in selected:
-                covered.add(m["p"])
         for v in plan["volumi"]:
             vid = v["id"]
-            if vid not in selected:  # backup selezionato: le categorie fuori dal nucleo non si verificano
+            if v["categoria"] not in cats:  # fuori dalla selezione dichiarata (--solo-nucleo)
                 continue
+            vp: list[str] = []
             pronto, parti, ver = (state / "vol" / f"{vid}{s}" for s in (".pronto.json", ".parti.tsv", ".verificato.tsv"))
-            if not (pronto.is_file() and parti.is_file() and ver.is_file()):
-                problems.append(f"{vid}: manca {'pronto' if not pronto.is_file() else 'verifica su Drive'}")
-                continue
-            info = json.loads(pronto.read_text(encoding="utf-8"))
-            vrows = {r["remoto"]: r for r in read_tsv(ver)}
-            gen_base = f"LimiteVL-backup/{plan['generazione']}/"
-            for p in read_tsv(parti):
-                rem = gen_base + p["remoto"]
-                got = vrows.get(rem) if p["tipo"] == "volume" else idx_ok.get(rem)
-                if got is None:
-                    problems.append(f"{vid}: {p['file']} non verificato su Drive")
-                elif (got["byte"], got["md5_drive"]) != (p["byte"], p["md5"]) or got["sha256_drive"] not in (
-                        p["sha256"], "(non fornito da Drive)"):
-                    problems.append(f"{vid}: {p['file']} diverso su Drive")
-                if p["tipo"] == "volume":
-                    parts_rows.append([vid, p["file"], p["byte"], p["sha256"], p["md5"], rem,
-                                       got["id_drive"] if got else "-"])
-            idx_paths = [e["p"] for e in read_jsonl_gz(state / "indici" / f"{vid}.jsonl.gz")]
-            absent = {w["p"] for w in info["avvisi"] if w["avviso"].startswith(("mancante", "tipo"))}
-            if idx_paths != [p for p in members[vid] if p not in absent]:
-                problems.append(f"{vid}: l'indice non corrisponde ai membri del piano")
-            changed = sum(1 for w in info["avvisi"] if "cambiato" in w["avviso"] or "modificato" in w["avviso"])
+            info = json.loads(pronto.read_text(encoding="utf-8")) if pronto.is_file() else None
+            if info is None:
+                vp.append("non pronto")
+            else:
+                vp += [f"marcatore con {k} diverso" for k, want in (("generazione", gen), ("volume", vid),
+                       ("categoria", v["categoria"]), ("piano_sha256", plan_sha)) if info.get(k) != want]
+            if not vp and not (parti.is_file() and ver.is_file()):
+                vp.append("non verificato su Drive" if parti.is_file() else "manca parti.tsv")
+            idx_paths: list[str] = []
+            if not vp:
+                for x in info["indice"]:
+                    if file_sha256(state / "indici" / x["nome"]) != x["sha256"]:
+                        vp.append(f"indice {x['nome']} diverso da quello registrato nel marcatore")
+                plist = read_tsv(parti)
+                if [(p["file"], int(p["byte"]), p["sha256"], p["md5"]) for p in plist if p["tipo"] == "volume"] != \
+                        [(p["nome"], p["byte"], p["sha256"], p["md5"]) for p in info["parti"]]:
+                    vp.append("parti.tsv diverso dalle parti del marcatore")
+                vrows = {r["remoto"]: r for r in read_tsv(ver)}
+                for p in plist:
+                    rem = f"LimiteVL-backup/{gen}/{p['remoto']}"
+                    got = vrows.get(rem) if p["tipo"] == "volume" else idx_ok.get(rem)
+                    if got is None:
+                        vp.append(f"{p['file']} non verificato su Drive")
+                    elif (got["byte"], got["md5_drive"]) != (p["byte"], p["md5"]) or got["sha256_drive"] not in (
+                            p["sha256"], "(non fornito da Drive)"):
+                        vp.append(f"{p['file']} diverso su Drive")
+                    if p["tipo"] == "volume":
+                        parts_rows.append([vid, p["file"], p["byte"], p["sha256"], p["md5"], rem,
+                                           got["id_drive"] if got else "-"])
+                idx_paths = [e["p"] for e in read_jsonl_gz(state / "indici" / f"{vid}.jsonl.gz")]
+                if idx_paths != members[vid]:
+                    vp.append(f"indice con {len(idx_paths)} voci, membri del piano {len(members[vid])}: non coincidono")
+                for w in info["avvisi"]:
+                    if warning_blocking(w):
+                        vp.append(f"avviso bloccante: {w['p']}: {w['avviso']}")
+                    else:
+                        notes.append(f"{vid}: {w['p']}: {w['avviso']} (file volatile, avviso motivato)")
+            if not vp:
+                for p in idx_paths:
+                    if p in archived:
+                        vp.append(f"{p} già archiviato in {archived[p]}")
+                    archived.setdefault(p, vid)
+            problems += [f"{vid}: {x}" for x in vp]
             total["volumi"] += 1
-            total["parti"] += len(info["parti"])
-            total["byte_caricati"] += info["flusso"]["byte"]
-            total["byte_dati"] += info["byte_dati"]
-            total["voci"] += info["voci"]
-            total["avvisi_cambiati"] += changed
-            total["mancanti"] += len(absent)
-            rows.append([v["ordine"], vid, v["categoria"], int(v["nucleo"]), info["compressione"], info["voci"],
-                         info["byte_dati"], len(info["parti"]), info["flusso"]["byte"], info["flusso"]["sha256"],
-                         changed, len(absent), "verificato"])
-    expected = set()
-    first = json.loads((Path(args.piani[0]) / "piano.json").read_text(encoding="utf-8"))
-    big_hf, big_out = frozenset(first["hf_grandi"]), frozenset(first["outputs_grandi"])
-    if len(args.inventari) != len(args.categorie_inventari):
-        sys.exit("--inventari e --categorie-inventari devono avere lo stesso numero di voci")
-    for inv_dir, spec in zip(args.inventari, args.categorie_inventari):
-        neg = spec.startswith("tranne:")  # "tranne:codice": tutte tranne codice; "codice": solo codice
-        cats = set(spec.removeprefix("tranne:").split(","))
-        for r in read_jsonl_gz(Path(inv_dir) / "inventario.jsonl.gz"):
-            c = category(r["p"], r["t"], big_hf, big_out)
-            if ((c not in cats) if neg else (c in cats)) and (is_nucleo(c) or not args.solo_nucleo):
-                expected.add(r["p"])
-    missing = sorted(expected - covered)
+            total["volumi_verificati"] += not vp
+            if info:
+                total["parti"] += len(info["parti"])
+                total["byte_caricati"] += info["flusso"]["byte"]
+                total["byte_dati"] += info["byte_dati"]
+            rows.append([v["ordine"], vid, v["categoria"], int(v["nucleo"]), info["compressione"] if info else "-",
+                         info["voci"] if info else 0, info["byte_dati"] if info else 0,
+                         len(info["parti"]) if info else 0, info["flusso"]["byte"] if info else 0,
+                         info["flusso"]["sha256"] if info else "-",
+                         sum(1 for w in (info or {}).get("avvisi", []) if not warning_blocking(w)),
+                         sum(1 for w in (info or {}).get("avvisi", []) if warning_blocking(w)),
+                         "verificato" if not vp else f"non verificato: {vp[0]}"])
+    missing = sorted(expected - archived.keys())
+    extra = sorted(archived.keys() - expected)
     if missing:
-        problems.append(f"{len(missing)} voci dell'inventario non sono in nessun volume (prime: {missing[:5]})")
+        problems.append(f"{len(missing)} voci attese non archiviate in un volume verificato (prime: {missing[:5]})")
+    if extra:
+        problems.append(f"{len(extra)} voci archiviate ma non attese (prime: {extra[:5]})")
+    total["voci_attese"], total["voci_archiviate"] = len(expected), len(archived)
+    total["voci_mancanti"], total["voci_in_piu"] = len(missing), len(extra)
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     write_tsv(out / "volumi.tsv", ["ordine", "volume", "categoria", "nucleo", "compressione", "voci", "byte_dati",
-                                   "parti", "byte_caricati", "sha256_flusso", "avvisi_cambiati", "mancanti", "stato"],
+                                   "parti", "byte_caricati", "sha256_flusso", "avvisi_motivati", "avvisi_bloccanti",
+                                   "stato"],
               sorted(rows, key=lambda r: (r[0] if isinstance(r[0], int) else 0, r[1])))
     write_tsv(out / "parti.tsv", ["volume", "file", "byte", "sha256", "md5", "remoto", "id_drive"], parts_rows)
-    rep = {"problemi": problems[:200], "n_problemi": len(problems), "totali": dict(total),
-           "voci_attese": len(expected), "voci_nei_piani": len(covered), "job": os.environ.get("SLURM_JOB_ID"),
+    rep = {"esito": "completo" if not problems else "incompleto", "problemi": problems[:500],
+           "n_problemi": len(problems), "avvisi_motivati": notes[:200], "n_avvisi_motivati": len(notes),
+           "totali": dict(total), "piani": [str(p) for p in args.piani], "solo_nucleo": args.solo_nucleo,
+           "voci_mancanti_elenco": missing[:1000], "job": os.environ.get("SLURM_JOB_ID"),
            "data": time.strftime("%Y-%m-%dT%H:%M:%S%z")}
     write_new(out / "completezza.json", json.dumps(rep, indent=1, ensure_ascii=False) + "\n")
-    print(json.dumps({k: v for k, v in rep.items() if k != "problemi"}, ensure_ascii=False), problems[:5])
+    print(json.dumps({k: v for k, v in rep.items() if k in ("esito", "n_problemi", "n_avvisi_motivati", "totali")},
+                     ensure_ascii=False), problems[:5])
     if problems:
         sys.exit(1)
 
@@ -1310,7 +1504,11 @@ def main() -> None:
     p.add_argument("--gen", required=True, help="generazione del backup, es. g1-20261112")
     p.add_argument("--solo-categorie", default="")
     p.add_argument("--escludi-categorie", default="")
-    p.add_argument("--precedente", default="", help="piano.json della generazione precedente (aggiornamento)")
+    p.add_argument("--precedente", default="", help="non supportato: rifiutato con una diagnosi (usare --dipende-da)")
+    p.add_argument("--sottoinsieme", action="append", default=[], metavar="CATEGORIA=FILE",
+                   help="solo i percorsi elencati della categoria; il resto è un'esclusione dichiarata")
+    p.add_argument("--prefisso-volumi", default="", help="prefisso dei nomi dei volumi (es. s1-), contro le omonimie")
+    p.add_argument("--dipende-da", default="", help="generazione da ripristinare prima di questa (supplemento)")
     p.add_argument("--byte-volume", type=int, default=VOLUME_BYTES)
     p.add_argument("--dimensione-parte", type=int, default=PART_BYTES)
     p.add_argument("--soglia-grandi", type=int, default=GIB, help="repository HF e cartelle di outputs con categoria propria")
@@ -1344,12 +1542,19 @@ def main() -> None:
     p = sub.add_parser("completezza")
     p.add_argument("--stato", required=True, help="trasferimento/stato/<generazione>")
     p.add_argument("--piani", nargs="+", required=True)
-    p.add_argument("--inventari", nargs="+", required=True)
-    p.add_argument("--categorie-inventari", nargs="+", required=True,
-                   help="per ogni inventario: 'codice' (solo queste categorie) o 'tranne:codice' (tutte le altre)")
     p.add_argument("--out", required=True)
     p.add_argument("--solo-nucleo", action="store_true", help="backup selezionato: solo i volumi e le categorie del nucleo")
     p.set_defaults(func=cmd_completezza)
+    p = sub.add_parser("firme")
+    p.add_argument("--piano-base", required=True, help="piano.json della generazione di base")
+    p.add_argument("--inventario", required=True)
+    p.add_argument("--out", required=True)
+    p.set_defaults(func=cmd_firme)
+    p = sub.add_parser("rimossi")
+    p.add_argument("--base", nargs="+", required=True, help="indici (jsonl.gz) dei volumi della base")
+    p.add_argument("--nuovo", nargs="+", required=True, help="indici (jsonl.gz) dei volumi nuovi")
+    p.add_argument("--out", required=True)
+    p.set_defaults(func=cmd_rimossi)
     args = ap.parse_args()
     args.func(args)
 

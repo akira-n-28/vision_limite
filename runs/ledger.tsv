@@ -1301,3 +1301,15 @@ time	job_id	job_name	status	note
 2026-11-13T15:25:33+01:00	31104	lvl-bk-compl	ok	backup completezza g1-20261112 -> /home/prignano/vision_limite/trasferimento/completezza/g1-20261112-31104
 2026-11-13T15:26:52+01:00	31104	lvl-bk-compl	note	completezza superata (COMPLETED 0:0, 3 s): 0 problemi; 44 volumi (43 del nucleo e codice), 45 parti, 130.796.650.042 byte caricati, 148.419.106.840 byte di dati, 18.383 voci attese e 18.383 nei piani; 1 avviso atteso (ledger cambiato dopo l'inventario 31097); rapporti in docs/backup/g1-20261112-{volumi,parti,completezza}
 2026-11-13T15:29:59+01:00	-	frontend	note	backup selezionato concluso: LEGGIMI su Drive (procedura, docs/backup, script di ripristino e di confronto; 25 file); controllo dei permessi su tutte le 210 voci di LimiteVL-backup: solo il proprietario, nessun link; GitHub main aggiornato (merge dei risultati MAVIS-C9 d24560a dal portatile); staging vuoto, copie di prova e di LEGGIMI rimosse
+2026-11-13T16:13:00+01:00	31105	lvl-tests	submitted	correzioni del backup (revisione dei push fino a f1aa291): tests/test_backup.py con file eliminato dopo l'inventario, errore di visita, marcatore di un altro piano, percorsi relativi, base più supplemento, confronto Mac non valido, stop del caricamento (rclone simulato), rifiuto dell'incrementale; log in trasferimento/logs; 0 GPU 4 CPU 8G
+2026-11-13T16:13:06+01:00	31105	lvl-tests	failed	tests_cpu (tests/test_backup.py): tests/test_backup.py
+2026-11-13T16:13:42+01:00	31105	lvl-tests	note	fallito nel confronto Mac del flusso: la fixture del catalogo non aveva righe sha256 e il confronto ora la rifiuta (comportamento voluto); fixture corretta con un file LFS
+2026-11-13T16:13:42+01:00	31106	lvl-tests	submitted	correzioni del backup: tests/test_backup.py dopo la correzione della fixture; 0 GPU 4 CPU 8G
+2026-11-13T16:13:58+01:00	31106	lvl-tests	ok	tests_cpu (tests/test_backup.py)
+2026-11-13T16:14:13+01:00	31106	lvl-tests	note	test_backup 78 su 78 (17 s): correzioni di completezza, marcatori, ripristino, confronto Mac, caricamento
+2026-11-13T16:14:13+01:00	31107	lvl-bk-compl	submitted	riesame di g1-20261112 col controllo corretto (copertura dalle voci archiviate, marcatori legati al piano, errori d'inventario, avvisi bloccanti), sola lettura, rapporto separato
+2026-11-13T16:14:16+01:00	31107	lvl-bk-compl	ok	backup completezza g1-20261112: completo -> /home/prignano/vision_limite/trasferimento/completezza/g1-20261112-31107
+2026-11-13T16:17:27+01:00	31107	lvl-bk-compl	note	riesame di g1-20261112 superato (COMPLETED 0:0): esito completo, 0 problemi, 44 volumi su 44 verificati, 18.383 voci attese e archiviate, 0 mancanti, 0 in più; inventari 30943 e 31097 senza errori; 1 avviso motivato (ledger); rapporto in docs/backup/riesame
+2026-11-13T16:17:27+01:00	31108	lvl-tests	submitted	correzioni del backup: tests/test_backup.py sul codice da fissare nel commit del supplemento; 0 GPU 4 CPU 8G
+2026-11-13T16:17:43+01:00	31108	lvl-tests	ok	tests_cpu (tests/test_backup.py)
+2026-11-13T16:17:57+01:00	31108	lvl-tests	note	test_backup 78 su 78 sul codice da fissare (correzioni di completezza, marcatori, ripristino, confronto Mac, caricamento)

@@ -7,10 +7,19 @@ Controlla:
 - piano: categorie (codice, metadati, shard, HF e outputs grandi, ambienti uniti dagli hard link), nucleo, ordine,
   volumi entro il limite, file grande in un volume a sé, arresti per secrets/ non vuota e segreti forti;
 - creazione: parti con nomi e hash, rilettura completa, elenco di GNU tar, ripresa senza rifare i volumi pronti,
-  staging limitato, avviso per un file cambiato dopo l'inventario;
+  staging limitato; avviso motivato per un file volatile cambiato (ledger), blocco per un file eliminato o non
+  volatile cambiato dopo l'inventario, blocco per un marcatore pronto di un altro piano con gli stessi nomi;
+- completezza: esito e codice d'uscita, copertura dalle voci archiviate, voce saltata di un volume dello schema 1,
+  inventario con errori, marcatore di un altro piano, volume non verificato, backup selezionato;
+- piano: rifiuto di un inventario con errori di visita e del percorso incrementale (--precedente); sottoinsieme
+  dichiarato con le esclusioni, prefisso e dipendenza di un supplemento;
 - ripristino: cat | tar -xp ricostruisce file, permessi, date, link e hard link; sha256sum -c; una parte alterata
-  fa fallire la prova;
-- aggiornamento: con --precedente le categorie invariate si riusano e solo le cambiate hanno volumi nuovi.
+  fa fallire la prova; base più supplemento con gli stessi nomi di volume, percorsi relativi (anche "indici"),
+  elenco dei file rimossi, ripresa senza rifare, --elimina-parti solo dopo il controllo;
+- confronto Mac: catalogo mancante o vuoto e file illeggibili danno un confronto non valido;
+- caricamento con rclone simulato: stop fra due parti e durante l'attesa, ripresa senza ricaricare le parti già su
+  Drive, marcatori dello stesso piano;
+- firme: confronto in sola lettura fra un inventario nuovo e il piano di base.
 """
 from __future__ import annotations
 
@@ -18,9 +27,11 @@ import argparse
 import gzip
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -89,7 +100,8 @@ def build_tree(root: Path) -> None:
     write(root / "data" / "snapshot-specs" / "models--o--m@r1.json", json.dumps({
         "cache_repo": str(root / "hf" / "hub" / "models--o--m"), "commit": "r1", "requested_revision": "main",
         "repo": "o/m", "type": "model", "files": {"model.safetensors": {"etag": "abc", "size": 1_200_000},
-                                                   "README.md": {"etag": "f" * 40, "size": 10}}}))
+                                                   "README.md": {"etag": "f" * 40, "size": 10},
+                                                   "extra.bin": {"etag": "0123456789abcdef" * 4, "size": 10}}}))
     write(root / "data" / "shards" / "s" / "v1" / "manifest.json", json.dumps({"source": "o/d@r1", "job_id": "77"}))
     write(root / "runs" / "ledger.tsv", "data\tjob\n2026\t77\tlvl-shard\tsubmitted\tshard di prova\n")
     git = ["git", "-C", str(root), "-c", "user.name=t", "-c", "user.email=t@t"]
@@ -112,10 +124,37 @@ def inventory(root: Path, out: Path) -> dict:
 
 def plan(inv: Path, out: Path, gen: str, prev: str = "", **kw) -> dict:
     a = dict(inventario=str(inv), out=str(out), gen=gen, solo_categorie="", escludi_categorie="", precedente=prev,
-             byte_volume=200 * KIB, dimensione_parte=256 * KIB, soglia_grandi=100 * KIB)
+             byte_volume=200 * KIB, dimensione_parte=256 * KIB, soglia_grandi=100 * KIB, sottoinsieme=[],
+             prefisso_volumi="", dipende_da="")
     a.update(kw)
     bk.cmd_piano(ns(**a))
     return json.loads((out / "piano.json").read_text())
+
+
+def completeness(state: Path, plans: list[Path], out: Path, solo_nucleo: bool = False) -> tuple[str, dict]:
+    err = fails(lambda: bk.cmd_completezza(ns(stato=str(state), piani=[str(p) for p in plans], out=str(out),
+                                              solo_nucleo=solo_nucleo)))
+    return err, json.loads((out / "completezza.json").read_text())
+
+
+def fake_verify(state: Path, gen: str, vids) -> None:
+    """Scrive le verifiche come le scrive backup_upload.sh dopo un caricamento riuscito (Drive simulato)."""
+    idx = ["remoto\tbyte\tmd5_drive\tsha256_drive\tid_drive\tverificato"]
+    old = state / "indici-verificati.tsv"
+    if old.is_file():
+        idx = old.read_text().splitlines()
+    for vid in vids:
+        rows = ["remoto\tbyte\tmd5_drive\tsha256_drive\tid_drive\tverificato"]
+        for r in bk.read_tsv(state / "vol" / f"{vid}.parti.tsv"):
+            line = f"LimiteVL-backup/{gen}/{r['remoto']}\t{r['byte']}\t{r['md5']}\t{r['sha256']}\tid\tora"
+            (rows if r["tipo"] == "volume" else idx).append(line)
+        (state / "vol" / f"{vid}.verificato.tsv").write_text("\n".join(rows) + "\n")
+    (state / "indici-verificati.tsv").write_text("\n".join(idx) + "\n")
+
+
+def run_script(name: str, *args, cwd=None, env=None) -> subprocess.CompletedProcess:
+    return subprocess.run(["bash", str(ROOT / "scripts" / name), *map(str, args)], capture_output=True, text=True,
+                          cwd=cwd, env={**os.environ, **(env or {})})
 
 
 def create(pdir: Path, staging: Path, state: Path, **kw) -> None:
@@ -210,7 +249,8 @@ def test_flow(tmp: Path) -> None:
     check("piano_checkpoint", "outputs/run/checkpoints/step-000001\tsì\tsì\tsì" in ck, ck)
 
     staging, state = tmp / "staging", tmp / "stato"
-    write(root / "scripts" / "a.py", "print('cambiato')\n")  # dopo l'inventario: il volume lo segnala
+    with open(root / "runs" / "ledger.tsv", "a") as fh:  # file volatile cambiato dopo l'inventario: avviso motivato
+        fh.write("2026\t78\tlvl-x\tnote\triga aggiunta dopo l'inventario\n")
     create(pdir, staging, state, massimo=2)
     ready = sorted(x.name for x in (state / "g1" / "vol").glob("*.pronto.json"))
     check("crea_massimo", len(ready) == 2, ready)
@@ -219,7 +259,8 @@ def test_flow(tmp: Path) -> None:
     check("crea_tutti", len(ready) == len(p["volumi"]), (len(ready), len(p["volumi"])))
     info = {v["id"]: json.loads((state / "g1" / "vol" / f"{v['id']}.pronto.json").read_text()) for v in p["volumi"]}
     warns = [w for v in info.values() for w in v["avvisi"]]
-    check("crea_avviso_cambiato", any(w["p"] == "scripts/a.py" and "cambiato" in w["avviso"] for w in warns), warns)
+    check("crea_avviso_volatile", any(w["p"] == "runs/ledger.tsv" and "cambiato" in w["avviso"] and not w["bloccante"]
+                                      for w in warns) and not any(w["bloccante"] for w in warns), warns)
     hfv = info["hf-models--o--m-002"]
     check("crea_parti", len(hfv["parti"]) == 5 and hfv["parti"][0]["nome"].endswith(".tar.part000")
           and all((staging / "g1" / "hf-models--o--m" / x["nome"]).is_file() for x in hfv["parti"]), hfv["parti"])
@@ -318,32 +359,47 @@ def test_flow(tmp: Path) -> None:
                                for r in ext), ext)
 
     # completezza: con ogni parte e indice verificati (come li scrive backup_upload.sh) passa; senza una, no
-    def fake_drive(skip: str = "") -> None:
-        idx = ["remoto\tbyte\tmd5_drive\tsha256_drive\tid_drive\tverificato"]
-        for v in p["volumi"]:
-            rows_v = ["remoto\tbyte\tmd5_drive\tsha256_drive\tid_drive\tverificato"]
-            for r in bk.read_tsv(state / "g1" / "vol" / f"{v['id']}.parti.tsv"):
-                line = f"LimiteVL-backup/g1/{r['remoto']}\t{r['byte']}\t{r['md5']}\t{r['sha256']}\tid\tora"
-                (rows_v if r["tipo"] == "volume" else idx).append(line)
-            f = state / "g1" / "vol" / f"{v['id']}.verificato.tsv"
-            if v["id"] == skip:
-                f.unlink(missing_ok=True)
-            else:
-                f.write_text("\n".join(rows_v) + "\n")
-        (state / "g1" / "indici-verificati.tsv").write_text("\n".join(idx) + "\n")
+    all_ids = [v["id"] for v in p["volumi"]]
+    fake_verify(state / "g1", "g1", all_ids)
+    err, rep = completeness(state / "g1", [pdir], tmp / "comp1")
+    check("completezza_ok", err == "" and rep["esito"] == "completo" and rep["totali"]["volumi_verificati"] == len(all_ids)
+          and rep["totali"]["voci_mancanti"] == 0 and rep["n_avvisi_motivati"] >= 1, rep["problemi"][:3])
+    (state / "g1" / "vol" / "wheels-001.verificato.tsv").rename(state / "g1" / "vol" / "wheels-001.verificato.via")
+    err, rep = completeness(state / "g1", [pdir], tmp / "comp2")
+    vt = {r["volume"]: r["stato"] for r in bk.read_tsv(tmp / "comp2" / "volumi.tsv")}
+    check("completezza_manca_volume", err != "" and rep["esito"] == "incompleto"
+          and vt["wheels-001"].startswith("non verificato") and rep["totali"]["voci_mancanti"] > 0, vt["wheels-001"])
+    (state / "g1" / "vol" / "wheels-001.verificato.via").rename(state / "g1" / "vol" / "wheels-001.verificato.tsv")
 
-    fake_drive()
-    comp = dict(stato=str(state / "g1"), piani=[str(pdir)], inventari=[str(tmp / "inv1")],
-                categorie_inventari=["tranne:nessuna"], out=str(tmp / "comp1"), solo_nucleo=False)
-    err = fails(lambda: bk.cmd_completezza(ns(**comp)))
-    rep = json.loads((tmp / "comp1" / "completezza.json").read_text())
-    check("completezza_ok", err == "" and rep["n_problemi"] == 0 and rep["totali"]["volumi"] == len(p["volumi"]),
+    # volume dello schema 1 con un membro saltato e dichiarato solo come avviso: prima contava come "mancante" senza
+    # errore; ora blocca (avviso, indice diverso dai membri, voce attesa non archiviata)
+    forged = tmp / "stato-schema1"
+    shutil.copytree(state / "g1", forged)
+    vid = next(v["id"] for v in p["volumi"] if v["categoria"] == "outputs-run")
+    entries = list(bk.read_jsonl_gz(forged / "indici" / f"{vid}.jsonl.gz"))
+    drop = next(e for e in entries if e["t"] == "f")
+    with gzip.open(forged / "indici" / f"{vid}.jsonl.gz", "wt", encoding="ascii") as fh:
+        for e in entries:
+            if e is not drop:
+                fh.write(bk.dump(e) + "\n")
+    pr = json.loads((forged / "vol" / f"{vid}.pronto.json").read_text())
+    pr["schema"] = "limite-vl-backup-volume/1"
+    pr["avvisi"] = [{"p": drop["p"], "avviso": "mancante al momento dell'archiviazione"}]
+    for x in pr["indice"]:
+        x["sha256"] = bk.file_sha256(forged / "indici" / x["nome"])
+    (forged / "vol" / f"{vid}.pronto.json").write_text(json.dumps(pr))
+    err, rep = completeness(forged, [pdir], tmp / "comp-schema1")
+    check("completezza_saltato_bloccante", err != "" and any("avviso bloccante" in x for x in rep["problemi"])
+          and drop["p"] in rep["voci_mancanti_elenco"], rep["problemi"][:4])
+
+    # inventario con errori di visita: la completezza non lo accetta
+    rp = tmp / "inv1" / "riepilogo.json"
+    saved = rp.read_text()
+    rp.write_text(json.dumps({**json.loads(saved), "n_errori": 1, "errori": [{"p": "x", "errore": "scandir"}]}))
+    err, rep = completeness(state / "g1", [pdir], tmp / "comp-inv-err")
+    rp.write_text(saved)
+    check("completezza_inventario_con_errori", err != "" and any("errori di visita" in x for x in rep["problemi"]),
           rep["problemi"][:3])
-    fake_drive(skip="wheels-001")
-    err = fails(lambda: bk.cmd_completezza(ns(**{**comp, "out": str(tmp / "comp2")})))
-    check("completezza_manca_volume", err != "" and any("wheels-001" in x for x in json.loads(
-        (tmp / "comp2" / "completezza.json").read_text())["problemi"]))
-    fake_drive()
 
     # backup selezionato: si creano e si verificano solo i volumi del nucleo
     pdir_s = tmp / "piani" / "gs"
@@ -352,51 +408,37 @@ def test_flow(tmp: Path) -> None:
     made = {x.name[: -len(".pronto.json")] for x in (state / "gs" / "vol").glob("*.pronto.json")}
     core = {v["id"] for v in ps["volumi"] if v["nucleo"]}
     check("selezionato_crea", made == core and len(core) < len(ps["volumi"]), (sorted(made), sorted(core)))
-    idx = ["remoto\tbyte\tmd5_drive\tsha256_drive\tid_drive\tverificato"]
-    for vid in made:
-        rows_v = ["remoto\tbyte\tmd5_drive\tsha256_drive\tid_drive\tverificato"]
-        for r in bk.read_tsv(state / "gs" / "vol" / f"{vid}.parti.tsv"):
-            line = f"LimiteVL-backup/gs/{r['remoto']}\t{r['byte']}\t{r['md5']}\t{r['sha256']}\tid\tora"
-            (rows_v if r["tipo"] == "volume" else idx).append(line)
-        (state / "gs" / "vol" / f"{vid}.verificato.tsv").write_text("\n".join(rows_v) + "\n")
-    (state / "gs" / "indici-verificati.tsv").write_text("\n".join(idx) + "\n")
-    comp_s = dict(stato=str(state / "gs"), piani=[str(pdir_s)], inventari=[str(tmp / "inv1")],
-                  categorie_inventari=["tranne:nessuna"], out=str(tmp / "comp-s1"), solo_nucleo=True)
-    err = fails(lambda: bk.cmd_completezza(ns(**comp_s)))
-    rep = json.loads((tmp / "comp-s1" / "completezza.json").read_text())
-    check("selezionato_completezza", err == "" and rep["totali"]["volumi"] == len(core), rep["problemi"][:3])
-    err = fails(lambda: bk.cmd_completezza(ns(**{**comp_s, "solo_nucleo": False, "out": str(tmp / "comp-s2")})))
-    check("selezionato_completezza_tutto_manca", err != "")
+    fake_verify(state / "gs", "gs", made)
+    err, rep = completeness(state / "gs", [pdir_s], tmp / "comp-s1", solo_nucleo=True)
+    check("selezionato_completezza", err == "" and rep["totali"]["volumi_verificati"] == len(core), rep["problemi"][:3])
+    err, rep = completeness(state / "gs", [pdir_s], tmp / "comp-s2")
+    check("selezionato_completezza_tutto_manca", err != "" and rep["totali"]["voci_mancanti"] > 0)
 
     # script portabili (Mac o Linux): ripristino con sha256sum e con shasum, confronto per contenuto
     sh_ok = True
     for forza in ("", "1"):
-        if forza and subprocess.run(["sh", "-c", "command -v shasum"], capture_output=True).returncode:
+        if forza and subprocess.run(["bash", "-c", "command -v shasum"], capture_output=True).returncode:
             print("shasum assente: ramo macOS non provato")
             continue
         dest = tmp / f"rip-sh{forza}"
-        env = {**os.environ, "FORZA_SHASUM": forza}
-        r = subprocess.run(["sh", str(ROOT / "scripts/ripristina_volumi.sh"), str(tmp / "comp1/volumi.tsv"),
-                            str(tmp / "comp1/parti.tsv"), str(staging / "g1"), str(state / "g1" / "indici"), str(dest),
-                            "tutti"], capture_output=True, text=True, env=env)
-        done = (tmp / f"rip-sh{forza}.ripristino-fatti").read_text().split() if r.returncode == 0 else []
+        r = run_script("ripristina_volumi.sh", tmp / "comp1/volumi.tsv", tmp / "comp1/parti.tsv", staging / "g1",
+                       state / "g1" / "indici", dest, "tutti", env={"FORZA_SHASUM": forza})
+        done = (tmp / f"rip-sh{forza}.ripristino-fatti").read_text().splitlines() if r.returncode == 0 else []
         same = all(bk.file_sha256(root / x["p"]) == bk.file_sha256(dest / x["p"]) for x in recs if x["t"] == "f")
         if r.returncode or len(done) != len(p["volumi"]) or not same:
             sh_ok = False
             print(r.stdout[-500:], r.stderr[-500:])
     check("script_ripristino", sh_ok)
-    nuc = subprocess.run(["sh", str(ROOT / "scripts/ripristina_volumi.sh"), str(tmp / "comp1/volumi.tsv"),
-                          str(tmp / "comp1/parti.tsv"), str(staging / "g1"), str(state / "g1" / "indici"),
-                          str(tmp / "rip-nucleo"), "nucleo"], capture_output=True, text=True)
-    done = (tmp / "rip-nucleo.ripristino-fatti").read_text().split()
+    nuc = run_script("ripristina_volumi.sh", tmp / "comp1/volumi.tsv", tmp / "comp1/parti.tsv", staging / "g1",
+                     state / "g1" / "indici", tmp / "rip-nucleo", "nucleo")
+    done = [x.split("\t")[0] for x in (tmp / "rip-nucleo.ripristino-fatti").read_text().splitlines()]
     check("script_ripristino_nucleo", nuc.returncode == 0 and done and all(bk.is_nucleo(d.rsplit("-", 1)[0])
                                                                          for d in done), (done, nuc.stderr[-300:]))
     hfp = staging / "g1" / "hf-models--o--m" / hfv["parti"][1]["nome"]
     moved = hfp.with_name(hfp.name + ".via")
     hfp.rename(moved)
-    bad = subprocess.run(["sh", str(ROOT / "scripts/ripristina_volumi.sh"), str(tmp / "comp1/volumi.tsv"),
-                          str(tmp / "comp1/parti.tsv"), str(staging / "g1"), str(state / "g1" / "indici"),
-                          str(tmp / "rip-manca"), "tutti"], capture_output=True, text=True)
+    bad = run_script("ripristina_volumi.sh", tmp / "comp1/volumi.tsv", tmp / "comp1/parti.tsv", staging / "g1",
+                     state / "g1" / "indici", tmp / "rip-manca", "tutti")
     moved.rename(hfp)
     check("script_ripristino_parte_mancante", bad.returncode != 0 and "manca la parte" in bad.stderr, bad.stderr[-300:])
     mac = tmp / "mac"
@@ -405,25 +447,224 @@ def test_flow(tmp: Path) -> None:
     cwd = tmp / "confronto"
     cwd.mkdir()
     for forza in ("", "1"):
-        r = subprocess.run(["sh", str(ROOT / "scripts/mac_confronta_hash.sh"), str(mac),
-                            str(cat_out / "hash_riferimento_dati.tsv"), str(cat_out / "catalogo_recupero.tsv")],
-                           cwd=cwd, capture_output=True, text=True, env={**os.environ, "FORZA_SHASUM": forza})
+        r = run_script("mac_confronta_hash.sh", mac, cat_out / "hash_riferimento_dati.tsv",
+                       cat_out / "catalogo_recupero.tsv", cwd=cwd, env={"FORZA_SHASUM": forza})
         same = (cwd / "confronto-uguali.tsv").read_text().splitlines()
         only = (cwd / "confronto-solo-mac.tsv").read_text().splitlines()
         check(f"script_confronto{forza}", r.returncode == 0 and len(same) == 1
               and same[0].endswith("data/shards/s/v1/x-00000.tar") and len(only) == 1, (r.stderr[-300:], same, only))
 
-    # aggiornamento: solo le categorie cambiate hanno volumi nuovi
-    write(root / "outputs" / "logs" / "j2.out", "nuovo\n")
-    inventory(root, tmp / "inv2")
-    err = fails(lambda: bk.cmd_completezza(ns(**{**comp, "inventari": [str(tmp / "inv2")], "out": str(tmp / "comp3")})))
-    rep = json.loads((tmp / "comp3" / "completezza.json").read_text())
-    check("completezza_inventario_scoperto", err != "" and any("outputs/logs/j2.out" in x for x in rep["problemi"]),
+    # aggiornamento incrementale: rifiutato con una diagnosi
+    err = fails(lambda: plan(tmp / "inv1", tmp / "piani" / "g2", "g2", prev=str(pdir / "piano.json")))
+    check("rifiuta_incrementale", "non supportato" in err and not (tmp / "piani" / "g2").exists(), err)
+
+
+FAKE_RCLONE = r'''#!/usr/bin/env bash
+# rclone simulato per i test di backup_upload.sh: "lvl-ist:PERCORSO" -> $FAKE_REMOTE/PERCORSO; hash veri.
+set -euo pipefail
+label=$1; shift; [ "$1" = "--" ] && shift
+cmd=$1; shift
+map() { local x=$1; x=${x#lvl-ist:}; printf '%s/%s' "$FAKE_REMOTE" "$x"; }
+case $cmd in
+  copyto)
+    dst=$(map "$2"); mkdir -p "$(dirname "$dst")"; cp "$1" "$dst"
+    echo "$label $2" >> "$FAKE_REMOTE/.registro"
+    if [ -n "${FAKE_STOP_DOPO:-}" ] && [ "$(grep -c . "$FAKE_REMOTE/.registro")" -ge "$FAKE_STOP_DOPO" ]; then
+      touch "$FAKE_STOP_FILE"
+    fi ;;
+  copy) dst=$(map "$2"); mkdir -p "$dst"; cp -r "$1"/. "$dst"/ ;;
+  lsjson)
+    d=""; for a in "$@"; do case $a in lvl-ist:*) d=$(map "$a") ;; esac; done
+    [ -d "$d" ] || { echo "ERROR : directory not found" >&2; exit 3; }
+    echo "["
+    for f in "$d"/*; do
+      [ -f "$f" ] || continue
+      n=$(basename "$f")
+      printf '{"Path":"%s","Name":"%s","Size":%s,"Hashes":{"md5":"%s","sha256":"%s"},"ID":"id-%s"},\n' "$n" "$n" \
+        "$(stat -c %s "$f")" "$(md5sum "$f" | cut -d' ' -f1)" "$(sha256sum "$f" | cut -d' ' -f1)" "$n"
+    done
+    echo "]" ;;
+  *) echo "comando non simulato: $cmd" >&2; exit 2 ;;
+esac
+'''
+
+
+def test_correzioni(tmp: Path) -> None:
+    root = tmp / "progetto3"
+    build_tree(root)
+    staging, state = tmp / "staging", tmp / "stato"
+    inventory(root, tmp / "inv-a")
+
+    # file eliminato dopo l'inventario: quel volume non è pronto e la completezza fallisce con codice d'uscita
+    pa = tmp / "piani" / "ga"
+    plan(tmp / "inv-a", pa, "ga", solo_categorie="codice")
+    gone = "docs/nota con spazi è.md"
+    vbad = {m["p"]: m["v"] for m in bk.read_jsonl_gz(pa / "membri.jsonl.gz")}[gone]
+    (root / gone).unlink()
+    err = fails(lambda: create(pa, staging, state))
+    check("crea_file_eliminato", "mancante al momento dell'archiviazione" in err
+          and not (state / "ga" / "vol" / f"{vbad}.pronto.json").exists()
+          and (state / "ga" / "vol" / f"{vbad}.errore.json").exists(), err)
+    err, rep = completeness(state / "ga", [pa], tmp / "comp-ga")
+    check("completezza_file_eliminato", err != "" and rep["esito"] == "incompleto" and gone in rep["voci_mancanti_elenco"],
           rep["problemi"][:3])
-    p2 = plan(tmp / "inv2", tmp / "piani" / "g2", "g2", prev=str(pdir / "piano.json"))
-    new_cats = {v["categoria"] for v in p2["volumi"]}
-    check("aggiorna_solo_cambiate", "outputs-resto" in new_cats and "hf-models--o--m" not in new_cats
-          and p2["categorie"]["hf-models--o--m"].get("riusata_da") == "g1", new_cats)
+
+    # errore di visita dell'inventario: il piano lo rifiuta
+    locked = root / "outputs" / "chiusa"
+    locked.mkdir()
+    locked.chmod(0)
+    s = inventory(root, tmp / "inv-err")
+    locked.chmod(0o755)
+    err = fails(lambda: plan(tmp / "inv-err", tmp / "piani" / "gerr", "gerr"))
+    check("piano_rifiuta_inventario_con_errori", s["n_errori"] >= 1 and "non accettabile" in err
+          and not (tmp / "piani" / "gerr").exists(), (s["n_errori"], err))
+    locked.rmdir()
+
+    # file non volatile cambiato dopo l'inventario: blocca il volume
+    inventory(root, tmp / "inv-b")
+    pb = tmp / "piani" / "gb"
+    plan(tmp / "inv-b", pb, "gb", solo_categorie="codice")
+    write(root / "scripts" / "a.py", "print('cambiato')\n")
+    err = fails(lambda: create(pb, staging, state))
+    check("crea_cambiato_bloccante", "cambiato dopo l'inventario" in err, err)
+
+    # marcatore pronto di un altro piano con gli stessi nomi: niente riuso, né in creazione né in completezza
+    inventory(root, tmp / "inv-c")
+    pc1, pc2 = tmp / "piani" / "gc-1", tmp / "piani" / "gc-2"
+    plan(tmp / "inv-c", pc1, "gc", solo_categorie="codice")
+    create(pc1, staging, state)
+    ids1 = [v["id"] for v in json.loads((pc1 / "piano.json").read_text())["volumi"]]
+    fake_verify(state / "gc", "gc", ids1)
+    write(root / "scripts" / "a.py", "print('altro contenuto, stesso nome')\n")
+    inventory(root, tmp / "inv-d")
+    plan(tmp / "inv-d", pc2, "gc", solo_categorie="codice")
+    err = fails(lambda: create(pc2, staging, state))
+    check("crea_marcatore_altro_piano", "marcatore di un altro piano" in err, err)
+    err2, rep = completeness(state / "gc", [pc2], tmp / "comp-gc2")
+    check("completezza_marcatore_altro_piano", err2 != "" and any("piano_sha256" in x for x in rep["problemi"]),
+          rep["problemi"][:3])
+    err3, rep = completeness(state / "gc", [pc1], tmp / "comp-gc1")
+    check("completezza_piano_giusto", err3 == "" and rep["esito"] == "completo", rep["problemi"][:3])
+
+    # base completa, poi supplemento autonomo (codice e un sottoinsieme dichiarato) con gli stessi nomi di volume
+    pbase = tmp / "piani" / "gbase"
+    pb_plan = plan(tmp / "inv-d", pbase, "gbase")
+    create(pbase, staging, state)
+    fake_verify(state / "gbase", "gbase", [v["id"] for v in pb_plan["volumi"]])
+    err, rep = completeness(state / "gbase", [pbase], tmp / "comp-base")
+    check("base_completa", err == "", rep["problemi"][:3])
+    write(root / "scripts" / "a.py", "print('codice aggiornato del supplemento')\n")
+    (root / "scripts" / "nuovo.py").unlink()
+    write(root / "revisioni" / "esiti.tsv", "unità\tesito\nu1\tok\n")
+    inventory(root, tmp / "inv-e")
+    subset = tmp / "sottoinsieme.txt"
+    subset.write_text("hf/hub/models--o--m/blobs/abc\n")
+    psup = tmp / "piani" / "gsup"
+    ps_plan = plan(tmp / "inv-e", psup, "gsup", solo_categorie="codice,hf-models--o--m",
+                   sottoinsieme=[f"hf-models--o--m={subset}"], dipende_da="gbase")
+    excl = list(bk.read_jsonl_gz(psup / "esclusioni.jsonl.gz"))
+    check("supplemento_esclusioni_dichiarate", ps_plan["dipende_da"] == "gbase" and excl and all(
+        e["motivo"] == "fuori dal sottoinsieme dichiarato" and "snapshots" in e["p"] for e in excl), excl)
+    create(psup, staging, state)
+    fake_verify(state / "gsup", "gsup", [v["id"] for v in ps_plan["volumi"]])
+    err, rep = completeness(state / "gsup", [psup], tmp / "comp-sup")
+    check("supplemento_completo", err == "" and rep["totali"]["esclusioni_dichiarate"] == len(excl), rep["problemi"][:3])
+    base_code = [str(state / "gbase" / "indici" / f"{v['id']}.jsonl.gz") for v in pb_plan["volumi"]
+                 if v["categoria"] == "codice"]
+    sup_code = [str(state / "gsup" / "indici" / f"{v['id']}.jsonl.gz") for v in ps_plan["volumi"]
+                if v["categoria"] == "codice"]
+    bk.cmd_rimossi(ns(base=base_code, nuovo=sup_code, out=str(tmp / "rimossi.txt")))
+    check("rimossi_elenco", "scripts/nuovo.py" in (tmp / "rimossi.txt").read_text().splitlines())
+    # ripristino in due passaggi, con percorsi relativi (anche la cartella degli indici) e la stessa radice
+    (tmp / "indici-base").symlink_to(state / "gbase" / "indici")
+    r1 = run_script("ripristina_volumi.sh", "comp-base/volumi.tsv", "comp-base/parti.tsv", "staging/gbase",
+                    "indici-base", "ricostruito", "tutti", cwd=tmp)
+    (tmp / "indici").symlink_to(state / "gsup" / "indici")
+    r2 = run_script("ripristina_volumi.sh", "comp-sup/volumi.tsv", "comp-sup/parti.tsv", "staging/gsup", "indici",
+                    "ricostruito", "tutti", "--rimuovi-elenco", "rimossi.txt", cwd=tmp)
+    rb = tmp / "ricostruito"
+    marks = (tmp / "ricostruito.ripristino-fatti").read_text().splitlines()
+    code_marks = [m for m in marks if m.split("\t")[0] == "codice-001"]
+    check("ripristino_base_e_supplemento", r1.returncode == 0 and r2.returncode == 0
+          and (rb / "scripts" / "a.py").read_text() == "print('codice aggiornato del supplemento')\n"
+          and not (rb / "scripts" / "nuovo.py").exists() and (rb / "revisioni" / "esiti.tsv").is_file()
+          and (rb / "hf/hub/models--o--m/blobs/abc").is_file() and len(code_marks) == 2
+          and code_marks[0] != code_marks[1], (r1.stderr[-300:], r2.stderr[-300:], code_marks))
+    r3 = run_script("ripristina_volumi.sh", "comp-sup/volumi.tsv", "comp-sup/parti.tsv", "staging/gsup", "indici",
+                    "ricostruito", "tutti", cwd=tmp)
+    check("ripristino_ripresa_senza_rifare", r3.returncode == 0 and "== " not in r3.stdout, r3.stdout[-300:])
+    # --elimina-parti solo dopo il controllo: una parte alterata ferma tutto e le parti restano
+    copy = tmp / "parti-copia"
+    shutil.copytree(staging / "gsup", copy)
+    victim = sorted((copy / "codice").glob("codice-001.tar*"))[0]  # il primo volume: nessuna parte va cancellata
+    victim.write_bytes(victim.read_bytes() + b"x")
+    r4 = run_script("ripristina_volumi.sh", "comp-sup/volumi.tsv", "comp-sup/parti.tsv", copy, "indici",
+                    "ricostruito-2", "tutti", "--elimina-parti", cwd=tmp)
+    check("elimina_parti_solo_dopo_verifica", r4.returncode != 0 and victim.exists() and len(list(copy.rglob("*.tar*"))) ==
+          len(list((staging / "gsup").rglob("*.tar*"))), r4.stderr[-200:])
+
+    # confronto Mac: ingressi mancanti, vuoti o illeggibili non danno un confronto riuscito
+    cat_out = tmp / "catalogo3"
+    bk.cmd_catalogo(ns(root=str(root), inventario=str(tmp / "inv-d"), stato=str(state / "gbase"), out=str(cat_out)))
+    ref, catf = cat_out / "hash_riferimento_dati.tsv", cat_out / "catalogo_recupero.tsv"
+    mac, cwd = tmp / "mac3", tmp / "confronto3"
+    write(mac / "uno.bin", b"uno")
+    cwd.mkdir()
+    r = run_script("mac_confronta_hash.sh", mac, ref, tmp / "non-esiste.tsv", cwd=cwd)
+    check("mac_catalogo_mancante", r.returncode != 0 and "NON VALIDO" in r.stderr, r.stderr[-200:])
+    empty = tmp / "catalogo-vuoto.tsv"
+    empty.write_text(catf.read_text().splitlines()[0] + "\n")
+    r = run_script("mac_confronta_hash.sh", mac, ref, empty, cwd=cwd)
+    check("mac_catalogo_vuoto", r.returncode != 0 and "nessun hash" in r.stderr, r.stderr[-200:])
+    blocked = mac / "chiuso.bin"
+    write(blocked, b"segreto")
+    blocked.chmod(0)
+    r = run_script("mac_confronta_hash.sh", mac, ref, catf, cwd=cwd)
+    blocked.chmod(0o644)
+    check("mac_file_illeggibile", r.returncode != 0 and "NON VALIDO" in r.stderr
+          and not (cwd / "confronto-uguali.tsv").exists(), r.stderr[-200:])
+
+    # caricamento con rclone simulato: stop fra due parti, ripresa senza ricaricare, stop durante l'attesa
+    fake = tmp / "fake_rclone.sh"
+    fake.write_text(FAKE_RCLONE)
+    fake.chmod(0o755)
+    remote = tmp / "remoto"
+    remote.mkdir()
+    pu = tmp / "piani" / "gu"
+    pu_plan = plan(tmp / "inv-e", pu, "gu", solo_categorie="hf-models--o--m")
+    create(pu, staging, state)
+    env = {"BACKUP_TRASFERIMENTO": str(tmp), "BACKUP_RCLONE": str(fake), "FAKE_REMOTE": str(remote),
+           "FAKE_STOP_FILE": str(state / "STOP-UPLOAD"), "BACKUP_ATTESA_SECONDI": "1", "BACKUP_STABILE_SECONDI": "1",
+           "BACKUP_PASSO_MEMORIA": "1"}
+    big = next(v["id"] for v in pu_plan["volumi"] if v["grande"])
+    u1 = run_script("backup_upload.sh", "lvl-ist", "gu", pu, env={**env, "FAKE_STOP_DOPO": "2"})
+    big_parts = sorted((staging / "gu" / "hf-models--o--m").glob(f"{big}.tar.part*"))
+    check("upload_stop_fra_parti", u1.returncode == 0 and "prima della parte" in u1.stdout
+          and not (state / "gu" / "vol" / f"{big}.verificato.tsv").exists() and len(big_parts) == 5
+          and len(list((remote / "LimiteVL-backup/gu/volumi/hf-models--o--m").glob(f"{big}*"))) == 1,
+          (u1.stdout[-400:], u1.stderr[-300:]))
+    u2 = run_script("backup_upload.sh", "lvl-ist", "gu", pu, env=env)
+    verified = sorted(x.name for x in (state / "gu" / "vol").glob("*.verificato.tsv"))
+    check("upload_ripresa", u2.returncode == 0 and "già su Drive" in u2.stdout and len(verified) == len(pu_plan["volumi"])
+          and not list((staging / "gu").rglob("*.tar*")), (u2.stdout[-400:], u2.stderr[-300:]))
+    err, rep = completeness(state / "gu", [pu], tmp / "comp-gu")
+    check("upload_completezza", err == "", rep["problemi"][:3])
+    pw = tmp / "piani" / "gw"
+    plan(tmp / "inv-e", pw, "gw", solo_categorie="hf-models--o--m")
+    proc = subprocess.Popen(["bash", str(ROOT / "scripts" / "backup_upload.sh"), "lvl-ist", "gw", str(pw)],
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+                            env={**os.environ, **env, "BACKUP_CREATORE_ATTIVO": "1"})
+    time.sleep(2.5)
+    (state / "STOP-UPLOAD").touch()
+    out, errs = proc.communicate(timeout=30)
+    check("upload_stop_in_attesa", proc.returncode == 0 and "durante l'attesa" in out
+          and not (remote / "LimiteVL-backup/gw/volumi").exists(), (out[-300:], errs[-300:]))
+
+    # confronto delle firme (sola lettura): il codice è cambiato, i modelli no
+    bk.cmd_firme(ns(piano_base=str(pbase / "piano.json"), inventario=str(tmp / "inv-e"), out=str(tmp / "firme.json")))
+    fr = json.loads((tmp / "firme.json").read_text())["categorie"]
+    check("firme", fr["codice"] == "cambiata" and fr["hf-models--o--m"] == "uguale", fr)
+
 
 
 def test_refusals(tmp: Path) -> None:
@@ -446,6 +687,8 @@ def main() -> None:
         test_flow(Path(d))
     with tempfile.TemporaryDirectory() as d:
         test_refusals(Path(d))
+    with tempfile.TemporaryDirectory() as d:
+        test_correzioni(Path(d))
     print(f"{len(DONE) - len(FAILS)} controlli su {len(DONE)}")
     if FAILS:
         print("falliti: " + "; ".join(FAILS))

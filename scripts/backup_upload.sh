@@ -8,23 +8,30 @@
 # un elenco con gli hash per volume, gli indici dei volumi a lotti.
 #
 # Uso (sopravvive alla disconnessione):
-#   nohup setsid scripts/backup_upload.sh REMOTE GENERAZIONE PIANO [nucleo|tutti] \
+#   GUARD_CGROUP=off nohup setsid scripts/backup_upload.sh REMOTE GENERAZIONE PIANO [nucleo|tutti] \
 #     > /home/prignano/vision_limite/trasferimento/logs/upload-$(date +%Y%m%d-%H%M%S).log 2>&1 < /dev/null &
-# Arresto gentile, alla fine del file in corso: touch /home/prignano/vision_limite/trasferimento/stato/STOP-UPLOAD
-# Ripresa: rilanciare lo stesso comando; salta i volumi con <volume>.verificato.tsv e non ricarica le parti già su
-# Drive con dimensione e md5 giusti. Nessuna cancellazione su Drive, nessuna sincronizzazione.
+# Arresto gentile: touch /home/prignano/vision_limite/trasferimento/stato/STOP-UPLOAD. Si controlla durante ogni
+# attesa e prima di ogni nuova parte: la parte in corso si conclude, poi lo script esce senza avviare altre parti o
+# volumi e senza cancellare le copie non verificate.
+# Ripresa: rilanciare lo stesso comando; salta i volumi verificati (marcatore dello stesso piano) e non ricarica le
+# parti già su Drive con dimensione e md5 giusti. Nessuna cancellazione su Drive, nessuna sincronizzazione.
+# Solo per i test: BACKUP_ROOT, BACKUP_TRASFERIMENTO, BACKUP_RCLONE, BACKUP_ATTESA_SECONDI, BACKUP_STABILE_SECONDI,
+# BACKUP_PASSO_MEMORIA, BACKUP_CREATORE_ATTIVO.
 set -euo pipefail
-ROOT=/home/prignano/vision_limite
-T=$ROOT/trasferimento
-RC=$ROOT/scripts/backup_rclone.sh
+ROOT=${BACKUP_ROOT:-/home/prignano/vision_limite}
+T=${BACKUP_TRASFERIMENTO:-$ROOT/trasferimento}
+RC=${BACKUP_RCLONE:-$ROOT/scripts/backup_rclone.sh}
+WAIT=${BACKUP_ATTESA_SECONDI:-60}
 die() { echo "[$(date --iso-8601=seconds)] backup_upload.sh: $*" >&2; exit "${2:-1}"; }
 log() { echo "[$(date --iso-8601=seconds)] $*"; }
 [[ $# -eq 3 || $# -eq 4 ]] || die "uso: backup_upload.sh REMOTE GENERAZIONE PIANO [nucleo|tutti]" 2
 REMOTE=$1; GEN=$2; PLAN=$3; MODE=${4:-tutti}
 [[ $MODE == nucleo || $MODE == tutti ]] || die "quarto argomento: nucleo (backup selezionato) o tutti" 2
 [[ $REMOTE =~ ^lvl-(ist|pers)$ ]] || die "remote sconosciuto: $REMOTE (lvl-ist o lvl-pers)" 2
-[[ -f $PLAN/volumi.tsv && -f $PLAN/piano.json ]] || die "piano non trovato: $PLAN" 2
+[[ -f $PLAN/volumi.tsv && -f $PLAN/piano.json && -f $PLAN/SHA256SUMS ]] || die "piano non trovato o incompleto: $PLAN" 2
 grep -q "\"generazione\": \"$GEN\"" "$PLAN/piano.json" || die "il piano $PLAN non è della generazione $GEN" 2
+PLAN_SHA=$(awk '$2 == "piano.json" { print $1 }' "$PLAN/SHA256SUMS")
+[[ $PLAN_SHA =~ ^[0-9a-f]{64}$ ]] || die "sha256 di piano.json assente da $PLAN/SHA256SUMS" 2
 S=$T/stato/$GEN
 BASE="LimiteVL-backup/$GEN"
 STOP=$T/stato/STOP-UPLOAD
@@ -40,6 +47,15 @@ flock -n 8 || die "un altro backup_upload.sh è attivo" 13
 TMPL="$T/tmp/elenco-$GEN-$$.json"
 trap 'rm -f -- "$TMPL" "$TMPL.err" "$T/tmp/volumi-$GEN-$$.txt"' EXIT
 
+# Arresto gentile: chi lo chiama ha già concluso il file in corso; nulla di non verificato viene cancellato.
+stop_if_requested() {  # contesto
+  if [[ -f $STOP ]]; then
+    rm -f -- "$STOP"
+    log "trovato STOP-UPLOAD $1: mi fermo; le parti non ancora verificate restano nello staging"
+    exit 0
+  fi
+}
+
 # Ripresa dopo uno stop per memoria (opzione A dell'utente, 2026-11-12): soglie invariate; si riparte solo dopo
 # 10 minuti di fila con MemAvailable >= 1 GiB, al più N stop in tutto per la generazione: N = 5, portato a 20
 # dall'utente il 2026-11-13 col file $S/max-stop-memoria; registro in $S/riprese-memoria.tsv, che vale anche fra
@@ -47,16 +63,17 @@ trap 'rm -f -- "$TMPL" "$TMPL.err" "$T/tmp/volumi-$GEN-$$.txt"' EXIT
 # limiti.
 MEMLOG=$S/riprese-memoria.tsv
 MAX_MEM_STOPS=${MAX_MEM_STOPS:-5}   # tetto di partenza; $S/max-stop-memoria (un numero) lo sostituisce, riletto a ogni stop
-STABLE_SECONDS=600
+STABLE_SECONDS=${BACKUP_STABILE_SECONDI:-600}
+MEM_STEP=${BACKUP_PASSO_MEMORIA:-30}
 mem_avail_kb() { awk '$1 == "MemAvailable:" { print $2 }' /proc/meminfo; }
-wait_memory() {  # attende 10 minuti di fila sopra 1 GiB (si ferma con STOP-UPLOAD)
+wait_memory() {  # attende STABLE_SECONDS di fila sopra 1 GiB (si ferma con STOP-UPLOAD)
   local stable=0 avail
   log "attendo $((STABLE_SECONDS / 60)) minuti di fila con MemAvailable >= 1 GiB"
   while (( stable < STABLE_SECONDS )); do
-    [[ -f $STOP ]] && { rm -f -- "$STOP"; die "trovato STOP-UPLOAD durante l'attesa della memoria" 0; }
+    stop_if_requested "durante l'attesa della memoria"
     avail=$(mem_avail_kb)
-    if (( avail >= 1048576 )); then stable=$((stable + 30)); else stable=0; fi
-    sleep 30
+    if (( avail >= 1048576 )); then stable=$((stable + MEM_STEP)); else stable=0; fi
+    sleep "$MEM_STEP"
   done
   log "memoria stabile sopra 1 GiB da $((STABLE_SECONDS / 60)) minuti (MemAvailable $(mem_avail_kb) kB): riprendo"
 }
@@ -66,7 +83,7 @@ mem_stops() { if [[ -f $MEMLOG ]]; then grep -c $'\tstop\t' "$MEMLOG" || true; e
 # Una chiamata a rclone sotto guardia; i messaggi della guardia vanno nel log di questo script.
 # Lock occupato (13): attesa e nuovo tentativo. MemAvailable sotto 1 GiB all'avvio (10, nessun trasferimento
 # interrotto): attesa della memoria stabile, al più 20 volte. Stop per MemAvailable (20): registrato, attesa della
-# memoria stabile e nuova chiamata, al più 5 stop in tutto. Stop per RSS (21) e ogni altro errore: ci si ferma.
+# memoria stabile e nuova chiamata, entro il tetto degli stop. Stop per RSS (21) e ogni altro errore: ci si ferma.
 rc_call() {  # etichetta argomenti...
   local label=$1; shift
   local tries_lock=0 tries_start=0 rc n
@@ -78,6 +95,7 @@ rc_call() {  # etichetta argomenti...
     case $rc in
       0) return 0 ;;
       13) (( ++tries_lock <= 40 )) || die "lock dei trasferimenti occupato da troppo tempo" 13
+          stop_if_requested "durante l'attesa del lock"
           sleep 30 ;;
       10) (( ++tries_start <= 20 )) || die "MemAvailable sotto 1 GiB all'avvio per 20 volte: mi fermo" 10
           log "MemAvailable sotto 1 GiB all'avvio ($label)"; wait_memory ;;
@@ -115,6 +133,15 @@ check_entry() {  # nome byte sha256 md5 remoto uscita
   if [[ -n $got_sha && $got_sha != "$3" ]]; then return 1; fi
   printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$5" "$got_size" "$got_md5" "${got_sha:-(non fornito da Drive)}" \
     "$(field ID "$line")" "$(date --iso-8601=seconds)" >> "$6"
+}
+
+# Il marcatore pronto deve essere di questa generazione, di questo piano (sha256 di piano.json) e di questo volume:
+# altrimenti non si carica né si salta nulla.
+check_pronto() {  # volume
+  local f=$S/vol/$1.pronto.json
+  grep -q "\"piano_sha256\": \"$PLAN_SHA\"" "$f" && grep -q "\"generazione\": \"$GEN\"" "$f" \
+    && grep -q "\"volume\": \"$1\"" "$f" \
+    || die "$1: il marcatore $f non appartiene a questo piano ($PLAN_SHA) o a questa generazione: non procedo"
 }
 
 copy_file() {  # locale remoto byte etichetta
@@ -170,9 +197,13 @@ publish_status() {  # stato di ogni volume del piano: pianificato, pronto, verif
     --log-file "$RLOG" || die "stato dei volumi non caricato"
 }
 
-creator_alive() { [[ -n $(squeue -h -u "$USER" -n lvl-bk-crea -o %i 2> /dev/null) ]]; }
+creator_alive() {
+  [[ -n ${BACKUP_CREATORE_ATTIVO:-} ]] && return 0   # solo per i test: un job di creazione simulato
+  [[ -n $(squeue -h -u "$USER" -n lvl-bk-crea -o %i 2> /dev/null) ]]
+}
 
 log "inizio: $REMOTE:$BASE dal piano $PLAN (stop per memoria finora: $(mem_stops) di $(max_mem_stops))"
+stop_if_requested "all'avvio"
 if [[ -f $MEMLOG ]] && tail -n 1 "$MEMLOG" | grep -q $'\tstop\t'; then  # ultimo stop non ancora seguito da una ripresa
   (( $(mem_stops) <= $(max_mem_stops) )) || die "già $(mem_stops) stop per memoria, oltre i $(max_mem_stops) ammessi" 20
   wait_memory
@@ -184,17 +215,19 @@ rc_call "piano" copy "$PLAN" "$REMOTE:$BASE/indice/piano$SUF" --include "/*.json
 tail -n +2 "$PLAN/volumi.tsv" | awk -F'\t' -v m="$MODE" 'm == "tutti" || $4 == 1 { print $2 }' > "$T/tmp/volumi-$GEN-$$.txt"
 since_index=0
 while read -r vid; do
-  [[ -f $S/vol/$vid.verificato.tsv ]] && continue
-  if [[ -f $STOP ]]; then rm -f -- "$STOP"; log "trovato STOP-UPLOAD: mi fermo prima di $vid"; break; fi
+  if [[ -f $S/vol/$vid.verificato.tsv ]]; then check_pronto "$vid"; continue; fi
+  stop_if_requested "prima del volume $vid"
   waited=0
   while [[ ! -f $S/vol/$vid.parti.tsv || ! -f $S/vol/$vid.pronto.json ]]; do
     [[ -f $S/vol/$vid.errore.json ]] && die "$vid: la creazione è fallita ($S/vol/$vid.errore.json)"
+    stop_if_requested "durante l'attesa di $vid"
     if ! creator_alive; then
       (( waited < 3 )) || die "$vid non è pronto e nessun job lvl-bk-crea è attivo o in coda"
     fi
     (( waited++ == 0 )) && log "attendo che $vid sia pronto"
-    sleep 60
+    sleep "$WAIT"
   done
+  check_pronto "$vid"
   cat=$(awk -F'\t' -v v="$vid" '$2 == v { print $3 }' "$PLAN/volumi.tsv")
   log "volume $vid"
   : > "$TMPL"
@@ -206,6 +239,7 @@ while read -r vid; do
       log "  già su Drive: $file"
       continue
     fi
+    stop_if_requested "prima della parte $file di $vid (volume non verificato)"
     copy_file "$loc" "$BASE/$rem" "$size" "$vid"
   done < "$S/vol/$vid.parti.tsv"
   list_remote "$BASE/volumi/$cat"
@@ -214,7 +248,7 @@ while read -r vid; do
   while IFS=$'\t' read -r kind file size sha md5 loc rem; do
     [[ $kind == volume ]] || continue
     check_entry "$file" "$size" "$sha" "$md5" "$BASE/$rem" "$ver.tmp" \
-      || die "$vid: $file su Drive non coincide (dimensione, md5 o sha256) o manca"
+      || { rm -f -- "$ver.tmp"; die "$vid: $file su Drive non coincide (dimensione, md5 o sha256) o manca"; }
   done < "$S/vol/$vid.parti.tsv"
   mv -f "$ver.tmp" "$ver"
   printf '%s\tverificato\t%s\t%s\n' "$(date --iso-8601=seconds)" "$vid" "$REMOTE:$BASE" >> "$S/registro.tsv"
