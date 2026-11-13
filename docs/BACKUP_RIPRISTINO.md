@@ -96,7 +96,7 @@ Ogni comando rclone passa da `scripts/backup_rclone.sh`, quindi da `guarded_run.
 - stop sotto 768 MiB liberi o sopra 128 MiB di RSS dell'albero di processi, controllati ogni 2 s;
 - banda di 10 MiB/s;
 - nessun riavvio automatico, salvo la regola A dell'utente: dopo uno stop per memoria si riparte solo con 10 minuti
-  di fila sopra 1 GiB, al più 5 stop.
+  di fila sopra 1 GiB, al più 5 stop, portati a 20 dall'utente il 2026-11-13 (`trasferimento/stato/<gen>/max-stop-memoria`).
 
 Il tetto cgroup facoltativo della guardia è spento nel caricamento in background (`GUARD_CGROUP=off`). L'account non ha
 il "linger": alla disconnessione systemd chiude il suo ambito, e il 2026-11-12 alle 20:07 questo ha interrotto un

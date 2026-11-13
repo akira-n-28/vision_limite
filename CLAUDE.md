@@ -156,7 +156,8 @@ elenchi generati in `docs/backup/`.
   configurare il client, caricare volumi già pronti e fare piccole prove di recupero. Inventari, archivi, hash ed
   estrazioni vanno nei job `slurm/backup_*.sbatch`.
 - **Stop per memoria.** Regola A dell'utente: dopo uno stop per MemAvailable si riparte solo con 10 minuti di fila
-  sopra 1 GiB, al più 5 stop in tutto. Lo stop per RSS è definitivo. Le soglie non cambiano.
+  sopra 1 GiB, al più 20 stop in tutto (5 all'inizio, 20 dal 2026-11-13; numero in
+  `trasferimento/stato/g1-20261112/max-stop-memoria`). Lo stop per RSS è definitivo. Le soglie non cambiano.
 - **`trasferimento/`.** Staging, stato, inventari, piani e log: escluso da git e dal backup. In `trasferimento/rclone/`
   stanno token e segreto del client (permessi 600): non mostrarli e mai rclone con `--log-level DEBUG`, che li stampa.
 

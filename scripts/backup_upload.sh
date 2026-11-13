@@ -41,11 +41,12 @@ TMPL="$T/tmp/elenco-$GEN-$$.json"
 trap 'rm -f -- "$TMPL" "$TMPL.err" "$T/tmp/volumi-$GEN-$$.txt"' EXIT
 
 # Ripresa dopo uno stop per memoria (opzione A dell'utente, 2026-11-12): soglie invariate; si riparte solo dopo
-# 10 minuti di fila con MemAvailable >= 1 GiB, al più 5 stop in tutto per la generazione (registro in
-# $S/riprese-memoria.tsv, che vale anche fra un'esecuzione e l'altra). Lo stop per RSS di rclone (21) è definitivo:
-# vorrebbe dire che il client non rispetta i limiti.
+# 10 minuti di fila con MemAvailable >= 1 GiB, al più N stop in tutto per la generazione: N = 5, portato a 20
+# dall'utente il 2026-11-13 col file $S/max-stop-memoria; registro in $S/riprese-memoria.tsv, che vale anche fra
+# un'esecuzione e l'altra. Lo stop per RSS di rclone (21) è definitivo: vorrebbe dire che il client non rispetta i
+# limiti.
 MEMLOG=$S/riprese-memoria.tsv
-MAX_MEM_STOPS=5
+MAX_MEM_STOPS=${MAX_MEM_STOPS:-5}   # tetto di partenza; $S/max-stop-memoria (un numero) lo sostituisce, riletto a ogni stop
 STABLE_SECONDS=600
 mem_avail_kb() { awk '$1 == "MemAvailable:" { print $2 }' /proc/meminfo; }
 wait_memory() {  # attende 10 minuti di fila sopra 1 GiB (si ferma con STOP-UPLOAD)
@@ -59,6 +60,7 @@ wait_memory() {  # attende 10 minuti di fila sopra 1 GiB (si ferma con STOP-UPLO
   done
   log "memoria stabile sopra 1 GiB da $((STABLE_SECONDS / 60)) minuti (MemAvailable $(mem_avail_kb) kB): riprendo"
 }
+max_mem_stops() { if [[ -s $S/max-stop-memoria ]]; then tr -dc 0-9 < "$S/max-stop-memoria"; else echo "$MAX_MEM_STOPS"; fi; }
 mem_stops() { if [[ -f $MEMLOG ]]; then grep -c $'\tstop\t' "$MEMLOG" || true; else echo 0; fi; }
 
 # Una chiamata a rclone sotto guardia; i messaggi della guardia vanno nel log di questo script.
@@ -82,8 +84,8 @@ rc_call() {  # etichetta argomenti...
       20) printf '%s\tstop\t%s\tMemAvailable %s kB dopo lo stop\n' "$(date --iso-8601=seconds)" "$label" \
             "$(mem_avail_kb)" >> "$MEMLOG"
           n=$(mem_stops)
-          (( n <= MAX_MEM_STOPS )) || die "stop per memoria numero $n, oltre i $MAX_MEM_STOPS ammessi: mi fermo" 20
-          log "rclone fermato dalla guardia per memoria (stop $n di $MAX_MEM_STOPS ammessi, $label)"
+          (( n <= $(max_mem_stops) )) || die "stop per memoria numero $n, oltre i $(max_mem_stops) ammessi: mi fermo" 20
+          log "rclone fermato dalla guardia per memoria (stop $n di $(max_mem_stops) ammessi, $label)"
           wait_memory
           printf '%s\tripresa\t%s\tMemAvailable %s kB\n' "$(date --iso-8601=seconds)" "$label" "$(mem_avail_kb)" \
             >> "$MEMLOG" ;;
@@ -170,9 +172,9 @@ publish_status() {  # stato di ogni volume del piano: pianificato, pronto, verif
 
 creator_alive() { [[ -n $(squeue -h -u "$USER" -n lvl-bk-crea -o %i 2> /dev/null) ]]; }
 
-log "inizio: $REMOTE:$BASE dal piano $PLAN (stop per memoria finora: $(mem_stops) di $MAX_MEM_STOPS)"
+log "inizio: $REMOTE:$BASE dal piano $PLAN (stop per memoria finora: $(mem_stops) di $(max_mem_stops))"
 if [[ -f $MEMLOG ]] && tail -n 1 "$MEMLOG" | grep -q $'\tstop\t'; then  # ultimo stop non ancora seguito da una ripresa
-  (( $(mem_stops) <= MAX_MEM_STOPS )) || die "già $(mem_stops) stop per memoria, oltre i $MAX_MEM_STOPS ammessi" 20
+  (( $(mem_stops) <= $(max_mem_stops) )) || die "già $(mem_stops) stop per memoria, oltre i $(max_mem_stops) ammessi" 20
   wait_memory
   printf '%s\tripresa\t%s\tMemAvailable %s kB\n' "$(date --iso-8601=seconds)" "avvio" "$(mem_avail_kb)" >> "$MEMLOG"
 fi
