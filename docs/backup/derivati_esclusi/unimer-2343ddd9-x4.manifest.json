@@ -1,0 +1,243 @@
+{
+ "source": "wanderkid/UniMER_Dataset@2343ddd963290469da36ca83e3a56c66e068add9",
+ "scale": 4.0,
+ "max_patches": 1024,
+ "job_id": "29651",
+ "zip": "/home/prignano/vision_limite/hf/hub/datasets--wanderkid--UniMER_Dataset/snapshots/2343ddd963290469da36ca83e3a56c66e068add9/UniMER-1M.zip",
+ "zip_sha256_expected": "c2563aba157f470a9d7d2084aac58fb32607c58ce0992eb4a89d767d23be44dd",
+ "test_zip": "/home/prignano/vision_limite/hf/hub/datasets--wanderkid--UniMER_Dataset/snapshots/2343ddd963290469da36ca83e3a56c66e068add9/UniMER-Test.zip",
+ "test_zip_sha256_expected": "9bf370b8cac868fee84835f40dec26c477430611253e3feb681356a8149a3a90",
+ "limit": null,
+ "sets": {
+  "train": {
+   "lines": 1061791,
+   "planned": 985450,
+   "excluded": {
+    "blank_label": 0,
+    "no_label": 0,
+    "despace_changes_tokens": 672
+   },
+   "excluded_examples": {
+    "blank_label": [],
+    "no_label": [],
+    "despace_changes_tokens": [
+     "train-0662151",
+     "train-0025918",
+     "train-0620507",
+     "train-0360637",
+     "train-0860912",
+     "train-0693130",
+     "train-0912994",
+     "train-0110911",
+     "train-0993764",
+     "train-0452827",
+     "train-0207869",
+     "train-0506153",
+     "train-0941941",
+     "train-0976274",
+     "train-0685355",
+     "train-0062500",
+     "train-0792623",
+     "train-0520683",
+     "train-0949404",
+     "train-1057163"
+    ]
+   },
+   "shards": [
+    {
+     "name": "unimer-train-00000.tar",
+     "samples": 200000,
+     "bytes": 2930544640,
+     "sha256": "69e6b78193e2f7b8553773ddce7b936a49007ef253c4e40d6481d205f5e2c949",
+     "first": "train-0868420",
+     "last": "train-0026851",
+     "image_tokens": 25453242
+    },
+    {
+     "name": "unimer-train-00001.tar",
+     "samples": 200000,
+     "bytes": 2947430400,
+     "sha256": "28baecc932bf249530e75e9dfb33a1e7b19984de274ea1c5c8482c6de131de88",
+     "first": "train-0800212",
+     "last": "train-0248195",
+     "image_tokens": 25515850
+    },
+    {
+     "name": "unimer-train-00002.tar",
+     "samples": 200000,
+     "bytes": 2934190080,
+     "sha256": "971198e429df137d6948c16208323088e04d7916ebe266ab6e49058de0f2cf03",
+     "first": "train-0793915",
+     "last": "train-0082923",
+     "image_tokens": 25487031
+    },
+    {
+     "name": "unimer-train-00003.tar",
+     "samples": 200000,
+     "bytes": 2946437120,
+     "sha256": "c5ec23cb8c49df75c8202e31ca1b879881e12efb133bf179557c579744e66a3d",
+     "first": "train-0337666",
+     "last": "train-0502178",
+     "image_tokens": 25501397
+    },
+    {
+     "name": "unimer-train-00004.tar",
+     "samples": 185450,
+     "bytes": 2729584640,
+     "sha256": "3f1d990a34f8cbdcd5c03b2d095b1fb43871a4f4a88d321138c2508160750bcc",
+     "first": "train-0319474",
+     "last": "train-0537676",
+     "image_tokens": 23625204
+    }
+   ]
+  },
+  "test": {
+   "spe": {
+    "lines": 234884,
+    "planned": 6762,
+    "excluded": {
+     "blank_label": 0,
+     "no_label": 0,
+     "despace_changes_tokens": 0
+    },
+    "excluded_examples": {
+     "blank_label": [],
+     "no_label": [],
+     "despace_changes_tokens": []
+    },
+    "shard": {
+     "name": "unimer-test-spe.tar",
+     "samples": 6762,
+     "bytes": 118824960,
+     "sha256": "a398cb1e85e3b4bd9c90e8544fcb091a0b659e6f3e2c4c233a25f75a9021130f",
+     "first": "spe-0015812",
+     "last": "spe-0163479",
+     "image_tokens": 1147230
+    }
+   },
+   "cpe": {
+    "lines": 5921,
+    "planned": 5921,
+    "excluded": {
+     "blank_label": 0,
+     "no_label": 0,
+     "despace_changes_tokens": 0
+    },
+    "excluded_examples": {
+     "blank_label": [],
+     "no_label": [],
+     "despace_changes_tokens": []
+    },
+    "shard": {
+     "name": "unimer-test-cpe.tar",
+     "samples": 5921,
+     "bytes": 180787200,
+     "sha256": "f17a5b51e5e7cd818897fb3d1f0095b9a938ba968835fce0da97b1bc18398089",
+     "first": "cpe-0002048",
+     "last": "cpe-0004162",
+     "image_tokens": 1429758
+    }
+   },
+   "sce": {
+    "lines": 6708,
+    "planned": 4742,
+    "excluded": {
+     "blank_label": 0,
+     "no_label": 0,
+     "despace_changes_tokens": 0
+    },
+    "excluded_examples": {
+     "blank_label": [],
+     "no_label": [],
+     "despace_changes_tokens": []
+    },
+    "shard": {
+     "name": "unimer-test-sce.tar",
+     "samples": 4742,
+     "bytes": 73052160,
+     "sha256": "9df151353afbefd0dedc95b70ecef8928e691d2dc4a53a4d25cfdba97e8959ce",
+     "first": "sce-0001183",
+     "last": "sce-0006520",
+     "image_tokens": 561132
+    }
+   },
+   "hwe": {
+    "lines": 6332,
+    "planned": 6332,
+    "excluded": {
+     "blank_label": 0,
+     "no_label": 0,
+     "despace_changes_tokens": 0
+    },
+    "excluded_examples": {
+     "blank_label": [],
+     "no_label": [],
+     "despace_changes_tokens": []
+    },
+    "shard": {
+     "name": "unimer-test-hwe.tar",
+     "samples": 6332,
+     "bytes": 333086720,
+     "sha256": "53c01711b6eeaac75c126cfe156a98abe38bf66651462ed3d4c063279c265f8b",
+     "first": "hwe-0001087",
+     "last": "hwe-0003437",
+     "image_tokens": 1257533
+    }
+   }
+  }
+ },
+ "shards": [
+  {
+   "name": "unimer-train-00000.tar",
+   "samples": 200000,
+   "bytes": 2930544640,
+   "sha256": "69e6b78193e2f7b8553773ddce7b936a49007ef253c4e40d6481d205f5e2c949",
+   "first": "train-0868420",
+   "last": "train-0026851",
+   "image_tokens": 25453242
+  },
+  {
+   "name": "unimer-train-00001.tar",
+   "samples": 200000,
+   "bytes": 2947430400,
+   "sha256": "28baecc932bf249530e75e9dfb33a1e7b19984de274ea1c5c8482c6de131de88",
+   "first": "train-0800212",
+   "last": "train-0248195",
+   "image_tokens": 25515850
+  },
+  {
+   "name": "unimer-train-00002.tar",
+   "samples": 200000,
+   "bytes": 2934190080,
+   "sha256": "971198e429df137d6948c16208323088e04d7916ebe266ab6e49058de0f2cf03",
+   "first": "train-0793915",
+   "last": "train-0082923",
+   "image_tokens": 25487031
+  },
+  {
+   "name": "unimer-train-00003.tar",
+   "samples": 200000,
+   "bytes": 2946437120,
+   "sha256": "c5ec23cb8c49df75c8202e31ca1b879881e12efb133bf179557c579744e66a3d",
+   "first": "train-0337666",
+   "last": "train-0502178",
+   "image_tokens": 25501397
+  },
+  {
+   "name": "unimer-train-00004.tar",
+   "samples": 185450,
+   "bytes": 2729584640,
+   "sha256": "3f1d990a34f8cbdcd5c03b2d095b1fb43871a4f4a88d321138c2508160750bcc",
+   "first": "train-0319474",
+   "last": "train-0537676",
+   "image_tokens": 23625204
+  }
+ ],
+ "counts": {
+  "written": 985450,
+  "unreadable": 0,
+  "not_idempotent": 0,
+  "image_tokens_mean": 127.43693135115937
+ },
+ "seconds": 694.9
+}

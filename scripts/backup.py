@@ -932,6 +932,8 @@ def cmd_crea(args) -> None:
         vid, cat = v["id"], v["categoria"]
         if wanted is not None and vid not in wanted:
             continue
+        if args.solo_nucleo and not v["nucleo"]:  # backup selezionato: solo le categorie del nucleo
+            continue
         marker = state / "vol" / f"{vid}.pronto.json"
         if marker.exists():
             continue
@@ -1221,12 +1223,16 @@ def cmd_completezza(args) -> None:
     total = Counter()
     for pdir in map(Path, args.piani):
         plan = json.loads((pdir / "piano.json").read_text(encoding="utf-8"))
+        selected = {v["id"] for v in plan["volumi"] if v["nucleo"] or not args.solo_nucleo}
         members: dict[str, list[str]] = defaultdict(list)
         for m in read_jsonl_gz(pdir / "membri.jsonl.gz"):
             members[m["v"]].append(m["p"])
-            covered.add(m["p"])
+            if m["v"] in selected:
+                covered.add(m["p"])
         for v in plan["volumi"]:
             vid = v["id"]
+            if vid not in selected:  # backup selezionato: le categorie fuori dal nucleo non si verificano
+                continue
             pronto, parti, ver = (state / "vol" / f"{vid}{s}" for s in (".pronto.json", ".parti.tsv", ".verificato.tsv"))
             if not (pronto.is_file() and parti.is_file() and ver.is_file()):
                 problems.append(f"{vid}: manca {'pronto' if not pronto.is_file() else 'verifica su Drive'}")
@@ -1270,7 +1276,7 @@ def cmd_completezza(args) -> None:
         cats = set(spec.removeprefix("tranne:").split(","))
         for r in read_jsonl_gz(Path(inv_dir) / "inventario.jsonl.gz"):
             c = category(r["p"], r["t"], big_hf, big_out)
-            if (c not in cats) if neg else (c in cats):
+            if ((c not in cats) if neg else (c in cats)) and (is_nucleo(c) or not args.solo_nucleo):
                 expected.add(r["p"])
     missing = sorted(expected - covered)
     if missing:
@@ -1317,6 +1323,7 @@ def main() -> None:
     p.add_argument("--massimo", type=int, default=None, help="al più N volumi in questa esecuzione")
     p.add_argument("--limite-staging-gib", type=float, default=30.0)
     p.add_argument("--attendi", action="store_true", help="con lo staging pieno aspetta invece di uscire")
+    p.add_argument("--solo-nucleo", action="store_true", help="backup selezionato: solo i volumi del nucleo")
     p.set_defaults(func=cmd_crea)
     p = sub.add_parser("ripristino")
     p.add_argument("--pronto", required=True)
@@ -1341,6 +1348,7 @@ def main() -> None:
     p.add_argument("--categorie-inventari", nargs="+", required=True,
                    help="per ogni inventario: 'codice' (solo queste categorie) o 'tranne:codice' (tutte le altre)")
     p.add_argument("--out", required=True)
+    p.add_argument("--solo-nucleo", action="store_true", help="backup selezionato: solo i volumi e le categorie del nucleo")
     p.set_defaults(func=cmd_completezza)
     args = ap.parse_args()
     args.func(args)

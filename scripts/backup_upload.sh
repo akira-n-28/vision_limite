@@ -8,7 +8,7 @@
 # un elenco con gli hash per volume, gli indici dei volumi a lotti.
 #
 # Uso (sopravvive alla disconnessione):
-#   nohup setsid scripts/backup_upload.sh REMOTE GENERAZIONE PIANO \
+#   nohup setsid scripts/backup_upload.sh REMOTE GENERAZIONE PIANO [nucleo|tutti] \
 #     > /home/prignano/vision_limite/trasferimento/logs/upload-$(date +%Y%m%d-%H%M%S).log 2>&1 < /dev/null &
 # Arresto gentile, alla fine del file in corso: touch /home/prignano/vision_limite/trasferimento/stato/STOP-UPLOAD
 # Ripresa: rilanciare lo stesso comando; salta i volumi con <volume>.verificato.tsv e non ricarica le parti già su
@@ -19,8 +19,9 @@ T=$ROOT/trasferimento
 RC=$ROOT/scripts/backup_rclone.sh
 die() { echo "[$(date --iso-8601=seconds)] backup_upload.sh: $*" >&2; exit "${2:-1}"; }
 log() { echo "[$(date --iso-8601=seconds)] $*"; }
-[[ $# -eq 3 ]] || die "uso: backup_upload.sh REMOTE GENERAZIONE PIANO" 2
-REMOTE=$1; GEN=$2; PLAN=$3
+[[ $# -eq 3 || $# -eq 4 ]] || die "uso: backup_upload.sh REMOTE GENERAZIONE PIANO [nucleo|tutti]" 2
+REMOTE=$1; GEN=$2; PLAN=$3; MODE=${4:-tutti}
+[[ $MODE == nucleo || $MODE == tutti ]] || die "quarto argomento: nucleo (backup selezionato) o tutti" 2
 [[ $REMOTE =~ ^lvl-(ist|pers)$ ]] || die "remote sconosciuto: $REMOTE (lvl-ist o lvl-pers)" 2
 [[ -f $PLAN/volumi.tsv && -f $PLAN/piano.json ]] || die "piano non trovato: $PLAN" 2
 grep -q "\"generazione\": \"$GEN\"" "$PLAN/piano.json" || die "il piano $PLAN non è della generazione $GEN" 2
@@ -151,7 +152,8 @@ publish_status() {  # stato di ogni volume del piano: pianificato, pronto, verif
     printf 'ordine\tvolume\tcategoria\tnucleo\tcompressione\tbyte_dati\tstato\tparti\tsha256_flusso\n'
     tail -n +2 "$PLAN/volumi.tsv" | while IFS=$'\t' read -r ord vid cat nuc comp _n bytes _g; do
       st=pianificato; parts=-; sha=-
-      if [[ -f $S/vol/$vid.verificato.tsv ]]; then st=verificato
+      if [[ $MODE == nucleo && $nuc != 1 ]]; then st="fuori dalla selezione"
+      elif [[ -f $S/vol/$vid.verificato.tsv ]]; then st=verificato
       elif [[ -f $S/vol/$vid.pronto.json ]]; then st=pronto
       fi
       [[ -f $S/vol/$vid.parti.tsv ]] && parts=$(grep -c '^volume' "$S/vol/$vid.parti.tsv" || true)
@@ -177,7 +179,7 @@ fi
 rc_call "piano" copy "$PLAN" "$REMOTE:$BASE/indice/piano$SUF" --include "/*.json" --include "/*.jsonl.gz" --include "/*.tsv" \
   --include "/report.txt" --include "/SHA256SUMS" --ignore-checksum --log-level ERROR --log-file "$RLOG" \
   || die "file del piano non caricati"
-tail -n +2 "$PLAN/volumi.tsv" | cut -f2 > "$T/tmp/volumi-$GEN-$$.txt"
+tail -n +2 "$PLAN/volumi.tsv" | awk -F'\t' -v m="$MODE" 'm == "tutti" || $4 == 1 { print $2 }' > "$T/tmp/volumi-$GEN-$$.txt"
 since_index=0
 while read -r vid; do
   [[ -f $S/vol/$vid.verificato.tsv ]] && continue
@@ -222,4 +224,4 @@ while read -r vid; do
   if (( ++since_index >= BATCH )); then publish_indices; since_index=0; fi
 done < "$T/tmp/volumi-$GEN-$$.txt"
 publish_indices
-log "fine: $(grep -c $'\tverificato\t' "$S/indice-volumi$SUF.tsv" || true) volumi verificati su $(tail -n +2 "$PLAN/volumi.tsv" | wc -l)"
+log "fine: $(grep -c $'\tverificato\t' "$S/indice-volumi$SUF.tsv" || true) volumi verificati su $(wc -l < "$T/tmp/volumi-$GEN-$$.txt") da caricare ($MODE)"

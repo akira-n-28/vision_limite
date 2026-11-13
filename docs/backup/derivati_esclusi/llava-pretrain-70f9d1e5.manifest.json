@@ -1,0 +1,275 @@
+{
+ "source": "liuhaotian/LLaVA-Pretrain@70f9d1e5e1a697fe35830875cfc7de1dd590d727",
+ "job_id": "29388",
+ "zip": "/home/prignano/vision_limite/hf/hub/datasets--liuhaotian--LLaVA-Pretrain/snapshots/70f9d1e5e1a697fe35830875cfc7de1dd590d727/images.zip",
+ "captions": "/home/prignano/vision_limite/hf/hub/datasets--liuhaotian--LLaVA-Pretrain/snapshots/70f9d1e5e1a697fe35830875cfc7de1dd590d727/blip_laion_cc_sbu_558k.json",
+ "zip_sha256_expected": "05459d8cb059bd32322b1c466c1cbd4568b09b1ce1db748425b7977236912660",
+ "captions_sha256_expected": "fe0a999808f30dba5067297a1283d0937a0f519101298ad639d178d8564dfcd6",
+ "target_bytes": 1000000000,
+ "plan_digest": "9c93154c1959cbfe8ecdf4320dda76ea65c940a1a47385f5da99cd87811f3bbc",
+ "counts": {
+  "zip_files": 558128,
+  "captions": 558128,
+  "written": 558128,
+  "zip_without_caption": 0,
+  "caption_without_image": 0,
+  "unreadable": 0,
+  "caption_problems": 0,
+  "min_side_below_64": 0
+ },
+ "width": {
+  "min": 336,
+  "p05": 336.0,
+  "median": 336.0,
+  "p95": 597.0,
+  "max": 12192
+ },
+ "height": {
+  "min": 336,
+  "p05": 336.0,
+  "median": 336.0,
+  "p95": 505.0,
+  "max": 5177
+ },
+ "shards": [
+  {
+   "name": "llava-pretrain-00000.tar",
+   "samples": 19463,
+   "bytes": 995010560,
+   "sha256": "7acdb1bddd3a84bc6125c270bd8ecf1f95563d6f78efd82813fbc1ea80309101",
+   "first": "000015879",
+   "last": "000843127"
+  },
+  {
+   "name": "llava-pretrain-00001.tar",
+   "samples": 19465,
+   "bytes": 994959360,
+   "sha256": "662b346ef2e00f2c36ad7b8d8d48c0f9915ef02afb50b059aa2b579311cfad39",
+   "first": "000847649",
+   "last": "000968647"
+  },
+  {
+   "name": "llava-pretrain-00002.tar",
+   "samples": 18986,
+   "bytes": 995072000,
+   "sha256": "a0d7b8bc94cf202779c083b874bce4ec250fdd4a6740c6898c9e79f1955c91d6",
+   "first": "000960240",
+   "last": "003159863"
+  },
+  {
+   "name": "llava-pretrain-00003.tar",
+   "samples": 18924,
+   "bytes": 995112960,
+   "sha256": "9cfc2ab6c0fff949cfc8885a5a3da03097255e78739837304a493c5aa9422b91",
+   "first": "003156980",
+   "last": "000444783"
+  },
+  {
+   "name": "llava-pretrain-00004.tar",
+   "samples": 19311,
+   "bytes": 995041280,
+   "sha256": "5733f26e005c83929b6dc999a8e4378c127f1d6a1d9745941f4bdccb0a535457",
+   "first": "000445886",
+   "last": "003480760"
+  },
+  {
+   "name": "llava-pretrain-00005.tar",
+   "samples": 19359,
+   "bytes": 995000320,
+   "sha256": "4c8b157f14b52401b94adc269dad29a0c1c3373e7535ad615985f8b1e8c0b321",
+   "first": "003481336",
+   "last": "002446599"
+  },
+  {
+   "name": "llava-pretrain-00006.tar",
+   "samples": 19108,
+   "bytes": 995041280,
+   "sha256": "8be11c21c6740cdc5a157d611dd5ccf3de33df3cf6f670ffcf0212c656fb956b",
+   "first": "002448896",
+   "last": "004722631"
+  },
+  {
+   "name": "llava-pretrain-00007.tar",
+   "samples": 19139,
+   "bytes": 995082240,
+   "sha256": "586e75fbfc8997f4f4a48c9c98338e05e5f1c9104afb1f28c030165420d6700c",
+   "first": "004727833",
+   "last": "000818793"
+  },
+  {
+   "name": "llava-pretrain-00008.tar",
+   "samples": 19164,
+   "bytes": 995061760,
+   "sha256": "1dae7ad2d3334e6c70a0c66421eb5ee59a6e1f57bb82b2da0ca065890fd4759f",
+   "first": "000815771",
+   "last": "005056812"
+  },
+  {
+   "name": "llava-pretrain-00009.tar",
+   "samples": 19554,
+   "bytes": 994990080,
+   "sha256": "d1d18a811e41b5e9beca29cf42aa3a16d40c8c28212f0ffc30b70c4d50ae1d6c",
+   "first": "005059381",
+   "last": "001613721"
+  },
+  {
+   "name": "llava-pretrain-00010.tar",
+   "samples": 18660,
+   "bytes": 995215360,
+   "sha256": "54a9d45eb181dcff51f9461f83f1096e598e374c9ce2d1381d852cf05961e962",
+   "first": "001613069",
+   "last": "001541905"
+  },
+  {
+   "name": "llava-pretrain-00011.tar",
+   "samples": 19506,
+   "bytes": 994938880,
+   "sha256": "4b830e22aa2a5d7ad50073652e326d5ad35147d0d79287abd2efd3eda9a434a9",
+   "first": "001543715",
+   "last": "001210254"
+  },
+  {
+   "name": "llava-pretrain-00012.tar",
+   "samples": 18910,
+   "bytes": 995194880,
+   "sha256": "edc145ccdf52b9fcf6caf9c7902906e90c8397cf181b2cf7d5222e97de5a7c99",
+   "first": "001215513",
+   "last": "004394567"
+  },
+  {
+   "name": "llava-pretrain-00013.tar",
+   "samples": 19513,
+   "bytes": 994928640,
+   "sha256": "e60c0d03cb32c6d1f5fd66f408dc5bc6bfaa47aaf0de770b786df045b97490a5",
+   "first": "004393861",
+   "last": "005954345"
+  },
+  {
+   "name": "llava-pretrain-00014.tar",
+   "samples": 19386,
+   "bytes": 995051520,
+   "sha256": "6924e10c1b68e459ffc5e81c9c2ef633b2ea4d03eaf128b24cd04042078747cc",
+   "first": "005955193",
+   "last": "004151211"
+  },
+  {
+   "name": "llava-pretrain-00015.tar",
+   "samples": 19621,
+   "bytes": 994887680,
+   "sha256": "40fa3f451ee323e32160320aa6e03de13046d51a07bd20967a480abc92332d1d",
+   "first": "004157495",
+   "last": "000154220"
+  },
+  {
+   "name": "llava-pretrain-00016.tar",
+   "samples": 19532,
+   "bytes": 994979840,
+   "sha256": "d3ce8a8f339d2002b6b0cce926989a8cc9252795cb18b1091a694e95381e3216",
+   "first": "000150793",
+   "last": "002133217"
+  },
+  {
+   "name": "llava-pretrain-00017.tar",
+   "samples": 19047,
+   "bytes": 995102720,
+   "sha256": "533be89693fe6a945621eb33300c837de25ff4fa2ec25270fcd18f4628c0b451",
+   "first": "002131315",
+   "last": "001970608"
+  },
+  {
+   "name": "llava-pretrain-00018.tar",
+   "samples": 18969,
+   "bytes": 995153920,
+   "sha256": "9e607e714c873df6cdcc095683a3d94d2e86ebe5e6c4310b1bd8369a23e6795a",
+   "first": "001975741",
+   "last": "000265308"
+  },
+  {
+   "name": "llava-pretrain-00019.tar",
+   "samples": 19304,
+   "bytes": 995031040,
+   "sha256": "b153cf57eb27d78184c2ea272111a7a1512069e407b87a7161585191dab58704",
+   "first": "000261365",
+   "last": "001464883"
+  },
+  {
+   "name": "llava-pretrain-00020.tar",
+   "samples": 19449,
+   "bytes": 995031040,
+   "sha256": "f81367aefc1afb60fbcfcf39cd2b1251e5e9e4efa435dd9c9045b3d14df89776",
+   "first": "001466743",
+   "last": "003632624"
+  },
+  {
+   "name": "llava-pretrain-00021.tar",
+   "samples": 19314,
+   "bytes": 994990080,
+   "sha256": "78313342123ac0fb5df93067e17d09f54f9739951309bd81552cd37cad068e1a",
+   "first": "003639947",
+   "last": "001527039"
+  },
+  {
+   "name": "llava-pretrain-00022.tar",
+   "samples": 19718,
+   "bytes": 994908160,
+   "sha256": "cc34b0c7a6f33c562621fd9f8a0d0b2fa6591800caa20ebc959c4fcbb4772429",
+   "first": "001525129",
+   "last": "002393229"
+  },
+  {
+   "name": "llava-pretrain-00023.tar",
+   "samples": 19523,
+   "bytes": 994990080,
+   "sha256": "467a084b07cc29f387b8a05557811a120f5291bbabc513d064b37e68b6c8be1c",
+   "first": "002391038",
+   "last": "001190716"
+  },
+  {
+   "name": "llava-pretrain-00024.tar",
+   "samples": 19367,
+   "bytes": 994979840,
+   "sha256": "ef6d2abaea673c8a47b8ce2a1422b86a9a007726c325c9b173e7594efbaf6cd3",
+   "first": "001191274",
+   "last": "005196379"
+  },
+  {
+   "name": "llava-pretrain-00025.tar",
+   "samples": 18991,
+   "bytes": 995143680,
+   "sha256": "a023758e2fd98ac6bad982790195141730f0d9bc681e760e3b0e677af636330f",
+   "first": "005190430",
+   "last": "002829484"
+  },
+  {
+   "name": "llava-pretrain-00026.tar",
+   "samples": 19419,
+   "bytes": 994959360,
+   "sha256": "f814a45cc75a4f2bb8069558417f827f85387952b64f5813d1def5d7a5e792c5",
+   "first": "002823093",
+   "last": "005806268"
+  },
+  {
+   "name": "llava-pretrain-00027.tar",
+   "samples": 19599,
+   "bytes": 995010560,
+   "sha256": "489bc57aa8aed7b2c326430ea275079cf646c601dc16c523e9692a218b7c0212",
+   "first": "005805861",
+   "last": "002168635"
+  },
+  {
+   "name": "llava-pretrain-00028.tar",
+   "samples": 17827,
+   "bytes": 893081600,
+   "sha256": "aca306714c08c0769db8acd96622d478337c38cb9aed5f14bc47982884b7038a",
+   "first": "002161303",
+   "last": "003647573"
+  }
+ ],
+ "examples": {
+  "zip_without_caption": [],
+  "caption_without_image": [],
+  "unreadable": [],
+  "caption_problems": []
+ },
+ "seconds": 334.0
+}

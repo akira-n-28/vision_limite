@@ -120,7 +120,7 @@ def plan(inv: Path, out: Path, gen: str, prev: str = "", **kw) -> dict:
 
 def create(pdir: Path, staging: Path, state: Path, **kw) -> None:
     a = dict(piano=str(pdir), staging=str(staging), stato=str(state), volumi="", massimo=None,
-             limite_staging_gib=1.0, attendi=False)
+             limite_staging_gib=1.0, attendi=False, solo_nucleo=False)
     a.update(kw)
     bk.cmd_crea(ns(**a))
 
@@ -334,7 +334,7 @@ def test_flow(tmp: Path) -> None:
 
     fake_drive()
     comp = dict(stato=str(state / "g1"), piani=[str(pdir)], inventari=[str(tmp / "inv1")],
-                categorie_inventari=["tranne:nessuna"], out=str(tmp / "comp1"))
+                categorie_inventari=["tranne:nessuna"], out=str(tmp / "comp1"), solo_nucleo=False)
     err = fails(lambda: bk.cmd_completezza(ns(**comp)))
     rep = json.loads((tmp / "comp1" / "completezza.json").read_text())
     check("completezza_ok", err == "" and rep["n_problemi"] == 0 and rep["totali"]["volumi"] == len(p["volumi"]),
@@ -344,6 +344,29 @@ def test_flow(tmp: Path) -> None:
     check("completezza_manca_volume", err != "" and any("wheels-001" in x for x in json.loads(
         (tmp / "comp2" / "completezza.json").read_text())["problemi"]))
     fake_drive()
+
+    # backup selezionato: si creano e si verificano solo i volumi del nucleo
+    pdir_s = tmp / "piani" / "gs"
+    ps = plan(tmp / "inv1", pdir_s, "gs")
+    create(pdir_s, staging, state, solo_nucleo=True)
+    made = {x.name[: -len(".pronto.json")] for x in (state / "gs" / "vol").glob("*.pronto.json")}
+    core = {v["id"] for v in ps["volumi"] if v["nucleo"]}
+    check("selezionato_crea", made == core and len(core) < len(ps["volumi"]), (sorted(made), sorted(core)))
+    idx = ["remoto\tbyte\tmd5_drive\tsha256_drive\tid_drive\tverificato"]
+    for vid in made:
+        rows_v = ["remoto\tbyte\tmd5_drive\tsha256_drive\tid_drive\tverificato"]
+        for r in bk.read_tsv(state / "gs" / "vol" / f"{vid}.parti.tsv"):
+            line = f"LimiteVL-backup/gs/{r['remoto']}\t{r['byte']}\t{r['md5']}\t{r['sha256']}\tid\tora"
+            (rows_v if r["tipo"] == "volume" else idx).append(line)
+        (state / "gs" / "vol" / f"{vid}.verificato.tsv").write_text("\n".join(rows_v) + "\n")
+    (state / "gs" / "indici-verificati.tsv").write_text("\n".join(idx) + "\n")
+    comp_s = dict(stato=str(state / "gs"), piani=[str(pdir_s)], inventari=[str(tmp / "inv1")],
+                  categorie_inventari=["tranne:nessuna"], out=str(tmp / "comp-s1"), solo_nucleo=True)
+    err = fails(lambda: bk.cmd_completezza(ns(**comp_s)))
+    rep = json.loads((tmp / "comp-s1" / "completezza.json").read_text())
+    check("selezionato_completezza", err == "" and rep["totali"]["volumi"] == len(core), rep["problemi"][:3])
+    err = fails(lambda: bk.cmd_completezza(ns(**{**comp_s, "solo_nucleo": False, "out": str(tmp / "comp-s2")})))
+    check("selezionato_completezza_tutto_manca", err != "")
 
     # script portabili (Mac o Linux): ripristino con sha256sum e con shasum, confronto per contenuto
     sh_ok = True

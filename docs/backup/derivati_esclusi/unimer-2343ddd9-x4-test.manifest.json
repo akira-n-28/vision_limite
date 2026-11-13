@@ -1,0 +1,43 @@
+{
+ "source": "wanderkid/UniMER_Dataset@2343ddd963290469da36ca83e3a56c66e068add9",
+ "scale": 4.0,
+ "max_patches": 1024,
+ "shards": [
+  {
+   "name": "unimer-test-spe.tar",
+   "samples": 6762,
+   "bytes": 118824960,
+   "sha256": "a398cb1e85e3b4bd9c90e8544fcb091a0b659e6f3e2c4c233a25f75a9021130f",
+   "first": "spe-0015812",
+   "last": "spe-0163479",
+   "image_tokens": 1147230
+  },
+  {
+   "name": "unimer-test-cpe.tar",
+   "samples": 5921,
+   "bytes": 180787200,
+   "sha256": "f17a5b51e5e7cd818897fb3d1f0095b9a938ba968835fce0da97b1bc18398089",
+   "first": "cpe-0002048",
+   "last": "cpe-0004162",
+   "image_tokens": 1429758
+  },
+  {
+   "name": "unimer-test-sce.tar",
+   "samples": 4742,
+   "bytes": 73052160,
+   "sha256": "9df151353afbefd0dedc95b70ecef8928e691d2dc4a53a4d25cfdba97e8959ce",
+   "first": "sce-0001183",
+   "last": "sce-0006520",
+   "image_tokens": 561132
+  },
+  {
+   "name": "unimer-test-hwe.tar",
+   "samples": 6332,
+   "bytes": 333086720,
+   "sha256": "53c01711b6eeaac75c126cfe156a98abe38bf66651462ed3d4c063279c265f8b",
+   "first": "hwe-0001087",
+   "last": "hwe-0003437",
+   "image_tokens": 1257533
+  }
+ ]
+}

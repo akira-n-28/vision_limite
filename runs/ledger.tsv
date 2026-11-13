@@ -1258,3 +1258,19 @@ time	job_id	job_name	status	note
 2026-11-12T18:56:09+01:00	30964	lvl-tests	submitted	backup: tests/test_backup.py dopo la sintassi tranne:CATEGORIE di completezza; 0 GPU 4 CPU 8G
 2026-11-12T18:56:13+01:00	30964	lvl-tests	ok	tests_cpu (tests/test_backup.py)
 2026-11-12T18:56:14+01:00	30963	lvl-bk-cat	ok	backup catalogo g1-20261112 da /home/prignano/vision_limite/trasferimento/inventari/inv-30943 -> /home/prignano/vision_limite/trasferimento/catalogo/g1-20261112-30963
+2026-11-13T09:50:39+01:00	-	frontend	note	backup g1 (istituzionale): stop per memoria 2 di 5 alle 19:36 (outputs-export-001), ripresa alle 19:48; alle 20:07:47 outputs-f2-abl-adamw-001 copiato (log di rclone) ma rclone e la guardia chiusi da fuori alla fine della sessione (Linger=no: systemd --user chiude lo scope di systemd-run); backup_upload.sh fermo con 'caricamento non riuscito', nessuna riga della guardia; 11 volumi verificati su Drive istituzionale; 7 volumi pronti in staging (29 GiB)
+2026-11-13T09:50:39+01:00	30948	lvl-bk-crea	note	TIMEOUT dopo 12 h (atteso: staging pieno, in attesa del caricamento); 17 volumi pronti
+2026-11-13T09:50:39+01:00	30949	lvl-bk-crea	note	FAILED 1:0 dopo 19 min, nessuna riga nei log né nel ledger (né ok né failed dal launcher): causa non determinata, probabilmente scrittura su /home non riuscita; nessun file nuovo in staging o stato
+2026-11-13T09:50:39+01:00	-	frontend	note	cambio di programma dell'utente (2026-11-13): backup SELEZIONATO sul Drive personale (7,36 GB usati su 400 GB); il caricamento istituzionale g1-20261112 non riprende
+2026-11-13T09:50:39+01:00	30972	lvl-bk-inv	submitted	backup selezionato: inventario per la nuova generazione sul Drive personale -> trasferimento/inventari/inv-30972; sola lettura; 0 GPU 2 CPU 8G
+2026-11-13T09:53:18+01:00	30972	lvl-bk-inv	ok	backup inventario -> /home/prignano/vision_limite/trasferimento/inventari/inv-30972
+2026-11-13T09:58:33+01:00	30973	lvl-bk-piano	submitted	backup selezionato: confronto delle firme delle categorie fra inv-30972 (oggi) e il piano g1-20261112 (inv-30943), per confermare che i dati del nucleo non sono cambiati; solo lettura, piano di confronto non usato per creare volumi
+2026-11-13T09:58:35+01:00	30973	lvl-bk-piano	ok	backup piano confronto da /home/prignano/vision_limite/trasferimento/inventari/inv-30972 -> /home/prignano/vision_limite/trasferimento/piani/confronto-30972
+2026-11-13T10:16:37+01:00	30979	lvl-tests	submitted	backup selezionato: tests/test_backup.py con crea e completezza --solo-nucleo; 0 GPU 4 CPU 8G
+2026-11-13T10:16:41+01:00	30979	lvl-tests	ok	tests_cpu (tests/test_backup.py)
+2026-11-13T10:17:38+01:00	30973	lvl-bk-piano	note	confronto superato: rispetto al piano g1-20261112 (inv-30943) cambia solo la categoria codice (si salva per ultima); le altre 38 hanno la stessa firma
+2026-11-13T10:17:38+01:00	30979	lvl-tests	note	test_backup 55 su 55 con crea e completezza --solo-nucleo
+2026-11-13T10:17:38+01:00	-	frontend	note	decisione dell'utente (2026-11-13): backup SELEZIONATO sul Drive istituzionale, nella stessa generazione g1-20261112: solo i 43 volumi del nucleo (138,15 GiB), 11 già verificati; login personale annullato (sezione lvl-pers rimossa)
+2026-11-13T10:17:38+01:00	30980	lvl-bk-crea	submitted	backup selezionato: creazione dei soli volumi del nucleo di g1-20261112 (--solo-nucleo), staging 30 GiB con attesa; 0 GPU 2 CPU 6G 12 h
+2026-11-13T10:17:38+01:00	30981	lvl-bk-crea	submitted	backup selezionato: continuazione dopo 30980 (afterany)
+2026-11-13T10:17:41+01:00	-	frontend	note	backup selezionato: caricamento lvl-ist g1-20261112 in modalità nucleo con GUARD_CGROUP=off (lo scope di systemd --user si chiude alla disconnessione; restano lock, avvio >= 1 GiB, stop < 768 MiB o RSS > 128 MiB ogni 2 s, 10 MiB/s); regola A col registro di g1 (2 stop su 5 già usati)

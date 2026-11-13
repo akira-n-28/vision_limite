@@ -144,8 +144,12 @@ trasferimenti solo su richiesta esplicita dell'utente.
 
 Procedura, contenuto, verifiche e ripartenza su un altro server: [`docs/BACKUP_RIPRISTINO.md`](docs/BACKUP_RIPRISTINO.md);
 elenchi generati in `docs/backup/`.
-- **Destinazione.** Generazione `g1-20261112`, backup completo nel Drive istituzionale, cartella privata
-  `LimiteVL-backup/`.
+- **Destinazione.** Generazione `g1-20261112`, backup **selezionato** nel Drive istituzionale, cartella privata
+  `LimiteVL-backup/`. È il nucleo: 43 volumi, 138 GiB, più il codice salvato per ultimo (decisione dell'utente del
+  2026-11-13). Il resto è documentato per il recupero in `docs/backup/`; si aggiunge creando e caricando senza
+  `--solo-nucleo` / `nucleo`.
+- **Caricamento in background.** `GUARD_CGROUP=off`: l'account non ha il "linger" e alla disconnessione systemd
+  chiude il suo ambito.
 - **Client.** rclone v1.76.0 in `tools/rclone/`, verificato col job 30939. Remote `lvl-ist`, ambito `drive.file`,
   client OAuth proprio dell'utente: quello condiviso di rclone dava 403 ed è in ritiro.
 - **Deroga sul frontend.** Rclone solo tramite `scripts/backup_rclone.sh` (sotto `guarded_run.sh`) e solo per

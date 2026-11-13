@@ -1,0 +1,45 @@
+{
+ "kind": "mmfinereason",
+ "source": "OpenDataArena/MMFineReason-1.8M@7c93f724791d01246f5425e1182b14ec8d013847",
+ "prefix": "mmfinereason-rl",
+ "files_per_shard": 4,
+ "files": [
+  "bdae19411f8ebae4a7f7aaeb64a7b4d51ce45772f42d6e382e6cce537ab91b39",
+  "0fe7d8ab579d588d5097ffab7cb982d75ccd7b80d3095fc5df6eedaf3e62646b",
+  "f40a28486cfdc04b883c31094e0a638288d2de40b56be4569e220c7692704f92",
+  "7f78b1fd4bbb2e886eb5b87489ee5f85be41c6a651fdb99f3b9c75139559bb10",
+  "b158c882fb16aba684507ba86674546f424850493da98874a8d7660e05a16613"
+ ],
+ "job_id": "29466",
+ "plan_digest": "73e9c04145821145d16c4f38e7e1b5e065fbcbc90a5340b4d9ab934582e3ea3b",
+ "counts": {
+  "written": 39961,
+  "excluded": {
+   "missing_image_caption": 39
+  },
+  "unreadable": 0,
+  "not_idempotent": 0,
+  "image_tokens_mean": 269.0064813192863
+ },
+ "shards": [
+  {
+   "name": "mmfinereason-rl-00000.tar",
+   "samples": 31969,
+   "bytes": 1483622400,
+   "sha256": "d5ae95b4a2b1bba78717bd81e4d7ff73727883eb06e10b3acafaf8f832af0be9",
+   "first": "rl-MMR1-457097",
+   "last": "rl-MMR1-379350",
+   "image_tokens": 8589035
+  },
+  {
+   "name": "mmfinereason-rl-00001.tar",
+   "samples": 7992,
+   "bytes": 385105920,
+   "sha256": "556e3e222b102d24724016efb792fb3695199a15c0b14ddb66d697024ad005fb",
+   "first": "rl-FineVision_visualwebinstruct_filtered-230257",
+   "last": "rl-GameQA_140K-48231",
+   "image_tokens": 2160733
+  }
+ ],
+ "seconds": 104.9
+}
