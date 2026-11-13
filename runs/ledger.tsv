@@ -1337,3 +1337,4 @@ time	job_id	job_name	status	note
 2026-11-13T16:38:12+01:00	31118	lvl-tests	ok	tests_cpu (tests/test_backup.py)
 2026-11-13T16:38:44+01:00	-	frontend	note	supplemento s1-20261113 caricato (log trasferimento/logs/upload-s1-20261113-162230.log): 2 volumi verificati su 2 alle 16:23, nessuno stop per memoria
 2026-11-13T16:38:44+01:00	-	frontend	note	prova di ripristino: riscaricati da Drive con backup_rclone.sh (4 trasferimenti, codice 0, RSS massima 74 MB) codice-001 di g1 e i volumi e gli indici di s1 in trasferimento/prova-download; rimossi dopo il job 31117 (conforme)
+2026-11-13T16:41:49+01:00	-	frontend	note	LEGGIMI di s1-20261113 su Drive (BACKUP_RIPRISTINO.md, docs/backup con 30 file, script/ripristina_volumi.sh e mac_confronta_hash.sh al commit 0434b80; rclone check: 0 differenze); permessi su tutte le 272 voci di LimiteVL-backup (62 di s1): solo il proprietario, nessun link; GitHub main a 0434b80
