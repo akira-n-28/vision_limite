@@ -17,7 +17,7 @@ verifiche.
 | Posizione | cartella privata `LimiteVL-backup/g1-20261112/`; unico permesso il proprietario, nessun link |
 | Dimensione | 44 volumi (43 del nucleo più il codice) in 45 file; 138,2 GiB di dati (18.383 voci), 121,8 GiB caricati perché i testi sono compressi; esclusi 404,2 GiB, documentati per il recupero (§7) |
 | Esito | completezza senza problemi (job 31104, 2026-11-13): 18.383 voci attese, 18.383 nei volumi; ogni parte e ogni indice con dimensione, md5 e sha256 di Drive uguali a quelli del job; ripristini di prova superati (job 30947, 31101, 31102) |
-| Stato del progetto | dati all'inventario 30943 (commit `f10413d`), invariati all'inventario 30972 del 2026-11-13; volume del codice dall'inventario 31097 (commit `674e3cd` e ledger); i commit successivi, con i soli rapporti del backup, sono su GitHub |
+| Stato del progetto | dati all'inventario 30943 (commit `f10413d`), invariati all'inventario 30972 del 2026-11-13; volume del codice dall'inventario 31097 (commit `674e3cd` e ledger); i commit successivi (rapporti del backup e risultati della revisione MAVIS-C9 arrivati dal portatile, `d24560a`) sono solo su GitHub, da includere col prossimo aggiornamento (§10) |
 
 ## 2. Contenuto
 
