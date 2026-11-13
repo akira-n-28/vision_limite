@@ -1,0 +1,15 @@
+{
+ "volume": "codice-001",
+ "parti": 4,
+ "voci_controllate": {
+  "d": 513,
+  "f": 5273,
+  "sha256sum_c": 5273
+ },
+ "problemi": [],
+ "n_problemi": 0,
+ "estrazione": "cat parti | tar -xpzf -",
+ "job": "30947",
+ "data": "2026-11-12T17:42:19+0100",
+ "copia_di_prova": "rimossa"
+}

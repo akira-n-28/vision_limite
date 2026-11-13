@@ -1,0 +1,14 @@
+{
+ "volume": "outputs-f2-abl-adamw-002",
+ "parti": 2,
+ "voci_controllate": {
+  "f": 1,
+  "sha256sum_c": 1
+ },
+ "problemi": [],
+ "n_problemi": 0,
+ "estrazione": "cat parti | tar -xpf -",
+ "job": "31101",
+ "data": "2026-11-13T15:24:48+0100",
+ "copia_di_prova": "rimossa"
+}

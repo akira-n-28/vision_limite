@@ -1281,3 +1281,22 @@ time	job_id	job_name	status	note
 2026-11-13T15:05:18+01:00	31096	lvl-bk-cat	submitted	backup selezionato: catalogo definitivo da inv-30943 con tutti gli indici dei volumi del nucleo; sola lettura
 2026-11-13T15:05:35+01:00	-	frontend	note	backup selezionato: riscarico da Drive outputs-f2-abl-adamw-002 (2 parti, 7,8 GiB) e outputs-f2_select-001 (gzip, 0,86 GB) in trasferimento/prova-download/g1 per la prova di ripristino (sotto la guardia, 10 MiB/s)
 2026-11-13T15:05:44+01:00	31096	lvl-bk-cat	ok	backup catalogo g1-20261112 da /home/prignano/vision_limite/trasferimento/inventari/inv-30943 -> /home/prignano/vision_limite/trasferimento/catalogo/g1-20261112-31096
+2026-11-13T15:06:14+01:00	31097	lvl-bk-inv	submitted	backup selezionato: inventario finale per il volume del codice (dopo il commit dei documenti del backup) -> trasferimento/inventari/inv-31097; sola lettura
+2026-11-13T15:06:24+01:00	31098	lvl-bk-piano	submitted	backup selezionato: piano della sola categoria codice da inv-31097 nella generazione g1-20261112 (trasferimento/piani/g1-20261112-codice); dopo 31097
+2026-11-13T15:06:24+01:00	31099	lvl-bk-crea	submitted	backup selezionato: volume finale del codice (commit 674e3cd più il ledger), rilettura ed elenco di GNU tar; dopo 31098
+2026-11-13T15:08:59+01:00	31097	lvl-bk-inv	ok	backup inventario -> /home/prignano/vision_limite/trasferimento/inventari/inv-31097
+2026-11-13T15:09:01+01:00	31098	lvl-bk-piano	ok	backup piano g1-20261112 da /home/prignano/vision_limite/trasferimento/inventari/inv-31097 -> /home/prignano/vision_limite/trasferimento/piani/g1-20261112-codice
+2026-11-13T15:09:14+01:00	31099	lvl-bk-crea	ok	backup crea /home/prignano/vision_limite/trasferimento/piani/g1-20261112-codice --limite-staging-gib 30
+2026-11-13T15:21:01+01:00	31101	lvl-bk-ripr	submitted	backup selezionato: ripristino di prova di outputs-f2-abl-adamw-002 (2 parti, 7,8 GiB, file optimizer.pt) riscaricato da Drive; copia rimossa alla fine
+2026-11-13T15:21:01+01:00	31102	lvl-bk-ripr	submitted	backup selezionato: ripristino di prova di outputs-f2_select-001 (gzip) riscaricato da Drive; copia rimossa alla fine
+2026-11-13T15:21:03+01:00	-	frontend	note	backup selezionato: caricamento del volume finale del codice (piano g1-20261112-codice) -> indice/piano-codice
+2026-11-13T15:23:39+01:00	31102	lvl-bk-ripr	ok	backup ripristino di prova g1-20261112/outputs-f2_select-001 da /home/prignano/vision_limite/trasferimento/prova-download/g1/outputs-f2_select -> /home/prignano/vision_limite/trasferimento/stato/g1-20261112/ripristino/outputs-f2_select-001-31102.json
+2026-11-13T15:24:49+01:00	31101	lvl-bk-ripr	ok	backup ripristino di prova g1-20261112/outputs-f2-abl-adamw-002 da /home/prignano/vision_limite/trasferimento/prova-download/g1/outputs-f2-abl-adamw -> /home/prignano/vision_limite/trasferimento/stato/g1-20261112/ripristino/outputs-f2-abl-adamw-002-31101.json
+2026-11-13T15:25:15+01:00	31103	lvl-bk-compl	failed	backup completezza g1-20261112 -> /home/prignano/vision_limite/trasferimento/completezza/g1-20261112-31103
+2026-11-13T15:25:30+01:00	31101	lvl-bk-ripr	note	ripristino di prova superato: outputs-f2-abl-adamw-002 riscaricato da Drive, 2 parti concatenate, optimizer.pt 7,8 GiB con sha256 dell'indice, sha256sum -c; copia rimossa
+2026-11-13T15:25:30+01:00	31102	lvl-bk-ripr	note	ripristino di prova superato: outputs-f2_select-001 (gzip) riscaricato da Drive, 14 cartelle e 48 file uguali all'indice, sha256sum -c; copia rimossa
+2026-11-13T15:25:30+01:00	-	frontend	note	backup selezionato: volume del codice codice-001 caricato e verificato alle 15:21:32; copie scaricate per le prove rimosse (8,7 GiB, trasferimento/prova-download)
+2026-11-13T15:25:30+01:00	31103	lvl-bk-compl	note	annullato: il launcher non passava --solo-nucleo; corretto (argomenti in più inoltrati a backup.py)
+2026-11-13T15:25:30+01:00	31104	lvl-bk-compl	submitted	backup selezionato: completezza di g1-20261112 con --solo-nucleo, piani principale e codice, inventari 30943 (tranne codice) e 31097 (codice)
+2026-11-13T15:25:33+01:00	31104	lvl-bk-compl	ok	backup completezza g1-20261112 -> /home/prignano/vision_limite/trasferimento/completezza/g1-20261112-31104
+2026-11-13T15:26:52+01:00	31104	lvl-bk-compl	note	completezza superata (COMPLETED 0:0, 3 s): 0 problemi; 44 volumi (43 del nucleo e codice), 45 parti, 130.796.650.042 byte caricati, 148.419.106.840 byte di dati, 18.383 voci attese e 18.383 nei piani; 1 avviso atteso (ledger cambiato dopo l'inventario 31097); rapporti in docs/backup/g1-20261112-{volumi,parti,completezza}

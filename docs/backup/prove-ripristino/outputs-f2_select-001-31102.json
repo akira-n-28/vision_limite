@@ -1,0 +1,15 @@
+{
+ "volume": "outputs-f2_select-001",
+ "parti": 1,
+ "voci_controllate": {
+  "d": 14,
+  "f": 48,
+  "sha256sum_c": 48
+ },
+ "problemi": [],
+ "n_problemi": 0,
+ "estrazione": "cat parti | tar -xpzf -",
+ "job": "31102",
+ "data": "2026-11-13T15:23:38+0100",
+ "copia_di_prova": "rimossa"
+}

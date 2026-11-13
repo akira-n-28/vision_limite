@@ -1,0 +1,17 @@
+{
+ "problemi": [],
+ "n_problemi": 0,
+ "totali": {
+  "volumi": 44,
+  "parti": 45,
+  "byte_caricati": 130796650042,
+  "byte_dati": 148419106840,
+  "voci": 18383,
+  "avvisi_cambiati": 1,
+  "mancanti": 0
+ },
+ "voci_attese": 18383,
+ "voci_nei_piani": 18383,
+ "job": "31104",
+ "data": "2026-11-13T15:25:33+0100"
+}

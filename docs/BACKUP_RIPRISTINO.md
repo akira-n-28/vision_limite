@@ -15,8 +15,9 @@ verifiche.
 | Spazio | 800 GB per utente, 5,16 GB usati prima del backup (pagina web di Drive); l'API mostra solo lo spazio dell'istituzione |
 | Accesso | rclone v1.76.0 dal frontend, ambito OAuth `drive.file` (solo i file creati dall'app), client OAuth proprio dell'utente (progetto Google Cloud `limite-vl-backup`, app desktop in prova) |
 | Posizione | cartella privata `LimiteVL-backup/g1-20261112/`; unico permesso il proprietario, nessun link |
-| Dimensione | 43 volumi del nucleo, 138,2 GiB di dati, più il volume finale del codice; esclusi 404,2 GiB, documentati per il recupero (§7) |
-| Stato del progetto | dati all'inventario 30943 (commit `f10413d`), confermati invariati dall'inventario 30972 del 2026-11-13; il codice si salva per ultimo, dopo i documenti del backup |
+| Dimensione | 44 volumi (43 del nucleo più il codice) in 45 file; 138,2 GiB di dati (18.383 voci), 121,8 GiB caricati perché i testi sono compressi; esclusi 404,2 GiB, documentati per il recupero (§7) |
+| Esito | completezza senza problemi (job 31104, 2026-11-13): 18.383 voci attese, 18.383 nei volumi; ogni parte e ogni indice con dimensione, md5 e sha256 di Drive uguali a quelli del job; ripristini di prova superati (job 30947, 31101, 31102) |
+| Stato del progetto | dati all'inventario 30943 (commit `f10413d`), invariati all'inventario 30972 del 2026-11-13; volume del codice dall'inventario 31097 (commit `674e3cd` e ledger); i commit successivi, con i soli rapporti del backup, sono su GitHub |
 
 ## 2. Contenuto
 
@@ -130,9 +131,9 @@ touch trasferimento/stato/STOP           # arresto gentile della creazione
 
 | Livello | Come | Esito |
 | --- | --- | --- |
-| Integrità dei file trasferiti | md5 e sha256 di Drive uguali a quelli calcolati dal job, su ogni parte e ogni indice | [`backup/g1-20261112-completezza.json`](backup/g1-20261112-completezza.json) |
-| Completezza rispetto all'inventario | membri dei piani contro gli inventari 30943 (nucleo) e finale (codice); indici contro membri | idem |
-| Ripristino di archivi, struttura e link | ogni volume riletto per intero ed elencato da GNU tar prima del caricamento; volume di prova riscaricato da Drive ed estratto con `cat \| tar -xpz` (job 30947: 5.273 file e 513 cartelle uguali all'indice, `sha256sum -c`); prova dal Mac (2026-11-12); prove su volumi reali riscaricati, nel rapporto di completezza | idem |
+| Integrità dei file trasferiti | md5 e sha256 di Drive uguali a quelli calcolati dal job, su ogni parte (45) e ogni indice (88) | superata: [`backup/g1-20261112-completezza.json`](backup/g1-20261112-completezza.json) (job 31104) |
+| Completezza rispetto all'inventario | membri dei piani contro gli inventari 30943 (nucleo, tranne codice) e 31097 (codice); indici contro membri | superata: 18.383 voci su 18.383, nessuna mancante; un avviso atteso, il ledger cambiato dopo l'inventario finale |
+| Ripristino di archivi, struttura e link | ogni volume riletto per intero ed elencato da GNU tar prima del caricamento; volumi riscaricati da Drive ed estratti con `cat \| tar -xp`, confronto con l'indice e `sha256sum -c`: prova del codice (job 30947: 5.273 file e 513 cartelle), `outputs-f2-abl-adamw-002` (job 31101: 2 parti, `optimizer.pt` da 7,8 GiB), `outputs-f2_select-001` (job 31102, gzip: 48 file e 14 cartelle); prova dal Mac del 2026-11-12 | superata: [`backup/prove-ripristino/`](backup/prove-ripristino/) |
 | Ambiente | **da fare** su un nuovo server: i venv non sono nel backup selezionato e vanno ricostruiti (§8) | aperto |
 
 Un caricamento finito non basta per dire che il backup è verificato. Lo stato di ogni volume è in
@@ -204,7 +205,7 @@ Un caricamento finito non basta per dire che il backup è verificato. Lo stato d
 
 ## 9. Scaricare il backup sul Mac
 
-Il backup selezionato occupa circa 125 GiB di archivi, perché i testi sono compressi, e si estrae in 138 GiB. Con
+Il backup selezionato occupa 121,8 GiB di archivi in 45 file (i testi sono compressi) e si estrae in 138,2 GiB. Con
 406 GiB liberi si possono tenere archivi ed estratto; con `--elimina-parti` serve meno spazio.
 
 1. **Scaricare:**
