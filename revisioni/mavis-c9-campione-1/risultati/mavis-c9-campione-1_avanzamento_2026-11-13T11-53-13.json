@@ -1,0 +1,4901 @@
+{
+ "schema": "mavis-c9-revisione-avanzamento/1",
+ "pacchetto": {
+  "id": "mavis-c9-campione-1",
+  "versione": "1",
+  "impronta": "5d2e6b15e3f2af0647bf451ae80c52fd57b65daf3f1581ac56bceb33ef7baf7d"
+ },
+ "revisore": "",
+ "creato_il": "2026-11-11T20:22:18.019Z",
+ "aggiornato_il": "2026-11-13T11:53:13.083Z",
+ "schede": {
+  "M01": {
+   "bozza": {
+    "risposta": "yes",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "yes",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-11T20:41:14.908Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-11T20:41:20.792Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M01"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-11T20:41:20.792Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "ho risposto yes per sbaglio, il target è giusto ",
+    "risposta_dopo_soluzione": "inside"
+   },
+   "tempo_ms": 256236,
+   "eventi": [
+    {
+     "quando": "2026-11-11T20:41:14.908Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-11T20:41:20.792Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-11T20:41:52.999Z"
+  },
+  "M02": {
+   "bozza": {
+    "risposta": "obtuse triangle",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "obtuse triangle",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-11T20:42:45.391Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-11T20:42:47.304Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M02"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-11T20:42:47.304Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 69530,
+   "eventi": [
+    {
+     "quando": "2026-11-11T20:42:45.391Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-11T20:42:47.304Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-11T20:43:00.804Z"
+  },
+  "M63": {
+   "bozza": {
+    "risposta": "rhombus",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "rhombus",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T16:00:58.835Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T16:01:03.443Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M63"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T16:01:03.443Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 41649,
+   "eventi": [
+    {
+     "quando": "2026-11-12T16:00:58.836Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T16:01:03.443Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T16:01:08.333Z"
+  },
+  "M03": {
+   "bozza": {
+    "risposta": "4\\sqrt{43}",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "4\\sqrt{43}",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-11T21:11:50.267Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-11T21:11:52.833Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M03"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-11T21:11:52.833Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "si",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "ho sbagliato a rispondere il target è giusto",
+    "risposta_dopo_soluzione": "30°"
+   },
+   "tempo_ms": 422430,
+   "eventi": [
+    {
+     "quando": "2026-11-11T21:11:50.267Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-11T21:11:52.833Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-11T21:13:35.923Z"
+  },
+  "M04": {
+   "bozza": {
+    "risposta": "1.33",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "1.33",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-11T21:13:53.057Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-11T21:13:55.297Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M04"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-11T21:13:55.297Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "si",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 68964,
+   "eventi": [
+    {
+     "quando": "2026-11-11T21:13:53.057Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-11T21:13:55.297Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-11T21:14:02.782Z"
+  },
+  "M05": {
+   "bozza": {
+    "risposta": "40\\sqrt{3}",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "40\\sqrt{3}",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-11T21:14:48.940Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-11T21:14:52.293Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M05"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-11T21:14:52.293Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "si",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 414151,
+   "eventi": [
+    {
+     "quando": "2026-11-11T21:14:48.940Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-11T21:14:52.293Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-11T21:15:26.425Z"
+  },
+  "M20": {
+   "bozza": {
+    "risposta": "rectangle",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "rectangle",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-11T22:55:02.849Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-11T22:55:04.274Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M20"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-11T22:55:04.274Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 1015945,
+   "eventi": [
+    {
+     "quando": "2026-11-11T22:55:02.849Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-11T22:55:04.274Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-11T22:55:08.822Z"
+  },
+  "M06": {
+   "bozza": {
+    "risposta": "square",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "square",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-11T21:22:04.795Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-11T21:22:06.832Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M06"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-11T21:22:06.832Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "no",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "rectangle, square, rhombus",
+    "note": "La figura appare quadrata. Assumendo valida la forma rettangolare dichiarata dal generatore, sono vere rectangle, square e rhombus. Le sole misure stampate non dimostrano tutte queste proprietà. L'omissione C9 è giustificata perché più opzioni sono vere.",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 343720,
+   "eventi": [
+    {
+     "quando": "2026-11-11T21:22:04.795Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-11T21:22:06.832Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-11T21:34:45.678Z"
+  },
+  "M07": {
+   "bozza": {
+    "risposta": "EF",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "EF",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-11T21:36:23.532Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-11T21:36:25.231Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M07"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-11T21:36:25.231Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 86096,
+   "eventi": [
+    {
+     "quando": "2026-11-11T21:36:23.532Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-11T21:36:25.231Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-11T21:36:31.900Z"
+  },
+  "M08": {
+   "bozza": {
+    "risposta": "acute triangle",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "acute triangle",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-11T21:38:31.496Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-11T21:38:33.580Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M08"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-11T21:38:33.580Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "si",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "right triangle",
+    "note": "Il triangolo DEF è rettangolo in E: il simbolo dell'angolo retto è chiaramente visibile. L'angolo F misura 30°, quindi l'angolo D misura 60°. La risposta corretta è right triangle. C9 ha omesso una classificazione visivamente determinabile perché non utilizza ancora il segno grafico dell'angolo retto come prova.",
+    "risposta_dopo_soluzione": "right triangle"
+   },
+   "tempo_ms": 268724,
+   "eventi": [
+    {
+     "quando": "2026-11-11T21:38:31.496Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-11T21:38:33.580Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-11T21:58:52.701Z"
+  },
+  "M09": {
+   "bozza": {
+    "risposta": "1.5",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "1.5",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-11T21:59:43.148Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-11T21:59:45.738Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M09"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-11T21:59:45.738Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "si",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 58737,
+   "eventi": [
+    {
+     "quando": "2026-11-11T21:59:43.148Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-11T21:59:45.738Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-11T21:59:58.703Z"
+  },
+  "M10": {
+   "bozza": {
+    "risposta": "obtuse triangle",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "obtuse triangle",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-11T22:00:49.106Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-11T22:00:53.484Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M10"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-11T22:00:53.484Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 46843,
+   "eventi": [
+    {
+     "quando": "2026-11-11T22:00:49.106Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-11T22:00:53.484Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-11T22:01:07.018Z"
+  },
+  "M11": {
+   "bozza": {
+    "risposta": "rhombus",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "rhombus",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-11T22:01:32.448Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-11T22:01:33.878Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M11"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-11T22:01:33.878Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 32339,
+   "eventi": [
+    {
+     "quando": "2026-11-11T22:01:32.448Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-11T22:01:33.878Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-11T22:01:39.219Z"
+  },
+  "M12": {
+   "bozza": {
+    "risposta": "√(841√3 + 2654)",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "√(841√3 + 2654)",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-11T22:04:17.784Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-11T22:04:24.159Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M12"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-11T22:04:24.159Z",
+   "dopo": {
+    "corretta_pixel": "no",
+    "rispondibile": "si",
+    "scrittura_visibile": "no",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "errore_grave",
+    "tipo_difetto": "Target errato / incoerenza tra misura strutturata e immagine",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "La misura EH nell'immagine è √(841√3 + 2654), coerente con la descrizione testuale del record. Tuttavia, la misura strutturata side:EH e il target candidato riportano √841. Le due espressioni non sono equivalenti. La correzione C9 ha sistemato soltanto il metadato della rappresentazione, non la discordanza del valore.",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 382933,
+   "eventi": [
+    {
+     "quando": "2026-11-11T22:04:17.784Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-11T22:04:24.159Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-11T22:37:13.680Z"
+  },
+  "M13": {
+   "bozza": {
+    "risposta": "rectangle",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "rectangle",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-11T22:41:13.034Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-11T22:41:15.037Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M13"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-11T22:41:15.037Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 29910,
+   "eventi": [
+    {
+     "quando": "2026-11-11T22:41:13.034Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-11T22:41:15.037Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-11T22:41:20.782Z"
+  },
+  "M14": {
+   "bozza": {
+    "risposta": "54",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "54",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-11T22:41:35.413Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-11T22:41:37.034Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M14"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-11T22:41:37.034Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "si",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 487093,
+   "eventi": [
+    {
+     "quando": "2026-11-11T22:41:35.413Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-11T22:41:37.034Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-11T22:41:44.814Z"
+  },
+  "M15": {
+   "bozza": {
+    "risposta": "obtuse triangle",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "obtuse triangle",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-11T22:49:54.164Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-11T22:49:55.903Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M15"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-11T22:49:55.903Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 159851,
+   "eventi": [
+    {
+     "quando": "2026-11-11T22:49:54.164Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-11T22:49:55.903Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-11T22:50:01.727Z"
+  },
+  "M16": {
+   "bozza": {
+    "risposta": "9",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "9",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-11T22:52:36.625Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-11T22:52:38.765Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M16"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-11T22:52:38.765Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 41081,
+   "eventi": [
+    {
+     "quando": "2026-11-11T22:52:36.626Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-11T22:52:38.765Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-11T22:52:44.994Z"
+  },
+  "M17": {
+   "bozza": {
+    "risposta": "acute triangle",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "acute triangle",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-11T22:53:25.122Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-11T22:53:26.525Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M17"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-11T22:53:26.525Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 52306,
+   "eventi": [
+    {
+     "quando": "2026-11-11T22:53:25.122Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-11T22:53:26.525Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-11T22:53:32.431Z"
+  },
+  "M18": {
+   "bozza": {
+    "risposta": "EF",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "EF",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-11T22:53:56.479Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-11T22:53:58.358Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M18"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-11T22:53:58.358Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 30957,
+   "eventi": [
+    {
+     "quando": "2026-11-11T22:53:56.479Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-11T22:53:58.358Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-11T22:54:04.070Z"
+  },
+  "M19": {
+   "bozza": {
+    "risposta": "right triangle",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "right triangle",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-11T22:54:27.743Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-11T22:54:32.013Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M19"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-11T22:54:32.013Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 32340,
+   "eventi": [
+    {
+     "quando": "2026-11-11T22:54:27.744Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-11T22:54:32.013Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-11T22:54:36.994Z"
+  },
+  "M21": {
+   "bozza": {
+    "risposta": "99",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "99",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-11T22:55:28.085Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-11T22:55:29.996Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M21"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-11T22:55:29.996Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "si",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 38919,
+   "eventi": [
+    {
+     "quando": "2026-11-11T22:55:28.085Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-11T22:55:29.996Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-11T22:55:42.949Z"
+  },
+  "M22": {
+   "bozza": {
+    "risposta": "square",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "square",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-11T22:59:08.740Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-11T22:59:10.172Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M22"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-11T22:59:10.172Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "no",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "rectangle, rhombus, square",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 363225,
+   "eventi": [
+    {
+     "quando": "2026-11-11T22:59:08.740Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-11T22:59:10.172Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-11T23:01:38.194Z"
+  },
+  "M23": {
+   "bozza": {
+    "risposta": "right triangle",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "right triangle",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-11T23:02:04.668Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-11T23:02:07.528Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M23"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-11T23:02:07.528Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "si",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "right triangle",
+    "note": "Il triangolo ABC è rettangolo in B, come indica il simbolo grafico. Inoltre, la classificazione è dimostrabile dalle sole misure stampate: AB = 13, AC = 26 e angolo C = 30°. Per il teorema dei seni, sin(B) = 26 × sin(30°) / 13 = 1, quindi B = 90°. L'unica classe vera è right triangle. L'omissione C9 è troppo prudente: non serve nemmeno affidarsi al simbolo grafico dell'angolo retto.",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 1460981,
+   "eventi": [
+    {
+     "quando": "2026-11-11T23:02:04.668Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-11T23:02:07.528Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-11T23:24:40.928Z"
+  },
+  "M24": {
+   "bozza": {
+    "risposta": "right triangle",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "right triangle",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-11T23:26:35.523Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-11T23:26:36.900Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M24"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-11T23:26:36.900Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 120635,
+   "eventi": [
+    {
+     "quando": "2026-11-11T23:26:35.523Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-11T23:26:36.900Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-11T23:26:42.655Z"
+  },
+  "M25": {
+   "bozza": {
+    "risposta": "acute triangle",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "acute triangle",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-11T23:27:15.513Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-11T23:27:17.314Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M25"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-11T23:27:17.314Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "no",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "no",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "acute triangle",
+    "note": "Il triangolo FEG appare equilatero e la classificazione acute triangle è coerente con le annotazioni. Queste dichiarano FE = EG e angolo E = 60°, da cui tutti gli angoli risultano di 60°. Tuttavia, l'uguaglianza FE = EG non è indicata esplicitamente nell'immagine. Le sole misure stampate non garantiscono che il triangolo sia acutangolo. L'omissione C9 è quindi giustificata.",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 213960,
+   "eventi": [
+    {
+     "quando": "2026-11-11T23:27:15.513Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-11T23:27:17.314Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-11T23:30:15.895Z"
+  },
+  "M26": {
+   "bozza": {
+    "risposta": "CF",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "CF",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-11T23:30:36.291Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-11T23:30:39.112Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M26"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-11T23:30:39.112Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 149015,
+   "eventi": [
+    {
+     "quando": "2026-11-11T23:30:36.291Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-11T23:30:39.112Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-11T23:30:50.818Z"
+  },
+  "M27": {
+   "bozza": {
+    "risposta": "BC",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "BC",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-11T23:33:16.470Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-11T23:33:18.116Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M27"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-11T23:33:18.116Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 37538,
+   "eventi": [
+    {
+     "quando": "2026-11-11T23:33:16.470Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-11T23:33:18.116Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-11T23:33:24.689Z"
+  },
+  "M28": {
+   "bozza": {
+    "risposta": "rhombus",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "rhombus",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-11T23:33:43.032Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-11T23:33:44.699Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M28"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-11T23:33:44.699Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 25052,
+   "eventi": [
+    {
+     "quando": "2026-11-11T23:33:43.032Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-11T23:33:44.699Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-11T23:33:50.084Z"
+  },
+  "M29": {
+   "bozza": {
+    "risposta": "acute triangle",
+    "non_determinabile": false,
+    "leggibilita": "no",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "acute triangle",
+     "non_determinabile": false,
+     "leggibilita": "no",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-11T23:37:17.784Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-11T23:37:19.954Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M29"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-11T23:37:19.954Z",
+   "dopo": {
+    "corretta_pixel": "incerto",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "incerto",
+    "giudizio_finale": "problema_minore",
+    "tipo_difetto": "etichette_sovrapposte",
+    "equivalenza": "",
+    "risposte_vere": "acute triangle",
+    "note": "Il triangolo DBE appare acutangolo ed è coerente con le annotazioni, che lo definiscono equilatero. Tuttavia, vicino al vertice B le etichette dei lati e degli angoli si sovrappongono, impedendo una verifica affidabile di tutte le misure stampate. La forma resta riconoscibile.",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 638864,
+   "eventi": [
+    {
+     "quando": "2026-11-11T23:37:17.784Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-11T23:37:19.954Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-11T23:43:15.027Z"
+  },
+  "M30": {
+   "bozza": {
+    "risposta": "102.67",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "102.67",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T11:36:22.737Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T11:36:24.693Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M30"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T11:36:24.693Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "si",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 913060,
+   "eventi": [
+    {
+     "quando": "2026-11-12T11:36:22.737Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T11:36:24.693Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T11:36:34.628Z"
+  },
+  "M31": {
+   "bozza": {
+    "risposta": "right triangle",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "right triangle",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T11:36:54.648Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T11:37:00.782Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M31"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T11:37:00.782Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 33775,
+   "eventi": [
+    {
+     "quando": "2026-11-12T11:36:54.648Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T11:37:00.782Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T11:37:08.073Z"
+  },
+  "M32": {
+   "bozza": {
+    "risposta": "inside",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "inside",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T11:37:25.661Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T11:37:28.024Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M32"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T11:37:28.024Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 25317,
+   "eventi": [
+    {
+     "quando": "2026-11-12T11:37:25.661Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T11:37:28.024Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T11:37:33.767Z"
+  },
+  "M33": {
+   "bozza": {
+    "risposta": "53",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "53",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T11:37:44.756Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T11:37:47.275Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M33"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T11:37:47.275Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "si",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 21099,
+   "eventi": [
+    {
+     "quando": "2026-11-12T11:37:44.756Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T11:37:47.275Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T11:37:54.676Z"
+  },
+  "M34": {
+   "bozza": {
+    "risposta": "obtuse triangle",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "obtuse triangle",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T11:38:11.427Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T11:38:13.031Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M34"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T11:38:13.031Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 25264,
+   "eventi": [
+    {
+     "quando": "2026-11-12T11:38:11.427Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T11:38:13.031Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T11:38:17.970Z"
+  },
+  "M35": {
+   "bozza": {
+    "risposta": "14\\sqrt{2}",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "14\\sqrt{2}",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T11:39:07.362Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T11:39:10.570Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M35"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T11:39:10.570Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "si",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 137991,
+   "eventi": [
+    {
+     "quando": "2026-11-12T11:39:07.362Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T11:39:10.570Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T11:39:23.024Z"
+  },
+  "M36": {
+   "bozza": {
+    "risposta": "acute triangle",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "acute triangle",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T11:40:00.046Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T11:40:02.011Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M36"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T11:40:02.011Z",
+   "dopo": {
+    "corretta_pixel": "incerto",
+    "rispondibile": "incerto",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "incerto",
+    "giudizio_finale": "problema_minore",
+    "tipo_difetto": "etichette_sovrapposte",
+    "equivalenza": "",
+    "risposte_vere": "acute triangle",
+    "note": "Il triangolo DBE è acutangolo secondo le annotazioni: DB = BE = 1/3 e angolo B = 45°, quindi gli altri due angoli misurano 67,5°. L'immagine è coerente nella forma, ma vicino al vertice B le etichette 0.33 si sovrappongono e rendono difficile verificare le misure stampate. La classificazione visiva appare corretta, ma la sovrapposizione impedisce di valutare con certezza se il filtro C9 sia troppo prudente.",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 168058,
+   "eventi": [
+    {
+     "quando": "2026-11-12T11:40:00.046Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T11:40:02.011Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T11:57:39.224Z"
+  },
+  "M62": {
+   "bozza": {
+    "risposta": "14.67",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "14.67",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T16:00:28.309Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T16:00:30.475Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M62"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T16:00:30.475Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "si",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 56209,
+   "eventi": [
+    {
+     "quando": "2026-11-12T16:00:28.309Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T16:00:30.475Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T16:00:37.520Z"
+  },
+  "M69": {
+   "bozza": {
+    "risposta": "square",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "square",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-13T11:36:13.514Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-13T11:36:17.329Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M69"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-13T11:36:17.329Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "no",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "rectangle, square, rhombus",
+    "note": "Il quadrilatero DEFG è rappresentato come un quadrato con una circonferenza inscritta, coerentemente con le annotazioni. Essendo un quadrato, soddisfa contemporaneamente le definizioni di rectangle, square e rhombus. La risposta iniziale square è corretta ma non esaustiva. L'omissione di C9 per piu_opzioni_vere è giustificata, poiché una classificazione a risposta singola non sarebbe univoca.",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 81735,
+   "eventi": [
+    {
+     "quando": "2026-11-13T11:36:13.514Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-13T11:36:17.329Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-13T11:38:23.124Z"
+  },
+  "M70": {
+   "bozza": {
+    "risposta": "BC",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "BC",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T16:03:42.862Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T16:03:44.671Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M70"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T16:03:44.671Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 57017,
+   "eventi": [
+    {
+     "quando": "2026-11-12T16:03:42.863Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T16:03:44.671Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T16:03:49.893Z"
+  },
+  "M41": {
+   "bozza": {
+    "risposta": "acute triangle",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "acute triangle",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T14:17:32.867Z",
+    "salvataggi": 2
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T14:17:35.880Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M41"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T14:17:35.880Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 60472,
+   "eventi": [
+    {
+     "quando": "2026-11-12T14:17:31.687Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T14:17:32.868Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T14:17:35.880Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T14:17:43.434Z"
+  },
+  "M49": {
+   "bozza": {
+    "risposta": "obtuse triangle",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "obtuse triangle",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T15:51:56.958Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T15:51:59.690Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M49"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T15:51:59.690Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 91740,
+   "eventi": [
+    {
+     "quando": "2026-11-12T15:51:56.958Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T15:51:59.690Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T15:52:34.536Z"
+  },
+  "M50": {
+   "bozza": {
+    "risposta": "right triangle",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "right triangle",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T15:53:05.340Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T15:53:06.921Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M50"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T15:53:06.921Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 39980,
+   "eventi": [
+    {
+     "quando": "2026-11-12T15:53:05.340Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T15:53:06.922Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T15:53:12.504Z"
+  },
+  "M64": {
+   "bozza": {
+    "risposta": "acute triangle",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "acute triangle",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-13T11:10:42.827Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-13T11:10:45.137Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M64"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-13T11:10:45.137Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "no",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "acute triangle",
+    "note": "Le annotazioni sono coerenti con la figura. Il triangolo CBE è dichiarato isoscele con CB = BE e angolo CBE = 45°. Gli altri due angoli misurano quindi 67,5°, rendendo il triangolo acutangolo. Tuttavia, l'uguaglianza CB = BE non è esplicitamente indicata nei pixel. La classificazione è visivamente plausibile, ma non dimostrabile dalle sole misure stampate. L'omissione di C9 per misure insufficienti è giustificata.",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 74794,
+   "eventi": [
+    {
+     "quando": "2026-11-13T11:10:42.828Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-13T11:10:45.137Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-13T11:13:28.899Z"
+  },
+  "M76": {
+   "bozza": {
+    "risposta": "5\\sqrt{2}",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "5\\sqrt{2}",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T16:06:54.097Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T16:06:55.764Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M76"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T16:06:55.764Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "si",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 119191,
+   "eventi": [
+    {
+     "quando": "2026-11-12T16:06:54.097Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T16:06:55.764Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T16:07:03.550Z"
+  },
+  "M73": {
+   "bozza": {
+    "risposta": "acute triangle",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "acute triangle",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-13T11:39:31.927Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-13T11:39:33.530Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M73"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-13T11:39:33.530Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "si",
+    "giudizio_finale": "problema_minore",
+    "tipo_difetto": "filtro_troppo_prudente_arrotondamento",
+    "equivalenza": "",
+    "risposte_vere": "acute triangle",
+    "note": "Le annotazioni sono coerenti con la figura. I lati DB e BE sono entrambi visualizzati come 4,33, corrispondenti al valore esatto 13/3, e l'angolo compreso DBE misura 45°. Il triangolo è acutangolo, con angoli di 45°, 67,5° e 67,5°. Anche considerando l'incertezza dovuta all'arrotondamento, le classificazioni right triangle e obtuse triangle sono matematicamente escludibili. Il filtro C9 risulta quindi troppo prudente. Le due etichette 4.33 sono ravvicinate, ma ancora leggibili.",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 504570,
+   "eventi": [
+    {
+     "quando": "2026-11-13T11:39:31.927Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-13T11:39:33.530Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-13T11:41:55.429Z"
+  },
+  "M37": {
+   "bozza": {
+    "risposta": "3.5",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "3.5",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T11:57:51.182Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T11:57:53.872Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M37"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T11:57:53.872Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "si",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 22950,
+   "eventi": [
+    {
+     "quando": "2026-11-12T11:57:51.182Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T11:57:53.872Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T11:58:01.545Z"
+  },
+  "M38": {
+   "bozza": {
+    "risposta": "rhombus",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "rhombus",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T11:58:44.753Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T11:58:46.757Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M38"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T11:58:46.757Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 314069,
+   "eventi": [
+    {
+     "quando": "2026-11-12T11:58:44.753Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T11:58:46.757Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T11:58:51.888Z"
+  },
+  "M39": {
+   "bozza": {
+    "risposta": "Points: A, B, C, D, E, F, G, H.\n\nShapes:\n- Rectangle ABCD\n- Rectangle CEGF (rotated)\n- Triangle CDE\n- Triangle FGH\nSegments: AB, AD, BC, CD, CE, DE, CF, EG, FG, FH, GH.\n\nLabeled lengths:\n- AB = 88\n- BC = 93\n- CD = 88\n- CE = 88\n- EG = 95\n- FG = 88\nMarked angles:\n- ∠BAD = 90°\n- ∠DCE = 45°\n- ∠CEG = 90°\n- ∠GFH = 60°",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "Points: A, B, C, D, E, F, G, H.\n\nShapes:\n- Rectangle ABCD\n- Rectangle CEGF (rotated)\n- Triangle CDE\n- Triangle FGH\nSegments: AB, AD, BC, CD, CE, DE, CF, EG, FG, FH, GH.\n\nLabeled lengths:\n- AB = 88\n- BC = 93\n- CD = 88\n- CE = 88\n- EG = 95\n- FG = 88\nMarked angles:\n- ∠BAD = 90°\n- ∠DCE = 45°\n- ∠CEG = 90°\n- ∠GFH = 60°",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T14:14:51.130Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T14:14:56.003Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M39"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T14:14:56.003Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 187240,
+   "eventi": [
+    {
+     "quando": "2026-11-12T14:14:51.130Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T14:14:56.003Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T14:16:35.826Z"
+  },
+  "M40": {
+   "bozza": {
+    "risposta": "right triangle",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "right triangle",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T14:16:52.353Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T14:16:54.214Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M40"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T14:16:54.214Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 25771,
+   "eventi": [
+    {
+     "quando": "2026-11-12T14:16:52.353Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T14:16:54.214Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T14:16:59.932Z"
+  },
+  "M42": {
+   "bozza": {
+    "risposta": "acute triangle",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "acute triangle",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T14:18:11.744Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T14:18:14.021Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M42"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T14:18:14.021Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 36137,
+   "eventi": [
+    {
+     "quando": "2026-11-12T14:18:11.744Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T14:18:14.021Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T14:18:19.813Z"
+  },
+  "M43": {
+   "bozza": {
+    "risposta": "90°",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "90°",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T14:18:36.845Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T14:18:39.084Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M43"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T14:18:39.084Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "si",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 31063,
+   "eventi": [
+    {
+     "quando": "2026-11-12T14:18:36.845Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T14:18:39.084Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T14:18:50.869Z"
+  },
+  "M44": {
+   "bozza": {
+    "risposta": "The figure consists of two irregular pentagons, ABCED and CEGHF, sharing the side CE.\n\n- Points: A, B, C, D, E, F, G, H.\n- Pentagon ABCED: AB = 3, AD = √3, and angle BAD = 90°.\n- Pentagon CEGHF: CE = 3, EG = √3, and angle CEG = 90°.\n- Shared side: CE.\n- Other visible segments: BC, DE, CF, FH, and GH.",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "The figure consists of two irregular pentagons, ABCED and CEGHF, sharing the side CE.\n\n- Points: A, B, C, D, E, F, G, H.\n- Pentagon ABCED: AB = 3, AD = √3, and angle BAD = 90°.\n- Pentagon CEGHF: CE = 3, EG = √3, and angle CEG = 90°.\n- Shared side: CE.\n- Other visible segments: BC, DE, CF, FH, and GH.",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T14:22:32.395Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T14:22:34.625Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M44"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T14:22:34.625Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "incerto",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": "l target descrive la costruzione geometrica sottostante, mentre i contorni visibili formano due pentagoni. I lati CD e FG sono sostituiti dai triangoli e non sono disegnati. Le misure e gli angoli indicati corrispondono ai pixel. L'equilaterità dei triangoli è visivamente plausibile, ma non completamente certificata dalle annotazioni grafiche."
+   },
+   "tempo_ms": 182946,
+   "eventi": [
+    {
+     "quando": "2026-11-12T14:22:32.395Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T14:22:34.625Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T14:27:20.337Z"
+  },
+  "M45": {
+   "bozza": {
+    "risposta": "right triangle",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "right triangle",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T14:27:38.446Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T14:27:41.027Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M45"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T14:27:41.027Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 23487,
+   "eventi": [
+    {
+     "quando": "2026-11-12T14:27:38.446Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T14:27:41.027Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T14:27:45.980Z"
+  },
+  "M46": {
+   "bozza": {
+    "risposta": "rectangle",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "rectangle",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T14:28:07.554Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T14:28:09.179Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M46"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T14:28:09.179Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 28095,
+   "eventi": [
+    {
+     "quando": "2026-11-12T14:28:07.555Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T14:28:09.179Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T14:28:14.328Z"
+  },
+  "M47": {
+   "bozza": {
+    "risposta": "3.33",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "3.33",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-13T11:38:49.378Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-13T11:38:51.819Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M47"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-13T11:38:51.819Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "si",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "problema_minore",
+    "tipo_difetto": "etichette_sovrapposte",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "Il valore BE = 3.33 è visibile e coincide con il target. Le annotazioni riportano BE = 10/3, correttamente arrotondato a 3.33. Tuttavia, vicino al vertice B le etichette dei segmenti BE e BD si sovrappongono parzialmente. La sovrapposizione non impedisce di leggere il valore richiesto, poiché entrambe le misure visualizzate sono 3.33. Si segnala pertanto un problema minore di formato, senza conseguenze sulla correttezza della risposta.",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 118871,
+   "eventi": [
+    {
+     "quando": "2026-11-13T11:38:49.378Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-13T11:38:51.819Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-13T11:53:09.383Z"
+  },
+  "M48": {
+   "bozza": {
+    "risposta": "5",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "5",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T15:51:08.147Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T15:51:11.912Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M48"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T15:51:11.912Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 26285,
+   "eventi": [
+    {
+     "quando": "2026-11-12T15:51:08.147Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T15:51:11.912Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T15:51:17.300Z"
+  },
+  "M51": {
+   "bozza": {
+    "risposta": "right triangle",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "right triangle",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-13T11:00:40.521Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-13T11:00:43.627Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M51"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-13T11:00:43.627Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "si",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "right triangle",
+    "note": "Il triangolo HGI è rettangolo in G, come dimostra il simbolo dell'angolo retto chiaramente visibile. L'angolo I misura 45°, quindi anche l'angolo H misura 45°. L'unica classificazione vera è right triangle. Il filtro C9 risulta troppo prudente perché omette una domanda la cui risposta è determinabile dalla sola immagine attraverso il simbolo grafico dell'angolo retto.",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 82189,
+   "eventi": [
+    {
+     "quando": "2026-11-13T11:00:40.521Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-13T11:00:43.627Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-13T11:03:43.694Z"
+  },
+  "M52": {
+   "bozza": {
+    "risposta": "0.5",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "0.5",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T15:53:27.100Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T15:53:29.719Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M52"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T15:53:29.719Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "si",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 21647,
+   "eventi": [
+    {
+     "quando": "2026-11-12T15:53:27.100Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T15:53:29.719Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T15:53:37.046Z"
+  },
+  "M53": {
+   "bozza": {
+    "risposta": "rhombus",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "rhombus",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T15:53:53.424Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T15:53:55.011Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M53"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T15:53:55.011Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 35398,
+   "eventi": [
+    {
+     "quando": "2026-11-12T15:53:53.424Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T15:53:55.011Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T15:54:01.711Z"
+  },
+  "M54": {
+   "bozza": {
+    "risposta": "\\frac{\\sqrt{3}}{3}",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "\\frac{\\sqrt{3}}{3}",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T15:56:17.164Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T15:56:18.735Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M54"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T15:56:18.735Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "si",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 94945,
+   "eventi": [
+    {
+     "quando": "2026-11-12T15:56:17.164Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T15:56:18.735Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T15:56:34.356Z"
+  },
+  "M55": {
+   "bozza": {
+    "risposta": "acute triangle",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "acute triangle",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-13T11:04:11.326Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-13T11:04:13.221Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M55"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-13T11:04:13.221Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "no",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "e annotazioni sono coerenti con la figura. ABC è dichiarato isoscele con AB = BC e angolo B = 30°, quindi gli altri due angoli misurano 75° ciascuno. Il triangolo è acutangolo. Tuttavia, l'uguaglianza AB = BC non è esplicitamente indicata nell'immagine, ma soltanto suggerita dalla geometria del disegno. L'omissione di C9 per misure insufficienti è pertanto giustificata.",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 129371,
+   "eventi": [
+    {
+     "quando": "2026-11-13T11:04:11.326Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-13T11:04:13.221Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-13T11:10:24.488Z"
+  },
+  "M56": {
+   "bozza": {
+    "risposta": "acute triangle",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "acute triangle",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T15:57:01.300Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T15:57:03.444Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M56"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T15:57:03.444Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 31211,
+   "eventi": [
+    {
+     "quando": "2026-11-12T15:57:01.300Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T15:57:03.444Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T15:57:08.767Z"
+  },
+  "M57": {
+   "bozza": {
+    "risposta": "acute triangle",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "acute triangle",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-13T11:07:25.726Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-13T11:07:27.823Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M57"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-13T11:07:27.823Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "no",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "acute triangle",
+    "note": "Il triangolo HEI appare isoscele e acutangolo. Le annotazioni dichiarano HE = EI e ∠HEI = 60°, da cui segue che il triangolo è equilatero, con tutti gli angoli di 60°. Tuttavia, nella figura l'uguaglianza HE = EI non è esplicitamente indicata con misure o marcatori. La classificazione è visivamente plausibile, ma non dimostrabile dalle sole misure stampate. L'omissione di C9 per misure insufficienti è quindi giustificata.",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 88466,
+   "eventi": [
+    {
+     "quando": "2026-11-13T11:07:25.726Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-13T11:07:27.823Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-13T11:09:57.478Z"
+  },
+  "M58": {
+   "bozza": {
+    "risposta": "acute triangle",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "acute triangle",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T15:57:40.231Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T15:57:41.994Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M58"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T15:57:41.994Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 33825,
+   "eventi": [
+    {
+     "quando": "2026-11-12T15:57:40.231Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T15:57:41.994Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T15:57:47.055Z"
+  },
+  "M59": {
+   "bozza": {
+    "risposta": "4",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "4",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T15:58:10.122Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T15:58:17.133Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M59"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T15:58:17.133Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 39049,
+   "eventi": [
+    {
+     "quando": "2026-11-12T15:58:10.122Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T15:58:17.133Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T15:58:24.198Z"
+  },
+  "M60": {
+   "bozza": {
+    "risposta": "40.5",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "40.5",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T15:58:45.706Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T15:58:49.016Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M60"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T15:58:49.016Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "si",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 48357,
+   "eventi": [
+    {
+     "quando": "2026-11-12T15:58:45.706Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T15:58:49.016Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T15:59:12.251Z"
+  },
+  "M61": {
+   "bozza": {
+    "risposta": "rectangle",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "rectangle",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T15:59:33.937Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T15:59:35.689Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M61"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T15:59:35.689Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 33954,
+   "eventi": [
+    {
+     "quando": "2026-11-12T15:59:33.938Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T15:59:35.689Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T15:59:44.125Z"
+  },
+  "M65": {
+   "bozza": {
+    "risposta": "CD",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "CD",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T16:01:46.292Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T16:01:48.677Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M65"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T16:01:48.677Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 62116,
+   "eventi": [
+    {
+     "quando": "2026-11-12T16:01:46.292Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T16:01:48.677Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T16:02:10.862Z"
+  },
+  "M66": {
+   "bozza": {
+    "risposta": "91",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "91",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T16:02:32.336Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T16:02:34.557Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M66"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T16:02:34.557Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "si",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 35046,
+   "eventi": [
+    {
+     "quando": "2026-11-12T16:02:32.336Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T16:02:34.557Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T16:02:48.665Z"
+  },
+  "M67": {
+   "bozza": {
+    "risposta": "Figure: geometry diagram.\nPoints: A, B, C, D, E, F, G.\nShapes: isosceles triangle ABC (AB = BC); rectangle BCED; rectangle DEGF, sharing side DE with rectangle BCED.\nSegments: AB = 77; BC = 77; DE = 77.\nAngles: ∠ABC = 30°; ∠BCE = 90°; ∠DEG = 90°.",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "Figure: geometry diagram.\nPoints: A, B, C, D, E, F, G.\nShapes: isosceles triangle ABC (AB = BC); rectangle BCED; rectangle DEGF, sharing side DE with rectangle BCED.\nSegments: AB = 77; BC = 77; DE = 77.\nAngles: ∠ABC = 30°; ∠BCE = 90°; ∠DEG = 90°.",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-13T11:31:26.557Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-13T11:31:28.412Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M67"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-13T11:31:28.412Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": "Figure: geometry diagram.\nPoints: A, B, C, D, E, F, G.\nShapes: isosceles triangle ABC; square CBDE on side CB;\nsquare EDFG on side ED.\nSegments: AB = 77; BC = 77; DE = 77.\nAngles: ∠ABC = 30°; ∠BCE = 90°; ∠DEG = 90°."
+   },
+   "tempo_ms": 80410,
+   "eventi": [
+    {
+     "quando": "2026-11-13T11:31:26.557Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-13T11:31:28.412Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-13T11:32:52.384Z"
+  },
+  "M68": {
+   "bozza": {
+    "risposta": "acute triangle",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "acute triangle",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-13T11:33:28.131Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-13T11:33:29.563Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M68"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-13T11:33:29.563Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "si",
+    "giudizio_finale": "problema_minore",
+    "tipo_difetto": "filtro_troppo_prudente_arrotondamento",
+    "equivalenza": "",
+    "risposte_vere": "acute triangle",
+    "note": "Le annotazioni sono coerenti con i pixel. Nel triangolo CDE sono stampati CD = 34,67, DE = 34,67 e ∠CDE = 30°. Le annotazioni riportano CD = DE = 104/3, coerentemente arrotondati a 34,67. Il triangolo è isoscele con angoli di 30°, 75° e 75°, quindi acutangolo. Anche considerando possibili differenze tra le lunghezze esatte dovute all'arrotondamento, la classificazione rimane necessariamente acutangola. Le alternative right triangle e obtuse triangle sono escludibili dalle misure visualizzate. Il filtro C9 risulta quindi troppo prudente.",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 178583,
+   "eventi": [
+    {
+     "quando": "2026-11-13T11:33:28.131Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-13T11:33:29.563Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-13T11:35:39.447Z"
+  },
+  "M71": {
+   "bozza": {
+    "risposta": "outside",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "outside",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T16:04:08.931Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T16:04:10.558Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M71"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T16:04:10.558Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 25212,
+   "eventi": [
+    {
+     "quando": "2026-11-12T16:04:08.931Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T16:04:10.558Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T16:04:15.129Z"
+  },
+  "M72": {
+   "bozza": {
+    "risposta": "obtuse triangle",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "obtuse triangle",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T16:04:35.943Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T16:04:37.750Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M72"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T16:04:37.750Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 34424,
+   "eventi": [
+    {
+     "quando": "2026-11-12T16:04:35.943Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T16:04:37.750Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T16:04:49.746Z"
+  },
+  "M74": {
+   "bozza": {
+    "risposta": "acute triangle",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "acute triangle",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T16:05:39.125Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T16:05:41.638Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M74"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T16:05:41.638Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 29702,
+   "eventi": [
+    {
+     "quando": "2026-11-12T16:05:39.125Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T16:05:41.638Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T16:05:46.993Z"
+  },
+  "M75": {
+   "bozza": {
+    "risposta": "rectangle",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "rectangle",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T16:06:08.955Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T16:06:10.426Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M75"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T16:06:10.426Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 29104,
+   "eventi": [
+    {
+     "quando": "2026-11-12T16:06:08.955Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T16:06:10.426Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T16:06:15.116Z"
+  },
+  "M77": {
+   "bozza": {
+    "risposta": "rectangle",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "rectangle",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T16:14:42.961Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T16:14:45.217Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M77"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T16:14:45.217Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 49872,
+   "eventi": [
+    {
+     "quando": "2026-11-12T16:14:42.961Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T16:14:45.218Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T16:14:50.872Z"
+  },
+  "M78": {
+   "bozza": {
+    "risposta": "square",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "square",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-13T11:42:15.500Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-13T11:42:17.504Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M78"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-13T11:42:17.504Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "no",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "rectangle, rhombus, square",
+    "note": "Le annotazioni sono coerenti con la figura. DEFG è rappresentato come un quadrato con una circonferenza inscritta. Un quadrato è contemporaneamente un rectangle, un rhombus e uno square. La risposta iniziale square è corretta ma non esaustiva. L'omissione di C9 per piu_opzioni_vere è giustificata, poiché tutte e tre le classi sono vere.",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 60171,
+   "eventi": [
+    {
+     "quando": "2026-11-13T11:42:15.500Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-13T11:42:17.504Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-13T11:44:06.725Z"
+  },
+  "M79": {
+   "bozza": {
+    "risposta": "rhombus",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "rhombus",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T16:15:08.348Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T16:15:10.322Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M79"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T16:15:10.322Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "non_compilato",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 25122,
+   "eventi": [
+    {
+     "quando": "2026-11-12T16:15:08.348Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T16:15:10.322Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T16:15:18.299Z"
+  },
+  "M80": {
+   "bozza": {
+    "risposta": "90°",
+    "non_determinabile": false,
+    "leggibilita": "si",
+    "sufficienza": "si",
+    "note": ""
+   },
+   "prima": {
+    "bozza": {
+     "risposta": "90°",
+     "non_determinabile": false,
+     "leggibilita": "si",
+     "sufficienza": "si",
+     "note": ""
+    },
+    "salvata_il": "2026-11-12T16:15:43.176Z",
+    "salvataggi": 1
+   },
+   "prima_fissata": {
+    "quando": "2026-11-12T16:15:44.988Z",
+    "motivo": "soluzione_mostrata",
+    "tramite": "M80"
+   },
+   "esposta_prima": null,
+   "soluzione_mostrata_il": "2026-11-12T16:15:44.988Z",
+   "dopo": {
+    "corretta_pixel": "si",
+    "rispondibile": "si",
+    "scrittura_visibile": "si",
+    "prudenza_eccessiva": "non_compilato",
+    "giudizio_finale": "nessun_problema",
+    "tipo_difetto": "",
+    "equivalenza": "",
+    "risposte_vere": "",
+    "note": "",
+    "risposta_dopo_soluzione": ""
+   },
+   "tempo_ms": 1287285,
+   "eventi": [
+    {
+     "quando": "2026-11-12T16:15:43.176Z",
+     "azione": "primo_giudizio_salvato"
+    },
+    {
+     "quando": "2026-11-12T16:15:44.988Z",
+     "azione": "soluzione_mostrata"
+    }
+   ],
+   "aggiornato_il": "2026-11-12T16:15:52.165Z"
+  }
+ },
+ "posizione": "M47",
+ "esposizioni": [
+  {
+   "chiave": "record:d1-32107",
+   "quando": "2026-11-11T20:41:20.792Z",
+   "tramite": "M01"
+  },
+  {
+   "chiave": "gruppo:6dd9cc2196448c8225478dbfd01dfc6f138add709597e0f423acb5d0ddf7ff10",
+   "quando": "2026-11-11T20:41:20.792Z",
+   "tramite": "M01"
+  },
+  {
+   "chiave": "record:d2-16342",
+   "quando": "2026-11-11T20:42:47.304Z",
+   "tramite": "M02"
+  },
+  {
+   "chiave": "gruppo:3b3b5b778951d0b427a6c268ec91e0002a37de474ae37bd22025c689855a78c6",
+   "quando": "2026-11-11T20:42:47.304Z",
+   "tramite": "M02"
+  },
+  {
+   "chiave": "record:d2-14446",
+   "quando": "2026-11-11T21:11:52.833Z",
+   "tramite": "M03"
+  },
+  {
+   "chiave": "gruppo:40f608b71c223ea5924d6e5dd6bb95f40e06589cad17f821c18e323f5ba3df3a",
+   "quando": "2026-11-11T21:11:52.833Z",
+   "tramite": "M03"
+  },
+  {
+   "chiave": "record:d2-11653",
+   "quando": "2026-11-11T21:13:55.297Z",
+   "tramite": "M04"
+  },
+  {
+   "chiave": "gruppo:e9e6228b9b552004adc17fa838bde53c1cf054a801c422929928e012387c8486",
+   "quando": "2026-11-11T21:13:55.297Z",
+   "tramite": "M04"
+  },
+  {
+   "chiave": "record:d0-49959",
+   "quando": "2026-11-11T21:14:52.293Z",
+   "tramite": "M05"
+  },
+  {
+   "chiave": "gruppo:685a5ea1a046d1ae35552ae4254b6149cb1a25fbb55175f4bc3f004ea6ad6be0",
+   "quando": "2026-11-11T21:14:52.293Z",
+   "tramite": "M05"
+  },
+  {
+   "chiave": "record:d0-29018",
+   "quando": "2026-11-11T21:22:06.832Z",
+   "tramite": "M06"
+  },
+  {
+   "chiave": "gruppo:179efb4c950833b755281e67a27239420e7fc1a43481514becd4507ee725f4fb",
+   "quando": "2026-11-11T21:22:06.832Z",
+   "tramite": "M06"
+  },
+  {
+   "chiave": "record:d3-26723",
+   "quando": "2026-11-11T21:36:25.231Z",
+   "tramite": "M07"
+  },
+  {
+   "chiave": "gruppo:14147400aec82b7500780fdff17a8a57846f44d9411fb9e4c0fe08b32b9d78d3",
+   "quando": "2026-11-11T21:36:25.231Z",
+   "tramite": "M07"
+  },
+  {
+   "chiave": "record:d1-9687",
+   "quando": "2026-11-11T21:38:33.580Z",
+   "tramite": "M08"
+  },
+  {
+   "chiave": "gruppo:ed4241a2111e3a48dc3dc618adc7b0436e0cacdcb43fadd57c2b5d0f0c39a50d",
+   "quando": "2026-11-11T21:38:33.580Z",
+   "tramite": "M08"
+  },
+  {
+   "chiave": "record:d3-42611",
+   "quando": "2026-11-11T21:59:45.738Z",
+   "tramite": "M09"
+  },
+  {
+   "chiave": "gruppo:1829cc528c90b2701a5ae6345d889b454048e1e0de79af111dc5613a5e9dbfc7",
+   "quando": "2026-11-11T21:59:45.738Z",
+   "tramite": "M09"
+  },
+  {
+   "chiave": "record:d1-2195",
+   "quando": "2026-11-11T22:00:53.484Z",
+   "tramite": "M10"
+  },
+  {
+   "chiave": "gruppo:86b60df6eb033287ffc6988fe762acd5106600b0a4e425726f85ce06c1c3d3da",
+   "quando": "2026-11-11T22:00:53.484Z",
+   "tramite": "M10"
+  },
+  {
+   "chiave": "record:d3-34225",
+   "quando": "2026-11-11T22:01:33.878Z",
+   "tramite": "M11"
+  },
+  {
+   "chiave": "gruppo:b89525d576683f1b4c9220565f21c00847cb16e5e4ff870e43025a4753a066b5",
+   "quando": "2026-11-11T22:01:33.878Z",
+   "tramite": "M11"
+  },
+  {
+   "chiave": "record:d3-44919",
+   "quando": "2026-11-11T22:04:24.159Z",
+   "tramite": "M12"
+  },
+  {
+   "chiave": "gruppo:2fe577a7b967ae293a8f152f28aad7d7c078e52d9f3eb2e3f75e508470554f68",
+   "quando": "2026-11-11T22:04:24.159Z",
+   "tramite": "M12"
+  },
+  {
+   "chiave": "record:d1-17460",
+   "quando": "2026-11-11T22:41:15.037Z",
+   "tramite": "M13"
+  },
+  {
+   "chiave": "gruppo:506dd7147944176d05edd6e2b9e475b5591e16d23336f7143d53bd9c62e22c6c",
+   "quando": "2026-11-11T22:41:15.037Z",
+   "tramite": "M13"
+  },
+  {
+   "chiave": "record:d2-910",
+   "quando": "2026-11-11T22:41:37.034Z",
+   "tramite": "M14"
+  },
+  {
+   "chiave": "gruppo:c10e13e8b6f7c739325aab3889262dc3b7d2dc149defa07c84818f148ebd2f7e",
+   "quando": "2026-11-11T22:41:37.034Z",
+   "tramite": "M14"
+  },
+  {
+   "chiave": "record:d2-19113",
+   "quando": "2026-11-11T22:49:55.903Z",
+   "tramite": "M15"
+  },
+  {
+   "chiave": "gruppo:9641699d820f63919796968857b1da85fc004b3037d5d5beb8d0e9cb4ac1a7f9",
+   "quando": "2026-11-11T22:49:55.903Z",
+   "tramite": "M15"
+  },
+  {
+   "chiave": "record:d3-4105",
+   "quando": "2026-11-11T22:52:38.765Z",
+   "tramite": "M16"
+  },
+  {
+   "chiave": "gruppo:dd5b8c8935c63b42c943669858e66db89d24763818dd7e32c3b8214805d06d48",
+   "quando": "2026-11-11T22:52:38.765Z",
+   "tramite": "M16"
+  },
+  {
+   "chiave": "record:d3-32035",
+   "quando": "2026-11-11T22:53:26.525Z",
+   "tramite": "M17"
+  },
+  {
+   "chiave": "gruppo:f183c8529ae3f45dae30d81717c437731f79f752c554f0b8aa345a246265af5a",
+   "quando": "2026-11-11T22:53:26.525Z",
+   "tramite": "M17"
+  },
+  {
+   "chiave": "record:d1-36658",
+   "quando": "2026-11-11T22:53:58.358Z",
+   "tramite": "M18"
+  },
+  {
+   "chiave": "gruppo:0d17e9c9ef795ac1e8ba9b8414ca9b96d3fa81e1b82332981ac7d6def4f2b391",
+   "quando": "2026-11-11T22:53:58.358Z",
+   "tramite": "M18"
+  },
+  {
+   "chiave": "record:d2-28336",
+   "quando": "2026-11-11T22:54:32.013Z",
+   "tramite": "M19"
+  },
+  {
+   "chiave": "gruppo:4756e1ad534bf9ccb5d3764f88fe31238b442cb922e58e0b8b5acc1cf40a0bf2",
+   "quando": "2026-11-11T22:54:32.013Z",
+   "tramite": "M19"
+  },
+  {
+   "chiave": "record:d3-37905",
+   "quando": "2026-11-11T22:55:04.274Z",
+   "tramite": "M20"
+  },
+  {
+   "chiave": "gruppo:37f165a6de9f6b9bec28345ac9913c911dbec6a994c8481b955c2cb9848aac98",
+   "quando": "2026-11-11T22:55:04.274Z",
+   "tramite": "M20"
+  },
+  {
+   "chiave": "record:d3-15434",
+   "quando": "2026-11-11T22:55:29.996Z",
+   "tramite": "M21"
+  },
+  {
+   "chiave": "gruppo:0cd6e843a80e677a3d515cfad4bd713c8394a2405729c340b528512cfc003c63",
+   "quando": "2026-11-11T22:55:29.996Z",
+   "tramite": "M21"
+  },
+  {
+   "chiave": "record:d3-15979",
+   "quando": "2026-11-11T22:59:10.172Z",
+   "tramite": "M22"
+  },
+  {
+   "chiave": "gruppo:e812041daba0bb619b04f2672f784866dac5a5b9dcafd59023fe51caba2c42b4",
+   "quando": "2026-11-11T22:59:10.172Z",
+   "tramite": "M22"
+  },
+  {
+   "chiave": "record:d2-25825",
+   "quando": "2026-11-11T23:02:07.528Z",
+   "tramite": "M23"
+  },
+  {
+   "chiave": "gruppo:637c64fcd07d223bd008b823849b843e59a7e70f0b8c811fe88a4ce47f9262a8",
+   "quando": "2026-11-11T23:02:07.528Z",
+   "tramite": "M23"
+  },
+  {
+   "chiave": "record:d0-32293",
+   "quando": "2026-11-11T23:26:36.900Z",
+   "tramite": "M24"
+  },
+  {
+   "chiave": "gruppo:ef58c835df3a454a0f181cba61ce8ec9778335db0a9e36c233559cd41fe2f121",
+   "quando": "2026-11-11T23:26:36.900Z",
+   "tramite": "M24"
+  },
+  {
+   "chiave": "record:d2-16233",
+   "quando": "2026-11-11T23:27:17.314Z",
+   "tramite": "M25"
+  },
+  {
+   "chiave": "gruppo:0808b2ccde8d6399a5d1e2534b1ce20576c2f31a59b6df8b280f19eaacbe66a1",
+   "quando": "2026-11-11T23:27:17.314Z",
+   "tramite": "M25"
+  },
+  {
+   "chiave": "record:d2-26967",
+   "quando": "2026-11-11T23:30:39.112Z",
+   "tramite": "M26"
+  },
+  {
+   "chiave": "gruppo:437074bb4c3bb7ce35cd27f0dcc7439bc070209f9bcaf8b21d9021d13c5e5d3a",
+   "quando": "2026-11-11T23:30:39.112Z",
+   "tramite": "M26"
+  },
+  {
+   "chiave": "record:d3-25764",
+   "quando": "2026-11-11T23:33:18.116Z",
+   "tramite": "M27"
+  },
+  {
+   "chiave": "gruppo:fde1d11981fad62d0c7a1c8e92bceae7ef414aab257ea863cf283efa7784819e",
+   "quando": "2026-11-11T23:33:18.116Z",
+   "tramite": "M27"
+  },
+  {
+   "chiave": "record:d2-37955",
+   "quando": "2026-11-11T23:33:44.699Z",
+   "tramite": "M28"
+  },
+  {
+   "chiave": "gruppo:c1e53665922f23534c901fd2b2b648671f38a3d0accbb3dfa755ba69be0053d6",
+   "quando": "2026-11-11T23:33:44.699Z",
+   "tramite": "M28"
+  },
+  {
+   "chiave": "record:d3-8954",
+   "quando": "2026-11-11T23:37:19.954Z",
+   "tramite": "M29"
+  },
+  {
+   "chiave": "gruppo:fe240c8ebf3be8cde7cfa86c80a7834be112a2fc78396f66577a9d4f3ddd5c31",
+   "quando": "2026-11-11T23:37:19.954Z",
+   "tramite": "M29"
+  },
+  {
+   "chiave": "record:d3-22306",
+   "quando": "2026-11-12T11:36:24.693Z",
+   "tramite": "M30"
+  },
+  {
+   "chiave": "gruppo:abd448ec2353ef6de29e155c30eea7c7c0a056fbece92d1be42d9aac50af4803",
+   "quando": "2026-11-12T11:36:24.693Z",
+   "tramite": "M30"
+  },
+  {
+   "chiave": "record:d2-41198",
+   "quando": "2026-11-12T11:37:00.782Z",
+   "tramite": "M31"
+  },
+  {
+   "chiave": "gruppo:3d2b97730f05747fb774e09553446ac2be2b9d0d07912e7f450ee4b42fc93809",
+   "quando": "2026-11-12T11:37:00.782Z",
+   "tramite": "M31"
+  },
+  {
+   "chiave": "record:d2-26398",
+   "quando": "2026-11-12T11:37:28.024Z",
+   "tramite": "M32"
+  },
+  {
+   "chiave": "gruppo:8debc68d5395b937a0c80b8d2945bcdee17c1b0dd3a962d50b26447120c18a02",
+   "quando": "2026-11-12T11:37:28.024Z",
+   "tramite": "M32"
+  },
+  {
+   "chiave": "record:d0-32671",
+   "quando": "2026-11-12T11:37:47.275Z",
+   "tramite": "M33"
+  },
+  {
+   "chiave": "gruppo:6d6ddc79e99b980fea126c745d10cf4a2735bf9ab1be53e15bea62af4a7df6d8",
+   "quando": "2026-11-12T11:37:47.275Z",
+   "tramite": "M33"
+  },
+  {
+   "chiave": "record:d3-15652",
+   "quando": "2026-11-12T11:38:13.031Z",
+   "tramite": "M34"
+  },
+  {
+   "chiave": "gruppo:150157f6d43f4591f3f1ed817f07f5ae1541df6a907ffb2b13d9ba353900b619",
+   "quando": "2026-11-12T11:38:13.031Z",
+   "tramite": "M34"
+  },
+  {
+   "chiave": "record:d3-10968",
+   "quando": "2026-11-12T11:39:10.570Z",
+   "tramite": "M35"
+  },
+  {
+   "chiave": "gruppo:f05db6a0aa6f29c9acb8614c9caa3f88a717a693c7733a6aea5e602e9fad12cc",
+   "quando": "2026-11-12T11:39:10.570Z",
+   "tramite": "M35"
+  },
+  {
+   "chiave": "record:d3-1421",
+   "quando": "2026-11-12T11:40:02.011Z",
+   "tramite": "M36"
+  },
+  {
+   "chiave": "gruppo:edab7e04fca9300c6928690eaaf32f0c18b3a08bd6f6b2b24c2c2f15e40a7c64",
+   "quando": "2026-11-12T11:40:02.011Z",
+   "tramite": "M36"
+  },
+  {
+   "chiave": "record:d0-40761",
+   "quando": "2026-11-12T11:57:53.872Z",
+   "tramite": "M37"
+  },
+  {
+   "chiave": "gruppo:e07adc1e061edae0aa0f73963d34d205ac906f9f0e5d362cbcaa508ea53c8f48",
+   "quando": "2026-11-12T11:57:53.872Z",
+   "tramite": "M37"
+  },
+  {
+   "chiave": "record:d2-6411",
+   "quando": "2026-11-12T11:58:46.757Z",
+   "tramite": "M38"
+  },
+  {
+   "chiave": "gruppo:a19f86cd6908c4e7d61705810d0fb01837d0f07f4342b2e58a9efe9537b34960",
+   "quando": "2026-11-12T11:58:46.757Z",
+   "tramite": "M38"
+  },
+  {
+   "chiave": "record:d3-13606",
+   "quando": "2026-11-12T14:14:56.003Z",
+   "tramite": "M39"
+  },
+  {
+   "chiave": "gruppo:a424ac5bbd72f4fad2e26f610b1c24085278aef76c4e20ae4fb477fd181f64c6",
+   "quando": "2026-11-12T14:14:56.003Z",
+   "tramite": "M39"
+  },
+  {
+   "chiave": "record:d3-1891",
+   "quando": "2026-11-12T14:16:54.214Z",
+   "tramite": "M40"
+  },
+  {
+   "chiave": "gruppo:e5420e28ee2a8d2cf6569b0ae3e0d5928d0c388031ac065c48b40f7cedc50935",
+   "quando": "2026-11-12T14:16:54.214Z",
+   "tramite": "M40"
+  },
+  {
+   "chiave": "record:d2-1261",
+   "quando": "2026-11-12T14:17:35.880Z",
+   "tramite": "M41"
+  },
+  {
+   "chiave": "gruppo:bd20fcc9c378f6bb40e543139cf75dc5a3894fdba8940a80025cefa13b1547b9",
+   "quando": "2026-11-12T14:17:35.880Z",
+   "tramite": "M41"
+  },
+  {
+   "chiave": "record:d1-5488",
+   "quando": "2026-11-12T14:18:14.021Z",
+   "tramite": "M42"
+  },
+  {
+   "chiave": "gruppo:b31a1e90b256faf2197238fc3ebc8caca05183a5734fb988463564361f6d9786",
+   "quando": "2026-11-12T14:18:14.021Z",
+   "tramite": "M42"
+  },
+  {
+   "chiave": "record:d3-6017",
+   "quando": "2026-11-12T14:18:39.084Z",
+   "tramite": "M43"
+  },
+  {
+   "chiave": "gruppo:adb0b3c4a2e256dbe5242b0b238933e9f635499c7487984675b712bfdf80dd33",
+   "quando": "2026-11-12T14:18:39.084Z",
+   "tramite": "M43"
+  },
+  {
+   "chiave": "record:d1-41402",
+   "quando": "2026-11-12T14:22:34.625Z",
+   "tramite": "M44"
+  },
+  {
+   "chiave": "gruppo:f4af92679618227c50a3a91edc1e6ad2eb2a66a691a4f5a13930d0d65d4ead24",
+   "quando": "2026-11-12T14:22:34.625Z",
+   "tramite": "M44"
+  },
+  {
+   "chiave": "record:d1-21908",
+   "quando": "2026-11-12T14:27:41.027Z",
+   "tramite": "M45"
+  },
+  {
+   "chiave": "gruppo:75eccf45dfcd4fb559c25777093a7a19b751b4c9c1cca7657c425c651d245373",
+   "quando": "2026-11-12T14:27:41.027Z",
+   "tramite": "M45"
+  },
+  {
+   "chiave": "record:d0-15415",
+   "quando": "2026-11-12T14:28:09.179Z",
+   "tramite": "M46"
+  },
+  {
+   "chiave": "gruppo:fc696f5cc8c437fca7a90ff34eaaf97a9c3aa5d6b0ff54469f70ec23df36ece9",
+   "quando": "2026-11-12T14:28:09.179Z",
+   "tramite": "M46"
+  },
+  {
+   "chiave": "record:d2-18001",
+   "quando": "2026-11-12T15:51:11.912Z",
+   "tramite": "M48"
+  },
+  {
+   "chiave": "gruppo:b0b63c2a99bc5cfc537aac50282d5127a9f3241c906289ecea966b76eb32eafc",
+   "quando": "2026-11-12T15:51:11.912Z",
+   "tramite": "M48"
+  },
+  {
+   "chiave": "record:d3-15532",
+   "quando": "2026-11-12T15:51:59.690Z",
+   "tramite": "M49"
+  },
+  {
+   "chiave": "gruppo:b4ba7f6d7313fcdf4f10fe83c6f95ac50fc4b3fb84ee9718143c22f1e4be6b9f",
+   "quando": "2026-11-12T15:51:59.690Z",
+   "tramite": "M49"
+  },
+  {
+   "chiave": "record:d3-16653",
+   "quando": "2026-11-12T15:53:06.921Z",
+   "tramite": "M50"
+  },
+  {
+   "chiave": "gruppo:07d97084b5e7d86b9f981847d8d73bd89e08a8e36346461b57ac76ef90387aed",
+   "quando": "2026-11-12T15:53:06.921Z",
+   "tramite": "M50"
+  },
+  {
+   "chiave": "record:d2-16030",
+   "quando": "2026-11-12T15:53:29.719Z",
+   "tramite": "M52"
+  },
+  {
+   "chiave": "gruppo:96a501c907f5a2fe1e2a330f869f2c5dc9218da4d27448454ebf613039500adf",
+   "quando": "2026-11-12T15:53:29.719Z",
+   "tramite": "M52"
+  },
+  {
+   "chiave": "record:d3-16691",
+   "quando": "2026-11-12T15:53:55.011Z",
+   "tramite": "M53"
+  },
+  {
+   "chiave": "gruppo:9e91623eeeb7f5e5c614cb74206e85e9bccc273e86dc1afec25abce88afb3dab",
+   "quando": "2026-11-12T15:53:55.011Z",
+   "tramite": "M53"
+  },
+  {
+   "chiave": "record:d2-23132",
+   "quando": "2026-11-12T15:56:18.735Z",
+   "tramite": "M54"
+  },
+  {
+   "chiave": "gruppo:5b883b3deff55b4a61411a6c3721844151ba37fc51f82b7e2346e76bf99945f4",
+   "quando": "2026-11-12T15:56:18.735Z",
+   "tramite": "M54"
+  },
+  {
+   "chiave": "record:d3-17063",
+   "quando": "2026-11-12T15:57:03.444Z",
+   "tramite": "M56"
+  },
+  {
+   "chiave": "gruppo:07cda7dd0ced3ba2e5e3256822f7084de0b3aac7bf17b1dd3734f6b78b1cba8a",
+   "quando": "2026-11-12T15:57:03.444Z",
+   "tramite": "M56"
+  },
+  {
+   "chiave": "record:d1-36811",
+   "quando": "2026-11-12T15:57:41.994Z",
+   "tramite": "M58"
+  },
+  {
+   "chiave": "gruppo:8bb7097c94d136f6dcd7123744766388a92ea4407344f389d519cb977a872e4e",
+   "quando": "2026-11-12T15:57:41.994Z",
+   "tramite": "M58"
+  },
+  {
+   "chiave": "record:d1-49266",
+   "quando": "2026-11-12T15:58:17.133Z",
+   "tramite": "M59"
+  },
+  {
+   "chiave": "gruppo:dc20a4d1a0577df213d5ef3ca7aa2b29d7a743870c61fe57bf2a95cdc7af8f8f",
+   "quando": "2026-11-12T15:58:17.133Z",
+   "tramite": "M59"
+  },
+  {
+   "chiave": "record:d1-32253",
+   "quando": "2026-11-12T15:58:49.016Z",
+   "tramite": "M60"
+  },
+  {
+   "chiave": "gruppo:8aa94f188fc20390737e9b248e70db52e35c1fe9f46e0791032f52f59887daa0",
+   "quando": "2026-11-12T15:58:49.016Z",
+   "tramite": "M60"
+  },
+  {
+   "chiave": "record:d2-33139",
+   "quando": "2026-11-12T15:59:35.689Z",
+   "tramite": "M61"
+  },
+  {
+   "chiave": "gruppo:93b71c6746e23718dba648bf85f2f72a29ed5819f38079c7efc96126ca0647c1",
+   "quando": "2026-11-12T15:59:35.689Z",
+   "tramite": "M61"
+  },
+  {
+   "chiave": "record:d2-34023",
+   "quando": "2026-11-12T16:00:30.475Z",
+   "tramite": "M62"
+  },
+  {
+   "chiave": "gruppo:fcea154ab424804dfd5cc57d11721c971370141647613f7e2730b441a2e8dee1",
+   "quando": "2026-11-12T16:00:30.475Z",
+   "tramite": "M62"
+  },
+  {
+   "chiave": "record:d1-4901",
+   "quando": "2026-11-12T16:01:03.443Z",
+   "tramite": "M63"
+  },
+  {
+   "chiave": "gruppo:f73dd2078875c6e32d9a7e5a306d52a32240e210f52ab09d2f13b34ba6fb8282",
+   "quando": "2026-11-12T16:01:03.443Z",
+   "tramite": "M63"
+  },
+  {
+   "chiave": "record:d2-12317",
+   "quando": "2026-11-12T16:01:48.677Z",
+   "tramite": "M65"
+  },
+  {
+   "chiave": "gruppo:9b0a0dffb02335a5f8306bca8820dabf6d195046a742883a67846a268e1f18c7",
+   "quando": "2026-11-12T16:01:48.677Z",
+   "tramite": "M65"
+  },
+  {
+   "chiave": "record:d1-32292",
+   "quando": "2026-11-12T16:02:34.557Z",
+   "tramite": "M66"
+  },
+  {
+   "chiave": "gruppo:668acddf2241454afa82015bc307819544c3d9134bc6b91c5c61e59d8486f621",
+   "quando": "2026-11-12T16:02:34.557Z",
+   "tramite": "M66"
+  },
+  {
+   "chiave": "record:d1-24434",
+   "quando": "2026-11-12T16:03:44.671Z",
+   "tramite": "M70"
+  },
+  {
+   "chiave": "gruppo:07648f10480cb665fdcadb126fe5354d5e3904f721c951854a3fcd8bfc72b9c7",
+   "quando": "2026-11-12T16:03:44.671Z",
+   "tramite": "M70"
+  },
+  {
+   "chiave": "record:d3-13725",
+   "quando": "2026-11-12T16:04:10.558Z",
+   "tramite": "M71"
+  },
+  {
+   "chiave": "gruppo:2c8d5d5ad5da7cff4c0395fccce0f76509541e7c4735371b0c8afe0addd104d3",
+   "quando": "2026-11-12T16:04:10.558Z",
+   "tramite": "M71"
+  },
+  {
+   "chiave": "record:d0-8565",
+   "quando": "2026-11-12T16:04:37.750Z",
+   "tramite": "M72"
+  },
+  {
+   "chiave": "gruppo:4090b8703eac3028db81af0a6b0824802bb776e47aad5cbe4d7f39fef9bdda0a",
+   "quando": "2026-11-12T16:04:37.750Z",
+   "tramite": "M72"
+  },
+  {
+   "chiave": "record:d2-11791",
+   "quando": "2026-11-12T16:05:41.638Z",
+   "tramite": "M74"
+  },
+  {
+   "chiave": "gruppo:31d9a915701a675c2af758df0ef58c8dc84cf5cf24487b5e0369ebe875783829",
+   "quando": "2026-11-12T16:05:41.638Z",
+   "tramite": "M74"
+  },
+  {
+   "chiave": "record:d2-33043",
+   "quando": "2026-11-12T16:06:10.426Z",
+   "tramite": "M75"
+  },
+  {
+   "chiave": "gruppo:f0ca87332cb94452cce06f710998e2d510eb31c7063f4aff4312030a09181196",
+   "quando": "2026-11-12T16:06:10.426Z",
+   "tramite": "M75"
+  },
+  {
+   "chiave": "record:d1-26497",
+   "quando": "2026-11-12T16:06:55.764Z",
+   "tramite": "M76"
+  },
+  {
+   "chiave": "gruppo:3cebdc055ec82740667065536d1fc955f412b0c99cab3b2c0074e9e9f5fc00f9",
+   "quando": "2026-11-12T16:06:55.764Z",
+   "tramite": "M76"
+  },
+  {
+   "chiave": "record:d3-10850",
+   "quando": "2026-11-12T16:14:45.217Z",
+   "tramite": "M77"
+  },
+  {
+   "chiave": "gruppo:ffa27d1a46330c5ebf745c1fe12e3b3acfb13556ef94afc82c690afb84a9962c",
+   "quando": "2026-11-12T16:14:45.217Z",
+   "tramite": "M77"
+  },
+  {
+   "chiave": "record:d0-11789",
+   "quando": "2026-11-12T16:15:10.322Z",
+   "tramite": "M79"
+  },
+  {
+   "chiave": "gruppo:a271a729bfc5e9a2c66db2e4b6686124b7744a5e9f8d78ac8955417d9fc15b6f",
+   "quando": "2026-11-12T16:15:10.322Z",
+   "tramite": "M79"
+  },
+  {
+   "chiave": "record:d1-38820",
+   "quando": "2026-11-12T16:15:44.988Z",
+   "tramite": "M80"
+  },
+  {
+   "chiave": "gruppo:649096ec7ea090211e99c013b2140043368af190049ad75aa3013eaefb19d0ba",
+   "quando": "2026-11-12T16:15:44.988Z",
+   "tramite": "M80"
+  },
+  {
+   "chiave": "record:d3-3062",
+   "quando": "2026-11-13T11:00:43.627Z",
+   "tramite": "M51"
+  },
+  {
+   "chiave": "gruppo:410a58ae72a8ddf55137d20cd2788df7bc4bed72e992968bfd1d5523754dac3d",
+   "quando": "2026-11-13T11:00:43.627Z",
+   "tramite": "M51"
+  },
+  {
+   "chiave": "record:d0-15440",
+   "quando": "2026-11-13T11:04:13.221Z",
+   "tramite": "M55"
+  },
+  {
+   "chiave": "gruppo:171cfb0471ca84f9ca2f08b1a10e84c9c5f1e48393fd2524fe0effe969d1e9da",
+   "quando": "2026-11-13T11:04:13.221Z",
+   "tramite": "M55"
+  },
+  {
+   "chiave": "record:d3-32806",
+   "quando": "2026-11-13T11:07:27.823Z",
+   "tramite": "M57"
+  },
+  {
+   "chiave": "gruppo:7e16ea345e785de194cb53d1210aa1e0ed47f874b54694ba0d7ca11c032d5722",
+   "quando": "2026-11-13T11:07:27.823Z",
+   "tramite": "M57"
+  },
+  {
+   "chiave": "record:d1-36425",
+   "quando": "2026-11-13T11:10:45.137Z",
+   "tramite": "M64"
+  },
+  {
+   "chiave": "gruppo:dbdb33465f1172fa9bccab0e0941093b5141e774535c5291c7175a8efd2664ef",
+   "quando": "2026-11-13T11:10:45.137Z",
+   "tramite": "M64"
+  },
+  {
+   "chiave": "record:d2-30587",
+   "quando": "2026-11-13T11:31:28.412Z",
+   "tramite": "M67"
+  },
+  {
+   "chiave": "gruppo:57b12bf2cd8ddefeb5d57aea8370f79e6636fc1634bc7293ed85705d52baac8a",
+   "quando": "2026-11-13T11:31:28.412Z",
+   "tramite": "M67"
+  },
+  {
+   "chiave": "record:d3-38211",
+   "quando": "2026-11-13T11:33:29.563Z",
+   "tramite": "M68"
+  },
+  {
+   "chiave": "gruppo:7da19021e03faee0faeb65831ad48647dd7ef10890b497842157f25710eaff4a",
+   "quando": "2026-11-13T11:33:29.563Z",
+   "tramite": "M68"
+  },
+  {
+   "chiave": "record:d2-34672",
+   "quando": "2026-11-13T11:36:17.329Z",
+   "tramite": "M69"
+  },
+  {
+   "chiave": "gruppo:85f0f203d6e72f5e423c267573dfe945a2e145eb28a0c33cdd398f00c44abdb8",
+   "quando": "2026-11-13T11:36:17.329Z",
+   "tramite": "M69"
+  },
+  {
+   "chiave": "record:d3-40089",
+   "quando": "2026-11-13T11:38:51.819Z",
+   "tramite": "M47"
+  },
+  {
+   "chiave": "gruppo:beda3751845463113bf0e699a430d90ed8eca7b494201862459a6c5e9d9eb0ce",
+   "quando": "2026-11-13T11:38:51.819Z",
+   "tramite": "M47"
+  },
+  {
+   "chiave": "record:d3-29297",
+   "quando": "2026-11-13T11:39:33.530Z",
+   "tramite": "M73"
+  },
+  {
+   "chiave": "gruppo:b47c8dbe436d050fe03ea37fb5411f6c91b2c841cd7a2ebcb259e9133c60742a",
+   "quando": "2026-11-13T11:39:33.530Z",
+   "tramite": "M73"
+  },
+  {
+   "chiave": "record:d1-39502",
+   "quando": "2026-11-13T11:42:17.504Z",
+   "tramite": "M78"
+  },
+  {
+   "chiave": "gruppo:48c0d1363b5f0fe904d8fad799282da6df6ffe2d205fd5e62140179153716edf",
+   "quando": "2026-11-13T11:42:17.504Z",
+   "tramite": "M78"
+  }
+ ],
+ "archivio": []
+}
