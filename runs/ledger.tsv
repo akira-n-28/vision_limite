@@ -1313,3 +1313,27 @@ time	job_id	job_name	status	note
 2026-11-13T16:17:27+01:00	31108	lvl-tests	submitted	correzioni del backup: tests/test_backup.py sul codice da fissare nel commit del supplemento; 0 GPU 4 CPU 8G
 2026-11-13T16:17:43+01:00	31108	lvl-tests	ok	tests_cpu (tests/test_backup.py)
 2026-11-13T16:17:57+01:00	31108	lvl-tests	note	test_backup 78 su 78 sul codice da fissare (correzioni di completezza, marcatori, ripristino, confronto Mac, caricamento)
+2026-11-13T16:18:52+01:00	31109	lvl-bk-inv	submitted	supplemento s1-20261113: inventario dopo il commit 78bc704 (correzioni e test) -> trasferimento/inventari/inv-31109; sola lettura
+2026-11-13T16:21:31+01:00	31109	lvl-bk-inv	ok	backup inventario -> /home/prignano/vision_limite/trasferimento/inventari/inv-31109
+2026-11-13T16:21:56+01:00	31109	lvl-bk-inv	note	inventario del supplemento: git 78bc704, 0 errori, 0 illeggibili; modificata durante la visita solo la cartella .git (indice riscritto)
+2026-11-13T16:21:56+01:00	31110	lvl-bk-piano	submitted	supplemento s1-20261113: piano da inv-31109, categorie codice e UniMER (sottoinsieme dichiarato: UniMER-Test.zip e README con i collegamenti), prefisso s1-, dipende da g1-20261112
+2026-11-13T16:21:56+01:00	31111	lvl-bk-crea	submitted	supplemento s1-20261113: creazione dei volumi (stato nuovo, nessun riuso di g1); dopo 31110
+2026-11-13T16:21:58+01:00	31110	lvl-bk-piano	ok	backup piano s1-20261113 da /home/prignano/vision_limite/trasferimento/inventari/inv-31109 -> /home/prignano/vision_limite/trasferimento/piani/s1-20261113
+2026-11-13T16:22:14+01:00	31111	lvl-bk-crea	ok	backup crea /home/prignano/vision_limite/trasferimento/piani/s1-20261113 --limite-staging-gib 30
+2026-11-13T16:22:31+01:00	-	frontend	note	supplemento s1-20261113: volumi s1-codice-001 (5954 voci, avviso motivato: ledger) e s1-hf-datasets--wanderkid--UniMER_Dataset-001 (8 voci) pronti; caricamento su lvl-ist:LimiteVL-backup/s1-20261113 in background
+2026-11-13T16:24:07+01:00	31112	lvl-bk-compl	submitted	completezza del supplemento s1-20261113
+2026-11-13T16:24:07+01:00	31113	lvl-bk-conf	submitted	firme: inv-31109 contro il piano di g1-20261112 (quali categorie sono cambiate)
+2026-11-13T16:24:07+01:00	31114	lvl-bk-conf	submitted	rimossi: codice di g1 (codice-001) contro codice del supplemento (s1-codice-001)
+2026-11-13T16:24:07+01:00	31114	lvl-bk-conf	ok	backup rimossi --base /home/prignano/vision_limite/trasferimento/stato/g1-20261112/indici/codice-001.jsonl.gz --nuovo /home/prignano/vision_limite/trasferimento/stato/s1-20261113/indici/s1-codice-001.jsonl.gz --out /home/prignano/vision_limite/trasferimento/completezza/s1-20261113-rimossi.txt
+2026-11-13T16:24:08+01:00	31112	lvl-bk-compl	ok	backup completezza s1-20261113: completo -> /home/prignano/vision_limite/trasferimento/completezza/s1-20261113-31112
+2026-11-13T16:24:09+01:00	31113	lvl-bk-conf	ok	backup firme --piano-base /home/prignano/vision_limite/trasferimento/piani/g1-20261112/piano.json --inventario /home/prignano/vision_limite/trasferimento/inventari/inv-31109 --out /home/prignano/vision_limite/trasferimento/completezza/s1-20261113-firme.json
+2026-11-13T16:26:44+01:00	31115	lvl-bk-conf	submitted	firme: inv-31109 contro il piano del codice di g1 (g1-20261112-codice)
+2026-11-13T16:26:45+01:00	31115	lvl-bk-conf	ok	backup firme --piano-base /home/prignano/vision_limite/trasferimento/piani/g1-20261112-codice/piano.json --inventario /home/prignano/vision_limite/trasferimento/inventari/inv-31109 --out /home/prignano/vision_limite/trasferimento/completezza/s1-20261113-firme-codice.json
+2026-11-13T16:31:00+01:00	31116	lvl-tests-cpu	submitted	test CPU del backup con il controllo della composizione (backup.py composizione)
+2026-11-13T16:31:17+01:00	31116	lvl-tests	ok	tests_cpu (tests/test_backup.py)
+2026-11-13T16:33:04+01:00	31117	lvl-bk-comp	submitted	ripristino in due passaggi riscaricato da Drive: g1 codice-001 poi s1-20261113, composizione, commit 78bc704, esiti MAVIS-C9, UniMER-Test.zip
+2026-11-13T16:34:19+01:00	31117	lvl-bk-comp	ok	backup ripristino in due passaggi g1-20261112 (codice-001) + s1-20261113 da /home/prignano/vision_limite/trasferimento/prova-download -> /home/prignano/vision_limite/trasferimento/stato/s1-20261113/ripristino/composizione-31117.json
+2026-11-13T16:37:55+01:00	31118	lvl-tests-cpu	submitted	test CPU del backup: composizione e rapporti JSON di docs/backup leggibili
+2026-11-13T16:38:12+01:00	31118	lvl-tests	ok	tests_cpu (tests/test_backup.py)
+2026-11-13T16:38:44+01:00	-	frontend	note	supplemento s1-20261113 caricato (log trasferimento/logs/upload-s1-20261113-162230.log): 2 volumi verificati su 2 alle 16:23, nessuno stop per memoria
+2026-11-13T16:38:44+01:00	-	frontend	note	prova di ripristino: riscaricati da Drive con backup_rclone.sh (4 trasferimenti, codice 0, RSS massima 74 MB) codice-001 di g1 e i volumi e gli indici di s1 in trasferimento/prova-download; rimossi dopo il job 31117 (conforme)

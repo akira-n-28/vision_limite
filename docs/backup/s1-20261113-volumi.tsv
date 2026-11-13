@@ -1,0 +1,3 @@
+ordine	volume	categoria	nucleo	compressione	voci	byte_dati	parti	byte_caricati	sha256_flusso	avvisi_motivati	avvisi_bloccanti	stato
+1	s1-codice-001	codice	1	gzip	5954	87655435	1	53588965	69c02b8cc7bb0a02882d2082c4d64c4b9753b07cd3f555ce96c68905b111e169	1	0	verificato
+2	s1-hf-datasets--wanderkid--UniMER_Dataset-001	hf-datasets--wanderkid--UniMER_Dataset	0	nessuna	8	146734792	1	146749440	6765edb4cbccb8efd50d59e1d485d9fd91389381abafb5796487d1b5d3c1852d	0	0	verificato

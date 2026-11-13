@@ -148,8 +148,11 @@ elenchi generati in `docs/backup/`.
   `LimiteVL-backup/`. È il nucleo: 43 volumi, 138 GiB, più il codice salvato per ultimo (decisione dell'utente del
   2026-11-13). Il resto è documentato per il recupero in `docs/backup/`.
 - **Supplemento.** `s1-20261113` (stessa cartella privata, prefisso `s1-`, dipende da g1): codice e storia Git al
-  commit fissato, esiti MAVIS-C9, `UniMER-Test.zip`. Il percorso incrementale (`piano --precedente`) è rifiutato: un
-  aggiornamento è un supplemento autonomo con `--dipende-da`, ripristinato dopo la base (procedura §§9-10).
+  commit `78bc704`, esiti MAVIS-C9, `UniMER-Test.zip`; 2 volumi, 0,19 GiB, completo (job 31112). Rispetto a g1 è
+  cambiato solo il codice, e non ci sono file rimossi. Il ripristino base più supplemento, riscaricato da Drive, è
+  conforme (job 31117, `slurm/backup_composizione.sbatch`). Il percorso incrementale (`piano --precedente`) è
+  rifiutato: un aggiornamento è un supplemento autonomo con `--dipende-da`, ripristinato dopo la base (procedura
+  §§9-10).
 - **Completezza.** Esito e codice d'uscita; un file atteso non archiviato, un inventario con errori, un marcatore di
   un altro piano o un file non volatile cambiato dopo l'inventario la bloccano (riesame di g1 superato, job 31107).
 - **Caricamento in background.** `GUARD_CGROUP=off`: l'account non ha il "linger" e alla disconnessione systemd

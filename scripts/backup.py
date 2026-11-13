@@ -1349,6 +1349,140 @@ def cmd_rimossi(args) -> None:
     print(f"rimossi: {len(files)} file e link, {len(dirs)} cartelle -> {args.out}")
 
 
+def git_run(root: Path, *a: str) -> subprocess.CompletedProcess:
+    return subprocess.run(["git", "-c", f"safe.directory={root}", "-C", str(root), *a], capture_output=True)
+
+
+def cmd_composizione(args) -> None:
+    """Verifica in sola lettura di un ripristino in più passaggi (la base, poi i supplementi). La radice deve contenere
+    esattamente lo stato finale descritto dagli indici applicati in ordine (per un percorso vale l'ultimo indice che
+    lo contiene), meno i percorsi rimossi: niente file mancanti, niente file vecchi della base rimasti, stessi tipi,
+    permessi, date, link e sha256. A richiesta controlla anche il commit di Git (stato pulito salvo i file volatili e
+    connettività degli oggetti), confronta alcune cartelle con il progetto e con il commit, e cerca file attesi per
+    sha256 seguendo i link dentro la radice."""
+    need_slurm()
+    root = Path(args.radice).resolve()
+    final: dict[str, dict] = {}
+    origin: dict[str, str] = {}
+    for f in args.indici:
+        for e in read_jsonl_gz(Path(f)):
+            final[e["p"]] = e
+            origin[e["p"]] = Path(f).name
+    removed = [x for x in Path(args.rimossi).read_text(encoding="utf-8").splitlines() if x] if args.rimossi else []
+    for p in removed:
+        final.pop(p, None)
+    implicit = set()
+    for p in final:
+        d = os.path.dirname(p)
+        while d and d not in final:
+            implicit.add(d)
+            d = os.path.dirname(d)
+    present: dict[str, os.stat_result] = {}
+    for dirpath, dirnames, filenames in os.walk(root):
+        for n in dirnames + filenames:
+            full = os.path.join(dirpath, n)
+            present[os.path.relpath(full, root)] = os.lstat(full)
+    problems: list[str] = []
+    missing = sorted(p for p in final if p not in present)
+    extra = sorted(p for p in present if p not in final and p not in implicit)
+    problems += [f"{p}: mancante (atteso da {origin[p]})" for p in missing]
+    problems += [f"{p}: presente ma assente dallo stato finale (file vecchio della base?)" for p in extra]
+    problems += [f"{p}: dovrebbe essere una cartella" for p in sorted(implicit)
+                 if p in present and kind(present[p].st_mode) != "d"]
+    checked = Counter()
+    for p, e in final.items():
+        st = present.get(p)
+        if st is None:
+            continue
+        t = kind(st.st_mode)
+        if e["t"] == "h":
+            target = present.get(e["l"])
+            if t != "f" or target is None or st.st_ino != target.st_ino:
+                problems.append(f"{p}: hard link non ricostruito")
+        elif t != e["t"]:
+            problems.append(f"{p}: tipo {t} invece di {e['t']} ({origin[p]})")
+            continue
+        if e["t"] == "l":
+            if os.readlink(root / p) != e["l"]:
+                problems.append(f"{p}: destinazione del link diversa")
+        elif e["t"] != "h":
+            if stat.S_IMODE(st.st_mode) != e["m"]:
+                problems.append(f"{p}: permessi {oct(stat.S_IMODE(st.st_mode))} invece di {oct(e['m'])}")
+            if e["t"] != "d" and st.st_mtime_ns // 1_000_000_000 != e["mt"]:
+                problems.append(f"{p}: data diversa da {origin[p]}")
+        if e["t"] == "f" and (st.st_size != e["s"] or file_sha256(root / p) != e["sha256"]):
+            problems.append(f"{p}: dimensione o sha256 diversi da {origin[p]}")
+        checked[e["t"]] += 1
+    git: dict = {}
+    if args.git_commit:
+        want = git_run(root, "rev-parse", "--verify", "--quiet", f"{args.git_commit}^{{commit}}")
+        head = git_run(root, "rev-parse", "--verify", "--quiet", "HEAD")
+        git["commit_atteso"] = want.stdout.decode().strip()
+        git["head"] = head.stdout.decode().strip()
+        if want.returncode or head.returncode or git["head"] != git["commit_atteso"]:
+            problems.append(f"git: HEAD {git['head'] or '?'} invece di {args.git_commit}")
+        s = git_run(root, "status", "--porcelain=v1", "-z", "--untracked-files=all")
+        if s.returncode:
+            problems.append(f"git status: {s.stderr.decode(errors='replace')[:300]}")
+        fields = [x for x in s.stdout.decode(errors="replace").split("\0") if x]
+        changed, i = [], 0
+        while i < len(fields):
+            code, path = fields[i][:2], fields[i][3:]
+            i += 2 if code[0] in "RC" else 1
+            changed.append(f"{code} {path}")
+            if path not in VOLATILE_FILES:
+                problems.append(f"git: {code.strip()} {path} diverso dal commit e non volatile")
+        git["stato"] = changed
+        fsck = git_run(root, "fsck", "--no-progress", "--connectivity-only", "--no-dangling")
+        git["fsck"] = "ok" if fsck.returncode == 0 else (fsck.stdout + fsck.stderr).decode(errors="replace")[:300]
+        if fsck.returncode:
+            problems.append(f"git fsck: {git['fsck']}")
+    compared: dict[str, dict] = {}
+    if args.confronta:
+        if not args.progetto or not args.git_commit:
+            sys.exit("--confronta richiede --progetto e --git-commit")
+        proj = Path(args.progetto)
+        for prefix in args.confronta:
+            pre = prefix.rstrip("/") + "/"
+            mine = sorted(p for p, e in final.items() if p.startswith(pre) and e["t"] == "f")
+            theirs = sorted(os.path.relpath(os.path.join(d, n), proj)
+                            for d, _, fs in os.walk(proj / prefix) for n in fs)
+            if not mine or mine != theirs:
+                problems.append(f"{prefix}: file diversi fra ripristino ({len(mine)}) e progetto ({len(theirs)})")
+            for p in mine:
+                blob = git_run(root, "cat-file", "blob", f"{args.git_commit}:{p}")
+                h = {"ripristino": file_sha256(root / p),
+                     "progetto": file_sha256(proj / p) if (proj / p).is_file() else None,
+                     "commit": hashlib.sha256(blob.stdout).hexdigest() if blob.returncode == 0 else None}
+                compared[p] = h
+                if not h["ripristino"] == h["progetto"] == h["commit"]:
+                    problems.append(f"{p}: ripristino, progetto e commit non coincidono")
+    expected: dict[str, dict] = {}
+    for item in args.atteso:
+        p, want_sha = item.split("=", 1)
+        real = os.path.realpath(root / p)
+        res = {"risolto": os.path.relpath(real, root), "sha256_atteso": want_sha}
+        if not real.startswith(str(root) + os.sep) or not os.path.isfile(real):
+            problems.append(f"{p}: non risolve a un file dentro la radice")
+        else:
+            res |= {"byte": os.path.getsize(real), "sha256": file_sha256(Path(real))}
+            if res["sha256"] != want_sha:
+                problems.append(f"{p}: sha256 {res['sha256']} invece di {want_sha}")
+        expected[p] = res
+    report = {"esito": "conforme" if not problems else "non conforme", "n_problemi": len(problems),
+              "problemi": problems[:200], "radice": str(root),
+              "indici": [{"file": Path(f).name, "sha256": file_sha256(Path(f))} for f in args.indici],
+              "rimossi": {"file": args.rimossi, "percorsi": len(removed)},
+              "totali": {"voci_finali": len(final), "presenti": len(present), "cartelle_implicite": len(implicit),
+                         "mancanti": len(missing), "in_piu": len(extra), "controllate": dict(checked)},
+              "git": git, "confronti": compared, "attesi": expected,
+              "job": os.environ.get("SLURM_JOB_ID"), "data": time.strftime("%Y-%m-%dT%H:%M:%S%z")}
+    Path(args.report).write_text(json.dumps(report, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+    print(json.dumps({k: report[k] for k in ("esito", "n_problemi", "totali")}, ensure_ascii=False), problems[:5])
+    if problems:
+        sys.exit(1)
+
+
 def warning_blocking(w: dict) -> bool:
     """Un avviso blocca la completezza, salvo il cambiamento di un file volatile. I volumi dello schema 1 non hanno
     il campo `bloccante`: lo si ricava con la stessa regola."""
@@ -1555,6 +1689,16 @@ def main() -> None:
     p.add_argument("--nuovo", nargs="+", required=True, help="indici (jsonl.gz) dei volumi nuovi")
     p.add_argument("--out", required=True)
     p.set_defaults(func=cmd_rimossi)
+    p = sub.add_parser("composizione")
+    p.add_argument("--radice", required=True, help="cartella ripristinata (base e supplementi)")
+    p.add_argument("--indici", nargs="+", required=True, help="indici jsonl.gz in ordine: base, poi supplementi")
+    p.add_argument("--rimossi", help="elenco dei percorsi tolti dopo il supplemento (<supplemento>-rimossi.txt)")
+    p.add_argument("--git-commit", help="commit atteso nella radice ripristinata")
+    p.add_argument("--progetto", help="cartella del progetto per --confronta")
+    p.add_argument("--confronta", action="append", default=[], help="cartella relativa da confrontare (ripetibile)")
+    p.add_argument("--atteso", action="append", default=[], help="PERCORSO=SHA256 di un file atteso (ripetibile)")
+    p.add_argument("--report", required=True)
+    p.set_defaults(func=cmd_composizione)
     args = ap.parse_args()
     args.func(args)
 

@@ -1,0 +1,3 @@
+volume	file	byte	sha256	md5	remoto
+s1-codice-001	s1-codice-001.tar.gz	53588965	69c02b8cc7bb0a02882d2082c4d64c4b9753b07cd3f555ce96c68905b111e169	41d50db85de6eb05ea5f35e56eaa6877	LimiteVL-backup/s1-20261113/volumi/codice/s1-codice-001.tar.gz
+s1-hf-datasets--wanderkid--UniMER_Dataset-001	s1-hf-datasets--wanderkid--UniMER_Dataset-001.tar	146749440	6765edb4cbccb8efd50d59e1d485d9fd91389381abafb5796487d1b5d3c1852d	b7f013f978f78d1f31fc613e037067b2	LimiteVL-backup/s1-20261113/volumi/hf-datasets--wanderkid--UniMER_Dataset/s1-hf-datasets--wanderkid--UniMER_Dataset-001.tar

@@ -1,0 +1,95 @@
+{
+ "generazione": "s1-20261113",
+ "tipo": "supplemento autonomo",
+ "dipende_da": "g1-20261112",
+ "ordine_di_ripristino": ["g1-20261112", "s1-20261113"],
+ "destinazione": "Drive istituzionale, cartella privata LimiteVL-backup/s1-20261113/ (remote lvl-ist, ambito drive.file, nessun link pubblico)",
+ "commit_conservato": "78bc7042b63073fde1905714e9309bc3dfd0baff",
+ "commit_conservato_nota": "stato del codice e della storia Git nel volume s1-codice-001; il rapporto conclusivo (questo file compreso) è un commit successivo, distribuito a parte su GitHub e in s1-20261113/LEGGIMI/",
+ "inventario": {
+  "cartella": "trasferimento/inventari/inv-31109",
+  "job": 31109,
+  "inizio": "2026-11-13T16:18:52+0100",
+  "git_head": "78bc7042b63073fde1905714e9309bc3dfd0baff",
+  "n_errori": 0,
+  "n_illeggibili": 0,
+  "modificati_durante_la_visita": [".git"],
+  "nota": "solo .git cambiato durante la visita (riscrittura dell'indice di git, file volatile); nessun file del progetto modificato durante la raccolta"
+ },
+ "piano": {
+  "cartella": "trasferimento/piani/s1-20261113",
+  "job": 31110,
+  "schema": "limite-vl-backup-piano/2",
+  "piano_sha256": "3d90dee5566ff4ef666a24831f9e0aa5b621a663368361b607407e8dcf8d29d6",
+  "prefisso_volumi": "s1-",
+  "categorie": {
+   "codice": "intera (sostituisce la categoria codice di g1)",
+   "hf-datasets--wanderkid--UniMER_Dataset": "sottoinsieme dichiarato: docs/backup/supplemento/sottoinsieme-unimer.txt"
+  },
+  "esclusioni_dichiarate": [
+   {"categoria": "hf-datasets--wanderkid--UniMER_Dataset", "motivo": "fuori dal sottoinsieme dichiarato", "p": "hf/hub/datasets--wanderkid--UniMER_Dataset/blobs/c2563aba157f470a9d7d2084aac58fb32607c58ce0992eb4a89d767d23be44dd"},
+   {"categoria": "hf-datasets--wanderkid--UniMER_Dataset", "motivo": "fuori dal sottoinsieme dichiarato", "p": "hf/hub/datasets--wanderkid--UniMER_Dataset/snapshots/2343ddd963290469da36ca83e3a56c66e068add9/UniMER-1M.zip"}
+  ]
+ },
+ "volumi": [
+  {"volume": "s1-codice-001", "categoria": "codice", "voci": 5954, "byte_dati": 87655435, "compressione": "gzip", "parti": 1, "byte_caricati": 53588965, "sha256_flusso": "69c02b8cc7bb0a02882d2082c4d64c4b9753b07cd3f555ce96c68905b111e169", "md5_drive": "41d50db85de6eb05ea5f35e56eaa6877", "remoto": "LimiteVL-backup/s1-20261113/volumi/codice/s1-codice-001.tar.gz"},
+  {"volume": "s1-hf-datasets--wanderkid--UniMER_Dataset-001", "categoria": "hf-datasets--wanderkid--UniMER_Dataset", "voci": 8, "byte_dati": 146734792, "compressione": "nessuna", "parti": 1, "byte_caricati": 146749440, "sha256_flusso": "6765edb4cbccb8efd50d59e1d485d9fd91389381abafb5796487d1b5d3c1852d", "md5_drive": "b7f013f978f78d1f31fc613e037067b2", "remoto": "LimiteVL-backup/s1-20261113/volumi/hf-datasets--wanderkid--UniMER_Dataset/s1-hf-datasets--wanderkid--UniMER_Dataset-001.tar"}
+ ],
+ "totali": {"volumi": 2, "byte_caricati": 200338405, "byte_dati": 234390227, "voci": 5962},
+ "creazione": {"job": 31111, "avvisi": ["s1-codice-001: runs/ledger.tsv cambiato dopo l'inventario (file volatile, avviso motivato, non bloccante)"]},
+ "caricamento": {
+  "log": "trasferimento/logs/upload-s1-20261113-162230.log",
+  "esito": "2 volumi verificati su 2 (md5 e sha256 di Drive uguali a quelli del job, 2026-11-13 16:23)",
+  "protezioni": "scripts/backup_upload.sh sotto guarded_run.sh: un trasferimento alla volta, 10 MiB/s, RSS <= 128 MiB, MemAvailable >= 1 GiB all'avvio; nessuno stop per memoria"
+ },
+ "completezza": {
+  "job": 31112,
+  "rapporto": "docs/backup/s1-20261113-completezza.json",
+  "esito": "completo",
+  "problemi": 0,
+  "avvisi_motivati": 1,
+  "voci_attese": 5962,
+  "voci_archiviate": 5962,
+  "voci_mancanti": 0,
+  "voci_in_piu": 0,
+  "esclusioni_dichiarate": 2
+ },
+ "firme": {
+  "contro_g1_principale": {"job": 31113, "piano_base": "trasferimento/piani/g1-20261112/piano.json", "uguali": 38, "nuove": ["codice"], "nota": "il piano principale di g1 non contiene il codice, salvato con il piano g1-20261112-codice"},
+  "contro_g1_codice": {"job": 31115, "piano_base": "trasferimento/piani/g1-20261112-codice/piano.json", "cambiate": ["codice"]},
+  "conclusione": "rispetto a g1 è cambiato solo il codice; le altre 38 categorie hanno la stessa firma (percorsi, tipi, dimensioni, date, permessi, link)"
+ },
+ "rimossi": {
+  "job": 31114,
+  "elenco": "docs/backup/s1-20261113-rimossi.txt",
+  "percorsi": 0,
+  "nota": "nessun file o cartella del codice di g1 (inventario 31097, commit 674e3cd) manca nel supplemento: l'elenco è vuoto; git diff --diff-filter=DR 674e3cd 78bc704 non ha righe"
+ },
+ "unimer_test": {
+  "repository": "wanderkid/UniMER_Dataset",
+  "revisione": "2343ddd963290469da36ca83e3a56c66e068add9",
+  "file": "UniMER-Test.zip",
+  "byte": 146727503,
+  "sha256": "9bf370b8cac868fee84835f40dec26c477430611253e3feb681356a8149a3a90",
+  "uguale_al_catalogo": "docs/backup/catalogo_recupero.tsv e downloads/manifests (stessi byte e sha256)",
+  "nota": "con README.md e i collegamenti dello snapshot; UniMER-1M.zip resta escluso, dichiarato nel piano"
+ },
+ "prova_di_ripristino": {
+  "job": 31117,
+  "rapporto": "docs/backup/prove-ripristino/s1-20261113-composizione-31117.json",
+  "scaricati_da_drive": ["g1-20261112/volumi/codice/codice-001.tar.gz", "g1-20261112/indice/volumi/codice-001.{jsonl.gz,sha256}", "s1-20261113/volumi/ (2 volumi)", "s1-20261113/indice/volumi/ (4 file)"],
+  "script": "scripts/ripristina_volumi.sh copiato fuori dalla radice (sha256 67e4cbac5d2e7ecbf978697d6e1b7fd28a64d8edc14e4c28bb6184862eaf0a39)",
+  "passaggi": ["g1-20261112: codice-001 (nucleo)", "s1-20261113: s1-codice-001, s1-hf-datasets--wanderkid--UniMER_Dataset-001 (tutti), --rimuovi-elenco s1-20261113-rimossi.txt"],
+  "marcatori": ["codice-001 44b43c32…", "s1-codice-001 69c02b8c…", "s1-hf-datasets--wanderkid--UniMER_Dataset-001 6765edb4…"],
+  "esito": "conforme",
+  "voci_finali": 5962,
+  "mancanti": 0,
+  "in_piu": 0,
+  "git": {"head": "78bc7042b63073fde1905714e9309bc3dfd0baff", "stato": [" M runs/ledger.tsv"], "fsck": "ok"},
+  "esiti_mavis_c9": "revisioni/mavis-c9-campione-1/risultati/: 3 file (LEGGIMI.md, TSV degli esiti, JSON di avanzamento) uguali nel ripristino, nel progetto e nel commit 78bc704",
+  "unimer_test": "il collegamento dello snapshot risolve al blob dentro la radice; 146727503 byte, sha256 uguale al catalogo",
+  "copie_di_prova": "rimosse (radice nel job, scaricati sul frontend)",
+  "limite": "la prova ricostruisce la sola categoria codice di g1 più il supplemento; le altre categorie di g1 sono verificate dal riesame (job 31107) e dalle prove dei singoli volumi"
+ },
+ "g1_invariata": "volumi, indici e stato di g1-20261112 non sono stati toccati; il riesame con le regole corrette è in docs/backup/riesame/g1-20261112-riesame-31107.json"
+}

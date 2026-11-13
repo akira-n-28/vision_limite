@@ -1,0 +1,71 @@
+{
+ "esito": "conforme",
+ "n_problemi": 0,
+ "problemi": [],
+ "radice": "/home/prignano/vision_limite/trasferimento/tmp/composizione-31117/radice",
+ "indici": [
+  {
+   "file": "codice-001.jsonl.gz",
+   "sha256": "675933268b43c49a25e0bfa63ded76f80fefc8eccd9509bf265304dadbf7f8ef"
+  },
+  {
+   "file": "s1-codice-001.jsonl.gz",
+   "sha256": "37d4f178a6f630a3d5d344c46bd64294bef3f710c9360be87ffaedc05497bcf4"
+  },
+  {
+   "file": "s1-hf-datasets--wanderkid--UniMER_Dataset-001.jsonl.gz",
+   "sha256": "83dc7d55832419b9649f90cd8a75de15caaba5876bf440d88128fb6b81877482"
+  }
+ ],
+ "rimossi": {
+  "file": "docs/backup/s1-20261113-rimossi.txt",
+  "percorsi": 0
+ },
+ "totali": {
+  "voci_finali": 5962,
+  "presenti": 5965,
+  "cartelle_implicite": 3,
+  "mancanti": 0,
+  "in_piu": 0,
+  "controllate": {
+   "d": 522,
+   "f": 5438,
+   "l": 2
+  }
+ },
+ "git": {
+  "commit_atteso": "78bc7042b63073fde1905714e9309bc3dfd0baff",
+  "head": "78bc7042b63073fde1905714e9309bc3dfd0baff",
+  "stato": [
+   " M runs/ledger.tsv"
+  ],
+  "fsck": "ok"
+ },
+ "confronti": {
+  "revisioni/mavis-c9-campione-1/risultati/LEGGIMI.md": {
+   "ripristino": "b246ba8fef1812da9aafa70192637bb3d3b623f3ec5c168e0ba7a71ee894c001",
+   "progetto": "b246ba8fef1812da9aafa70192637bb3d3b623f3ec5c168e0ba7a71ee894c001",
+   "commit": "b246ba8fef1812da9aafa70192637bb3d3b623f3ec5c168e0ba7a71ee894c001"
+  },
+  "revisioni/mavis-c9-campione-1/risultati/esiti_2026-11-13T11-53-15.tsv": {
+   "ripristino": "621fb8ec45c87231480029c41d512b8bc051fb53f693e2c90257116d58baa8a6",
+   "progetto": "621fb8ec45c87231480029c41d512b8bc051fb53f693e2c90257116d58baa8a6",
+   "commit": "621fb8ec45c87231480029c41d512b8bc051fb53f693e2c90257116d58baa8a6"
+  },
+  "revisioni/mavis-c9-campione-1/risultati/mavis-c9-campione-1_avanzamento_2026-11-13T11-53-13.json": {
+   "ripristino": "17e848b8504fed8858e042d6bf231c546af9fefc7b8bf48568b908cfba6a2bb2",
+   "progetto": "17e848b8504fed8858e042d6bf231c546af9fefc7b8bf48568b908cfba6a2bb2",
+   "commit": "17e848b8504fed8858e042d6bf231c546af9fefc7b8bf48568b908cfba6a2bb2"
+  }
+ },
+ "attesi": {
+  "hf/hub/datasets--wanderkid--UniMER_Dataset/snapshots/2343ddd963290469da36ca83e3a56c66e068add9/UniMER-Test.zip": {
+   "risolto": "hf/hub/datasets--wanderkid--UniMER_Dataset/blobs/9bf370b8cac868fee84835f40dec26c477430611253e3feb681356a8149a3a90",
+   "sha256_atteso": "9bf370b8cac868fee84835f40dec26c477430611253e3feb681356a8149a3a90",
+   "byte": 146727503,
+   "sha256": "9bf370b8cac868fee84835f40dec26c477430611253e3feb681356a8149a3a90"
+  }
+ },
+ "job": "31117",
+ "data": "2026-11-13T16:34:14+0100"
+}

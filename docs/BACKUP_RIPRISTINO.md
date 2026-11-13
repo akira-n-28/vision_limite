@@ -31,7 +31,7 @@ Con queste regole g1 è stato riesaminato (§5): risulta completo.
 | Dimensione | 44 volumi (43 del nucleo più il codice) in 45 file; 138,2 GiB di dati (18.383 voci), 121,8 GiB caricati perché i testi sono compressi; esclusi 404,2 GiB, documentati per il recupero (§7) |
 | Esito | completezza senza problemi (job 31104, 2026-11-13): 18.383 voci attese, 18.383 nei volumi; ogni parte e ogni indice con dimensione, md5 e sha256 di Drive uguali a quelli del job; ripristini di prova superati (job 30947, 31101, 31102) |
 | Stato del progetto in g1 | dati all'inventario 30943 (commit `f10413d`), invariati all'inventario 30972 del 2026-11-13; volume del codice dall'inventario 31097 (commit `674e3cd` e ledger) |
-| Supplemento | `s1-20261113` nella cartella privata `LimiteVL-backup/s1-20261113/`: codice e storia Git al commit dichiarato in [`backup/s1-20261113-stato.json`](backup/s1-20261113-stato.json), risultati MAVIS-C9 compresi, e `UniMER-Test.zip` (§10) |
+| Supplemento | `s1-20261113` nella cartella privata `LimiteVL-backup/s1-20261113/`: codice e storia Git al commit `78bc704`, risultati MAVIS-C9 compresi, e `UniMER-Test.zip` (§10). 2 volumi, 0,19 GiB caricati (0,22 GiB di dati, 5.962 voci); completo (job 31112) e ripristinato sopra il codice di g1 da una copia riscaricata (job 31117). Dettagli in [`backup/s1-20261113-stato.json`](backup/s1-20261113-stato.json) |
 
 ## 2. Contenuto
 
@@ -156,6 +156,8 @@ touch trasferimento/stato/STOP           # arresto gentile della creazione
 | Completezza rispetto all'inventario | membri dei piani contro gli inventari 30943 (nucleo, tranne codice) e 31097 (codice); indici contro membri | superata: 18.383 voci su 18.383, nessuna mancante; un avviso atteso, il ledger cambiato dopo l'inventario finale |
 | Ripristino di archivi, struttura e link | ogni volume riletto per intero ed elencato da GNU tar prima del caricamento; volumi riscaricati da Drive ed estratti con `cat \| tar -xp`, confronto con l'indice e `sha256sum -c`: prova del codice (job 30947: 5.273 file e 513 cartelle), `outputs-f2-abl-adamw-002` (job 31101: 2 parti, `optimizer.pt` da 7,8 GiB), `outputs-f2_select-001` (job 31102, gzip: 48 file e 14 cartelle); prova dal Mac del 2026-11-12 | superata: [`backup/prove-ripristino/`](backup/prove-ripristino/) |
 | Riesame del 2026-11-13 con le regole corrette | inventari 30943 e 31097 senza errori; marcatori legati ai rispettivi piani; avvisi tutti motivati (il ledger); copertura dalle voci archiviate | completo: 44 volumi su 44, 18.383 voci attese e archiviate, 0 mancanti, 0 in più ([`backup/riesame/`](backup/riesame/), job 31107) |
+| Supplemento `s1-20261113` | completezza con le stesse regole; md5 e sha256 di Drive su 2 parti e 4 indici; firme contro g1 (jobs 31113, 31115) | completo: 5.962 voci su 5.962, 2 esclusioni dichiarate, un avviso motivato (il ledger); cambiato solo il codice ([`backup/s1-20261113-completezza.json`](backup/s1-20261113-completezza.json), job 31112) |
+| Ripristino base più supplemento | riscaricati da Drive `codice-001` di g1 e i due volumi di s1; `ripristina_volumi.sh` fuori dalla radice, prima g1 poi s1 con `--rimuovi-elenco`; `backup.py composizione`: stato finale uguale agli indici in ordine, commit, esiti MAVIS-C9 contro progetto e commit, `UniMER-Test.zip` per sha256 | conforme: 5.962 voci, 0 mancanti, 0 in più; HEAD `78bc704`, solo il ledger diverso dal commit, `git fsck` senza errori ([`backup/prove-ripristino/s1-20261113-composizione-31117.json`](backup/prove-ripristino/s1-20261113-composizione-31117.json), job 31117) |
 | Ambiente | **da fare** su un nuovo server: i venv non sono nel backup selezionato e vanno ricostruiti (§8) | aperto |
 
 Un caricamento finito non basta per dire che il backup è verificato. Lo stato di ogni volume è in
@@ -258,6 +260,11 @@ quindi nessun volume viene saltato o confuso con uno della base.
      ~/Downloads/s1/volumi ~/Downloads/s1/indici ~/limite-vl tutti \
      --rimuovi-elenco ~/Downloads/s1/LEGGIMI/backup/s1-20261113-rimossi.txt
    ```
+   Qui serve `tutti`: il volume di `UniMER-Test.zip` non fa parte del nucleo di g1. Per s1 l'elenco dei rimossi è
+   vuoto, perché nessun file del codice di g1 manca nel supplemento; l'opzione resta per i supplementi futuri.
+5. **Controllo:** `git -C ~/limite-vl log -1` deve dare `78bc704`, e `git status` solo `runs/ledger.tsv` cambiato
+   (file volatile, salvato dopo il commit). Su Lagrange la stessa prova, con il confronto completo dello stato finale,
+   è `slurm/backup_composizione.sbatch` (job 31117, §5).
 
 Per ogni volume lo script fa queste operazioni:
 - controlla che nell'elenco risulti "verificato";
@@ -294,7 +301,9 @@ un'altra generazione. Un aggiornamento è una generazione nuova e autonoma, con 
 5. **Creazione, caricamento e completezza** come in §4, con lo stato della generazione nuova. Poi
    `backup.py rimossi --base <indici del codice della base> --nuovo <indici del codice del supplemento>` per l'elenco
    dei file da togliere dopo il secondo passaggio.
-6. **Ripristino:** prima la base, poi il supplemento (§9).
+6. **Ripristino:** prima la base, poi il supplemento (§9). La prova su Lagrange riscarica da Drive i volumi del codice
+   della base e quelli del supplemento e li ripristina con `slurm/backup_composizione.sbatch BASE SUPPLEMENTO
+   SCARICATI VOLUMI_BASE COMMIT [--confronta CARTELLA] [--atteso PERCORSO=SHA256]`.
 7. **Prima che l'account istituzionale venga disattivato**, cioè alla fine degli studi, copiare base e supplementi su
    un'altra destinazione.
 
@@ -305,8 +314,11 @@ un'altra generazione. Un aggiornamento è una generazione nuova e autonoma, con 
 | Dipende da | `g1-20261112`, da ripristinare prima |
 | Sostituisce | la categoria `codice`: repository con `.git` intero, configurazioni, documenti, revisioni umane (compresi gli esiti MAVIS-C9 in `revisioni/mavis-c9-campione-1/risultati/`, TSV e JSON di avanzamento), script, rapporti e istruzioni del backup, `third_party/`, `runs/ledger.tsv`, `data/download-log.tsv`; i file assenti rispetto a g1 sono in `s1-20261113-rimossi.txt` |
 | Aggiunge | `UniMER-Test.zip` originale (revisione `2343ddd9`, 146.727.503 byte, sha256 `9bf370b8…`, come nel catalogo) con la scheda README e i collegamenti dello snapshot ([`backup/supplemento/sottoinsieme-unimer.txt`](backup/supplemento/sottoinsieme-unimer.txt)); `UniMER-1M.zip` resta escluso, dichiarato nel piano |
-| Restano in g1 | tutte le altre categorie del nucleo, invariate (confronto delle firme in [`backup/s1-20261113-stato.json`](backup/s1-20261113-stato.json)) |
-| Stato conservato | il commit indicato in `backup/s1-20261113-stato.json`. Il rapporto conclusivo, che contiene gli elenchi del supplemento, è un commit successivo distribuito a parte su GitHub e in `s1-20261113/LEGGIMI/` |
+| Restano in g1 | tutte le altre 38 categorie del nucleo, con la stessa firma (job 31113, in [`backup/s1-20261113-stato.json`](backup/s1-20261113-stato.json)); il codice di g1 (commit `674e3cd`) resta nella base ed è sostituito dal secondo passaggio |
+| Rimossi o rinominati | nessuno: [`backup/s1-20261113-rimossi.txt`](backup/s1-20261113-rimossi.txt) è vuoto (job 31114) |
+| Volumi | `s1-codice-001` (5.954 voci, 51 MiB gzip) e `s1-hf-datasets--wanderkid--UniMER_Dataset-001` (8 voci, 140 MiB), una parte ciascuno: [`backup/s1-20261113-volumi.tsv`](backup/s1-20261113-volumi.tsv), [`backup/s1-20261113-parti.tsv`](backup/s1-20261113-parti.tsv) |
+| Raccolta | inventario 31109 al commit `78bc704`, senza errori; piano 31110 (`3d90dee5…`), creazione 31111, caricamento verificato il 2026-11-13 alle 16:23 |
+| Stato conservato | il commit `78bc7042b630`. Il rapporto conclusivo (questo documento aggiornato, gli elenchi e i rapporti di s1, `backup.py composizione` e i launcher `backup_confronto` e `backup_composizione`) è un commit successivo: è distribuito a parte su GitHub e, per i documenti e gli script del Mac, in `s1-20261113/LEGGIMI/` |
 
 ## 11. Limiti residui
 
@@ -317,7 +329,10 @@ un'altra generazione. Un aggiornamento è una generazione nuova e autonoma, con 
 - **Cosa si conserva.** Permessi, date al secondo e link sì. Proprietari e gruppi solo estraendo da root. ACL e
   attributi estesi no.
 - **Verifiche su Drive.** Confrontano gli hash calcolati da Google. Sono stati riscaricati e ripristinati per intero
-  solo il volume di prova e quelli indicati nel rapporto.
+  solo il volume di prova, `outputs-f2-abl-adamw-002`, `outputs-f2_select-001`, `codice-001` di g1 e i due volumi
+  di s1.
+- **Ripristino in due passaggi.** Provato sul codice di g1 più il supplemento (job 31117), non sull'intera g1: le
+  altre categorie sono coperte dal riesame della completezza e dalle prove dei singoli volumi.
 - **Ricerca dei segreti.** È fatta con regole sui file di testo fino a 16 MiB, fuori da dati, pesi e ambienti di
   terzi.
 - **Ambiente.** Non è stato ancora ricostruito su un altro server.

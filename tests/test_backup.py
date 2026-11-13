@@ -15,7 +15,8 @@ Controlla:
   dichiarato con le esclusioni, prefisso e dipendenza di un supplemento;
 - ripristino: cat | tar -xp ricostruisce file, permessi, date, link e hard link; sha256sum -c; una parte alterata
   fa fallire la prova; base più supplemento con gli stessi nomi di volume, percorsi relativi (anche "indici"),
-  elenco dei file rimossi, ripresa senza rifare, --elimina-parti solo dopo il controllo;
+  elenco dei file rimossi, ripresa senza rifare, --elimina-parti solo dopo il controllo; composizione dello stato
+  finale (file vecchio della base rimasto, stato di Git con un file non volatile cambiato, file atteso per sha256);
 - confronto Mac: catalogo mancante o vuoto e file illeggibili danno un confronto non valido;
 - caricamento con rclone simulato: stop fra due parti e durante l'attesa, ripresa senza ricaricare le parti già su
   Drive, marcatori dello stesso piano;
@@ -207,6 +208,13 @@ def test_pure() -> None:
         pw1 = bk.PartWriter(Path(d) / "w.tar", 10)
         pw1.write(b"0123456789")
         check("parte_unica", [p["nome"] for p in pw1.close()] == ["w.tar"])
+    reports, bad = sorted((ROOT / "docs" / "backup").rglob("*.json")), []  # rapporti del backup, anche quelli scritti a mano
+    for f in reports:
+        try:
+            json.loads(f.read_text(encoding="utf-8"))
+        except ValueError as exc:
+            bad.append(f"{f.relative_to(ROOT)}: {exc}")
+    check("rapporti_json_leggibili", reports and not bad, bad)
 
 
 def test_flow(tmp: Path) -> None:
@@ -593,6 +601,28 @@ def test_correzioni(tmp: Path) -> None:
     r3 = run_script("ripristina_volumi.sh", "comp-sup/volumi.tsv", "comp-sup/parti.tsv", "staging/gsup", "indici",
                     "ricostruito", "tutti", cwd=tmp)
     check("ripristino_ripresa_senza_rifare", r3.returncode == 0 and "== " not in r3.stdout, r3.stdout[-300:])
+    # composizione: stato finale uguale agli indici in ordine meno i rimossi; un file vecchio della base la rompe
+    all_idx = [str(state / g / "indici" / f"{v['id']}.jsonl.gz")
+               for g, pl in (("gbase", pb_plan), ("gsup", ps_plan)) for v in pl["volumi"]]
+    blob = "hf/hub/models--o--m/blobs/abc"
+    comp = dict(radice=str(rb), indici=all_idx, rimossi=str(tmp / "rimossi.txt"), git_commit=None, progetto=None,
+                confronta=[], atteso=[f"{blob}={bk.file_sha256(root / blob)}"])
+    err = fails(lambda: bk.cmd_composizione(ns(**comp, report=str(tmp / "comp-ok.json"))))
+    rep = json.loads((tmp / "comp-ok.json").read_text())
+    check("composizione_conforme", err == "" and rep["esito"] == "conforme" and rep["totali"]["in_piu"] == 0
+          and rep["attesi"][blob]["sha256"] == rep["attesi"][blob]["sha256_atteso"], rep["problemi"][:3])
+    write(rb / "scripts" / "nuovo.py", "print('rimasto dalla base')\n")
+    err = fails(lambda: bk.cmd_composizione(ns(**comp, report=str(tmp / "comp-vecchio.json"))))
+    rep = json.loads((tmp / "comp-vecchio.json").read_text())
+    check("composizione_file_vecchio", err != "" and rep["esito"] == "non conforme"
+          and any(x.startswith("scripts/nuovo.py:") for x in rep["problemi"]), rep["problemi"][:3])
+    (rb / "scripts" / "nuovo.py").unlink()
+    # commit: scripts/a.py è cambiato dopo c1 e non è volatile, quindi lo stato di Git non è accettato
+    head = subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
+    err = fails(lambda: bk.cmd_composizione(ns(**{**comp, "git_commit": head}, report=str(tmp / "comp-git.json"))))
+    rep = json.loads((tmp / "comp-git.json").read_text())
+    check("composizione_git_non_volatile", err != "" and rep["git"]["head"] == head
+          and any("scripts/a.py diverso dal commit" in x for x in rep["problemi"]), rep["problemi"][:3])
     # --elimina-parti solo dopo il controllo: una parte alterata ferma tutto e le parti restano
     copy = tmp / "parti-copia"
     shutil.copytree(staging / "gsup", copy)
