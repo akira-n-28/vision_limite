@@ -1,0 +1,11 @@
+voce	python_di_base	identita	freeze	pacchetti_chiave
+venvs/build-29382	/usr/bin/python3.12	home = /usr/bin implementation = CPython uv = 0.11.32 version_info = 3.12.3 include-system-site-packages = false	outputs/env/freeze-29382.txt	limite-vllm @ file:///home/prignano/vision_limite/third_party/limite-violetto; numpy==2.3.5; torch==2.11.0+cu129; torch-c-dlpack-ext==0.1.5; torchaudio==2.11.0+cu129; torchvision==0.26.0+cu129; transformers==5.6.2; vllm @ file:///home/prignano/vision_limite/wheels/vllm-0.26.0+cu129-cp38-abi3-manylinux_2_28_x86_64.whl
+venvs/evals-build-29390	/usr/bin/python3.12	home = /usr/bin implementation = CPython uv = 0.11.32 version_info = 3.12.3 include-system-site-packages = false	outputs/env/freeze-29390.txt	limite-evals @ file:///home/prignano/vision_limite/third_party/limite-violetto/limite-evals; limite-evals-core @ file:///home/prignano/vision_limite/third_party/limite-violetto/limite-evals/packages/limite-evals-core; numpy==2.3.5; transformers==5.14.1; verifiers @ file:///home/prignano/vision_limite/third_party/verifiers
+env/uv.lock	-	sha256 6ef6de64d68a8a2c2b5f7948ef6584ee7072178f8d2e5e90acc33ad870fe1d70	-	-
+env-evals/uv.lock	-	sha256 7aeabec6395902331d146d87f6dba4a6d02c2cca79fd38c94a30e4952ed82e00	-	-
+env/pyproject.toml	-	sha256 766452391bbee392a64a66158f653e322c96e6af93b967cc8aeca1c43e58b74f	-	-
+env-evals/pyproject.toml	-	sha256 9842d9f8a2c04201d6dc4aab3e1dbbe57b59f8a601d738382943125f94af29c6	-	-
+tools/uv	-	sha256 da15297d6879b2cfbe5ea3cb03725c1613d51ba72892cc996468d871f0a532fb	-	-
+tools/rclone/rclone	-	sha256 62e4d3e5432f2c685f1834b8bb342058ff0611c99d048aeb44bb8d8fd611527e	-	-
+third_party/limite-violetto	-	commit 7ddad34f5e3d25ddea68c6745fc00373b82bca21 shallow=false	-	origin https://github.com/paradigma-inc/limite-violetto.git
+third_party/verifiers	-	commit d30a3f48e5f14b06b3081b2102ec32cc3149b849 shallow=true	-	origin https://github.com/PrimeIntellect-ai/verifiers.git

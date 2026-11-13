@@ -1,0 +1,13 @@
+link	destinazione	tipo	risolto	esiste
+data/eval-datasets/MathArena/aime_2026	/home/prignano/vision_limite/hf/hub/datasets--MathArena--aime_2026/snapshots/10b4e45b7a503075d4da8a0d57916a4f06ce6bd2	assoluto	dentro la radice	sì
+data/eval-datasets/MathArena/hmmt_feb_2026	/home/prignano/vision_limite/hf/hub/datasets--MathArena--hmmt_feb_2026/snapshots/02fba4f74d8e68e73e66a02d540fd979c05c274c	assoluto	dentro la radice	sì
+data/eval-datasets/opencompass/AIME2025	/home/prignano/vision_limite/hf/hub/datasets--opencompass--AIME2025/snapshots/a6ad95f611d72cf628a80b58bd0432ef6638f958	assoluto	dentro la radice	sì
+outputs/eval-models/models--limite-vl--f2-abl-adamw-step540/snapshots/32c985de895373507867fa4c116655ddd6ceeed6	/home/prignano/vision_limite/outputs/export/f2-abl-adamw-step540	assoluto	dentro la radice	sì
+outputs/eval-models/models--limite-vl--f2-abl-normuon-step540/snapshots/9d5d45b8bc20c82a4d0171b55790fae2d9b6319f	/home/prignano/vision_limite/outputs/export/f2-abl-normuon-step540	assoluto	dentro la radice	sì
+outputs/eval-models/models--limite-vl--prova-roundtrip-violetto/snapshots/9dc7e89e30acf473629f98ac3ade535fb05cc044	/home/prignano/vision_limite/outputs/export/roundtrip-violetto	assoluto	dentro la radice	sì
+venvs/build-29382/bin/python	/usr/bin/python3.12	assoluto	fuori dalla radice	sì
+venvs/build-29382/bin/python3	python	relativo	fuori dalla radice	sì
+venvs/build-29382/bin/python3.12	python	relativo	fuori dalla radice	sì
+venvs/evals-build-29390/bin/python	/usr/bin/python3.12	assoluto	fuori dalla radice	sì
+venvs/evals-build-29390/bin/python3	python	relativo	fuori dalla radice	sì
+venvs/evals-build-29390/bin/python3.12	python	relativo	fuori dalla radice	sì
